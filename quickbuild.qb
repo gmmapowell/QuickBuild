@@ -1,0 +1,22 @@
+# where to put output files
+output qbout
+
+# where to find libraries
+libs lib
+
+# specify a maven repository
+repo http://repo1.maven.org/maven2
+
+# Specify a proxy connection from a particular location
+proxy gmmapowell.homeip.net
+  host squid
+  port 8080
+  user gareth
+  password powell
+
+# Load maven files from the repo using the "Apache Buildr" format
+maven junit:junit:jar:4.8.2
+
+# build java code, junit tests, run junit tests and jar up the results
+jar Utils
+jar QuickBuild
