@@ -1,4 +1,4 @@
-package com.gmmapowell.quickbuild.app;
+package com.gmmapowell.quickbuild.config;
 
 public class Arguments {
 

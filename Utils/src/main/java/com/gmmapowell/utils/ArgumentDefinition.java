@@ -1,15 +1,15 @@
 package com.gmmapowell.utils;
 
 public class ArgumentDefinition {
-	private final String argument;
-	private final Cardinality cardinality;
-	private final String toVar;
-	private final String msg;
+	final String text;
+	final Cardinality cardinality;
+	final String toVar;
+	final String message;
 
 	public ArgumentDefinition(String argument, Cardinality cardinality, String toVar, String msg) {
-		this.argument = argument;
+		this.text = argument;
 		this.cardinality = cardinality;
 		this.toVar = toVar;
-		this.msg = msg;
+		this.message = msg;
 	}
 }
