@@ -1,0 +1,9 @@
+#!/bin/sh
+
+pushd `dirname $0` > /dev/null
+SCRIPTDIR=`pwd`
+popd > /dev/null
+ROOTDIR=`dirname $SCRIPTDIR`
+WINDIR=`cygpath -w $ROOTDIR`
+
+java -classpath $WINDIR/QuickBuild/qbout/QuickBuild.jar\;$WINDIR/Utils/qbout/Utils.jar com.gmmapowell.quickbuild.app.QuickBuild "$@"

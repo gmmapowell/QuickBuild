@@ -77,7 +77,9 @@ public class FileUtils {
 	}
 	
 	public static File relativePath(File qbdir, String string) {
-		if (qbdir.isAbsolute())
+		if (qbdir == null)
+			return new File(string);
+		else if (qbdir.isAbsolute())
 			return new File(qbdir, string);
 		else
 			return relativePath(new File(qbdir, string).getPath());

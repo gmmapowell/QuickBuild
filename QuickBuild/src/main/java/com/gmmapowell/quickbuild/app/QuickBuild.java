@@ -46,7 +46,6 @@ public class QuickBuild {
 		for (Project p : changedProjects)
 			System.out.println(p);
 		
-		System.exit(0);
 		// TODO: figure through the dependency graph to see what needs doing ...
 		
 		// now we try and build stuff ...

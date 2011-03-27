@@ -44,8 +44,13 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		super(ConfigApplyCommand.class, ConfigBuildCommand.class);
 		try
 		{
-			this.qbdir = qbdir.getCanonicalFile();
-			FileUtils.chdir(qbdir);
+			if (qbdir == null)
+				this.qbdir = null;
+			else
+			{
+				this.qbdir = qbdir.getCanonicalFile();
+				FileUtils.chdir(qbdir);
+			}
 			mvnrepos.add("http://repo1.maven.org/maven2");
 		}
 		catch (IOException ex)
@@ -194,6 +199,7 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 			sb.append("    repo: " + s + "\n");
 		sb.append("  output = " + output + "\n");
 		sb.append("  qbdir = " + qbdir + "\n");
+		sb.append("");
 		sb.append("Commands:\n");
 		for (ConfigCommand cc : commands)
 			sb.append(cc);
