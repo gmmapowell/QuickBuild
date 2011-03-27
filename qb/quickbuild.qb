@@ -21,5 +21,5 @@ libs lib
 maven junit:junit:jar:4.8.2
 
 # build java code, junit tests, run junit tests and jar up the results
-jar Utils
 jar QuickBuild
+jar Utils

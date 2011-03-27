@@ -3,7 +3,6 @@ package com.gmmapowell.utils;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -16,7 +15,7 @@ import com.gmmapowell.exceptions.UtilException;
 
 public class FileUtils {
 
-	public static class GlobFilter implements FilenameFilter {
+	public static class GlobFilter implements FileFilter {
 		private final String pattern;
 
 		public GlobFilter(String pattern) {
@@ -24,8 +23,8 @@ public class FileUtils {
 		}
 
 		@Override
-		public boolean accept(File dir, String name) {
-			return StringUtil.globMatch(pattern, name);
+		public boolean accept(File f) {
+			return StringUtil.globMatch(pattern, f.getName());
 		}
 	}
 
@@ -36,9 +35,9 @@ public class FileUtils {
 		}
 	};
 
-	private static FilenameFilter anyFile = new FilenameFilter() {
+	private static FileFilter anyFile = new FileFilter() {
 		@Override
-		public boolean accept(File dir, String name) {
+		public boolean accept(File dir) {
 			return true;
 		}
 	};
@@ -119,12 +118,20 @@ public class FileUtils {
 		List<File> ret = new ArrayList<File>();
 		if (!file.exists())
 			throw new UtilException("There is no file " + file);
-		FilenameFilter filter = new GlobFilter(string);
+		FileFilter filter = new GlobFilter(string);
 		findRecursive(ret, filter, under, file);
 		return ret;
 	}
 
-	private static void findRecursive(List<File> ret, FilenameFilter filter, File under, File dir) {
+	public static List<File> findDirectoriesUnder(File dir) {
+		List<File> ret = new ArrayList<File>();
+		if (!dir.exists())
+			throw new UtilException("There is no file " + dir);
+		findRecursive(ret, isdirectory, dir, dir);
+		return ret;
+	}
+
+	private static void findRecursive(List<File> ret, FileFilter filter, File under, File dir) {
 		File[] contents = dir.listFiles(filter);
 		if (contents == null)
 			return;

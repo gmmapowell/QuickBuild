@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.collections.SetMap;
 import com.gmmapowell.collections.StateMap;
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.graphs.DependencyGraph;
 import com.gmmapowell.graphs.Link;
 import com.gmmapowell.graphs.Node;
@@ -22,17 +24,33 @@ import com.gmmapowell.xml.XMLElement;
 
 public class BuildContext {
 	private final Map<String, JarResource> availablePackages = new HashMap<String, JarResource>();
+	private final ListMap<String, Project> projectPackages = new ListMap<String, Project>();
 	private final ListMap<Project, File> previouslyBuilt = new ListMap<Project, File>();
 	private final StateMap<Project, SetMap<String, File>> packagesProvidedByDirectoriesInProject = new StateMap<Project, SetMap<String, File>>();
 	private final List<JarResource> builtJars = new ArrayList<JarResource>();
 	private final Config conf;
 	private final DependencyGraph<BuildResource> dependencies = new DependencyGraph<BuildResource>();
 	private final List<JUnitFailure> failures = new ArrayList<JUnitFailure>();
+	private final File dependencyFile;
+	private final List<BuildCommand> cmds;
+	private int commandToExecute;
+	private int targetFailures;
 
 	public BuildContext(Config conf) {
 		this.conf = conf;
 		conf.supplyPackages(availablePackages);
-		conf.provideDependencies(dependencies);
+		conf.provideBaseJars(dependencies);
+		dependencyFile = new File(conf.getCacheDir(), "dependencies.xml");
+		cmds = conf.getBuildCommandsInOrder();
+		for (BuildCommand cmd : cmds)
+		{
+			Set<String> packagesForCommand = cmd.getPackagesProvided();
+			if (packagesForCommand != null)
+			{
+				for (String s : packagesForCommand)
+					projectPackages.add(s, cmd.getProject());
+			}
+		}
 	}
 
 	public void addClassDirForProject(Project proj, File dir)
@@ -63,6 +81,7 @@ public class BuildContext {
 	
 	// TODO: this is more general than just a java build command, but what?
 	public void addDependency(JavaBuildCommand javaBuildCommand, String needsJavaPackage) {
+		// First, try and resolve it with a base jar, or a built jar
 		if (availablePackages.containsKey(needsJavaPackage))
 		{
 			JarResource provider = availablePackages.get(needsJavaPackage);
@@ -70,6 +89,8 @@ public class BuildContext {
 			dependencies.ensureLink(javaBuildCommand.getProject(), provider);
 			return; // do something
 		}
+		
+		// Then see if it is somewhere else in the same project
 		if (packagesProvidedByDirectoriesInProject.containsKey(javaBuildCommand.getProject()))
 		{
 			SetMap<String, File> listMap = packagesProvidedByDirectoriesInProject.get(javaBuildCommand.getProject());
@@ -81,8 +102,39 @@ public class BuildContext {
 				}
 				return;
 			}
-		}			
+		}
+		
+		// OK, try and move the projects around a bit
+		if (projectPackages.contains(needsJavaPackage))
+		{
+			List<Project> list = projectPackages.get(needsJavaPackage);
+			for (Project p : list)
+			{
+				moveUp(javaBuildCommand, p);
+			}
+			return;
+		}
 		throw new QuickBuildException("There is no java package " + needsJavaPackage);
+	}
+
+	private void moveUp(JavaBuildCommand from, Project p) {
+		int moveTo = -1;
+		for (int cmd=commandToExecute;cmd<cmds.size();cmd++)
+		{
+			BuildCommand bc = cmds.get(cmd);
+			if (bc == from)
+				moveTo = cmd;
+			if (moveTo == -1)
+				continue;
+			if (bc.getProject() == p)
+			{
+				cmds.remove(cmd);
+				cmds.add(moveTo++, bc);
+			}
+		}
+	}
+
+	public void loadCache() {
 	}
 
 	public void saveDependencies() {
@@ -101,7 +153,7 @@ public class BuildContext {
 				}
 			}
 		});
-		output.write(new File(conf.getCacheDir(), "dependencies.xml"));
+		output.write(dependencyFile);
 	}
 
 	public boolean execute(BuildCommand bc) {
@@ -117,6 +169,26 @@ public class BuildContext {
 	public void showAnyErrors() {
 		for (JUnitFailure failure : failures)
 			failure.show();
+	}
+
+	public BuildCommand next() {
+		if (commandToExecute >= cmds.size())
+			return null;
+		
+		BuildCommand bc = cmds.get(commandToExecute);
+		System.out.println((commandToExecute+1) + ": " + bc);
+		return bc;
+	}
+
+	public void advance() {
+		targetFailures = 0;
+		commandToExecute++;
+	}
+
+	public void buildFail() {
+		BuildCommand bc = cmds.get(commandToExecute);
+		if (++targetFailures >= 3)
+			throw new UtilException("The command " + bc + " failed 3 times in a row");
 	}
 
 }

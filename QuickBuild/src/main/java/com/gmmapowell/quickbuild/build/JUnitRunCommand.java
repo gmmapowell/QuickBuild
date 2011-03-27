@@ -1,6 +1,7 @@
 package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
+import java.util.Set;
 
 import com.gmmapowell.quickbuild.config.Project;
 import com.gmmapowell.system.RunProcess;
@@ -50,6 +51,11 @@ public class JUnitRunCommand implements BuildCommand {
 	@Override
 	public String toString() {
 		return "JUnit Runner: " + srcdir;
+	}
+
+	@Override
+	public Set<String> getPackagesProvided() {
+		return null;
 	}
 
 

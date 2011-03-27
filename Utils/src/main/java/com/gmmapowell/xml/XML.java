@@ -50,7 +50,7 @@ public class XML {
 		}
 	}
 
-	public static XML fromFile(File f) throws IOException {
+	public static XML fromFile(File f) {
 		FileInputStream fis = null;
 		try
 		{
@@ -58,9 +58,13 @@ public class XML {
 			XML ret = new XML(fis);
 			return ret;
 		}
+		catch (IOException ex)
+		{
+			throw UtilException.wrap(ex);
+		}
 		finally {
 			if (fis != null)
-				fis.close();
+				try { fis.close(); } catch (IOException ex) { }
 		}
 	}
 

@@ -1,10 +1,8 @@
 package com.gmmapowell.quickbuild.app;
 
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 
-import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
 import com.gmmapowell.quickbuild.build.BuildCommand;
@@ -38,6 +36,8 @@ public class QuickBuild {
 		System.out.print(conf);
 		
 		// now we need to read back anything we've cached ...
+		BuildContext cxt = new BuildContext(conf);
+		cxt.loadCache();
 		
 		// determine what we need to build from git ...
 		Set<Project> changedProjects = conf.projectsFor(GitHelper.changedProjects(conf.projectMappings().keySet()));
@@ -51,23 +51,16 @@ public class QuickBuild {
 		// now we try and build stuff ...
 		System.out.println("");
 		System.out.println("Building ...");
-		BuildContext cxt = new BuildContext(conf);
-		List<BuildCommand> cmds = conf.getBuildCommandsInOrder();
-		int cnt = 0;
-		int failures = 0;
-		while (cnt < cmds.size())
+		BuildCommand bc;
+		while ((bc = cxt.next())!= null)
 		{
-			BuildCommand bc = cmds.get(cnt);
-			System.out.println((cnt+1) + ": " + bc);
 			if (!cxt.execute(bc))
 			{
 				System.out.println("  Failed ... retrying");
-				if (++failures > 3)
-					throw new UtilException("The command " + bc + " failed 5 times in a row");
+				cxt.buildFail();
 				continue;
 			}
-			failures = 0;
-			cnt++;
+			cxt.advance();
 		}
 		cxt.saveDependencies();
 		cxt.showAnyErrors();

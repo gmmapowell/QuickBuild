@@ -2,6 +2,8 @@ package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
 import java.io.StringReader;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.gmmapowell.parser.LinePatternMatch;
 import com.gmmapowell.parser.LinePatternParser;
@@ -86,5 +88,15 @@ public class JavaBuildCommand implements BuildCommand {
 
 	public BuildClassPath getClassPath() {
 		return classpath;
+	}
+
+	@Override
+	public Set<String> getPackagesProvided() {
+		Set<String> ret = new HashSet<String>();
+		for (File f : FileUtils.findDirectoriesUnder(srcdir))
+		{
+			ret.add(FileUtils.convertToDottedName(f));
+		}
+		return ret;
 	}
 }

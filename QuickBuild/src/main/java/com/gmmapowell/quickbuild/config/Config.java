@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -103,7 +104,8 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 				throw new QuickBuildException("Cannot have multiple projects in same directory");
 			projects.put(proj.getBaseDir(), proj);
 
-			buildcmds.addAll(c.buildCommands());
+			Collection<? extends BuildCommand> cmds = c.buildCommands();
+			buildcmds.addAll(cmds);
 		}
 	}
 	
@@ -139,7 +141,7 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		throw new QuickBuildException("Could not find maven package " + pkginfo);
 	}
 	
-	public void provideDependencies(DependencyGraph<BuildResource> dependencies) {
+	public void provideBaseJars(DependencyGraph<BuildResource> dependencies) {
 		for (JarResource jr : availableJars)
 		{
 			dependencies.newNode(jr);

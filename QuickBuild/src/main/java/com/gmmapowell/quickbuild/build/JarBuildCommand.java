@@ -3,6 +3,7 @@ package com.gmmapowell.quickbuild.build;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.gmmapowell.quickbuild.config.Project;
 import com.gmmapowell.system.RunProcess;
@@ -55,5 +56,11 @@ public class JarBuildCommand implements BuildCommand {
 	@Override
 	public Project getProject() {
 		return project;
+	}
+
+	@Override
+	public Set<String> getPackagesProvided() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
