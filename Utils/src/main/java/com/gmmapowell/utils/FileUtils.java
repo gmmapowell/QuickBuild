@@ -129,17 +129,23 @@ public class FileUtils {
 		return new File(tf.substring(uf.length()));
 	}
 
-	public static String convertToPackageName(File path) {
+	public static String convertToDottedName(File path) {
 		if (path.getParent() == null)
 			return dropExtension(path.getName());
-		return convertToPackageName(path.getParentFile()) + "." + dropExtension(path.getName());
+		return convertToDottedName(path.getParentFile()) + "." + path.getName();
+	}
+
+	public static String convertToDottedNameDroppingExtension(File path) {
+		if (path.getParent() == null)
+			return dropExtension(path.getName());
+		return convertToDottedName(path.getParentFile()) + "." + dropExtension(path.getName());
 	}
 
 	private static String dropExtension(String name) {
 		int idx = name.indexOf('.');
 		if (idx == -1)
 			return name;
-		return name; //.substring(0, idx);
+		return name.substring(0, idx);
 	}
 
 	public static File mavenToFile(String pkginfo) {

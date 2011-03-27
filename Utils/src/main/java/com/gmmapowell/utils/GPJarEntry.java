@@ -11,7 +11,7 @@ public class GPJarEntry {
 	}
 
 	public String getPackage() {
-		return FileUtils.convertToPackageName(new File(entry.getName()).getParentFile());
+		return FileUtils.convertToDottedName(new File(entry.getName()).getParentFile());
 	}
 
 	public boolean isClassFile() {

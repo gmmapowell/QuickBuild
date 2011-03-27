@@ -83,4 +83,8 @@ public class JavaBuildCommand implements BuildCommand {
 	public Project getProject() {
 		return project;
 	}
+
+	public BuildClassPath getClassPath() {
+		return classpath;
+	}
 }

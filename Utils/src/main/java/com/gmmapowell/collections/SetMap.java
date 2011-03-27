@@ -23,6 +23,13 @@ public class SetMap<K, V> implements Iterable<K> {
 		return map.keySet().iterator();
 	}
 	
+	public Iterable<V> values() {
+		Set<V> accum = new HashSet<V>();
+		for (Set<V> v : map.values())
+			accum.addAll(v);
+		return accum;
+	}
+	
 	public Set<V> get(K k)
 	{
 		if (!map.containsKey(k))

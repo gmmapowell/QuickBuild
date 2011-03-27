@@ -58,5 +58,6 @@ public class QuickBuild {
 			cnt++;
 		}
 		cxt.saveDependencies();
+		cxt.showAnyErrors();
 	}
 }

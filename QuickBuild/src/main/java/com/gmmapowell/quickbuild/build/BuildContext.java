@@ -27,6 +27,7 @@ public class BuildContext {
 	private final List<JarResource> builtJars = new ArrayList<JarResource>();
 	private final Config conf;
 	private final DependencyGraph<BuildResource> dependencies = new DependencyGraph<BuildResource>();
+	private final List<JUnitFailure> failures = new ArrayList<JUnitFailure>();
 
 	public BuildContext(Config conf) {
 		this.conf = conf;
@@ -39,7 +40,7 @@ public class BuildContext {
 		previouslyBuilt.add(proj, dir);
 		SetMap<String, File> dirProvider = packagesProvidedByDirectoriesInProject.require(proj, SetMap.class);
 		for (File f : FileUtils.findFilesUnderMatching(dir, "*.class"))
-			dirProvider.add(FileUtils.convertToPackageName(f.getParentFile()), dir);
+			dirProvider.add(FileUtils.convertToDottedName(f.getParentFile()), dir);
 	}
 
 	public void addBuiltJar(Project project, File jarfile) {
@@ -49,6 +50,15 @@ public class BuildContext {
 		dependencies.ensureLink(jar, project);
 		conf.jarSupplies(jar, availablePackages);
 		conf.showDuplicates();
+	}
+	
+	public void addAllProjectDirs(RunClassPath classpath, Project project) {
+		if (packagesProvidedByDirectoriesInProject.containsKey(project))
+		{
+			SetMap<String, File> setMap = packagesProvidedByDirectoriesInProject.get(project);
+			for (File f : setMap.values())
+				classpath.add(f);
+		}			
 	}
 	
 	// TODO: this is more general than just a java build command, but what?
@@ -97,6 +107,16 @@ public class BuildContext {
 	public boolean execute(BuildCommand bc) {
 		dependencies.ensure(bc.getProject());
 		return bc.execute(this);
+	}
+
+	public void junitFailure(JUnitRunCommand cmd, String stdout, String stderr) {
+		JUnitFailure failure = new JUnitFailure(cmd, stdout, stderr);
+		failures.add(failure);
+	}
+
+	public void showAnyErrors() {
+		for (JUnitFailure failure : failures)
+			failure.show();
 	}
 
 }
