@@ -2,6 +2,7 @@ package com.gmmapowell.quickbuild.app;
 
 import java.util.List;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
 import com.gmmapowell.quickbuild.build.BuildCommand;
 import com.gmmapowell.quickbuild.build.BuildContext;
@@ -39,17 +40,19 @@ public class QuickBuild {
 		BuildContext cxt = new BuildContext(conf);
 		List<BuildCommand> cmds = conf.getBuildCommandsInOrder();
 		int cnt = 0;
+		int failures = 0;
 		while (cnt < cmds.size())
 		{
 			BuildCommand bc = cmds.get(cnt);
 			System.out.println((cnt+1) + ": " + bc);
-			try {
-				bc.execute(cxt);
-			}
-			catch (Throwable t)
+			if (!bc.execute(cxt))
 			{
-				t.printStackTrace();
+				System.out.println("  Failed ... retrying");
+				if (++failures > 5)
+					throw new UtilException("The command " + bc + " failed 5 times in a row");
+				continue;
 			}
+			failures = 0;
 			cnt++;
 		}
 	}

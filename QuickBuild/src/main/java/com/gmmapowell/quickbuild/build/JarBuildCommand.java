@@ -16,9 +16,8 @@ public class JarBuildCommand implements BuildCommand {
 	}
 
 	@Override
-	public void execute(BuildContext cxt) {
-		// TODO Auto-generated method stub
-		
+	public boolean execute(BuildContext cxt) {
+		return false;
 	}
 
 	@Override

@@ -9,4 +9,9 @@ public class BuildContext {
 		this.conf = conf;
 	}
 
+	public void addDependency(JavaBuildCommand javaBuildCommand, String string) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
