@@ -6,6 +6,6 @@ import com.gmmapowell.quickbuild.build.BuildCommand;
 
 public interface ConfigBuildCommand extends ConfigCommand {
 
-	Collection<? extends BuildCommand> buildCommands();
+	Collection<? extends BuildCommand> buildCommands(Config conf);
 
 }

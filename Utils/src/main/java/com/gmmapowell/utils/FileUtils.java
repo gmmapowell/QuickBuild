@@ -30,9 +30,25 @@ public class FileUtils {
 		}
 	};
 
+	private static File root = new File(System.getProperty("user.dir"));
+
+	public static void chdir(File parentFile) {
+		try
+		{
+			root = new File(root, parentFile.getPath()).getCanonicalFile();
+			if (!root.isDirectory())
+				throw new UtilException("Cannot have " + root + " be the root directory, because it does not exist");
+			System.out.println("Root directory is now: " + root);
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
+	}
+
 	// TODO: this should consider all possible breakups based on -
 	public static File findDirectoryNamed(String projectName) {
-		File ret = new File(projectName);
+		File ret = new File(root, projectName);
 		if (ret.isDirectory())
 			return ret;
 		throw new UtilException("There is no project directory: " + projectName);
@@ -88,5 +104,4 @@ public class FileUtils {
 			return name;
 		return name; //.substring(0, idx);
 	}
-
 }

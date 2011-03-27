@@ -8,7 +8,6 @@ import java.util.List;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildClassPath;
 import com.gmmapowell.quickbuild.build.BuildCommand;
-import com.gmmapowell.quickbuild.build.FilesToJar;
 import com.gmmapowell.quickbuild.build.JarBuildCommand;
 import com.gmmapowell.quickbuild.build.JavaBuildCommand;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
@@ -40,12 +39,12 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	}
 
 	@Override
-	public Collection<? extends BuildCommand> buildCommands() {
+	public Collection<? extends BuildCommand> buildCommands(Config conf) {
 		JarBuildCommand jar = new JarBuildCommand(projectDir);
 		List<BuildCommand> ret = new ArrayList<BuildCommand>();
 		BuildClassPath bcp = new BuildClassPath();
-		addJavaBuild(ret, jar, bcp, "src/main/java", "classes");
-		addJavaBuild(ret, null, bcp, "src/test/java", "test-classes");
+		addJavaBuild(conf, ret, jar, bcp, "src/main/java", "classes");
+		addJavaBuild(conf, ret, null, bcp, "src/test/java", "test-classes");
 		addResources(jar, bcp, "src/main/resources");
 		addResources(null, bcp, "src/main/resources");
 		if (ret.size() == 0)
@@ -54,13 +53,13 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		return ret;
 	}
 
-	private void addJavaBuild(List<BuildCommand> ret, JarBuildCommand jar, BuildClassPath bcp, String src, String bin) {
+	private void addJavaBuild(Config conf, List<BuildCommand> ret, JarBuildCommand jar, BuildClassPath bcp, String src, String bin) {
 		if (new File(projectDir, src).isDirectory())
 		{
 			bcp.add(new File(projectDir, bin));
 			if (jar != null)
 				jar.add(new File(projectDir, bin));
-			ret.add(new JavaBuildCommand(projectDir, src, bin));
+			ret.add(new JavaBuildCommand(conf, projectDir, src, bin));
 		}
 	}
 	

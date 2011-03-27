@@ -5,33 +5,38 @@ import java.io.StringReader;
 
 import com.gmmapowell.parser.LinePatternMatch;
 import com.gmmapowell.parser.LinePatternParser;
+import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
 public class JavaBuildCommand implements BuildCommand {
-	private final File projectDir;
-	private final String src;
-	private final String bin;
 	private final File srcdir;
+	private final File bindir;
 	private final BuildClassPath classpath;
 
-	public JavaBuildCommand(File projectDir, String src, String bin) {
-		this.projectDir = projectDir;
-		this.src = src;
-		this.bin = bin;
+	public JavaBuildCommand(Config conf, File projectDir, String src, String bin) {
 		this.srcdir = new File(projectDir, src);
+		this.bindir = new File(conf.getOutputDir(projectDir), bin);
+		if (!bindir.exists())
+			if (!bindir.mkdirs())
+				throw new QuickBuildException("Cannot build " + srcdir + " because the build directory cannot be created");
+		if (bindir.exists() && !bindir.isDirectory())
+			throw new QuickBuildException("Cannot build " + srcdir + " because the build directory is not a directory");
 		this.classpath = new BuildClassPath();
 	}
 
 	@Override
 	public boolean execute(BuildContext cxt) {
+		
 		RunProcess proc = new RunProcess("javac.exe");
 		proc.captureStdout();
 		proc.captureStderr();
 		
 		proc.arg("-sourcepath");
 		proc.arg(srcdir.getPath());
+		proc.arg("-d");
+		proc.arg(bindir.getPath());
 		proc.arg("-classpath");
 		proc.arg(classpath.toString());
 		for (File f : FileUtils.findFilesMatching(srcdir, "*.java"))
@@ -57,11 +62,12 @@ public class JavaBuildCommand implements BuildCommand {
 			}
 			return false;
 		}
+		System.out.println(proc.getStderr());
 		throw new QuickBuildException("The exit code was " + proc.getExitCode());
 	}
 
 	@Override
 	public String toString() {
-		return "Java Compile: " + src;
+		return "Java Compile: " + srcdir;
 	}
 }

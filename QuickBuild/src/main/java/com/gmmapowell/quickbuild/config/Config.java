@@ -1,7 +1,9 @@
 package com.gmmapowell.quickbuild.config;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.gmmapowell.quickbuild.build.BuildCommand;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
@@ -26,22 +28,34 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		else
 			throw new QuickBuildException("'" + cmd + "' is not an acceptable child");
 	}
-
+	
 	public void setOutputDir(String output) {
 		if (this.output != null)
 			throw new QuickBuildException("You cannot set the output dir more than once");
 		this.output = output;
 	}
+
+	public File getOutputDir(File forProject) {
+		return new File(forProject, output);
+	}
 	
 	public void done() {
 		for (ConfigBuildCommand c : commands)
 		{
-			buildcmds.addAll(c.buildCommands());
+			buildcmds.addAll(c.buildCommands(this));
 		}
 	}
 	
 	public List<BuildCommand> getBuildCommandsInOrder() {
 		return buildcmds;
+	}
+
+	/** Copy across all the packages which are defined in global things to a build context
+	 * @param availablePackages the map to copy into
+	 */
+	public void supplyPackages(Map<String, String> availablePackages) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 	@Override

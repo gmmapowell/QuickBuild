@@ -5,6 +5,9 @@ proxy gmmapowell.homeip.net
   user gareth
   password powell
 
+# where the root is relative to this file (optional, default = .)
+root ..
+
 # where to put output files
 output qbout
 

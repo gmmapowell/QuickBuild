@@ -6,7 +6,6 @@ import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 
 public class ConfigFactory implements CommandObjectFactory {
-
 	@Override
 	public Parent<?> create(String cmd, TokenizedLine toks) {
 		if (cmd.equals("proxy"))
@@ -28,6 +27,10 @@ public class ConfigFactory implements CommandObjectFactory {
 		else if (cmd.equals("password"))
 		{
 			return new ProxyPasswordCommand(toks);
+		}
+		else if (cmd.equals("root"))
+		{
+			return new RootCommand(toks);
 		}
 		else if (cmd.equals("output"))
 		{
