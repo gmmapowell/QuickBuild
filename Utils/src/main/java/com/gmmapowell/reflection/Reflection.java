@@ -23,6 +23,10 @@ public class Reflection {
 			else
 				throw new UtilException("The field " + fieldName + " is not assignable from " + value.getClass());
 		}
+		catch (NoSuchFieldException ex)
+		{
+			throw new UtilException("The field '" + ex.getMessage() +"' was not defined in " + target.getClass(), ex);
+		}
 		catch (Exception ex)
 		{
 			throw UtilException.wrap(ex);

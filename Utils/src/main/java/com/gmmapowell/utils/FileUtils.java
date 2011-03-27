@@ -2,8 +2,12 @@ package com.gmmapowell.utils;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.gmmapowell.exceptions.UtilException;
@@ -38,12 +42,22 @@ public class FileUtils {
 			root = new File(root, parentFile.getPath()).getCanonicalFile();
 			if (!root.isDirectory())
 				throw new UtilException("Cannot have " + root + " be the root directory, because it does not exist");
-			System.out.println("Root directory is now: " + root);
 		}
 		catch (Exception ex)
 		{
 			throw UtilException.wrap(ex);
 		}
+	}
+
+	public static File relativePath(String string) {
+		return new File(root, string);
+	}
+	
+	public static File relativePath(File qbdir, String string) {
+		if (qbdir.isAbsolute())
+			return new File(qbdir, string);
+		else
+			return relativePath(new File(qbdir, string).getPath());
 	}
 
 	// TODO: this should consider all possible breakups based on -
@@ -103,5 +117,62 @@ public class FileUtils {
 		if (idx == -1)
 			return name;
 		return name; //.substring(0, idx);
+	}
+
+	public static File mavenToFile(String pkginfo) {
+		String[] spl = pkginfo.split(":");
+		if (spl == null || spl.length != 4)
+			throw new UtilException("'" + pkginfo + "' is not a valid maven package name");
+		return fileConcat(convertPackageToPath(spl[0]).getPath(), spl[1], spl[3], spl[1]+"-"+spl[3]+"."+spl[2]);
+	}
+
+	private static File convertPackageToPath(String pkg) {
+		String[] spl = pkg.split("\\.");
+		return fileConcat(spl);
+	}
+
+	private static File fileConcat(String... spl) {
+		File ret = null;
+		for (String s : spl)
+		{
+			if (s == null)
+				continue;
+			if (ret == null)
+				ret = new File(s);
+			else
+				ret = new File(ret, s);
+		}
+		if (ret == null)
+			throw new UtilException("Could not concatenate " + Arrays.toString(spl));
+		return ret;
+	}
+
+	public static String urlPath(String root, File mavenToFile) {
+		if (mavenToFile == null)
+		{
+			if (root.endsWith("/"))
+				return root.substring(0, root.length()-1);
+			return root;
+		}
+		return urlPath(root, mavenToFile.getParentFile()) + "/" + mavenToFile.getName();
+	}
+
+	public static void copyStream(InputStream inputStream, FileOutputStream fos) throws IOException {
+		byte[] bs = new byte[500];
+		int cnt = 0;
+		while ((cnt = inputStream.read(bs, 0, 500)) > 0)
+			fos.write(bs, 0, cnt);
+	}
+
+	public static void assertDirectory(File file) {
+		if (!file.exists())
+			if (!file.mkdirs())
+				throw new UtilException("Cannot create directory " + file);
+		if (!file.isDirectory())
+			throw new UtilException("Maven cache directory '" + file + "' is not a directory");
+	}
+
+	public static File getCurrentDir() {
+		return root;
 	}
 }

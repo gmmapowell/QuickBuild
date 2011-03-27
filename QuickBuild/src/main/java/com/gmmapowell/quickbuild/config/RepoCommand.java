@@ -2,16 +2,22 @@ package com.gmmapowell.quickbuild.config;
 
 import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.TokenizedLine;
+import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.utils.Cardinality;
 
 public class RepoCommand extends NoChildCommand implements ConfigApplyCommand {
-
+	private String repo;
+	
 	public RepoCommand(TokenizedLine toks) {
-		// TODO Auto-generated constructor stub
+		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "repo", "maven package name"));
 	}
 
 	@Override
 	public void applyTo(Config config) {
-		// TODO Auto-generated method stub
+		if (repo.equals("-"))
+			config.clearMavenRepos();
+		else
+			config.addMavenRepo(repo);
 		
 	}
 

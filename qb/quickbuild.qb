@@ -1,5 +1,5 @@
 # Specify a proxy connection from a particular location
-proxy gmmapowell.homeip.net
+proxy 172.21.141/8
   host squid
   port 8080
   user gareth
@@ -15,7 +15,7 @@ output qbout
 libs lib
 
 # specify a maven repository
-repo http://repo1.maven.org/maven2
+# repo http://repo1.maven.org/maven2
 
 # Load maven files from the repo using the "Apache Buildr" format
 maven junit:junit:jar:4.8.2

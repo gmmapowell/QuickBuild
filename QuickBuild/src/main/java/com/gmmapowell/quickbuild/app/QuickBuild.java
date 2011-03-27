@@ -12,7 +12,6 @@ import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
-import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.ProcessArgs;
 
 public class QuickBuild {
@@ -28,8 +27,8 @@ public class QuickBuild {
 	{
 		arguments = new Arguments();
 		ProcessArgs.process(arguments, argumentDefinitions, args);
-		FileUtils.chdir(new File(arguments.file).getParentFile());
-		Config conf = new Config();
+		
+		Config conf = new Config(new File(arguments.file).getParentFile());
 		SignificantWhiteSpaceFileReader.read(conf, configFactory, arguments.file);
 		conf.done();
 		System.out.println("Configuration:");
