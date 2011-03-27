@@ -2,7 +2,9 @@ package com.gmmapowell.quickbuild.config;
 
 import java.io.File;
 
-public class Project {
+import com.gmmapowell.quickbuild.build.BuildResource;
+
+public class Project implements BuildResource {
 	private final String name;
 	private final File basedir;
 	private final File outdir;
@@ -23,6 +25,11 @@ public class Project {
 
 	public String getName() {
 		return name;
+	}
+	
+	@Override
+	public String toString() {
+		return "Project["+name+"]";
 	}
 
 }

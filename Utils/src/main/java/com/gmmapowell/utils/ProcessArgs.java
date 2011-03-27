@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.gmmapowell.collections.StateMap;
 import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.lambda.Func1R;
+import com.gmmapowell.lambda.FuncR1;
 import com.gmmapowell.reflection.Reflection;
 
 public class ProcessArgs {
@@ -40,7 +40,7 @@ public class ProcessArgs {
 						{
 							Reflection.setField(config, ad.toVar, args[i]);
 							// need to save it
-							argcount.op(ad, 1, new Func1R<Integer, Integer>() {
+							argcount.op(ad, 1, new FuncR1<Integer, Integer>() {
 								@Override
 								public Integer apply(Integer arg) {
 									return arg+1;

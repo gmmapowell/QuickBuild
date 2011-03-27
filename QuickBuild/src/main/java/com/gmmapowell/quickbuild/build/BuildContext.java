@@ -9,21 +9,24 @@ import java.util.Map;
 import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.collections.SetMap;
 import com.gmmapowell.collections.StateMap;
+import com.gmmapowell.graphs.DependencyGraph;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.Project;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
 
 public class BuildContext {
-	private final Map<String, File> availablePackages = new HashMap<String, File>();
+	private final Map<String, JarResource> availablePackages = new HashMap<String, JarResource>();
 	private final ListMap<Project, File> previouslyBuilt = new ListMap<Project, File>();
 	private final StateMap<Project, SetMap<String, File>> packagesProvidedByDirectoriesInProject = new StateMap<Project, SetMap<String, File>>();
-	private final List<File> builtJars = new ArrayList<File>();
+	private final List<JarResource> builtJars = new ArrayList<JarResource>();
 	private final Config conf;
+	private final DependencyGraph<BuildResource> dependencies = new DependencyGraph<BuildResource>();
 
 	public BuildContext(Config conf) {
 		this.conf = conf;
 		conf.supplyPackages(availablePackages);
+		conf.provideDependencies(dependencies);
 	}
 
 	public void addClassDirForProject(Project proj, File dir)
@@ -35,8 +38,11 @@ public class BuildContext {
 	}
 
 	public void addBuiltJar(Project project, File jarfile) {
-		builtJars.add(jarfile);
-		conf.jarSupplies(jarfile, availablePackages);
+		JarResource jar = new JarResource(jarfile);
+		builtJars.add(jar);
+		dependencies.newNode(jar);
+		dependencies.ensureLink(jar, project);
+		conf.jarSupplies(jar, availablePackages);
 		conf.showDuplicates();
 	}
 	
@@ -44,7 +50,9 @@ public class BuildContext {
 	public void addDependency(JavaBuildCommand javaBuildCommand, String needsJavaPackage) {
 		if (availablePackages.containsKey(needsJavaPackage))
 		{
-			javaBuildCommand.addJar(availablePackages.get(needsJavaPackage));
+			JarResource provider = availablePackages.get(needsJavaPackage);
+			javaBuildCommand.addJar(provider.getFile());
+			dependencies.ensureLink(javaBuildCommand.getProject(), provider);
 			return; // do something
 		}
 		if (packagesProvidedByDirectoriesInProject.containsKey(javaBuildCommand.getProject()))
@@ -60,6 +68,16 @@ public class BuildContext {
 			}
 		}			
 		throw new QuickBuildException("There is no java package " + needsJavaPackage);
+	}
+
+	public void showDependencies() {
+		System.out.print(dependencies);
+		
+	}
+
+	public boolean execute(BuildCommand bc) {
+		dependencies.ensure(bc.getProject());
+		return bc.execute(this);
 	}
 
 }

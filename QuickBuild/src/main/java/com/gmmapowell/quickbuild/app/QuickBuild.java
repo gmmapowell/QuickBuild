@@ -47,7 +47,7 @@ public class QuickBuild {
 		{
 			BuildCommand bc = cmds.get(cnt);
 			System.out.println((cnt+1) + ": " + bc);
-			if (!bc.execute(cxt))
+			if (!cxt.execute(bc))
 			{
 				System.out.println("  Failed ... retrying");
 				if (++failures > 3)
@@ -57,5 +57,6 @@ public class QuickBuild {
 			failures = 0;
 			cnt++;
 		}
+		cxt.showDependencies();
 	}
 }

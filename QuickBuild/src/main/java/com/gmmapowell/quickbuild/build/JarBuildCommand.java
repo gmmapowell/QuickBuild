@@ -51,4 +51,9 @@ public class JarBuildCommand implements BuildCommand {
 	public String toString() {
 		return "Jar Up: " + project.getBaseDir();
 	}
+
+	@Override
+	public Project getProject() {
+		return project;
+	}
 }

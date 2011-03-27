@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.lambda.Func1R;
+import com.gmmapowell.lambda.FuncR1;
 
 public class StateMap<K, V> {
 	private Map<K, V> map = new HashMap<K, V>();
@@ -20,7 +20,7 @@ public class StateMap<K, V> {
 		map.put(k, v);
 	}
 	
-	public void op(K k, V v, Func1R<V, V> func)
+	public void op(K k, V v, FuncR1<V, V> func)
 	{
 		if (map.containsKey(k))
 			map.put(k, func.apply(map.get(k)));

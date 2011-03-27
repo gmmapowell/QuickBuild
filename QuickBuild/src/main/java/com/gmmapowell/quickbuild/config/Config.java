@@ -10,9 +10,13 @@ import java.util.Map;
 
 import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.graphs.DependencyGraph;
 import com.gmmapowell.http.ProxyInfo;
 import com.gmmapowell.http.ProxyableConnection;
 import com.gmmapowell.quickbuild.build.BuildCommand;
+import com.gmmapowell.quickbuild.build.BuildResource;
+import com.gmmapowell.quickbuild.build.JarResource;
+import com.gmmapowell.quickbuild.build.MavenResource;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.GPJarEntry;
@@ -25,12 +29,12 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	private final ProxyInfo proxyInfo = new ProxyInfo();
 	private final List<ConfigApplyCommand> applicators = new ArrayList<ConfigApplyCommand>();
 	private final File qbdir;
-	private final List<File> availableJars = new ArrayList<File>();
+	private final List<JarResource> availableJars = new ArrayList<JarResource>();
 
 	private String output;
 	private File mvnCache;
 	private Map<File, Project> projects = new HashMap<File, Project>();
-	private ListMap<String, File> duplicates = new ListMap<String, File>();
+	private ListMap<String, BuildResource> duplicates = new ListMap<String, BuildResource>();
 
 	@SuppressWarnings("unchecked")
 	public Config(File qbdir)
@@ -105,7 +109,7 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		File cacheFile = new File(mvnCache, mavenToFile.getPath());
 		if (!cacheFile.exists())
 			downloadFromMaven(pkginfo, mavenToFile, cacheFile);
-		availableJars.add(cacheFile);
+		availableJars.add(new MavenResource(pkginfo, cacheFile));
 	}
 
 	private void downloadFromMaven(String pkginfo, File mavenToFile, File cacheTo) {
@@ -127,20 +131,27 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		}
 		throw new QuickBuildException("Could not find maven package " + pkginfo);
 	}
+	
+	public void provideDependencies(DependencyGraph<BuildResource> dependencies) {
+		for (JarResource jr : availableJars)
+		{
+			dependencies.newNode(jr);
+		}
+	}
 
 	/** Copy across all the packages which are defined in global things to a build context
 	 * @param availablePackages the map to copy into
 	 */
-	public void supplyPackages(Map<String, File> availablePackages) {
-		for (File f : availableJars)
+	public void supplyPackages(Map<String, JarResource> availablePackages) {
+		for (JarResource jr : availableJars)
 		{
-			jarSupplies(f, availablePackages);
+			jarSupplies(jr, availablePackages);
 		}
 		showDuplicates();
 	}
 
-	public void jarSupplies(File jarfile, Map<String, File> availablePackages) {
-		GPJarFile jar = new GPJarFile(jarfile);
+	public void jarSupplies(JarResource jarfile, Map<String, JarResource> availablePackages) {
+		GPJarFile jar = new GPJarFile(jarfile.getFile());
 		for (GPJarEntry e : jar)
 		{
 			if (!e.isClassFile())
@@ -166,7 +177,7 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		for (String s : duplicates)
 		{
 			System.out.println("Duplicate/overlapping definitions found for package: " + s);
-			for (File f : duplicates.get(s))
+			for (BuildResource f : duplicates.get(s))
 				System.out.println("  " + f);
 		}
 	}
