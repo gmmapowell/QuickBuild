@@ -67,4 +67,8 @@ public class Node<N> {
 	public Set<Link<N>> linksFrom() {
 		return linksFrom ;
 	}
+
+	public N getEntry() {
+		return node;
+	}
 }

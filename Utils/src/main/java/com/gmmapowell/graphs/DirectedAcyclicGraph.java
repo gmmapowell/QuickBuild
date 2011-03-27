@@ -7,7 +7,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.gmmapowell.collections.CollectionUtils;
 import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.lambda.FuncR1;
+import com.gmmapowell.lambda.Lambda;
 
 public class DirectedAcyclicGraph<N> {
 	private HashSet<Node<N>> nodes = new HashSet<Node<N>>();
@@ -17,7 +20,12 @@ public class DirectedAcyclicGraph<N> {
 		public int compare(N arg0, N arg1) {
 			Node<N> lhs = find(arg0);
 			Node<N> rhs = find(arg1);
-			System.out.println("Comparing " + lhs.span().size() + " to " + rhs.span().size());
+			return nodeSpanSize.compare(lhs,rhs);
+		}
+	};
+	private Comparator<Node<N>> nodeSpanSize = new Comparator<Node<N>>() {
+		@Override
+		public int compare(Node<N> lhs, Node<N> rhs) {
 			if (lhs.span().size() > rhs.span().size())
 				return -1;
 			else if (lhs.span().size() == rhs.span().size())
@@ -26,7 +34,13 @@ public class DirectedAcyclicGraph<N> {
 				return 1;
 		}
 	};
-	
+	private FuncR1<Node<N>, N> findNode = new FuncR1<Node<N>, N>() {
+		@Override
+		public Node<N> apply(N n) {
+			return find(n);
+		}
+	};
+
 	public void newNode(N node) {
 //		System.out.println("Adding " + node);
 		if (nodes.contains(node))
@@ -66,7 +80,7 @@ public class DirectedAcyclicGraph<N> {
 	}
 	
 
-	private Node<N> find(N n) {
+	public Node<N> find(N n) {
 		for (Node<N> ret : nodes)
 			if (ret.node.equals(n))
 				return ret;
@@ -85,6 +99,24 @@ public class DirectedAcyclicGraph<N> {
 		return ret;
 	}
 	
+	public void postOrderTraverse(NodeWalker<N> nodeWalker) {
+		Set<Node<N>> done = new HashSet<Node<N>>();
+		postOrder(nodeWalker, done, Lambda.map(findNode, roots()));
+	}
+	
+	private void postOrder(NodeWalker<N> walker, Set<Node<N>> done, List<Node<N>> todo)
+	{
+		for (Node<N> n : todo)
+		{
+			if (done.contains(n))
+				continue;
+			if (n.linksFrom().size() > 0)
+				postOrder(walker, done, CollectionUtils.setToList(Lambda.map(CollectionUtils.any(n.linksFrom()).extractTo, n.linksFrom()), nodeSpanSize));
+			walker.present(n);
+			done.add(n);
+		}
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder ret = new StringBuilder();

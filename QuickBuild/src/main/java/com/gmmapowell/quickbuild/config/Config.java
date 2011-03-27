@@ -201,4 +201,12 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	public String getOutput() {
 		return output;
 	}
+
+	public File getQuickBuildDir() {
+		return qbdir;
+	}
+
+	public File getCacheDir() {
+		return new File(qbdir, "cache");
+	}
 }

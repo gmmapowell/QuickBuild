@@ -10,10 +10,15 @@ import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.collections.SetMap;
 import com.gmmapowell.collections.StateMap;
 import com.gmmapowell.graphs.DependencyGraph;
+import com.gmmapowell.graphs.Link;
+import com.gmmapowell.graphs.Node;
+import com.gmmapowell.graphs.NodeWalker;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.Project;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
+import com.gmmapowell.xml.XML;
+import com.gmmapowell.xml.XMLElement;
 
 public class BuildContext {
 	private final Map<String, JarResource> availablePackages = new HashMap<String, JarResource>();
@@ -70,9 +75,23 @@ public class BuildContext {
 		throw new QuickBuildException("There is no java package " + needsJavaPackage);
 	}
 
-	public void showDependencies() {
-		System.out.print(dependencies);
-		
+	public void saveDependencies() {
+		final XML output = XML.create("1.0", "Dependencies");
+		dependencies.postOrderTraverse(new NodeWalker<BuildResource>() {
+			@Override
+			public void present(Node<BuildResource> node) {
+				if (!(node.getEntry() instanceof Project))
+					return;
+				XMLElement dep = output.addElement("Dependency");
+				dep.setAttribute("from", node.getEntry().toString());
+				for (Link<BuildResource> l : node.linksFrom())
+				{
+					XMLElement ref = dep.addElement("References");
+					ref.setAttribute("on", l.getTo().toString());
+				}
+			}
+		});
+		output.write(new File(conf.getCacheDir(), "dependencies.xml"));
 	}
 
 	public boolean execute(BuildCommand bc) {
