@@ -5,7 +5,6 @@ import java.io.StringReader;
 
 import com.gmmapowell.parser.LinePatternMatch;
 import com.gmmapowell.parser.LinePatternParser;
-import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.Project;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
@@ -17,10 +16,10 @@ public class JavaBuildCommand implements BuildCommand {
 	private final File bindir;
 	private final BuildClassPath classpath;
 
-	public JavaBuildCommand(Config conf, Project project, String src, String bin) {
+	public JavaBuildCommand(Project project, String src, String bin) {
 		this.project = project;
 		this.srcdir = new File(project.getBaseDir(), src);
-		this.bindir = new File(conf.getOutputDir(project.getBaseDir()), bin);
+		this.bindir = new File(project.getOutputDir(), bin);
 		if (!bindir.exists())
 			if (!bindir.mkdirs())
 				throw new QuickBuildException("Cannot build " + srcdir + " because the build directory cannot be created");
@@ -35,7 +34,6 @@ public class JavaBuildCommand implements BuildCommand {
 
 	@Override
 	public boolean execute(BuildContext cxt) {
-		
 		RunProcess proc = new RunProcess("javac.exe");
 		proc.captureStdout();
 		proc.captureStderr();

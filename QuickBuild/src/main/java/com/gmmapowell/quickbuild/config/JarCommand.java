@@ -16,9 +16,9 @@ import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 
 public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand {
-	private List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
+	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private String projectName;
-	private File projectDir;
+	private final File projectDir;
 	private Project project;
 
 	@SuppressWarnings("unchecked")
@@ -28,15 +28,20 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	}
 
 	@Override
+	public void applyConfig(Config config) {
+		project = new Project(projectName, projectDir, config.getOutput());
+	}
+
+	@Override
 	public void addChild(ConfigApplyCommand obj) {
 		options.add(obj);
 	}
 
 	@Override
-	public File projectDir() {
-		return projectDir;
+	public Project project() {
+		return project;
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -45,37 +50,33 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	}
 
 	@Override
-	public Collection<? extends BuildCommand> buildCommands(Config conf, Project proj) {
-		project = proj;
-		JarBuildCommand jar = new JarBuildCommand(projectDir);
+	public Collection<? extends BuildCommand> buildCommands() {
+		JarBuildCommand jar = new JarBuildCommand(project, project.getName() + ".jar");
 		List<BuildCommand> ret = new ArrayList<BuildCommand>();
-		BuildClassPath bcp = new BuildClassPath();
-		addJavaBuild(conf, ret, jar, bcp, "src/main/java", "classes");
-		addJavaBuild(conf, ret, null, bcp, "src/test/java", "test-classes");
-		addResources(jar, bcp, "src/main/resources");
-		addResources(null, bcp, "src/main/resources");
+		addJavaBuild(ret, jar, "src/main/java", "classes");
+		addJavaBuild(ret, null, "src/test/java", "test-classes");
+		addResources(jar, "src/main/resources");
+		addResources(null, "src/main/resources");
 		if (ret.size() == 0)
 			throw new QuickBuildException("None of the required source directories exist");
 		ret.add(jar);
 		return ret;
 	}
 
-	private void addJavaBuild(Config conf, List<BuildCommand> ret, JarBuildCommand jar, BuildClassPath bcp, String src, String bin) {
+	private void addJavaBuild(List<BuildCommand> ret, JarBuildCommand jar, String src, String bin) {
 		if (new File(projectDir, src).isDirectory())
 		{
-			bcp.add(new File(projectDir, bin));
 			if (jar != null)
-				jar.add(new File(projectDir, bin));
-			ret.add(new JavaBuildCommand(conf, project, src, bin));
+				jar.add(new File(project.getOutputDir(), bin));
+			ret.add(new JavaBuildCommand(project, src, bin));
 		}
 	}
 	
-	private void addResources(JarBuildCommand jar, BuildClassPath bcp, String src) {
+	private void addResources(JarBuildCommand jar, String src) {
 		if (new File(projectDir, src).isDirectory())
 		{
 			if (jar != null)
 				jar.add(new File(projectDir, src));
-			bcp.add(new File(projectDir, src));
 		}
 	}
 }

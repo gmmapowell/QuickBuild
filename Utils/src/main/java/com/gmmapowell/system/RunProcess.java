@@ -18,6 +18,7 @@ public class RunProcess {
 	private ByteArrayOutputStream outCapture;
 	private ByteArrayOutputStream errCapture;
 	private boolean finished;
+	private boolean showArgs;
 
 	public RunProcess(String cmd) {
 		cmdarray.add(cmd);
@@ -55,12 +56,16 @@ public class RunProcess {
 		stderr = new ThreadedStreamReader(errCapture);
 	}
 
+	public void showArgs(boolean b)
+	{
+		showArgs = b;
+	}
+	
 	public void execute()
 	{
-		/*
-		for (String s : cmdarray)
-			System.out.println(s);
-			*/
+		if (showArgs)
+			for (String s : cmdarray)
+				System.out.println(s);
 		try {
 			Process proc = Runtime.getRuntime().exec(cmdarray.toArray(new String[cmdarray.size()]), null, workingDir);
 			stdout.read(proc.getInputStream());

@@ -71,10 +71,6 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		mvnrepos.add(repo);
 	}
 
-	public File getOutputDir(File forProject) {
-		return new File(forProject, output);
-	}
-	
 	public void done() {
 		mvnCache = FileUtils.relativePath(qbdir, "mvncache");
 		if (!mvnCache.exists())
@@ -88,11 +84,14 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 
 		for (ConfigBuildCommand c : commands)
 		{
-			File projdir = c.projectDir();
-			Project proj = new Project(projdir);
-			if (!projects.containsKey(projdir))
-				projects.put(projdir, proj);
-			buildcmds.addAll(c.buildCommands(this, proj));
+			c.applyConfig(this);
+			Project proj = c.project();
+			// TODO: this is a bit harsh ... want to be able to build multiple targets, but they need to aggregate the projects somehow
+			if (projects.containsKey(proj.getBaseDir()))
+				throw new QuickBuildException("Cannot have multiple projects in same directory");
+			projects.put(proj.getBaseDir(), proj);
+
+			buildcmds.addAll(c.buildCommands());
 		}
 	}
 	
@@ -177,5 +176,9 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		for (ConfigCommand cc : commands)
 			sb.append(cc);
 		return sb.toString();
+	}
+
+	public String getOutput() {
+		return output;
 	}
 }
