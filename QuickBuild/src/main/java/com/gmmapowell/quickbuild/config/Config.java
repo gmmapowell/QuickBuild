@@ -4,25 +4,32 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.http.ProxyInfo;
 import com.gmmapowell.http.ProxyableConnection;
 import com.gmmapowell.quickbuild.build.BuildCommand;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
+import com.gmmapowell.utils.GPJarEntry;
+import com.gmmapowell.utils.GPJarFile;
 
 public class Config extends SpecificChildrenParent<ConfigCommand>  {
-	private String output;
-	private List<ConfigBuildCommand> commands = new ArrayList<ConfigBuildCommand>();
-	private List<BuildCommand> buildcmds = new ArrayList<BuildCommand>();
-	private List<String> mvnrepos = new ArrayList<String>();
-	private File mvnCache;
+	private final List<ConfigBuildCommand> commands = new ArrayList<ConfigBuildCommand>();
+	private final List<BuildCommand> buildcmds = new ArrayList<BuildCommand>();
+	private final List<String> mvnrepos = new ArrayList<String>();
 	private final ProxyInfo proxyInfo = new ProxyInfo();
-	private List<ConfigApplyCommand> applicators = new ArrayList<ConfigApplyCommand>();
+	private final List<ConfigApplyCommand> applicators = new ArrayList<ConfigApplyCommand>();
 	private final File qbdir;
+	private final List<File> availableJars = new ArrayList<File>();
+
+	private String output;
+	private File mvnCache;
+	private Map<File, Project> projects = new HashMap<File, Project>();
 
 	@SuppressWarnings("unchecked")
 	public Config(File qbdir)
@@ -81,7 +88,11 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 
 		for (ConfigBuildCommand c : commands)
 		{
-			buildcmds.addAll(c.buildCommands(this));
+			File projdir = c.projectDir();
+			Project proj = new Project(projdir);
+			if (!projects.containsKey(projdir))
+				projects.put(projdir, proj);
+			buildcmds.addAll(c.buildCommands(this, proj));
 		}
 	}
 	
@@ -92,17 +103,20 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	public void requireMaven(String pkginfo) {
 		File mavenToFile = FileUtils.mavenToFile(pkginfo);
 		File cacheFile = new File(mvnCache, mavenToFile.getPath());
-		if (cacheFile.exists())
-			return;
-		
+		if (!cacheFile.exists())
+			downloadFromMaven(pkginfo, mavenToFile, cacheFile);
+		availableJars.add(cacheFile);
+	}
+
+	private void downloadFromMaven(String pkginfo, File mavenToFile, File cacheTo) {
 		if (mvnrepos.size() == 0)
 			throw new QuickBuildException("There are no maven repositories specified");
 		for (String repo : mvnrepos)
 		{
 			ProxyableConnection conn = proxyInfo.newConnection(FileUtils.urlPath(repo, mavenToFile));
 			try {
-				FileUtils.assertDirectory(cacheFile.getParentFile());
-				FileOutputStream fos = new FileOutputStream(cacheFile);
+				FileUtils.assertDirectory(cacheTo.getParentFile());
+				FileOutputStream fos = new FileOutputStream(cacheTo);
 				FileUtils.copyStream(conn.getInputStream(), fos);
 				fos.close();
 				System.out.println("Downloaded " + pkginfo + " from " + repo);
@@ -117,9 +131,37 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	/** Copy across all the packages which are defined in global things to a build context
 	 * @param availablePackages the map to copy into
 	 */
-	public void supplyPackages(Map<String, String> availablePackages) {
-		// TODO Auto-generated method stub
+	public void supplyPackages(Map<String, File> availablePackages) {
+		ListMap<String, File> duplicates = new ListMap<String, File>();
+		for (File f : availableJars)
+		{
+			GPJarFile jar = new GPJarFile(f);
+			for (GPJarEntry e : jar)
+			{
+				if (!e.isClassFile())
+					continue;
+				String pkg = e.getPackage();
+				if (!availablePackages.containsKey(pkg))
+				{
+					availablePackages.put(pkg, f);
+				}
+				else if (availablePackages.get(pkg).equals(f))
+					continue;
+				else
+				{
+					if (!duplicates.contains(pkg))
+						duplicates.add(pkg, availablePackages.get(pkg));
+					duplicates.add(pkg, f);
+				}
+			}
+		}
 		
+		for (String s : duplicates)
+		{
+			System.out.println("Duplicate/overlapping definitions found for package: " + s);
+			for (File f : duplicates.get(s))
+				System.out.println("  " + f);
+		}
 	}
 	
 	@Override

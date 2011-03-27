@@ -6,24 +6,31 @@ import java.io.StringReader;
 import com.gmmapowell.parser.LinePatternMatch;
 import com.gmmapowell.parser.LinePatternParser;
 import com.gmmapowell.quickbuild.config.Config;
+import com.gmmapowell.quickbuild.config.Project;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
 public class JavaBuildCommand implements BuildCommand {
+	private final Project project;
 	private final File srcdir;
 	private final File bindir;
 	private final BuildClassPath classpath;
 
-	public JavaBuildCommand(Config conf, File projectDir, String src, String bin) {
-		this.srcdir = new File(projectDir, src);
-		this.bindir = new File(conf.getOutputDir(projectDir), bin);
+	public JavaBuildCommand(Config conf, Project project, String src, String bin) {
+		this.project = project;
+		this.srcdir = new File(project.getBaseDir(), src);
+		this.bindir = new File(conf.getOutputDir(project.getBaseDir()), bin);
 		if (!bindir.exists())
 			if (!bindir.mkdirs())
 				throw new QuickBuildException("Cannot build " + srcdir + " because the build directory cannot be created");
 		if (bindir.exists() && !bindir.isDirectory())
 			throw new QuickBuildException("Cannot build " + srcdir + " because the build directory is not a directory");
 		this.classpath = new BuildClassPath();
+	}
+	
+	public void addJar(File file) {
+		classpath.add(file);
 	}
 
 	@Override
@@ -45,7 +52,10 @@ public class JavaBuildCommand implements BuildCommand {
 		}
 		proc.execute();
 		if (proc.getExitCode() == 0)
+		{
+			cxt.addClassDirForProject(project, bindir);
 			return true; // success
+		}
 		if (proc.getExitCode() == 1)
 		{
 			// compilation errors, usually
@@ -69,5 +79,9 @@ public class JavaBuildCommand implements BuildCommand {
 	@Override
 	public String toString() {
 		return "Java Compile: " + srcdir;
+	}
+
+	public Project getProject() {
+		return project;
 	}
 }

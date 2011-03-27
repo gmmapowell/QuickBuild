@@ -50,7 +50,7 @@ public class QuickBuild {
 			if (!bc.execute(cxt))
 			{
 				System.out.println("  Failed ... retrying");
-				if (++failures > 5)
+				if (++failures > 3)
 					throw new UtilException("The command " + bc + " failed 5 times in a row");
 				continue;
 			}

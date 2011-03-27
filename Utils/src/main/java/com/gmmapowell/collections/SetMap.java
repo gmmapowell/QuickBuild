@@ -1,20 +1,20 @@
 package com.gmmapowell.collections;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.gmmapowell.exceptions.UtilException;
 
-public class ListMap<K, V> implements Iterable<K> {
-	private Map<K, List<V>> map = new HashMap<K, List<V>>();
+public class SetMap<K, V> implements Iterable<K> {
+	private Map<K, Set<V>> map = new HashMap<K, Set<V>>();
 	
 	public void add(K k, V v)
 	{
 		if (!map.containsKey(k))
-			map.put(k, new ArrayList<V>());
+			map.put(k, new HashSet<V>());
 		map.get(k).add(v);
 	}
 
@@ -23,7 +23,7 @@ public class ListMap<K, V> implements Iterable<K> {
 		return map.keySet().iterator();
 	}
 	
-	public List<V> get(K k)
+	public Set<V> get(K k)
 	{
 		if (!map.containsKey(k))
 			throw new UtilException("There is no key '" + k + "' in " + this);

@@ -19,6 +19,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	private List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private String projectName;
 	private File projectDir;
+	private Project project;
 
 	@SuppressWarnings("unchecked")
 	public JarCommand(TokenizedLine toks) {
@@ -30,6 +31,11 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	public void addChild(ConfigApplyCommand obj) {
 		options.add(obj);
 	}
+
+	@Override
+	public File projectDir() {
+		return projectDir;
+	}
 	
 	@Override
 	public String toString() {
@@ -39,7 +45,8 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	}
 
 	@Override
-	public Collection<? extends BuildCommand> buildCommands(Config conf) {
+	public Collection<? extends BuildCommand> buildCommands(Config conf, Project proj) {
+		project = proj;
 		JarBuildCommand jar = new JarBuildCommand(projectDir);
 		List<BuildCommand> ret = new ArrayList<BuildCommand>();
 		BuildClassPath bcp = new BuildClassPath();
@@ -59,7 +66,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			bcp.add(new File(projectDir, bin));
 			if (jar != null)
 				jar.add(new File(projectDir, bin));
-			ret.add(new JavaBuildCommand(conf, projectDir, src, bin));
+			ret.add(new JavaBuildCommand(conf, project, src, bin));
 		}
 	}
 	
