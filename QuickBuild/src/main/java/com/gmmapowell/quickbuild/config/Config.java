@@ -5,8 +5,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
@@ -208,5 +210,16 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 
 	public File getCacheDir() {
 		return new File(qbdir, "cache");
+	}
+
+	public Map<File, Project> projectMappings() {
+		return projects;
+	}
+
+	public Set<Project> projectsFor(Set<File> changedProjects) {
+		Set<Project> ret = new HashSet<Project>();
+		for (File f : changedProjects)
+			ret.add(projects.get(f));
+		return ret;
 	}
 }

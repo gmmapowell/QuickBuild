@@ -3,6 +3,8 @@ package com.gmmapowell.system;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,6 +63,10 @@ public class RunProcess {
 		showArgs = b;
 	}
 	
+	public void executeInDir(File inDir) {
+		workingDir = inDir;
+	}
+	
 	public void execute()
 	{
 		if (showArgs)
@@ -99,10 +105,24 @@ public class RunProcess {
 			throw new UtilException("Can only call this is errors were captured during setup");
 		return errCapture.toString();
 	}
+	
+	public Reader stdoutReader() {
+		return new StringReader(getStdout());
+	}
+	
+	public Reader stderrReader() {
+		return new StringReader(getStderr());
+	}
 
 	private void assertFinished() {
 		if (!finished)
 			throw new UtilException("Can only call this method after successful completion");
+	}
+
+	public void debug() {
+		showArgs(true);
+		redirectStderr(System.out);
+		redirectStdout(System.out);
 	}
 }
 

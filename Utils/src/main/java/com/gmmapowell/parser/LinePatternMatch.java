@@ -15,7 +15,14 @@ public class LinePatternMatch {
 		int cnt = 2; // offset from 2 'cos 0 is the whole thing and we add our own group for the match at 1
 		for (String s : storeIn)
 		{
-			contents.put(s, m.group(cnt++));
+			try
+			{
+				contents.put(s, m.group(cnt++));
+			}
+			catch (IndexOutOfBoundsException ex)
+			{
+				throw new UtilException("Could not extract field " + id + " because there were not " + (cnt-2) +" patterns: ", ex);
+			}
 		}
 	}
 

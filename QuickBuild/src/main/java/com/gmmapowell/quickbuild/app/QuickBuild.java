@@ -2,14 +2,17 @@ package com.gmmapowell.quickbuild.app;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
 import com.gmmapowell.quickbuild.build.BuildCommand;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.config.Arguments;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
+import com.gmmapowell.quickbuild.config.Project;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.ProcessArgs;
@@ -35,6 +38,16 @@ public class QuickBuild {
 		System.out.print(conf);
 		
 		// now we need to read back anything we've cached ...
+		
+		// determine what we need to build from git ...
+		Set<Project> changedProjects = conf.projectsFor(GitHelper.changedProjects(conf.projectMappings().keySet()));
+		System.out.println("");
+		System.out.println("The following projects have changed in git:");
+		for (Project p : changedProjects)
+			System.out.println(p);
+		
+		System.exit(0);
+		// TODO: figure through the dependency graph to see what needs doing ...
 		
 		// now we try and build stuff ...
 		System.out.println("");

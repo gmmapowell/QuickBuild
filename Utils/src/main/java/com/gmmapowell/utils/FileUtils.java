@@ -83,6 +83,20 @@ public class FileUtils {
 			return relativePath(new File(qbdir, string).getPath());
 	}
 
+	public static File relativeTo(File f) {
+		return relativeTo(f, root);
+	}
+	
+	public static File relativeTo(File f, File under) {
+		if (under == null)
+			return f;
+		String uf = under.getPath()+File.separator;
+		String tf = f.getPath();
+		if (!tf.startsWith(uf))
+			throw new RuntimeException("This case is not handled");
+		return new File(tf.substring(uf.length()));
+	}
+
 	// TODO: this should consider all possible breakups based on -
 	public static File findDirectoryNamed(String projectName) {
 		File ret = new File(root, projectName);
@@ -117,16 +131,6 @@ public class FileUtils {
 		File[] subdirs = dir.listFiles(isdirectory);
 		for (File d : subdirs)
 			findRecursive(ret, filter, under, d);
-	}
-
-	private static File relativeTo(File f, File under) {
-		if (under == null)
-			return f;
-		String uf = under.getPath()+File.separator;
-		String tf = f.getPath();
-		if (!tf.startsWith(uf))
-			throw new RuntimeException("This case is not handled");
-		return new File(tf.substring(uf.length()));
 	}
 
 	public static String convertToDottedName(File path) {
