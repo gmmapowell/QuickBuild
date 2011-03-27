@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.gmmapowell.exceptions.UtilException;
@@ -34,7 +36,28 @@ public class FileUtils {
 		}
 	};
 
+	private static FilenameFilter anyFile = new FilenameFilter() {
+		@Override
+		public boolean accept(File dir, String name) {
+			return true;
+		}
+	};
+
+	private static Comparator<? super File> filePathComparator = new Comparator<File>() {
+
+		@Override
+		public int compare(File o1, File o2) {
+			if (o1.getPath().length() > o2.getPath().length())
+				return -1;
+			else if (o1.getPath().length() == o2.getPath().length())
+				return 0;
+			else
+				return 1;
+		}
+	};
+	
 	private static File root = new File(System.getProperty("user.dir"));
+
 
 	public static void chdir(File parentFile) {
 		try
@@ -174,5 +197,17 @@ public class FileUtils {
 
 	public static File getCurrentDir() {
 		return root;
+	}
+
+	public static void cleanDirectory(File dir) {
+		List<File> ret = new ArrayList<File>();
+		findRecursive(ret, anyFile, dir, dir);
+		// sort longest to shortest to resolve empty directories
+		Collections.sort(ret, filePathComparator);
+		for (File f : ret)
+		{
+			if (!new File(dir, f.getPath()).delete())
+				throw new UtilException("Could not delete: " + f);
+		}
 	}
 }

@@ -34,6 +34,7 @@ public class JavaBuildCommand implements BuildCommand {
 
 	@Override
 	public boolean execute(BuildContext cxt) {
+		FileUtils.cleanDirectory(bindir);
 		RunProcess proc = new RunProcess("javac.exe");
 		proc.captureStdout();
 		proc.captureStderr();

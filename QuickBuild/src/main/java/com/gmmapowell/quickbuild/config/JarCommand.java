@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.List;
 
 import com.gmmapowell.parser.TokenizedLine;
-import com.gmmapowell.quickbuild.build.BuildClassPath;
 import com.gmmapowell.quickbuild.build.BuildCommand;
 import com.gmmapowell.quickbuild.build.JarBuildCommand;
 import com.gmmapowell.quickbuild.build.JavaBuildCommand;

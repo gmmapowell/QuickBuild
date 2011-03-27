@@ -30,6 +30,7 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	private String output;
 	private File mvnCache;
 	private Map<File, Project> projects = new HashMap<File, Project>();
+	private ListMap<String, File> duplicates = new ListMap<String, File>();
 
 	@SuppressWarnings("unchecked")
 	public Config(File qbdir)
@@ -131,30 +132,37 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	 * @param availablePackages the map to copy into
 	 */
 	public void supplyPackages(Map<String, File> availablePackages) {
-		ListMap<String, File> duplicates = new ListMap<String, File>();
 		for (File f : availableJars)
 		{
-			GPJarFile jar = new GPJarFile(f);
-			for (GPJarEntry e : jar)
+			jarSupplies(f, availablePackages);
+		}
+		showDuplicates();
+	}
+
+	public void jarSupplies(File jarfile, Map<String, File> availablePackages) {
+		GPJarFile jar = new GPJarFile(jarfile);
+		for (GPJarEntry e : jar)
+		{
+			if (!e.isClassFile())
+				continue;
+			String pkg = e.getPackage();
+			if (!availablePackages.containsKey(pkg))
 			{
-				if (!e.isClassFile())
-					continue;
-				String pkg = e.getPackage();
-				if (!availablePackages.containsKey(pkg))
-				{
-					availablePackages.put(pkg, f);
-				}
-				else if (availablePackages.get(pkg).equals(f))
-					continue;
-				else
-				{
-					if (!duplicates.contains(pkg))
-						duplicates.add(pkg, availablePackages.get(pkg));
-					duplicates.add(pkg, f);
-				}
+				availablePackages.put(pkg, jarfile);
+			}
+			else if (availablePackages.get(pkg).equals(jarfile))
+				continue;
+			else
+			{
+				if (!duplicates.contains(pkg))
+					duplicates.add(pkg, availablePackages.get(pkg));
+				duplicates.add(pkg, jarfile);
 			}
 		}
 		
+	}
+	
+	public void showDuplicates() {
 		for (String s : duplicates)
 		{
 			System.out.println("Duplicate/overlapping definitions found for package: " + s);
@@ -163,6 +171,7 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		}
 	}
 	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

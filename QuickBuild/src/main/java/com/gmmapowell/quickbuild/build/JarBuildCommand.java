@@ -38,11 +38,10 @@ public class JarBuildCommand implements BuildCommand {
 				proc.arg(f.getPath());
 			}
 		}
-		proc.showArgs(true);
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
-			// cxt.addClassDirForProject(project, bindir);
+			cxt.addBuiltJar(project, jarfile);
 			return true; // success
 		}
 		return false;
