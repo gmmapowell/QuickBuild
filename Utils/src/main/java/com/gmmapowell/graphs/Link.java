@@ -44,4 +44,8 @@ public class Link<N> {
 	public N getTo() {
 		return to.node;
 	}
+
+	public Node<N> getFromNode() {
+		return from;
+	}
 }

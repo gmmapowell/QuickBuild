@@ -2,7 +2,9 @@ package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,6 +35,7 @@ public class BuildContext {
 	private final List<JUnitFailure> failures = new ArrayList<JUnitFailure>();
 	private final File dependencyFile;
 	private final List<BuildCommand> cmds;
+	private Set<BuildCommand> needed = null; // is null to indicate build all
 	private int commandToExecute;
 	private int targetFailures;
 
@@ -127,6 +130,46 @@ public class BuildContext {
 			return;
 		}
 		throw new QuickBuildException("There is no java package " + needsJavaPackage);
+	}
+
+	public void limitBuildTo(Set<Project> changedProjects) {
+		needed = new HashSet<BuildCommand>();
+		
+		while (true)
+		{
+			HashSet<Project> more = new HashSet<Project>(); 
+			for (Project p : changedProjects)
+			{
+				// Everything north (or left, or whatever - things that depend on it) of here needs rebuilding
+				Node<BuildResource> find = dependencies.find(p);
+				more.addAll(findDependingProjects(find));
+			}
+			more.removeAll(changedProjects);
+			if (more.size() == 0)
+				break;
+			changedProjects.addAll(more);
+		}
+		
+		for (BuildCommand bc : cmds)
+		{
+			if (changedProjects.contains(bc.getProject()))
+				needed.add(bc);
+			
+			// TODO: and all parents ... unless that's included before we come in
+		}
+	}
+
+	private Set<Project> findDependingProjects(Node<BuildResource> find) {
+		Set<Link<BuildResource>> linksTo = find.linksTo(); // the ones that depend on it
+		Set<Project> ret = new HashSet<Project>();
+		for (Link<BuildResource> l : linksTo)
+		{
+			Node<BuildResource> br = l.getFromNode();
+			if (br.getEntry() instanceof Project)
+				ret.add((Project) br.getEntry());
+			ret.addAll(findDependingProjects(br));
+		}
+		return ret;
 	}
 
 	private void moveUp(JavaBuildCommand from, Project p) {
@@ -237,7 +280,10 @@ public class BuildContext {
 		return ret;
 	}
 
+	// TODO: this feels like "boolean" isn't cutting it any more:  SUCCESS, FAILURE, IGNORED, TEST_FAILURES, RETRY, HOPELESS
 	public boolean execute(BuildCommand bc) {
+		if (needed != null && !needed.contains(bc))
+			return true;
 		return bc.execute(this);
 	}
 

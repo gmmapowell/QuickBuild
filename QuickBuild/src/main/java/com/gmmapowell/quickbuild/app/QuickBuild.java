@@ -47,6 +47,7 @@ public class QuickBuild {
 			System.out.println(p);
 		
 		// TODO: figure through the dependency graph to see what needs doing ...
+		cxt.limitBuildTo(changedProjects);
 		
 		// now we try and build stuff ...
 		System.out.println("");
