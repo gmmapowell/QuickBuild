@@ -29,7 +29,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 
 	@Override
 	public void applyConfig(Config config) {
-		project = new Project(projectName, projectDir, config.getOutput());
+		project = new Project("jar", projectName, projectDir, config.getOutput());
 	}
 
 	@Override

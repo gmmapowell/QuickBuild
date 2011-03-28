@@ -1,5 +1,7 @@
 package com.gmmapowell.quickbuild.build;
 
-public interface BuildResource {
+import com.gmmapowell.quickbuild.config.Project;
 
+public interface BuildResource {
+	Project getBuiltBy();
 }

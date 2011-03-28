@@ -60,6 +60,10 @@ public class ConfigFactory implements CommandObjectFactory {
 		{
 			return new AndroidCommand(toks);
 		}
+		else if (cmd.equals("adbinstall"))
+		{
+			return new AdbInstallCommand(toks);
+		}
 		else
 			throw new QuickBuildException("Cannot understand command " + cmd);
 	}

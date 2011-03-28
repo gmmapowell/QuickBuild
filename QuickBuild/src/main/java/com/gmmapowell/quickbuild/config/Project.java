@@ -3,14 +3,17 @@ package com.gmmapowell.quickbuild.config;
 import java.io.File;
 
 import com.gmmapowell.quickbuild.build.BuildResource;
+import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
 
 public class Project implements BuildResource {
 	private final String name;
 	private final File basedir;
 	private final File outdir;
+	private final String nature;
 
-	public Project(String name, File projdir, String output) {
+	public Project(String nature, String name, File projdir, String output) {
+		this.nature = nature;
 		this.name = name;
 		this.basedir = projdir;
 		this.outdir = new File(projdir, output);
@@ -28,9 +31,13 @@ public class Project implements BuildResource {
 		return name;
 	}
 	
+	
+	// TODO: because we use this to identify projects, it needs to be unique.  Currently this is not
+	// enough.  We need something more, from arguments (eg. the jar file we're building) to unique ids
+	// or SHA1s.
 	@Override
 	public String toString() {
-		return "Project["+name+"]";
+		return "Project["+nature+"-"+name+"]";
 	}
 
 	public File getRelative(String dir) {
@@ -44,6 +51,11 @@ public class Project implements BuildResource {
 	
 	public File getOutput(String dir) {
 		return new File(outdir, dir);
+	}
+
+	@Override
+	public Project getBuiltBy() {
+		throw new QuickBuildException("You cannot ask who built a project.  You did something wrong");
 	}
 
 }

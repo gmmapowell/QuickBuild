@@ -32,7 +32,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 
 	@Override
 	public void applyConfig(Config config) {
-		project = new Project(projectName, projectDir, config.getOutput());
+		project = new Project("android", projectName, projectDir, config.getOutput());
 		acxt = config.getAndroidContext();
 	}
 

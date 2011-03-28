@@ -48,7 +48,7 @@ public class QuickBuild {
 		// determine what we need to build from git ...
 		if (!arguments.buildAll)
 		{
-			Set<Project> changedProjects = conf.projectsFor(GitHelper.dirtyProjects(conf.projectMappings().keySet()));
+			Set<Project> changedProjects = conf.projectsFor(GitHelper.dirtyProjects(conf.projectRoots()));
 			System.out.println("");
 			System.out.println("The following projects have changed in git:");
 			for (Project p : changedProjects)

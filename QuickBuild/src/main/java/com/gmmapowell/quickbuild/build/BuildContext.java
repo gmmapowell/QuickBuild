@@ -31,7 +31,7 @@ public class BuildContext {
 	private final ListMap<String, Project> projectPackages = new ListMap<String, Project>();
 	private final ListMap<Project, File> previouslyBuilt = new ListMap<Project, File>();
 	private final StateMap<Project, SetMap<String, File>> packagesProvidedByDirectoriesInProject = new StateMap<Project, SetMap<String, File>>();
-	private final List<JarResource> builtJars = new ArrayList<JarResource>();
+	private final List<BuildResource> builtResources = new ArrayList<BuildResource>();
 	private final Config conf;
 	private final DependencyGraph<BuildResource> dependencies = new DependencyGraph<BuildResource>();
 	private final List<JUnitFailure> failures = new ArrayList<JUnitFailure>();
@@ -80,13 +80,31 @@ public class BuildContext {
 	}
 
 	public void addBuiltJar(JarResource jar) {
-		builtJars.add(jar);
-		dependencies.newNode(jar);
-		dependencies.ensureLink(jar, jar.getBuiltBy());
+		addBuiltResource(jar);
 		conf.jarSupplies(jar, availablePackages);
 		conf.showDuplicates();
 	}
-	
+
+	public void addBuiltResource(BuildResource resource) {
+		builtResources.add(resource);
+		dependencies.ensure(resource);
+		dependencies.ensureLink(resource, resource.getBuiltBy());
+	}
+
+	public boolean requiresBuiltResource(BuildCommand from, BuildResource resource) {
+		if (builtResources.contains(resource))
+			return true;
+		
+		// record this dependency
+		dependencies.ensure(resource);
+		dependencies.ensureLink(from.getProject(), resource);
+		
+		// take action
+		BuildResource findResource = conf.findResource(resource.toString());
+		moveUp(from, findResource.getBuiltBy());
+		return false;
+	}
+
 	public void addAllProjectDirs(RunClassPath classpath, Project project) {
 		if (packagesProvidedByDirectoriesInProject.containsKey(project))
 		{
@@ -178,7 +196,7 @@ public class BuildContext {
 		return ret;
 	}
 
-	private void moveUp(JavaBuildCommand from, Project p) {
+	private void moveUp(BuildCommand from, Project p) {
 		int moveTo = -1;
 		for (int cmd=commandToExecute;cmd<cmds.size();cmd++)
 		{

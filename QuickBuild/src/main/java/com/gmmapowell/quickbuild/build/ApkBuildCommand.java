@@ -1,6 +1,7 @@
 package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -16,6 +17,7 @@ public class ApkBuildCommand implements BuildCommand {
 	private final File zipfile;
 	private final File dexFile;
 	private final File apkFile;
+	ApkResource apkResource;
 
 	public ApkBuildCommand(AndroidContext acxt, Project project, File zipfile, File dexFile, File apkFile) {
 		this.acxt = acxt;
@@ -23,6 +25,7 @@ public class ApkBuildCommand implements BuildCommand {
 		this.zipfile = zipfile;
 		this.dexFile = dexFile;
 		this.apkFile = apkFile;
+		apkResource = new ApkResource(project, apkFile);
 	}
 	
 	@Override
@@ -32,7 +35,9 @@ public class ApkBuildCommand implements BuildCommand {
 
 	@Override
 	public List<BuildResource> generatedResources() {
-		return null;
+		List<BuildResource> ret = new ArrayList<BuildResource>();
+		ret.add(apkResource);
+		return ret;
 	}
 
 	@Override
@@ -55,6 +60,7 @@ public class ApkBuildCommand implements BuildCommand {
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
+			cxt.addBuiltResource(apkResource);
 			return BuildStatus.SUCCESS;
 		}
 		System.out.println(proc.getStderr());

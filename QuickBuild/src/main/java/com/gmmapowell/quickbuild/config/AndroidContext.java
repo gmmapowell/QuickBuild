@@ -11,6 +11,7 @@ public class AndroidContext {
 	private final File dx;
 	private final File platformJar;
 	private final File apk;
+	private File adb;
 
 	// TODO: this needs to be cross-platform (somehow)
 	public AndroidContext(String androidSDK, String androidPlatform) {
@@ -25,6 +26,9 @@ public class AndroidContext {
 		apk = new File(androidDir, "tools/apkbuilder.bat");
 		if (!apk.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + apk);
+		adb = new File(androidDir, "tools/adb.exe");
+		if (!adb.exists())
+			throw new QBConfigurationException("Invalid android configuration: cannot find " + adb);
 		platformJar = new File(platformDir, "android.jar");
 		if (!platformJar.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + platformJar);
@@ -44,6 +48,10 @@ public class AndroidContext {
 
 	public File getPlatformJar() {
 		return platformJar;
+	}
+
+	public File getADB() {
+		return adb;
 	}
 
 }

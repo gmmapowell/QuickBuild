@@ -13,3 +13,4 @@ maven junit:junit:jar:4.8.2
 
 # aapt-gen, java, dex, aapt-package, apk 
 android HelloAndroid
+adbinstall HelloAndroid -emulator

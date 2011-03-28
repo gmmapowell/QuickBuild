@@ -5,7 +5,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +35,7 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 
 	private String output;
 	private File mvnCache;
-	private Map<File, Project> projects = new HashMap<File, Project>();
+	private ListMap<File, Project> projects = new ListMap<File, Project>();
 	private ListMap<String, BuildResource> duplicates = new ListMap<String, BuildResource>();
 	private List<BuildResource> willbuild = new ArrayList<BuildResource>();
 	private String androidSDK;
@@ -104,10 +103,7 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		{
 			c.applyConfig(this);
 			Project proj = c.project();
-			// TODO: this is a bit harsh ... want to be able to build multiple targets, but they need to aggregate the projects somehow
-			if (projects.containsKey(proj.getBaseDir()))
-				throw new QuickBuildException("Cannot have multiple projects in same directory");
-			projects.put(proj.getBaseDir(), proj);
+			projects.add(proj.getBaseDir(), proj);
 
 			Collection<? extends BuildCommand> cmds = c.buildCommands();
 			buildcmds.addAll(cmds);
@@ -229,14 +225,14 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		return new File(qbdir, "cache");
 	}
 
-	public Map<File, Project> projectMappings() {
-		return projects;
+	public Set<File> projectRoots() {
+		return projects.keySet();
 	}
 
 	public Set<Project> projectsFor(Set<File> changedProjects) {
 		Set<Project> ret = new HashSet<Project>();
 		for (File f : changedProjects)
-			ret.add(projects.get(f));
+			ret.addAll(projects.get(f));
 		return ret;
 	}
 

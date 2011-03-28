@@ -1,10 +1,13 @@
 package com.gmmapowell.collections;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.gmmapowell.exceptions.UtilException;
 
@@ -30,12 +33,23 @@ public class ListMap<K, V> implements Iterable<K> {
 		return map.get(k);
 	}
 
-	public boolean contains(String key) {
+	public boolean contains(K key) {
 		return map.containsKey(key);
 	}
 	
 	@Override
 	public String toString() {
 		return map.toString();
+	}
+
+	public Set<K> keySet() {
+		return map.keySet();
+	}
+
+	public Collection<V> values() {
+		Set<V> ret = new HashSet<V>();
+		for (List<V> vs : map.values())
+			ret.addAll(vs);
+		return ret;
 	}
 }
