@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.AaptGenBuildCommand;
+import com.gmmapowell.quickbuild.build.AaptPackageBuildCommand;
 import com.gmmapowell.quickbuild.build.BuildCommand;
 import com.gmmapowell.quickbuild.build.DexBuildCommand;
 import com.gmmapowell.quickbuild.build.JUnitRunCommand;
@@ -40,6 +41,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		File manifest = project.getRelative("AndroidManifest.xml");
 		File gendir = project.getRelative("gen");
 		File resdir = project.getRelative("res");
+		File zipfile = project.getOutput(project.getName()+".ap_");
 		AaptGenBuildCommand gen = new AaptGenBuildCommand(acxt, project, manifest, gendir, resdir);
 		ret.add(gen);
 		JavaBuildCommand genRes = new JavaBuildCommand(project, project.makeRelative(gendir).getPath(), "classes");
@@ -66,6 +68,8 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		
 		DexBuildCommand dex = new DexBuildCommand(acxt, project, project.getOutput("classes"), project.getOutput("classes.dex"));
 		ret.add(dex);
+		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(acxt, project, manifest, zipfile, resdir);
+		ret.add(pkg);
 		return ret;
 //		JarBuildCommand jar = new JarBuildCommand(project, project.getName() + ".jar");
 //		addJavaBuild(ret, jar, "src/main/java", "classes");

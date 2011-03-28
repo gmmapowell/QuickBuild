@@ -9,18 +9,18 @@ import com.gmmapowell.quickbuild.config.Project;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
-public class AaptGenBuildCommand implements BuildCommand {
+public class AaptPackageBuildCommand implements BuildCommand {
 
 	private final Project project;
 	private final AndroidContext acxt;
-	private final File gendir;
+	private final File zipfile;
 	private final File manifestFile;
 	private final File resdir;
 
-	public AaptGenBuildCommand(AndroidContext acxt, Project project, File manifest, File gendir, File resdir) {
+	public AaptPackageBuildCommand(AndroidContext acxt, Project project, File manifest, File zipfile, File resdir) {
 		this.acxt = acxt;
 		this.project = project;
-		this.gendir = gendir;
+		this.zipfile = zipfile;
 		this.manifestFile = manifest;
 		this.resdir = resdir;
 	}
@@ -42,15 +42,14 @@ public class AaptGenBuildCommand implements BuildCommand {
 
 	@Override
 	public BuildStatus execute(BuildContext cxt) {
-		FileUtils.cleanDirectory(gendir);
 		RunProcess proc = new RunProcess(acxt.getAAPT().getPath());
 		proc.captureStdout();
 		proc.captureStderr();
 		
 		proc.arg("package");
-		proc.arg("-m");
-		proc.arg("-J");
-		proc.arg(gendir.getPath());
+		proc.arg("-f");
+		proc.arg("-F");
+		proc.arg(zipfile.getPath());
 		proc.arg("-M");
 		proc.arg(manifestFile.getPath());
 		proc.arg("-S");
@@ -68,6 +67,6 @@ public class AaptGenBuildCommand implements BuildCommand {
 
 	@Override
 	public String toString() {
-		return "aapt gen: " + FileUtils.makeRelative(gendir);
+		return "aapt package: " + FileUtils.makeRelative(zipfile);
 	}
 }
