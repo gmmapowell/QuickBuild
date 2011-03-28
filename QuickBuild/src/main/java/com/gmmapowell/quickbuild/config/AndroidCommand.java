@@ -9,6 +9,7 @@ import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.AaptGenBuildCommand;
 import com.gmmapowell.quickbuild.build.BuildCommand;
 import com.gmmapowell.quickbuild.build.DexBuildCommand;
+import com.gmmapowell.quickbuild.build.JUnitRunCommand;
 import com.gmmapowell.quickbuild.build.JavaBuildCommand;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
@@ -46,6 +47,23 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		JavaBuildCommand buildSrc = new JavaBuildCommand(project, "src/main/java", "classes");
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
 		ret.add(buildSrc);
+		
+		// TODO: I feel it should be possible to compile and run unit tests, but what about that bootclasspath?
+		if (project.getRelative("src/test/java").exists())
+		{
+			JavaBuildCommand buildTests = new JavaBuildCommand(project, "src/test/java", "test-classes");
+			buildTests.addToClasspath(new File(project.getOutputDir(), "classes"));
+			buildTests.addToBootClasspath(acxt.getPlatformJar());
+			ret.add(buildTests);
+			
+			buildTests.addToClasspath(project.getRelative("src/main/resources"));
+			buildTests.addToClasspath(project.getRelative("src/test/resources"));
+			
+			JUnitRunCommand junitRun = new JUnitRunCommand(project, buildTests);
+			junitRun.addToBootClasspath(acxt.getPlatformJar());
+			ret.add(junitRun);
+		}
+		
 		DexBuildCommand dex = new DexBuildCommand(acxt, project, project.getOutput("classes"), project.getOutput("classes.dex"));
 		ret.add(dex);
 		return ret;

@@ -41,18 +41,25 @@ public class DexBuildCommand implements BuildCommand {
 	@Override
 	public BuildStatus execute(BuildContext cxt) {
 		RunProcess proc = new RunProcess(acxt.getDX().getPath());
-		proc.showArgs(true);
 		proc.captureStdout();
 		proc.captureStderr();
 		
 		proc.arg("--dex");
 		proc.arg("--output="+dexFile.getPath());
 		proc.arg(bindir.getPath());
+		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
 			return BuildStatus.SUCCESS;
 		}
 		System.out.println(proc.getStderr());
-		return BuildStatus.BROKEN;	}
+		return BuildStatus.BROKEN;
+	}
 	
+	@Override
+	public String toString() {
+		return "Create Dex: " + dexFile;
+	}
+
+
 }

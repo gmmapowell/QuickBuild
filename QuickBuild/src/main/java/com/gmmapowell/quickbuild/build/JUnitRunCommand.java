@@ -12,6 +12,7 @@ public class JUnitRunCommand implements BuildCommand {
 	private final Project project;
 	private final File srcdir;
 	private final RunClassPath classpath;
+	private final BuildClassPath bootclasspath = new BuildClassPath();
 
 	public JUnitRunCommand(Project project, JavaBuildCommand jbc) {
 		this.project = project;
@@ -26,6 +27,7 @@ public class JUnitRunCommand implements BuildCommand {
 		proc.captureStdout();
 		proc.captureStderr();
 
+		// TODO: use bootclasspath
 		proc.arg("-classpath");
 		proc.arg(classpath.toString());
 		proc.arg("org.junit.runner.JUnitCore");
@@ -63,6 +65,10 @@ public class JUnitRunCommand implements BuildCommand {
 	public List<BuildResource> generatedResources() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public void addToBootClasspath(File resource) {
+		bootclasspath.add(resource);
 	}
 
 

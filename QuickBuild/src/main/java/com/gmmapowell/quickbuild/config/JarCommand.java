@@ -58,7 +58,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		if (junit != null)
 			junit.addToClasspath(new File(project.getOutputDir(), "classes"));
 		addResources(jar, junit, "src/main/resources");
-		addResources(null, junit, "src/main/resources");
+		addResources(null, junit, "src/test/resources");
 		addJUnitRun(ret, junit);
 		if (ret.size() == 0)
 			throw new QuickBuildException("None of the required source directories exist");
