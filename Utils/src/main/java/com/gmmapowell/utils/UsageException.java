@@ -6,7 +6,7 @@ import java.util.List;
 public class UsageException extends RuntimeException {
 
 	public UsageException(List<String> errors) {
-		super(StringUtil.concat(errors));
+		super(StringUtil.concatVertically(errors));
 	}
 	
 }

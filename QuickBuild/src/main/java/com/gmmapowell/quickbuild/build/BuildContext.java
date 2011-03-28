@@ -2,6 +2,7 @@ package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -20,6 +21,7 @@ import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.Project;
 import com.gmmapowell.quickbuild.exceptions.JavaBuildFailure;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
+import com.gmmapowell.utils.DateUtils;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.xml.XML;
 import com.gmmapowell.xml.XMLElement;
@@ -38,6 +40,10 @@ public class BuildContext {
 	private Set<BuildCommand> needed = null; // is null to indicate build all
 	private int commandToExecute;
 	private int targetFailures;
+	private Date buildStarted;
+	private int totalErrors;
+	private boolean buildBroken;
+	private int projectsWithTestFailures;
 
 	public BuildContext(Config conf) {
 		this.conf = conf;
@@ -280,8 +286,12 @@ public class BuildContext {
 		return ret;
 	}
 
-	// TODO: this feels like "boolean" isn't cutting it any more:  SUCCESS, FAILURE, IGNORED, TEST_FAILURES, RETRY, HOPELESS
-	public boolean execute(BuildCommand bc) {
+	public BuildStatus execute(BuildCommand bc) {
+		// Record when first build started
+		if (buildStarted == null)
+			buildStarted = new Date();
+		
+		// figure out if we need to build this
 		boolean doit = true;
 		if (needed != null && !needed.contains(bc))
 		{
@@ -292,19 +302,33 @@ public class BuildContext {
 			System.out.print("* ");
 		System.out.println((commandToExecute+1) + ": " + bc);
 		if (!doit)
-			return true;
+			return BuildStatus.IGNORED;
 		return bc.execute(this);
 	}
 
 	public void junitFailure(JUnitRunCommand cmd, String stdout, String stderr) {
 		JUnitFailure failure = new JUnitFailure(cmd, stdout, stderr);
 		failures.add(failure);
+		projectsWithTestFailures++;
 	}
 
 	public void showAnyErrors() {
 		for (JUnitFailure failure : failures)
 			failure.show();
-		System.out.println("Build completed");
+		if (buildBroken)
+		{
+			System.out.println("!!!! BUILD FAILED !!!!");
+		}
+		else
+		{
+			System.out.print(">> Build completed in ");
+			System.out.print(DateUtils.elapsedTime(buildStarted, new Date(), DateUtils.Format.hhmmss3));
+			if (projectsWithTestFailures > 0)
+				System.out.print(" " + projectsWithTestFailures + " projects had test failures");
+			if (totalErrors > 0)
+				System.out.print(" " + totalErrors + " total build commands failed (including retries)");
+			System.out.println();
+		}
 	}
 
 	public BuildCommand next() {
@@ -320,7 +344,13 @@ public class BuildContext {
 		commandToExecute++;
 	}
 
-	public void buildFail() {
+	public void buildFail(BuildStatus outcome) {
+		totalErrors++;
+		if (outcome.isBroken())
+			buildBroken = true;
+	}
+
+	public void tryAgain() {
 		BuildCommand bc = cmds.get(commandToExecute);
 		if (++targetFailures >= 3)
 			throw new UtilException("The command " + bc + " failed 3 times in a row");

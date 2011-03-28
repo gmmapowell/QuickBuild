@@ -43,7 +43,7 @@ public class JavaBuildCommand implements BuildCommand {
 	}
 
 	@Override
-	public boolean execute(BuildContext cxt) {
+	public BuildStatus execute(BuildContext cxt) {
 		FileUtils.cleanDirectory(bindir);
 		RunProcess proc = new RunProcess("javac.exe");
 		proc.showArgs(showArgs);
@@ -69,7 +69,7 @@ public class JavaBuildCommand implements BuildCommand {
 		if (proc.getExitCode() == 0)
 		{
 			cxt.addClassDirForProject(project, bindir);
-			return true; // success
+			return BuildStatus.SUCCESS;
 		}
 		if (proc.getExitCode() == 1)
 		{
@@ -85,10 +85,10 @@ public class JavaBuildCommand implements BuildCommand {
 				else
 					throw new QuickBuildException("Do not know how to handle match " + lpm);
 			}
-			return false;
+			return BuildStatus.RETRY;
 		}
 		System.out.println(proc.getStderr());
-		throw new QuickBuildException("The exit code was " + proc.getExitCode());
+		return BuildStatus.BROKEN;
 	}
 
 	@Override

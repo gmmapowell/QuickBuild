@@ -32,7 +32,7 @@ public class JarBuildCommand implements BuildCommand {
 	}
 
 	@Override
-	public boolean execute(BuildContext cxt) {
+	public BuildStatus execute(BuildContext cxt) {
 		if (jarfile.exists() && !jarfile.delete())
 			throw new QuickBuildException("Could not delete " + jarfile);
 		RunProcess proc = new RunProcess("jar");
@@ -53,9 +53,9 @@ public class JarBuildCommand implements BuildCommand {
 		if (proc.getExitCode() == 0)
 		{
 			cxt.addBuiltJar(jar);
-			return true; // success
+			return BuildStatus.SUCCESS;
 		}
-		return false;
+		return BuildStatus.BROKEN;
 	}
 
 	@Override

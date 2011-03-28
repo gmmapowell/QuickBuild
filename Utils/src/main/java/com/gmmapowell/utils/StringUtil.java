@@ -4,7 +4,7 @@ import java.util.List;
 
 public class StringUtil {
 
-	public static String concat(List<String> errors) {
+	public static String concatVertically(List<String> errors) {
 		StringBuilder sb = new StringBuilder();
 		for (String s : errors)
 		{
@@ -22,4 +22,20 @@ public class StringUtil {
 			return string.equals(pattern);
 	}
 
+	public static String concat(String...  args) {
+		StringBuilder sb = new StringBuilder();
+		for (String s : args)
+			sb.append(s);
+		return sb.toString();
+	}
+
+	public static String digits(int quant, int nd) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(quant);
+		if (sb.length() > nd)
+			sb.delete(0, sb.length()-nd);
+		while (sb.length() < nd)
+			sb.insert(0, "0");
+		return sb.toString();
+	}
 }

@@ -6,7 +6,6 @@ import java.util.Set;
 
 import com.gmmapowell.quickbuild.config.AndroidContext;
 import com.gmmapowell.quickbuild.config.Project;
-import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
@@ -42,7 +41,7 @@ public class AaptGenBuildCommand implements BuildCommand {
 	}
 
 	@Override
-	public boolean execute(BuildContext cxt) {
+	public BuildStatus execute(BuildContext cxt) {
 		FileUtils.cleanDirectory(gendir);
 		RunProcess proc = new RunProcess(acxt.getAAPT().getPath());
 //		proc.showArgs(true);
@@ -62,10 +61,10 @@ public class AaptGenBuildCommand implements BuildCommand {
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
-			return true; // success
+			return BuildStatus.SUCCESS;
 		}
 		System.out.println(proc.getStderr());
-		throw new QuickBuildException("The exit code was " + proc.getExitCode());
+		return BuildStatus.BROKEN;
 	}
 
 	@Override

@@ -7,11 +7,11 @@ import com.gmmapowell.quickbuild.config.Project;
 
 public interface BuildCommand {
 
-	public boolean execute(BuildContext cxt);
-
 	public Project getProject();
 
 	public Set<String> getPackagesProvided();
 
 	public List<BuildResource> generatedResources();
+
+	public BuildStatus execute(BuildContext cxt);
 }

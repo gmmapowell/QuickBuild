@@ -8,13 +8,18 @@ import com.gmmapowell.utils.FileUtils;
 public class AndroidContext {
 
 	private final File aapt;
+	private final File dx;
 	private final File platformJar;
 
+	// TODO: this needs to be cross-platform (somehow)
 	public AndroidContext(String androidSDK, String androidPlatform) {
 		File platformDir = FileUtils.fileConcat(androidSDK, "platforms", androidPlatform);
 		aapt = new File(platformDir, "tools/aapt.exe");
 		if (!aapt.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + aapt);
+		dx = new File(platformDir, "tools/dx.bat");
+		if (!dx.exists())
+			throw new QBConfigurationException("Invalid android configuration: cannot find " + dx);
 		platformJar = new File(platformDir, "android.jar");
 		if (!platformJar.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + platformJar);
@@ -22,6 +27,10 @@ public class AndroidContext {
 
 	public File getAAPT() {
 		return aapt;
+	}
+	
+	public File getDX() {
+		return dx;
 	}
 
 	public File getPlatformJar() {

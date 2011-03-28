@@ -7,6 +7,7 @@ import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
 import com.gmmapowell.quickbuild.build.BuildCommand;
 import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.config.Arguments;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
@@ -62,11 +63,22 @@ public class QuickBuild {
 		BuildCommand bc;
 		while ((bc = cxt.next())!= null)
 		{
-			if (!cxt.execute(bc))
+			BuildStatus outcome = cxt.execute(bc);
+			if (!outcome.isGood())
 			{
-				System.out.println("  Failed ... retrying");
-				cxt.buildFail();
-				continue;
+				cxt.buildFail(outcome);
+				if (outcome.isBroken())
+				{
+					System.out.println("Aborting build due to failure");
+					break;
+				}
+				else if (outcome.tryAgain())
+				{
+					System.out.println("  Failed ... retrying");
+					cxt.tryAgain();
+					continue;
+				}
+				// else move on ...
 			}
 			cxt.advance();
 		}

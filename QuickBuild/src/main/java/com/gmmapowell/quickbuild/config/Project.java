@@ -3,6 +3,7 @@ package com.gmmapowell.quickbuild.config;
 import java.io.File;
 
 import com.gmmapowell.quickbuild.build.BuildResource;
+import com.gmmapowell.utils.FileUtils;
 
 public class Project implements BuildResource {
 	private final String name;
@@ -34,6 +35,15 @@ public class Project implements BuildResource {
 
 	public File getRelative(String dir) {
 		return new File(basedir, dir);
+	}
+
+	public File makeRelative(File f)
+	{
+		return FileUtils.makeRelativeTo(f, basedir);
+	}
+	
+	public File getOutput(String dir) {
+		return new File(outdir, dir);
 	}
 
 }

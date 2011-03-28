@@ -20,7 +20,7 @@ public class JUnitRunCommand implements BuildCommand {
 	}
 
 	@Override
-	public boolean execute(BuildContext cxt) {
+	public BuildStatus execute(BuildContext cxt) {
 		cxt.addAllProjectDirs(classpath, project);
 		RunProcess proc = new RunProcess("java");
 		proc.captureStdout();
@@ -37,11 +37,11 @@ public class JUnitRunCommand implements BuildCommand {
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
-			return true; // success
+			return BuildStatus.SUCCESS;
 		}
 		System.out.println("FAIL!!! JUnit Errors will be presented at end");
 		cxt.junitFailure(this, proc.getStdout(), proc.getStderr());
-		return true;
+		return BuildStatus.TEST_FAILURES;
 	}
 
 	@Override
