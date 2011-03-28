@@ -1,6 +1,7 @@
 package com.gmmapowell.xml;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.w3c.dom.Attr;
@@ -16,12 +17,11 @@ import com.gmmapowell.exceptions.UtilException;
 public class XMLElement {
 	private final XML inside;
 	final Element elt;
-	private int attrCount; // TODO: it would be better if this were a list of attributes processed
+	private final HashSet<String> attrsProcessed = new HashSet<String>();
 
 	XMLElement(XML inside, Element elt) {
 		this.inside = inside;
 		this.elt = elt;
-		attrCount = elt.getAttributes().getLength();
 	}
 	
 	public String tag() {
@@ -41,14 +41,14 @@ public class XMLElement {
 	public String required(String attr) {
 		if (!elt.hasAttribute(attr))
 			throw new UtilException("The required attribute " + attr + " was not found on " + this);
-		attrCount--;
+		attrsProcessed.add(attr);
 		return elt.getAttribute(attr);
 	}
 	
 	public String optional(String attr) {
 		if (elt.hasAttribute(attr))
 		{
-			attrCount--;
+			attrsProcessed.add(attr);
 			return elt.getAttribute(attr);
 		}
 		return null;
@@ -57,15 +57,21 @@ public class XMLElement {
 	public String optional(String attr, String def) {
 		if (elt.hasAttribute(attr))
 		{
-			attrCount--;
+			attrsProcessed.add(attr);
 			return elt.getAttribute(attr);
 		}
 		return def;
 	}
 	
 	public void attributesDone() {
-		if (attrCount != 0)
-			throw new UtilException("At end of attributes processing, " + attrCount + " were unprocessed");
+		if (attrsProcessed.size() != elt.getAttributes().getLength())
+		{
+			StringBuilder msg = new StringBuilder("At end of attributes processing for " + tag() + ", attributes were unprocessed:");
+			for (String a : attributes())
+				if (!attrsProcessed.contains(a))
+					msg.append(" " + a);
+			throw new UtilException(msg.toString());
+		}
 	}
 	
 	// Random Access
