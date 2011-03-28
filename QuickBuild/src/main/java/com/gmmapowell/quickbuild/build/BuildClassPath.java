@@ -24,4 +24,8 @@ public class BuildClassPath {
 		for (File f : files)
 			pb.add(f);
 	}
+
+	public boolean empty() {
+		return files.isEmpty();
+	}
 }

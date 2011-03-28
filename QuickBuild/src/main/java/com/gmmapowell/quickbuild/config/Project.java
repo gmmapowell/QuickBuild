@@ -32,7 +32,7 @@ public class Project implements BuildResource {
 		return "Project["+name+"]";
 	}
 
-	public File getDir(String dir) {
+	public File getRelative(String dir) {
 		return new File(basedir, dir);
 	}
 

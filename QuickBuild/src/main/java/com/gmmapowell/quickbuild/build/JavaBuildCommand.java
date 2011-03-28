@@ -18,6 +18,8 @@ public class JavaBuildCommand implements BuildCommand {
 	private final File srcdir;
 	private final File bindir;
 	private final BuildClassPath classpath;
+	private final BuildClassPath bootclasspath;
+	private boolean showArgs;
 
 	public JavaBuildCommand(Project project, String src, String bin) {
 		this.project = project;
@@ -29,20 +31,30 @@ public class JavaBuildCommand implements BuildCommand {
 		if (bindir.exists() && !bindir.isDirectory())
 			throw new QuickBuildException("Cannot build " + srcdir + " because the build directory is not a directory");
 		this.classpath = new BuildClassPath();
+		this.bootclasspath = new BuildClassPath();
 	}
 	
 	public void addToClasspath(File file) {
 		classpath.add(FileUtils.relativePath(file));
 	}
 
+	public void addToBootClasspath(File file) {
+		bootclasspath.add(FileUtils.relativePath(file));
+	}
+
 	@Override
 	public boolean execute(BuildContext cxt) {
 		FileUtils.cleanDirectory(bindir);
 		RunProcess proc = new RunProcess("javac.exe");
-//		proc.showArgs(true);
+		proc.showArgs(showArgs);
 		proc.captureStdout();
 		proc.captureStderr();
-		
+	
+		if (!bootclasspath.empty())
+		{
+			proc.arg("-bootclasspath");
+			proc.arg(bootclasspath.toString());
+		}
 		proc.arg("-sourcepath");
 		proc.arg(srcdir.getPath());
 		proc.arg("-d");
@@ -106,5 +118,9 @@ public class JavaBuildCommand implements BuildCommand {
 	public List<BuildResource> generatedResources() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public void showArgs(boolean b) {
+		showArgs = b;
 	}
 }

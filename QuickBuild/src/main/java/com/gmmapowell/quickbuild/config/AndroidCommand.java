@@ -8,6 +8,7 @@ import java.util.List;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.AaptGenBuildCommand;
 import com.gmmapowell.quickbuild.build.BuildCommand;
+import com.gmmapowell.quickbuild.build.JavaBuildCommand;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
@@ -17,7 +18,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 	private String projectName;
 	private final File projectDir;
 	private Project project;
-	private Config config;
+	private AndroidContext acxt;
 
 	@SuppressWarnings("unchecked")
 	public AndroidCommand(TokenizedLine toks) {
@@ -27,15 +28,23 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 
 	@Override
 	public void applyConfig(Config config) {
-		this.config = config;
 		project = new Project(projectName, projectDir, config.getOutput());
+		acxt = config.getAndroidContext();
 	}
 
 	@Override
 	public Collection<? extends BuildCommand> buildCommands() {
 		List<BuildCommand> ret = new ArrayList<BuildCommand>();
-		AaptGenBuildCommand gen = new AaptGenBuildCommand(config, project);
+		File manifest = project.getRelative("AndroidManifest.xml");
+		File gendir = project.getRelative("gen");
+		File resdir = project.getRelative("res");
+		AaptGenBuildCommand gen = new AaptGenBuildCommand(acxt, project, manifest, gendir, resdir);
 		ret.add(gen);
+		JavaBuildCommand genRes = new JavaBuildCommand(project, FileUtils.makeRelativeTo(gendir, project.getBaseDir()).getPath(), "classes");
+		ret.add(genRes);
+		JavaBuildCommand buildSrc = new JavaBuildCommand(project, "src/main/java", "classes");
+		buildSrc.addToBootClasspath(acxt.getPlatformJar());
+		ret.add(buildSrc);
 		return ret;
 //		JarBuildCommand jar = new JarBuildCommand(project, project.getName() + ".jar");
 //		addJavaBuild(ret, jar, "src/main/java", "classes");

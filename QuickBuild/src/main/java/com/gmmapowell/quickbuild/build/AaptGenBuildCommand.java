@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import com.gmmapowell.quickbuild.config.Config;
+import com.gmmapowell.quickbuild.config.AndroidContext;
 import com.gmmapowell.quickbuild.config.Project;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
@@ -13,20 +13,17 @@ import com.gmmapowell.utils.FileUtils;
 public class AaptGenBuildCommand implements BuildCommand {
 
 	private final Project project;
-	private File gendir;
-	private File manifestFile;
-	private File resdir;
-	private File platformJar;
-	private File aapt;
+	private final AndroidContext acxt;
+	private final File gendir;
+	private final File manifestFile;
+	private final File resdir;
 
-	public AaptGenBuildCommand(Config config, Project project) {
+	public AaptGenBuildCommand(AndroidContext acxt, Project project, File manifest, File gendir, File resdir) {
+		this.acxt = acxt;
 		this.project = project;
-		this.gendir = project.getDir("gen");
-		this.manifestFile = project.getDir("AndroidManifest.xml");
-		this.resdir = project.getDir("res");
-		File platformRoot = config.getAndroidPlatformRoot();
-		this.platformJar = new File(platformRoot, "android.jar");
-		this.aapt = new File(platformRoot, "tools/aapt.exe");
+		this.gendir = gendir;
+		this.manifestFile = manifest;
+		this.resdir = resdir;
 	}
 	
 	@Override
@@ -47,7 +44,7 @@ public class AaptGenBuildCommand implements BuildCommand {
 	@Override
 	public boolean execute(BuildContext cxt) {
 		FileUtils.cleanDirectory(gendir);
-		RunProcess proc = new RunProcess(aapt.getPath());
+		RunProcess proc = new RunProcess(acxt.getAAPT().getPath());
 //		proc.showArgs(true);
 		proc.captureStdout();
 		proc.captureStderr();
@@ -61,7 +58,7 @@ public class AaptGenBuildCommand implements BuildCommand {
 		proc.arg("-S");
 		proc.arg(resdir.getPath());
 		proc.arg("-I");
-		proc.arg(platformJar.getPath());
+		proc.arg(acxt.getPlatformJar().getPath());
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
@@ -73,6 +70,6 @@ public class AaptGenBuildCommand implements BuildCommand {
 
 	@Override
 	public String toString() {
-		return "aapt gen: " + FileUtils.relativeTo(gendir);
+		return "aapt gen: " + FileUtils.makeRelative(gendir);
 	}
 }

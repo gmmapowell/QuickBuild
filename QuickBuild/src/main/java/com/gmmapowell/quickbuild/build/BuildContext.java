@@ -18,6 +18,7 @@ import com.gmmapowell.graphs.Node;
 import com.gmmapowell.graphs.NodeWalker;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.Project;
+import com.gmmapowell.quickbuild.exceptions.JavaBuildFailure;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.xml.XML;
@@ -128,7 +129,7 @@ public class BuildContext {
 			}
 			return;
 		}
-		throw new QuickBuildException("There is no java package " + needsJavaPackage);
+		throw new JavaBuildFailure("cannot find any code that defines package " + needsJavaPackage);
 	}
 
 	public void limitBuildTo(Set<Project> changedProjects) {
@@ -303,6 +304,7 @@ public class BuildContext {
 	public void showAnyErrors() {
 		for (JUnitFailure failure : failures)
 			failure.show();
+		System.out.println("Build completed");
 	}
 
 	public BuildCommand next() {

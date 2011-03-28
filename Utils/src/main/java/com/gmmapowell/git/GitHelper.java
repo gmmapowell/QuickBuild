@@ -36,7 +36,7 @@ public class GitHelper {
 //			System.out.println(lpm);
 			for (File p : keySet)
 			{
-				String path = FileUtils.relativeTo(p).getPath();
+				String path = FileUtils.makeRelative(p).getPath();
 				if (lpm.get("filename").startsWith(path))
 				{
 //					System.out.println("Adding " + p);

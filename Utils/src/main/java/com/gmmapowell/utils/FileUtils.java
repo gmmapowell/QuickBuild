@@ -91,11 +91,11 @@ public class FileUtils {
 			return relativePath(new File(qbdir, string).getPath());
 	}
 
-	public static File relativeTo(File f) {
-		return relativeTo(f, root);
+	public static File makeRelative(File f) {
+		return makeRelativeTo(f, root);
 	}
 	
-	public static File relativeTo(File f, File under) {
+	public static File makeRelativeTo(File f, File under) {
 		if (under == null)
 			return f;
 		String uf = under.getPath()+File.separator;
@@ -143,7 +143,7 @@ public class FileUtils {
 		if (contents == null)
 			return;
 		for (File f : contents)
-			ret.add(relativeTo(f, under));
+			ret.add(makeRelativeTo(f, under));
 		File[] subdirs = dir.listFiles(isdirectory);
 		for (File d : subdirs)
 			findRecursive(ret, filter, under, d);

@@ -19,11 +19,11 @@ public class JarResource implements BuildResource {
 	}
 	
 	public File getFile() {
-		return FileUtils.relativeTo(jarFile);
+		return FileUtils.makeRelative(jarFile);
 	}
 
 	@Override
 	public String toString() {
-		return "Jar["+FileUtils.relativeTo(jarFile)+"]";
+		return "Jar["+FileUtils.makeRelative(jarFile)+"]";
 	}
 }

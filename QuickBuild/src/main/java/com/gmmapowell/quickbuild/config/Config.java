@@ -258,8 +258,8 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		androidPlatform = platform;
 	}
 
-	public File getAndroidPlatformRoot() {
-		return FileUtils.fileConcat(androidSDK, "platforms", androidPlatform);
+	public AndroidContext getAndroidContext() {
+		return new AndroidContext(androidSDK, androidPlatform);
 	}
 
 }

@@ -28,7 +28,7 @@ public class JarBuildCommand implements BuildCommand {
 	}
 	
 	public File getFile() {
-		return FileUtils.relativeTo(jarfile);
+		return FileUtils.makeRelative(jarfile);
 	}
 
 	@Override
