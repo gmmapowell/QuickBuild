@@ -282,7 +282,16 @@ public class BuildContext {
 
 	// TODO: this feels like "boolean" isn't cutting it any more:  SUCCESS, FAILURE, IGNORED, TEST_FAILURES, RETRY, HOPELESS
 	public boolean execute(BuildCommand bc) {
+		boolean doit = true;
 		if (needed != null && !needed.contains(bc))
+		{
+			doit = false;
+			System.out.print("  ");
+		}
+		else
+			System.out.print("* ");
+		System.out.println((commandToExecute+1) + ": " + bc);
+		if (!doit)
 			return true;
 		return bc.execute(this);
 	}
@@ -302,7 +311,6 @@ public class BuildContext {
 			return null;
 		
 		BuildCommand bc = cmds.get(commandToExecute);
-		System.out.println((commandToExecute+1) + ": " + bc);
 		return bc;
 	}
 
