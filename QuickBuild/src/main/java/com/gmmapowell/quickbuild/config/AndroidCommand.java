@@ -49,8 +49,11 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		AaptGenBuildCommand gen = new AaptGenBuildCommand(acxt, project, manifest, gendir, resdir);
 		ret.add(gen);
 		JavaBuildCommand genRes = new JavaBuildCommand(project, project.makeRelative(gendir).getPath(), "classes");
+		genRes.addToBootClasspath(acxt.getPlatformJar());
+		genRes.showArgs(true);
 		ret.add(genRes);
 		JavaBuildCommand buildSrc = new JavaBuildCommand(project, "src/main/java", "classes");
+		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
 		ret.add(buildSrc);
 		

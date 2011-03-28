@@ -20,6 +20,7 @@ public class JavaBuildCommand implements BuildCommand {
 	private final BuildClassPath classpath;
 	private final BuildClassPath bootclasspath;
 	private boolean showArgs;
+	private boolean doClean = true;
 
 	public JavaBuildCommand(Project project, String src, String bin) {
 		this.project = project;
@@ -42,9 +43,17 @@ public class JavaBuildCommand implements BuildCommand {
 		bootclasspath.add(FileUtils.relativePath(file));
 	}
 
+	public void dontClean()
+	{
+		doClean = false;
+	}
+	
 	@Override
 	public BuildStatus execute(BuildContext cxt) {
-		FileUtils.cleanDirectory(bindir);
+		if (doClean )
+			FileUtils.cleanDirectory(bindir);
+		else
+			classpath.add(bindir);
 		RunProcess proc = new RunProcess("javac.exe");
 		proc.showArgs(showArgs);
 		proc.captureStdout();
@@ -59,13 +68,19 @@ public class JavaBuildCommand implements BuildCommand {
 		proc.arg(srcdir.getPath());
 		proc.arg("-d");
 		proc.arg(bindir.getPath());
-		proc.arg("-classpath");
-		proc.arg(classpath.toString());
+		if (!classpath.empty())
+		{
+			proc.arg("-classpath");
+			proc.arg(classpath.toString());
+		}
+		proc.arg("-verbose");
 		for (File f : FileUtils.findFilesMatching(srcdir, "*.java"))
 		{
 			proc.arg(f.getPath());
 		}
 		proc.execute();
+		System.out.println(proc.getStdout());
+		System.out.println(proc.getStderr());
 		if (proc.getExitCode() == 0)
 		{
 			cxt.addClassDirForProject(project, bindir);
@@ -107,10 +122,11 @@ public class JavaBuildCommand implements BuildCommand {
 	@Override
 	public Set<String> getPackagesProvided() {
 		Set<String> ret = new HashSet<String>();
-		for (File f : FileUtils.findDirectoriesUnder(srcdir))
-		{
-			ret.add(FileUtils.convertToDottedName(f));
-		}
+		if (srcdir.exists())
+			for (File f : FileUtils.findDirectoriesUnder(srcdir))
+			{
+				ret.add(FileUtils.convertToDottedName(f));
+			}
 		return ret;
 	}
 
