@@ -73,14 +73,11 @@ public class JavaBuildCommand implements BuildCommand {
 			proc.arg("-classpath");
 			proc.arg(classpath.toString());
 		}
-		proc.arg("-verbose");
 		for (File f : FileUtils.findFilesMatching(srcdir, "*.java"))
 		{
 			proc.arg(f.getPath());
 		}
 		proc.execute();
-		System.out.println(proc.getStdout());
-		System.out.println(proc.getStderr());
 		if (proc.getExitCode() == 0)
 		{
 			cxt.addClassDirForProject(project, bindir);

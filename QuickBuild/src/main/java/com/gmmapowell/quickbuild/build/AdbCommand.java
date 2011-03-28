@@ -66,8 +66,8 @@ public class AdbCommand implements BuildCommand {
 				return BuildStatus.RETRY;
 		
 		RunProcess proc = new RunProcess(acxt.getADB().getPath());
-		proc.redirectStdout(System.out);
-		proc.redirectStderr(System.out);
+		proc.captureStdout();
+		proc.captureStderr();
 		
 		for (String s : commands.get(0))
 			proc.arg(s);
