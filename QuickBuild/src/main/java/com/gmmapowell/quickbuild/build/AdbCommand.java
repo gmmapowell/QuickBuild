@@ -10,6 +10,13 @@ import com.gmmapowell.quickbuild.config.Project;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 
+
+/* Other commands that may come in useful:
+	# aapt.exe list bin/Fred.apk 
+	# adb.exe devices
+	# emulator.exe -avd my_avd
+*/
+
 public class AdbCommand implements BuildCommand {
 	private final AndroidContext acxt;
 	private final Project project;
