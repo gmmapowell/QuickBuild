@@ -32,4 +32,8 @@ public class Project implements BuildResource {
 		return "Project["+name+"]";
 	}
 
+	public File getDir(String dir) {
+		return new File(basedir, dir);
+	}
+
 }

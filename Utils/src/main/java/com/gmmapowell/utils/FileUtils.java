@@ -180,7 +180,7 @@ public class FileUtils {
 		return fileConcat(spl);
 	}
 
-	private static File fileConcat(String... spl) {
+	public static File fileConcat(String... spl) {
 		File ret = null;
 		for (String s : spl)
 		{

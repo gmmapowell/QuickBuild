@@ -39,6 +39,8 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	private Map<File, Project> projects = new HashMap<File, Project>();
 	private ListMap<String, BuildResource> duplicates = new ListMap<String, BuildResource>();
 	private List<BuildResource> willbuild = new ArrayList<BuildResource>();
+	private String androidSDK;
+	private String androidPlatform;
 
 	@SuppressWarnings("unchecked")
 	public Config(File qbdir)
@@ -250,4 +252,14 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 				return br;
 		throw new QuickBuildException("There is no resource called " + res);
 	}
+
+	public void setAndroidSDK(String sdk, String platform) {
+		androidSDK = sdk;
+		androidPlatform = platform;
+	}
+
+	public File getAndroidPlatformRoot() {
+		return FileUtils.fileConcat(androidSDK, "platforms", androidPlatform);
+	}
+
 }

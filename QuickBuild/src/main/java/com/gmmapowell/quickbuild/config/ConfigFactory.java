@@ -36,6 +36,10 @@ public class ConfigFactory implements CommandObjectFactory {
 		{
 			return new OutputCommand(toks);
 		}
+		else if (cmd.equals("androidsdk"))
+		{
+			return new AndroidSDKCommand(toks);
+		}
 		else if (cmd.equals("libs"))
 		{
 			return new LibsCommand(toks);

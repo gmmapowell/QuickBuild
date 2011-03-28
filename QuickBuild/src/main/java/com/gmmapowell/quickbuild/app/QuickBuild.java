@@ -18,7 +18,8 @@ import com.gmmapowell.utils.ProcessArgs;
 public class QuickBuild {
 	private static ArgumentDefinition[] argumentDefinitions = new ArgumentDefinition[] {
 		new ArgumentDefinition("*.qb", Cardinality.REQUIRED, "file", "configuration file"),
-		new ArgumentDefinition("--config-only", Cardinality.OPTION, "configOnly", null)
+		new ArgumentDefinition("--config-only", Cardinality.OPTION, "configOnly", null),
+		new ArgumentDefinition("--build-all", Cardinality.OPTION, "buildAll", null)
 	};
 
 	private static Arguments arguments;
@@ -44,14 +45,16 @@ public class QuickBuild {
 		cxt.loadCache();
 		
 		// determine what we need to build from git ...
-		Set<Project> changedProjects = conf.projectsFor(GitHelper.dirtyProjects(conf.projectMappings().keySet()));
-		System.out.println("");
-		System.out.println("The following projects have changed in git:");
-		for (Project p : changedProjects)
-			System.out.println(p);
-		
-		// TODO: figure through the dependency graph to see what needs doing ...
-		cxt.limitBuildTo(changedProjects);
+		if (!arguments.buildAll)
+		{
+			Set<Project> changedProjects = conf.projectsFor(GitHelper.dirtyProjects(conf.projectMappings().keySet()));
+			System.out.println("");
+			System.out.println("The following projects have changed in git:");
+			for (Project p : changedProjects)
+				System.out.println(p);
+
+			cxt.limitBuildTo(changedProjects);
+		}
 		
 		// now we try and build stuff ...
 		System.out.println("");

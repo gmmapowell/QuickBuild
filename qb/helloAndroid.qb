@@ -1,12 +1,12 @@
 # where the root is relative to this file (optional, default = .)
 root ..
 
+# The android SDK to use and the platform version
+# TODO: host-based path setting
+androidsdk C:/android-sdk-windows-1.6_r1 android-1.5
+
 # where to find libraries - this really should be the default
 libs lib
-# TODO: host-based path setting
-libs C:/android-sdk-windows-1.6_r1/platforms/android-1.5
-
-# specify a maven repository - default http://repo1.maven.org/maven2
 
 # Load maven files from the repo using the "Apache Buildr" format
 maven junit:junit:jar:4.8.2

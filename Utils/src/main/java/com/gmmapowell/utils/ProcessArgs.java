@@ -16,9 +16,9 @@ public class ProcessArgs {
 		StateMap<ArgumentDefinition, Integer> argcount = new StateMap<ArgumentDefinition, Integer>();
 		List<String> errors = new ArrayList<String>();
 		
-		int i = 0;
+		int i = -1;
 		loop:
-		while (i < args.length)
+		while (++i < args.length)
 		{
 			if (args[i].startsWith("--"))
 			{
@@ -26,7 +26,6 @@ public class ProcessArgs {
 					if (ad.text.equals(args[i]))
 					{
 						Reflection.setField(config, ad.toVar, true);
-						i++;
 						continue loop;
 					}
 				throw new UtilException("There is no option definition for " + args[i]);
@@ -38,12 +37,13 @@ public class ProcessArgs {
 			else
 			{
 				for (ArgumentDefinition ad : argumentDefinitions)
+				{
 					if (ad.text.startsWith("-"))
 						continue;
 					else if (StringUtil.globMatch(ad.text, args[i]))
 					{
 						if (ad.cardinality.maxOfOne() && argcount.containsKey(ad))
-							error(errors, ad, "cannot be duplicated");
+							;
 						else
 						{
 							Reflection.setField(config, ad.toVar, args[i]);
@@ -53,10 +53,12 @@ public class ProcessArgs {
 								public Integer apply(Integer arg) {
 									return arg+1;
 								}});
+							continue loop;
 						}
 					}
+				}
+				errors.add("There was no variable to handle " + args[i]);
 			}
-			i++;
 		}
 		
 		// Check all required args were specified

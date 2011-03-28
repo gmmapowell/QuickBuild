@@ -2,7 +2,8 @@ package com.gmmapowell.quickbuild.config;
 
 public class Arguments {
 
-	public String file;
+	public boolean buildAll;
 	public boolean configOnly;
+	public String file;
 
 }

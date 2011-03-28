@@ -6,10 +6,8 @@ import java.util.Collection;
 import java.util.List;
 
 import com.gmmapowell.parser.TokenizedLine;
+import com.gmmapowell.quickbuild.build.AaptGenBuildCommand;
 import com.gmmapowell.quickbuild.build.BuildCommand;
-import com.gmmapowell.quickbuild.build.JarBuildCommand;
-import com.gmmapowell.quickbuild.build.JavaBuildCommand;
-import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
@@ -19,6 +17,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 	private String projectName;
 	private final File projectDir;
 	private Project project;
+	private Config config;
 
 	@SuppressWarnings("unchecked")
 	public AndroidCommand(TokenizedLine toks) {
@@ -28,12 +27,15 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 
 	@Override
 	public void applyConfig(Config config) {
+		this.config = config;
 		project = new Project(projectName, projectDir, config.getOutput());
 	}
 
 	@Override
 	public Collection<? extends BuildCommand> buildCommands() {
 		List<BuildCommand> ret = new ArrayList<BuildCommand>();
+		AaptGenBuildCommand gen = new AaptGenBuildCommand(config, project);
+		ret.add(gen);
 		return ret;
 //		JarBuildCommand jar = new JarBuildCommand(project, project.getName() + ".jar");
 //		addJavaBuild(ret, jar, "src/main/java", "classes");
