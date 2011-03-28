@@ -8,6 +8,7 @@ import java.util.List;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.AaptGenBuildCommand;
 import com.gmmapowell.quickbuild.build.AaptPackageBuildCommand;
+import com.gmmapowell.quickbuild.build.ApkBuildCommand;
 import com.gmmapowell.quickbuild.build.BuildCommand;
 import com.gmmapowell.quickbuild.build.DexBuildCommand;
 import com.gmmapowell.quickbuild.build.JUnitRunCommand;
@@ -41,7 +42,10 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		File manifest = project.getRelative("AndroidManifest.xml");
 		File gendir = project.getRelative("gen");
 		File resdir = project.getRelative("res");
+		File dexFile = project.getOutput("classes.dex");
 		File zipfile = project.getOutput(project.getName()+".ap_");
+		File apkFile = project.getOutput(project.getName()+".apk");
+		
 		AaptGenBuildCommand gen = new AaptGenBuildCommand(acxt, project, manifest, gendir, resdir);
 		ret.add(gen);
 		JavaBuildCommand genRes = new JavaBuildCommand(project, project.makeRelative(gendir).getPath(), "classes");
@@ -66,22 +70,13 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 			ret.add(junitRun);
 		}
 		
-		DexBuildCommand dex = new DexBuildCommand(acxt, project, project.getOutput("classes"), project.getOutput("classes.dex"));
+		DexBuildCommand dex = new DexBuildCommand(acxt, project, project.getOutput("classes"), dexFile);
 		ret.add(dex);
 		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(acxt, project, manifest, zipfile, resdir);
 		ret.add(pkg);
+		ApkBuildCommand apk = new ApkBuildCommand(acxt, project, zipfile, dexFile, apkFile);
+		ret.add(apk);
 		return ret;
-//		JarBuildCommand jar = new JarBuildCommand(project, project.getName() + ".jar");
-//		addJavaBuild(ret, jar, "src/main/java", "classes");
-//		JavaBuildCommand junit = addJavaBuild(ret, null, "src/test/java", "test-classes");
-//		if (junit != null)
-//			junit.addToClasspath(new File(project.getOutputDir(), "classes"));
-//		addResources(jar, junit, "src/main/resources");
-//		addResources(null, junit, "src/main/resources");
-//		addJUnitRun(ret, junit);
-//		if (ret.size() == 0)
-//			throw new QuickBuildException("None of the required source directories exist");
-//		ret.add(jar);
 	}
 
 	@Override
