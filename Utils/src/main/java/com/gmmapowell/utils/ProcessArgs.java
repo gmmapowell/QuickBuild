@@ -17,11 +17,19 @@ public class ProcessArgs {
 		List<String> errors = new ArrayList<String>();
 		
 		int i = 0;
+		loop:
 		while (i < args.length)
 		{
 			if (args[i].startsWith("--"))
 			{
-				
+				for (ArgumentDefinition ad : argumentDefinitions)
+					if (ad.text.equals(args[i]))
+					{
+						Reflection.setField(config, ad.toVar, true);
+						i++;
+						continue loop;
+					}
+				throw new UtilException("There is no option definition for " + args[i]);
 			}
 			else if (args[i].startsWith("-"))
 			{

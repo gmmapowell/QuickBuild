@@ -18,7 +18,9 @@ public class Reflection {
 			if (f == null)
 				throw new UtilException("Class " + clz + " does not have a field " + fieldName);
 			f.setAccessible(true);
-			if (value == null || f.getType().isAssignableFrom(value.getClass()))
+			if (value instanceof Boolean)
+				f.setBoolean(target, (Boolean)value);
+			else if (value == null || f.getType().isAssignableFrom(value.getClass()))
 				f.set(target, value);
 			else
 				throw new UtilException("The field " + fieldName + " is not assignable from " + value.getClass());

@@ -86,6 +86,8 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	}
 
 	public void done() {
+		if (output == null)
+			setOutputDir("qbout");
 		mvnCache = FileUtils.relativePath(qbdir, "mvncache");
 		if (!mvnCache.exists())
 			if (!mvnCache.mkdirs())

@@ -17,7 +17,8 @@ import com.gmmapowell.utils.ProcessArgs;
 
 public class QuickBuild {
 	private static ArgumentDefinition[] argumentDefinitions = new ArgumentDefinition[] {
-		new ArgumentDefinition("*.qb", Cardinality.REQUIRED, "file", "configuration file")
+		new ArgumentDefinition("*.qb", Cardinality.REQUIRED, "file", "configuration file"),
+		new ArgumentDefinition("--config-only", Cardinality.OPTION, "configOnly", null)
 	};
 
 	private static Arguments arguments;
@@ -34,6 +35,9 @@ public class QuickBuild {
 		conf.done();
 		System.out.println("Configuration:");
 		System.out.print(conf);
+		
+		if (arguments.configOnly)
+			return;
 		
 		// now we need to read back anything we've cached ...
 		BuildContext cxt = new BuildContext(conf);
