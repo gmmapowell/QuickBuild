@@ -40,7 +40,7 @@ public class QuickBuild {
 		cxt.loadCache();
 		
 		// determine what we need to build from git ...
-		Set<Project> changedProjects = conf.projectsFor(GitHelper.changedProjects(conf.projectMappings().keySet()));
+		Set<Project> changedProjects = conf.projectsFor(GitHelper.dirtyProjects(conf.projectMappings().keySet()));
 		System.out.println("");
 		System.out.println("The following projects have changed in git:");
 		for (Project p : changedProjects)

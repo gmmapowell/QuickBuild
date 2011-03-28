@@ -12,7 +12,13 @@ import com.gmmapowell.utils.FileUtils;
 
 public class GitHelper {
 
-	public static Set<File> changedProjects(Set<File> keySet) {
+	// TODO: this also needs to have a method which takes a file which was the set of hash values for last time
+	// and re-run git hash-object on all the files to see if any of them have changed.
+	// There's also the need to write such a list out when the build completes.
+	// This may in fact replace everything that's here.
+	
+	
+	public static Set<File> dirtyProjects(Set<File> keySet) {
 		HashSet<File> ret = new HashSet<File>();
 		RunProcess git = new RunProcess("git");
 		git.executeInDir(FileUtils.getCurrentDir());
