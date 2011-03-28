@@ -34,7 +34,7 @@ public class GPJarFile implements Iterable<GPJarEntry> {
 	
 	public GPJarFile(File f) {
 		try {
-			jf = new JarFile(f);
+			jf = new JarFile(FileUtils.relativePath(f));
 		} catch (IOException e) {
 			throw UtilException.wrap(e);
 		}

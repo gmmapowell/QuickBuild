@@ -1,6 +1,7 @@
 package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
+import java.util.List;
 import java.util.Set;
 
 import com.gmmapowell.quickbuild.config.Project;
@@ -55,6 +56,12 @@ public class JUnitRunCommand implements BuildCommand {
 
 	@Override
 	public Set<String> getPackagesProvided() {
+		return null;
+	}
+
+	@Override
+	public List<BuildResource> generatedResources() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 

@@ -55,8 +55,10 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		List<BuildCommand> ret = new ArrayList<BuildCommand>();
 		addJavaBuild(ret, jar, "src/main/java", "classes");
 		JavaBuildCommand junit = addJavaBuild(ret, null, "src/test/java", "test-classes");
-		addResources(jar, "src/main/resources");
-		addResources(null, "src/main/resources");
+		if (junit != null)
+			junit.addToClasspath(new File(project.getOutputDir(), "classes"));
+		addResources(jar, junit, "src/main/resources");
+		addResources(null, junit, "src/main/resources");
 		addJUnitRun(ret, junit);
 		if (ret.size() == 0)
 			throw new QuickBuildException("None of the required source directories exist");
@@ -76,11 +78,14 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		return null;
 	}
 	
-	private void addResources(JarBuildCommand jar, String src) {
-		if (new File(projectDir, src).isDirectory())
+	private void addResources(JarBuildCommand jar, JavaBuildCommand junit, String src) {
+		File dir = new File(projectDir, src);
+		if (dir.isDirectory())
 		{
 			if (jar != null)
-				jar.add(new File(projectDir, src));
+				jar.add(dir);
+			if (junit != null)
+				junit.addToClasspath(dir);
 		}
 	}
 

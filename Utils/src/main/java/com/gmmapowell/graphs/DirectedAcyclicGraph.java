@@ -71,7 +71,6 @@ public class DirectedAcyclicGraph<N> {
 	}
 
 	private void addLink(Link<N> link) {
-		System.out.println("Adding link " + link);
 		if (link.to.span().contains(link.from.node))
 			throw new UtilException("Adding link from " + link.from.node + " to " + link.to.node + " creates a cycle");
 		links.add(link);

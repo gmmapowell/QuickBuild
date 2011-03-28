@@ -38,6 +38,7 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	private File mvnCache;
 	private Map<File, Project> projects = new HashMap<File, Project>();
 	private ListMap<String, BuildResource> duplicates = new ListMap<String, BuildResource>();
+	private List<BuildResource> willbuild = new ArrayList<BuildResource>();
 
 	@SuppressWarnings("unchecked")
 	public Config(File qbdir)
@@ -111,6 +112,10 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	
 	public List<BuildCommand> getBuildCommandsInOrder() {
 		return buildcmds;
+	}
+
+	public void willBuild(BuildResource br) {
+		willbuild.add(br);
 	}
 	
 	public void requireMaven(String pkginfo) {
@@ -229,5 +234,18 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		for (File f : changedProjects)
 			ret.add(projects.get(f));
 		return ret;
+	}
+
+	public BuildResource findResource(String res) {
+		for (JarResource jr : availableJars)
+			if (jr.toString().equals(res))
+				return jr;
+		for (Project p : projects.values())
+			if (p.toString().equals(res))
+				return p;
+		for (BuildResource br : willbuild)
+			if (br.toString().equals(res))
+				return br;
+		throw new QuickBuildException("There is no resource called " + res);
 	}
 }

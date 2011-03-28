@@ -7,7 +7,7 @@ public class MavenResource extends JarResource {
 	private final String pkgname;
 
 	public MavenResource(String pkgname, File f) {
-		super(f);
+		super(f, null);
 		this.pkgname = pkgname;
 	}
 

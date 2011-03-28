@@ -3,6 +3,7 @@ package com.gmmapowell.quickbuild.build;
 import java.io.File;
 import java.io.StringReader;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.gmmapowell.parser.LinePatternMatch;
@@ -30,14 +31,15 @@ public class JavaBuildCommand implements BuildCommand {
 		this.classpath = new BuildClassPath();
 	}
 	
-	public void addJar(File file) {
-		classpath.add(file);
+	public void addToClasspath(File file) {
+		classpath.add(FileUtils.relativePath(file));
 	}
 
 	@Override
 	public boolean execute(BuildContext cxt) {
 		FileUtils.cleanDirectory(bindir);
 		RunProcess proc = new RunProcess("javac.exe");
+//		proc.showArgs(true);
 		proc.captureStdout();
 		proc.captureStderr();
 		
@@ -98,5 +100,11 @@ public class JavaBuildCommand implements BuildCommand {
 			ret.add(FileUtils.convertToDottedName(f));
 		}
 		return ret;
+	}
+
+	@Override
+	public List<BuildResource> generatedResources() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

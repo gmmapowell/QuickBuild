@@ -50,6 +50,15 @@ public class BuildContext {
 				for (String s : packagesForCommand)
 					projectPackages.add(s, cmd.getProject());
 			}
+			dependencies.ensure(cmd.getProject());
+			
+			List<BuildResource> generatedResources = cmd.generatedResources();
+			if (generatedResources != null)
+				for (BuildResource br : generatedResources)
+				{
+					conf.willBuild(br);
+					dependencies.ensure(br);
+				}
 		}
 	}
 
@@ -61,11 +70,10 @@ public class BuildContext {
 			dirProvider.add(FileUtils.convertToDottedName(f.getParentFile()), dir);
 	}
 
-	public void addBuiltJar(Project project, File jarfile) {
-		JarResource jar = new JarResource(jarfile);
+	public void addBuiltJar(JarResource jar) {
 		builtJars.add(jar);
 		dependencies.newNode(jar);
-		dependencies.ensureLink(jar, project);
+		dependencies.ensureLink(jar, jar.getBuiltBy());
 		conf.jarSupplies(jar, availablePackages);
 		conf.showDuplicates();
 	}
@@ -85,8 +93,11 @@ public class BuildContext {
 		if (availablePackages.containsKey(needsJavaPackage))
 		{
 			JarResource provider = availablePackages.get(needsJavaPackage);
-			javaBuildCommand.addJar(provider.getFile());
+			javaBuildCommand.addToClasspath(provider.getFile());
+			// TODO: this is grouping all commands to the same project, which is losing some info.  I think Eclipse does the same though.
 			dependencies.ensureLink(javaBuildCommand.getProject(), provider);
+			if (provider.getBuiltBy() != null)
+				dependencies.ensureLink(javaBuildCommand.getProject(), provider.getBuiltBy());
 			return; // do something
 		}
 		
@@ -98,7 +109,7 @@ public class BuildContext {
 			{
 				for (File f : packagesProvidedByDirectoriesInProject.get(javaBuildCommand.getProject()).get(needsJavaPackage))
 				{
-					javaBuildCommand.addJar(f);
+					javaBuildCommand.addToClasspath(f);
 				}
 				return;
 			}
@@ -111,6 +122,7 @@ public class BuildContext {
 			for (Project p : list)
 			{
 				moveUp(javaBuildCommand, p);
+				dependencies.ensureLink(javaBuildCommand.getProject(), p);
 			}
 			return;
 		}
@@ -135,6 +147,55 @@ public class BuildContext {
 	}
 
 	public void loadCache() {
+		if (!dependencyFile.canRead())
+			return;
+		final XML input = XML.fromFile(dependencyFile);
+		int moveTo = 0;
+		for (XMLElement e : input.top().elementChildren())
+		{
+			Project proj = null;
+			String from = e.get("from");
+			for (int i=moveTo;i<cmds.size();i++)
+			{
+				BuildCommand bc = cmds.get(i);
+				if (bc.getProject().toString().equals(from))
+				{
+					proj = bc.getProject();
+					if (i != moveTo)
+					{
+						cmds.remove(i);
+						cmds.add(moveTo, bc);
+					}
+					moveTo++;
+				}
+			}
+			if (proj == null)
+				throw new QuickBuildException("Did not find any build commands for " + from);
+			for (XMLElement r : e.elementChildren())
+			{
+				if (r.hasTag("References"))
+				{
+					String on = r.get("on");
+					BuildResource provider = conf.findResource(on);
+					dependencies.ensureLink(proj, provider);
+					if (provider instanceof JarResource)
+					{
+						JarResource jr = (JarResource)provider;
+						for (BuildCommand jbc : commandsFor(proj))
+						{
+							if (jbc instanceof JavaBuildCommand)
+								((JavaBuildCommand)jbc).addToClasspath(jr.getFile());
+						}
+					}
+				}
+				else if (r.hasTag("Provides"))
+				{
+					
+				}
+				else
+					throw new QuickBuildException("The tag " + r.tag() + " is unknown");
+			}
+		}
 	}
 
 	public void saveDependencies() {
@@ -144,20 +205,39 @@ public class BuildContext {
 			public void present(Node<BuildResource> node) {
 				if (!(node.getEntry() instanceof Project))
 					return;
+				Project proj = (Project)node.getEntry();
 				XMLElement dep = output.addElement("Dependency");
 				dep.setAttribute("from", node.getEntry().toString());
 				for (Link<BuildResource> l : node.linksFrom())
 				{
 					XMLElement ref = dep.addElement("References");
-					ref.setAttribute("on", l.getTo().toString());
+					BuildResource to = l.getTo();
+					ref.setAttribute("on", to.toString());
+				}
+				for (BuildCommand bc : commandsFor(proj))
+				{
+					if (!(bc instanceof JarBuildCommand))
+						continue;
+					XMLElement provides = dep.addElement("Provides");
+					provides.setAttribute("jar", ((JarBuildCommand)bc).getFile().getPath());
 				}
 			}
+
 		});
 		output.write(dependencyFile);
 	}
 
+	private Iterable<BuildCommand> commandsFor(Project proj) {
+		List<BuildCommand> ret = new ArrayList<BuildCommand>();
+		for (BuildCommand bc : cmds)
+		{
+			if (bc.getProject() == proj)
+				ret.add(bc);
+		}
+		return ret;
+	}
+
 	public boolean execute(BuildCommand bc) {
-		dependencies.ensure(bc.getProject());
 		return bc.execute(this);
 	}
 

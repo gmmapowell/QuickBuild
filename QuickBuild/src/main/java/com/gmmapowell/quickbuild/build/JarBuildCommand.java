@@ -6,25 +6,35 @@ import java.util.List;
 import java.util.Set;
 
 import com.gmmapowell.quickbuild.config.Project;
+import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
 public class JarBuildCommand implements BuildCommand {
 	private final Project project;
 	private final File jarfile;
-	private List<File> dirsToJar = new ArrayList<File>();
+	private final JarResource jar;
+	private final List<File> dirsToJar = new ArrayList<File>();
 
 	public JarBuildCommand(Project project, String jarfile) {
 		this.project = project;
 		this.jarfile = new File(project.getOutputDir(), jarfile);
+		jar = new JarResource(this.jarfile, project);
+
 	}
 	
 	public void add(File file) {
 		dirsToJar.add(file);
 	}
+	
+	public File getFile() {
+		return FileUtils.relativeTo(jarfile);
+	}
 
 	@Override
 	public boolean execute(BuildContext cxt) {
+		if (jarfile.exists() && !jarfile.delete())
+			throw new QuickBuildException("Could not delete " + jarfile);
 		RunProcess proc = new RunProcess("jar");
 		proc.captureStdout();
 		proc.redirectStderr(System.out);
@@ -42,7 +52,7 @@ public class JarBuildCommand implements BuildCommand {
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
-			cxt.addBuiltJar(project, jarfile);
+			cxt.addBuiltJar(jar);
 			return true; // success
 		}
 		return false;
@@ -60,7 +70,13 @@ public class JarBuildCommand implements BuildCommand {
 
 	@Override
 	public Set<String> getPackagesProvided() {
-		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public List<BuildResource> generatedResources() {
+		List<BuildResource> ret = new ArrayList<BuildResource>();
+		ret.add(jar);
+		return ret;
 	}
 }

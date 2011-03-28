@@ -28,6 +28,10 @@ public class XMLElement {
 		return elt.getTagName();
 	}
 
+	public boolean hasTag(String tag) {
+		return tag().equals(tag);
+	}
+
 	public void assertTag(String tag) {
 		if (!tag.equals(tag()))
 			throw new UtilException("The element " + this + " does not have tag " + tag);
