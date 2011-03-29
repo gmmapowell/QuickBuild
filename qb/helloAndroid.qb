@@ -1,6 +1,11 @@
 # where the root is relative to this file (optional, default = .)
 root ..
 
+# Configure the design pattern builder
+extension dp com.gmmapowell.designpatterns.builder.DPConfigCommand
+
+dp ../../ASG/GarethSpikes/20110316-DesignPatterns/resources helloAndroid.xml
+
 # The android SDK to use and the platform version
 # TODO: host-based path setting
 androidsdk C:/android-sdk-windows-1.6_r1 android-1.5

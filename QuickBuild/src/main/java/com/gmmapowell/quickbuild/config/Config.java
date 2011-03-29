@@ -64,6 +64,8 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	
 	@Override
 	public void addChild(ConfigCommand cmd) {
+		if (cmd instanceof DoNothingCommand)
+			return;
 		if (cmd instanceof ConfigApplyCommand)
 			applicators.add((ConfigApplyCommand) cmd);
 		else if (cmd instanceof ConfigBuildCommand)
