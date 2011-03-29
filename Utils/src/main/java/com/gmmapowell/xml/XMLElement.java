@@ -184,4 +184,8 @@ public class XMLElement {
 	public void setAttribute(String attr, String value) {
 		elt.setAttribute(attr, value);
 	}
+
+	public boolean hasAttribute(String attr) {
+		return elt.hasAttribute(attr);
+	}
 }

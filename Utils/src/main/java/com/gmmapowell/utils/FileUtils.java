@@ -172,10 +172,10 @@ public class FileUtils {
 		String[] spl = pkginfo.split(":");
 		if (spl == null || spl.length != 4)
 			throw new UtilException("'" + pkginfo + "' is not a valid maven package name");
-		return fileConcat(convertPackageToPath(spl[0]).getPath(), spl[1], spl[3], spl[1]+"-"+spl[3]+"."+spl[2]);
+		return fileConcat(convertDottedToPath(spl[0]).getPath(), spl[1], spl[3], spl[1]+"-"+spl[3]+"."+spl[2]);
 	}
 
-	private static File convertPackageToPath(String pkg) {
+	public static File convertDottedToPath(String pkg) {
 		String[] spl = pkg.split("\\.");
 		return fileConcat(spl);
 	}
@@ -235,5 +235,27 @@ public class FileUtils {
 			if (!new File(dir, f.getPath()).delete())
 				throw new UtilException("Could not delete: " + f);
 		}
+	}
+
+	public static File combine(File path1, String path2) {
+		if (path1 == null && path2 == null)
+			return null;
+		else if (path1 == null)
+			return new File(path2);
+		else if (path2 == null)
+			return path1;
+		else
+			return new File(path1, path2);
+	}
+
+	public static File combine(File path1, File path2) {
+		if (path1 == null && path2 == null)
+			return null;
+		else if (path1 == null)
+			return path2;
+		else if (path2 == null)
+			return path1;
+		else
+			return new File(path1, path2.getPath());
 	}
 }

@@ -1,5 +1,7 @@
 package com.gmmapowell.exceptions;
 
+import java.lang.reflect.InvocationTargetException;
+
 @SuppressWarnings("serial")
 public class UtilException extends RuntimeException {
 
@@ -7,14 +9,17 @@ public class UtilException extends RuntimeException {
 		super(string);
 	}
 
-	public UtilException(String string, Exception ex) {
+	public UtilException(String string, Throwable ex) {
 		super(string, ex);
 	}
 
-	public static RuntimeException wrap(Exception ex) {
+	public static RuntimeException wrap(Throwable ex) {
 		if (ex instanceof RuntimeException)
 			return (RuntimeException)ex;
-		return new UtilException("A checked exception was caught", ex);
+		else if (ex instanceof InvocationTargetException)
+			return wrap(ex.getCause());
+		else
+			return new UtilException("A checked exception was caught", ex);
 	}
 
 }
