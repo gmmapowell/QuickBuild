@@ -4,11 +4,13 @@ root ..
 # Configure the design pattern builder
 extension dp com.gmmapowell.designpatterns.builder.DPConfigCommand
 
-dp ../../ASG/GarethSpikes/20110316-DesignPatterns/resources helloAndroid.xml
+dp HelloAndroid dp/helloAndroid.xml
 
 # The android SDK to use and the platform version
 # TODO: host-based path setting
-androidsdk C:/android-sdk-windows-1.6_r1 android-1.5
+path androidsdk C:/android-sdk-windows-1.6_r1
+var androidplatform android-1.5 
+path dp_resources C:/Personal/ASG/GarethSpikes/20110316-DesignPatterns/resources
 
 # where to find libraries - this really should be the default
 libs lib

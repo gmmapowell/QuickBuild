@@ -45,7 +45,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("  jar " + projectName + "\n");
+		sb.append("jar " + projectName);
 		return sb.toString();
 	}
 

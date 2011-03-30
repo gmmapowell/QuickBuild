@@ -6,7 +6,6 @@ import java.util.Map;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.CommandObjectFactory;
-import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.Parent;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
@@ -47,9 +46,13 @@ public class ConfigFactory implements CommandObjectFactory {
 		{
 			return new OutputCommand(toks);
 		}
-		else if (cmd.equals("androidsdk"))
+		else if (cmd.equals("path"))
 		{
-			return new AndroidSDKCommand(toks);
+			return new SetPathCommand(toks);
+		}
+		else if (cmd.equals("var"))
+		{
+			return new SetVarCommand(toks);
 		}
 		else if (cmd.equals("libs"))
 		{

@@ -25,4 +25,11 @@ public class CollectionUtils {
 			throw new UtilException("Any requires at least one element to function");
 		return it.next();
 	}
+
+	public static <T> List<T> listOf(T... items) {
+		List<T> ret = new ArrayList<T>();
+		for (T x : items)
+			ret.add(x);
+		return ret;
+	}
 }

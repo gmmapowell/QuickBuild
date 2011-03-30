@@ -44,4 +44,8 @@ public class AdbInstallCommand extends NoChildCommand implements ConfigBuildComm
 		return ret;
 	}
 
+	@Override
+	public String toString() {
+		return "adbinstall " + projectName;
+	}
 }

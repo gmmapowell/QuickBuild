@@ -14,9 +14,9 @@ public class Reflection {
 			if (fieldName == null)
 				throw new UtilException("Must specify a valid field name");
 			Class<?> clz = target.getClass();
-			Field f = clz.getDeclaredField(fieldName);
+			Field f = findField(clz, fieldName);
 			if (f == null)
-				throw new UtilException("Class " + clz + " does not have a field " + fieldName);
+				throw new UtilException("The field '" + fieldName +"' was not defined in " + target.getClass());
 			f.setAccessible(true);
 			if (value instanceof Boolean)
 				f.setBoolean(target, (Boolean)value);
@@ -25,13 +25,22 @@ public class Reflection {
 			else
 				throw new UtilException("The field " + fieldName + " is not assignable from " + value.getClass());
 		}
-		catch (NoSuchFieldException ex)
-		{
-			throw new UtilException("The field '" + ex.getMessage() +"' was not defined in " + target.getClass(), ex);
-		}
 		catch (Exception ex)
 		{
 			throw UtilException.wrap(ex);
+		}
+	}
+
+	private static Field findField(Class<?> clz, String fieldName) {
+		try
+		{
+			return clz.getDeclaredField(fieldName);
+		}
+		catch (NoSuchFieldException fex)
+		{
+			if (clz.getSuperclass() != null)
+				return findField(clz.getSuperclass(), fieldName);
+			return null;
 		}
 	}
 

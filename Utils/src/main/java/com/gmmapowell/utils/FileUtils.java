@@ -101,7 +101,7 @@ public class FileUtils {
 		String uf = under.getPath()+File.separator;
 		String tf = f.getPath();
 		if (!tf.startsWith(uf))
-			throw new RuntimeException("This case is not handled");
+			throw new RuntimeException("This case is not handled: " + tf + " is not a subdir of " + uf);
 		return new File(tf.substring(uf.length()));
 	}
 

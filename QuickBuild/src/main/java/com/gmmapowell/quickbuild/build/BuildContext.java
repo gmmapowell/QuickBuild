@@ -86,6 +86,7 @@ public class BuildContext {
 	}
 
 	public void addBuiltResource(BuildResource resource) {
+		System.out.println("The resource '" + resource + "' has been provided");
 		builtResources.add(resource);
 		dependencies.ensure(resource);
 		dependencies.ensureLink(resource, resource.getBuiltBy());
@@ -372,6 +373,10 @@ public class BuildContext {
 		BuildCommand bc = cmds.get(commandToExecute);
 		if (++targetFailures >= 3)
 			throw new UtilException("The command " + bc + " failed 3 times in a row");
+	}
+
+	public File getPath(String name) {
+		return conf.getPath(name);
 	}
 
 }

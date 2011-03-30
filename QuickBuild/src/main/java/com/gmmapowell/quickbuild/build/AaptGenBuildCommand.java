@@ -16,6 +16,7 @@ public class AaptGenBuildCommand implements BuildCommand {
 	private final File gendir;
 	private final File manifestFile;
 	private final File resdir;
+	private DirectoryResource resResource;
 
 	public AaptGenBuildCommand(AndroidContext acxt, Project project, File manifest, File gendir, File resdir) {
 		this.acxt = acxt;
@@ -23,6 +24,7 @@ public class AaptGenBuildCommand implements BuildCommand {
 		this.gendir = gendir;
 		this.manifestFile = manifest;
 		this.resdir = resdir;
+		resResource = new DirectoryResource(null, resdir);
 	}
 	
 	@Override
@@ -42,6 +44,11 @@ public class AaptGenBuildCommand implements BuildCommand {
 
 	@Override
 	public BuildStatus execute(BuildContext cxt) {
+		if (!cxt.requiresBuiltResource(this, resResource))
+		{
+			System.out.println("Need resource '" + resResource + "' ... failing");
+			return BuildStatus.RETRY;
+		}
 		FileUtils.assertDirectory(gendir);
 		FileUtils.cleanDirectory(gendir);
 		RunProcess proc = new RunProcess(acxt.getAAPT().getPath());

@@ -88,16 +88,19 @@ public class JavaBuildCommand implements BuildCommand {
 			// compilation errors, usually
 			LinePatternParser lpp = new LinePatternParser();
 			lpp.match("package ([a-zA-Z0-9_.]*) does not exist", "nopackage", "pkgname");
+			int cnt = 0;
 			for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStderr())))
 			{
 				if (lpm.is("nopackage"))
 				{
 					cxt.addDependency(this, lpm.get("pkgname"));
+					cnt++;
 				}
 				else
 					throw new QuickBuildException("Do not know how to handle match " + lpm);
 			}
-			return BuildStatus.RETRY;
+			if (cnt > 0)
+				return BuildStatus.RETRY;
 		}
 		System.out.println(proc.getStderr());
 		return BuildStatus.BROKEN;

@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<android.App>
+	<Package root="com.example.helloWorld" />
+	
+	<android.Activity name="HelloAndroid">
+	
+	</android.Activity>
+</android.App>

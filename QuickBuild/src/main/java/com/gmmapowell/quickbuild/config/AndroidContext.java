@@ -14,19 +14,20 @@ public class AndroidContext {
 	private File adb;
 
 	// TODO: this needs to be cross-platform (somehow)
-	public AndroidContext(String androidSDK, String androidPlatform) {
-		File androidDir = new File(androidSDK);
-		File platformDir = FileUtils.fileConcat(androidSDK, "platforms", androidPlatform);
+	public AndroidContext(Config conf) {
+		File androidSDK = conf.getPath("androidsdk");
+		String androidPlatform = conf.getVar("androidplatform");
+		File platformDir = FileUtils.fileConcat(androidSDK.getPath(), "platforms", androidPlatform);
 		aapt = new File(platformDir, "tools/aapt.exe");
 		if (!aapt.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + aapt);
 		dx = new File(platformDir, "tools/dx.bat");
 		if (!dx.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + dx);
-		apk = new File(androidDir, "tools/apkbuilder.bat");
+		apk = new File(androidSDK, "tools/apkbuilder.bat");
 		if (!apk.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + apk);
-		adb = new File(androidDir, "tools/adb.exe");
+		adb = new File(androidSDK, "tools/adb.exe");
 		if (!adb.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + adb);
 		platformJar = new File(platformDir, "android.jar");

@@ -94,7 +94,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("  android " + projectName + "\n");
+		sb.append("android " + projectName);
 		return sb.toString();
 	}
 }

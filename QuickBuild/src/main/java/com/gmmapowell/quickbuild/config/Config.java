@@ -5,10 +5,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
@@ -19,6 +21,7 @@ import com.gmmapowell.quickbuild.build.BuildCommand;
 import com.gmmapowell.quickbuild.build.BuildResource;
 import com.gmmapowell.quickbuild.build.JarResource;
 import com.gmmapowell.quickbuild.build.MavenResource;
+import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.GPJarEntry;
@@ -38,8 +41,9 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	private ListMap<File, Project> projects = new ListMap<File, Project>();
 	private ListMap<String, BuildResource> duplicates = new ListMap<String, BuildResource>();
 	private List<BuildResource> willbuild = new ArrayList<BuildResource>();
-	private String androidSDK;
-	private String androidPlatform;
+	private Map<String, File> fileProps = new HashMap<String, File>();
+	private Map<String, String> varProps = new HashMap<String, String>();
+	private AndroidContext acxt;
 
 	@SuppressWarnings("unchecked")
 	public Config(File qbdir)
@@ -208,10 +212,19 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 			sb.append("    repo: " + s + "\n");
 		sb.append("  output = " + output + "\n");
 		sb.append("  qbdir = " + qbdir + "\n");
-		sb.append("");
+		sb.append("\n");
+		if (varProps.size() + fileProps.size() > 0)
+		{
+			sb.append("Variables:\n");
+			for (Entry<String, String> kv : varProps.entrySet())
+				sb.append("  V:" + kv.getKey() + " => " + kv.getValue() + "\n");
+			for (Entry<String, File> kv : fileProps.entrySet())
+				sb.append("  P:" + kv.getKey() + " => " + kv.getValue() + "\n");
+			sb.append("\n");
+		}
 		sb.append("Commands:\n");
 		for (ConfigCommand cc : commands)
-			sb.append(cc);
+			sb.append("  " + cc + "\n");
 		return sb.toString();
 	}
 
@@ -251,13 +264,30 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		throw new QuickBuildException("There is no resource called " + res);
 	}
 
-	public void setAndroidSDK(String sdk, String platform) {
-		androidSDK = sdk;
-		androidPlatform = platform;
+	public AndroidContext getAndroidContext() {
+		if (acxt == null)
+			acxt = new AndroidContext(this); 
+		return acxt;
 	}
 
-	public AndroidContext getAndroidContext() {
-		return new AndroidContext(androidSDK, androidPlatform);
+	public void setFileProperty(String name, File path) {
+		fileProps.put(name, path);
+	}
+
+	public void setVarProperty(String name, String var) {
+		varProps.put(name, var);
+	}
+
+	public File getPath(String name) {
+		if (!fileProps.containsKey(name))
+			throw new QBConfigurationException("There is no path var " + name);
+		return fileProps.get(name);
+	}
+
+	public String getVar(String name) {
+		if (!varProps.containsKey(name))
+			throw new QBConfigurationException("There is no var " + name);
+		return varProps.get(name);
 	}
 
 }
