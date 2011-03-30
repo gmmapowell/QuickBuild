@@ -38,4 +38,14 @@ public class StringUtil {
 			sb.insert(0, "0");
 		return sb.toString();
 	}
+
+	public static String hex(int quant, int nd) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(Integer.toHexString(quant).toUpperCase());
+		if (sb.length() > nd)
+			sb.delete(0, sb.length()-nd);
+		while (sb.length() < nd)
+			sb.insert(0, "0");
+		return sb.toString();
+	}
 }

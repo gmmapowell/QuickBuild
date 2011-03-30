@@ -1,10 +1,11 @@
 package com.gmmapowell.bytecode;
 
 import java.io.DataInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 
 import com.gmmapowell.bytecode.CPInfo.ClassInfo;
 import com.gmmapowell.bytecode.CPInfo.DoubleEntry;
@@ -17,100 +18,161 @@ import com.gmmapowell.bytecode.CPInfo.RefInfo;
 import com.gmmapowell.bytecode.CPInfo.StringInfo;
 import com.gmmapowell.bytecode.CPInfo.Utf8Info;
 import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.utils.FileUtils;
+import com.gmmapowell.utils.StringUtil;
 
-public class ByteCodeFile {
-	public final static int   javaMagic        = 0xCAFEBABE;
-	public final static short javaMajorVersion = 50; // Java 1.6?
-	public final static short javaMinorVersion = 0;
-	public final static short ACC_PUBLIC       = 0x0001;
-	public final static short ACC_PRIVATE      = 0x0002;
-	public final static short ACC_PROTECTED    = 0x0004;
-	public final static short ACC_STATIC       = 0x0008;
-	public final static short ACC_FINAL        = 0x0010;
-	public final static short ACC_SUPER        = 0x0020;
-	public final static short ACC_SYNCHRONIZED = 0x0020;
-	public final static short ACC_NATIVE       = 0x0100;
-	public final static short ACC_INTERFACE    = 0x0200;
-	public final static short ACC_ABSTRACT     = 0x0400;
-	public final static short ACC_STRICT       = 0x0800;
+public class ByteCodeInspector extends ByteCodeFile {
 
-	public final static byte CONSTANT_UTF8         = 1;
-	public final static byte CONSTANT_Integer      = 3;
-	public final static byte CONSTANT_Float        = 4;
-	public final static byte CONSTANT_Long         = 5;
-	public final static byte CONSTANT_Double       = 6;
-	public final static byte CONSTANT_Class        = 7;
-	public final static byte CONSTANT_String       = 8;
-	public final static byte CONSTANT_Fieldref     = 9;
-	public final static byte CONSTANT_Methodref    = 10;
-	public final static byte CONSTANT_Interfaceref = 11;
-	public final static byte CONSTANT_NameAndType  = 12;
-	
-	protected CPInfo[] pool;
-	protected List<ClassInfo> interfaces = new ArrayList<ClassInfo>();
-	
-	public ByteCodeFile(InputStream fis)
+	private HexDumpStream hexdump;
+
+	public static class HexDumpStream extends InputStream {
+
+		private final InputStream fis;
+		private int pos = 0;
+		private int cnt = 0;
+		private int wrap = 16;
+		private byte[] str;
+		private final PrintWriter out;
+
+		public HexDumpStream(PrintWriter out, InputStream fis) {
+			this.fis = fis;
+			str = new byte[wrap];
+			if (out == null)
+				this.out = new PrintWriter(System.out);
+			else
+				this.out = out;
+		}
+
+		@Override
+		public int read() throws IOException {
+			int b = fis.read();
+			if (cnt >= wrap)
+			{
+				out.println(new String(str));
+				cnt = 0;
+			}
+			if (cnt == 0)
+			{
+				out.print(StringUtil.hex(pos, 8)+ " ");
+			}
+			if (b > 32 && b < 127)
+				str[cnt] = (byte) b;
+			else
+				str[cnt] = '.';
+			out.print(StringUtil.hex(b, 2) + " ");
+			cnt++;
+			pos++;
+			return b;
+		}
+
+		public void print(Object obj) {
+			for (int i=cnt;i<wrap;i++)
+			{
+				out.print("   ");
+				str[i] = ' ';
+			}
+			out.print(new String(str) + "  ");
+			out.println(obj);
+			cnt = 0;
+		}
+
+	}
+
+	public static void main(String[] args)
 	{
 		try
 		{
-			DataInputStream dis = new DataInputStream(fis);
-			int magic = dis.readInt();
-			if (magic != javaMagic)
-				throw new UtilException("This is not a bytecode file");
-			dis.readUnsignedShort(); //minor
-			dis.readUnsignedShort(); // major
-			readConstantPool(dis);
-			dis.readUnsignedShort(); // access_flags
-			dis.readUnsignedShort(); // this_class
-			dis.readUnsignedShort(); // super_class
-			readInterfaces(dis);
-			readFields(dis);
-			readMethods(dis);
-			readAttributes(dis);
-			if (dis.available() != 0)
-				throw new UtilException("There are still " + dis.available() + " bytes available on the stream");
+			ByteCodeInspector bci = new ByteCodeInspector();
+			InputStream fis = ByteCodeInspector.class.getResourceAsStream(args[0]);
+			if (fis == null)
+				throw new RuntimeException("Could not find " + fis);
+			OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream("C:\\tmp\\dump.txt"));
+			bci.read(new PrintWriter(writer), fis);
+			writer.close();
 		}
 		catch (Exception ex)
 		{
-			throw UtilException.wrap(ex);
+			ex.printStackTrace(System.out);
 		}
 	}
-
-	protected ByteCodeFile()
+		
+	public void read(PrintWriter out, InputStream fis)
 	{
+		try
+		{
+			hexdump = new HexDumpStream(out, fis);
+			DataInputStream dis = new DataInputStream(hexdump);
+			int magic = dis.readInt();
+			if (magic != javaMagic)
+				throw new UtilException("This is not a bytecode file");
+			hexdump.print("Magic: " + magic);
+			int minorVersion = dis.readUnsignedShort(); //minor
+			int majorVersion = dis.readUnsignedShort(); // major
+			hexdump.print("Version: " + majorVersion + "-" + minorVersion);
+			readConstantPool(dis);
+			int access = dis.readUnsignedShort(); // access_flags
+			hexdump.print("Access = "  + access);
+			int thisClass = dis.readUnsignedShort(); // this_class
+			hexdump.print("This = " + pool[thisClass]);
+			int superClass = dis.readUnsignedShort(); // super_class
+			hexdump.print("Super = " + pool[superClass]);
+			readInterfaces(dis);
+			readFields(dis);
+			readMethods(dis);
+			hexdump.print("Class Attributes");
+			readAttributes(dis);
+			/*
+			if (dis.available() != 0)
+				throw new UtilException("There are still " + dis.available() + " bytes available on the stream");
+				*/
+		}
+		catch (Exception ex)
+		{
+			try {
+				out.close();
+			} catch (Exception e2) { }
+			throw UtilException.wrap(ex);
+		}
 	}
 
 	private void readConstantPool(DataInputStream dis) throws IOException {
 		int poolCount = dis.readUnsignedShort();
 		pool = new CPInfo[poolCount];
+		hexdump.print("pool has " + poolCount + " entries, including #0");
 
 		// This is weird offsetting ...
 		for (int idx=1;idx<poolCount;idx++)
 		{
 			pool[idx] = readPoolEntry(dis);
+			hexdump.print(idx +" => " + pool[idx]);
 			if (pool[idx] instanceof DoubleEntry)
+			{
+				hexdump.print("****");
 				idx++; // skip the second entry
+			}
 //				System.out.println(idx + " = " + pool[idx]);
 		}
 	}
-
 	private void readInterfaces(DataInputStream dis) throws IOException {
 		int cnt = dis.readUnsignedShort();
+		hexdump.print(cnt + " interfaces");
 		for (int i=0;i<cnt;i++)
-			interfaces.add((ClassInfo) pool[dis.readUnsignedShort()]); // the pool id of the interface
+		{
+			ClassInfo intf = (ClassInfo) pool[dis.readUnsignedShort()];
+			interfaces.add(intf);
+			hexdump.print(intf);
+		}
 	}
 
 	private void readFields(DataInputStream dis) throws IOException {
 		int cnt = dis.readUnsignedShort();
-		// System.out.println("# of fields = " + cnt);
+		hexdump.print("# of fields = " + cnt);
 		for (int i=0;i<cnt;i++)
 		{
-			dis.readUnsignedShort(); // access_flags
-			@SuppressWarnings("unused")
+			int access = dis.readUnsignedShort(); // access_flags
 			int name = dis.readUnsignedShort(); // name idx
 //			System.out.println("Reading field " + pool[name]);
-			dis.readUnsignedShort(); // descriptor idx
+			int descriptor = dis.readUnsignedShort(); // descriptor idx
+			hexdump.print("Field " + pool[name] + " " + pool[descriptor] + " " + access);
 			readAttributes(dis);
 		}
 		
@@ -118,30 +180,28 @@ public class ByteCodeFile {
 
 	private void readMethods(DataInputStream dis) throws IOException {
 		int cnt = dis.readUnsignedShort();
-		// System.out.println("# of methods = " + cnt);
+		hexdump.print("# of methods = " + cnt);
 		for (int i=0;i<cnt;i++)
 		{
-			dis.readUnsignedShort(); // access_flags
-			@SuppressWarnings("unused")
+			int access = dis.readUnsignedShort(); // access_flags
 			int name = dis.readUnsignedShort(); // name idx
-//			System.out.println("Reading field " + pool[name]);
-			dis.readUnsignedShort(); // descriptor idx
+			int descriptor = dis.readUnsignedShort(); // descriptor idx
+			hexdump.print("Method " + pool[name] + " " + pool[descriptor] + " " + access);
 			readAttributes(dis);
 		}
 		
 	}
-
 	private void readAttributes(DataInputStream dis) throws IOException {
 		int cnt = dis.readUnsignedShort();
-//		if (cnt > 0)
-//			System.out.println("cnt = " + cnt);
+		if (cnt > 0)
+			hexdump.print(cnt + " attributes");
 		for (int i=0;i<cnt;i++)
 		{
-			@SuppressWarnings("unused")
 			int idx = dis.readUnsignedShort(); // name_index
-//			System.out.println("  idx = " + idx + ": " + pool[idx]);
 			int len = dis.readInt(); // length
-//			System.out.println("  len = " + len);
+			if (len > 5000)
+				throw new RuntimeException("What?");
+			hexdump.print("idx = " + idx + ": " + pool[idx] + " len=" + len);
 			byte[] bytes = new byte[len];
 			readBytes(dis, bytes);
 		}		
@@ -185,7 +245,7 @@ public class ByteCodeFile {
 	private Utf8Info readUtf8Entry(DataInputStream dis) throws IOException {
 		int len = dis.readUnsignedShort();
 		byte[] bytes = new byte[len];
-		readBytes(dis, bytes);
+		dis.read(bytes);
 		return new Utf8Info(bytes);
 	}
 	
@@ -228,22 +288,5 @@ public class ByteCodeFile {
 		int name = dis.readUnsignedShort();
 		int descriptor = dis.readUnsignedShort();
 		return new NTInfo(pool, name, descriptor);
-	}
-
-	public boolean implementsInterface(Class<?> class1) {
-		String name = FileUtils.convertDottedToSlashPath(class1.getCanonicalName());
-		for (ClassInfo c : interfaces)
-			if (c.equals(name))
-				return true;
-		return false;
-	}
-
-	protected void readBytes(DataInputStream dis, byte[] bytes) throws IOException {
-		int off = 0;
-		while (off < bytes.length)
-		{
-			int cnt = dis.read(bytes, off, bytes.length-off);
-			off += cnt;
-		}
 	}
 }

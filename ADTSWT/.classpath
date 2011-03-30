@@ -7,5 +7,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" path="/Utils"/>
 	<classpathentry kind="src" path="/ADToolkit"/>
+	<classpathentry kind="lib" path="C:/Personal/tools/qb/libs/swt-win-32.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

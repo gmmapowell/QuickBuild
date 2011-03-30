@@ -44,7 +44,7 @@ public class ClassPathIterator implements Iterator<ClassPathResource> {
 			}
 			else
 			{
-				entryIterator = Lambda.map(ClassPathResource.fromFile, FileUtils.findFilesMatching(from, glob).iterator());
+				entryIterator = Lambda.map(ClassPathResource.fromFile(from), FileUtils.findFilesMatching(from, glob).iterator());
 				if (entryIterator.hasNext())
 					return true;
 			}

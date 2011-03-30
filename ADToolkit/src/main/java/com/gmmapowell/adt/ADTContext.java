@@ -1,9 +1,5 @@
 package com.gmmapowell.adt;
 
-public class ADTContext {
-
-	public void setContentView(int resId) {
-		
-	}
-
+public interface ADTContext {
+	public void setContentView(int resId);
 }

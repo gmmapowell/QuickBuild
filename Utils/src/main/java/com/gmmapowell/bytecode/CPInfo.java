@@ -46,7 +46,7 @@ public class CPInfo {
 		}
 	}
 
-	public static class FloatInfo extends CPInfo implements DoubleEntry {
+	public static class FloatInfo extends CPInfo {
 		private float val;
 
 		public FloatInfo(float f) {
@@ -134,7 +134,8 @@ public class CPInfo {
 
 		@Override
 		public String toString() {
-			String s = getClass().getSimpleName() + "[" + super.hex(clz) + "," + super.hex(nt) + "," + tag + "]"; 
+			String s = getClass().getSimpleName() + "[" + super.hex(clz) + "," + super.hex(nt) + "," + tag + "] > ";
+//			s += "{" +super.pool[clz] + "} [" + super.pool[nt] + "]";
 //			if (super.pool != null && super.pool[super.idx] != null)
 //				return + idx + "/" + Integer.toHexString(idx) + "]> " + pool[idx].toString();
 			return s;
