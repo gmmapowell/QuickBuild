@@ -32,4 +32,19 @@ public class DateUtils {
 		
 		return fmt.format(elapsed);
 	}
+	
+	public static class Timer
+	{
+		private Date start;
+
+		public Timer()
+		{
+			start = new Date();
+		}
+		
+		public String getElapsed(Format format)
+		{
+			return elapsedTime(start, new Date(), format);
+		}
+	}
 }

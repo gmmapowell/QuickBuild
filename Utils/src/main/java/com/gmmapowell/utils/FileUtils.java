@@ -179,6 +179,14 @@ public class FileUtils {
 		String[] spl = pkg.split("\\.");
 		return fileConcat(spl);
 	}
+	
+	public static String convertDottedToSlashPath(String pkg) {
+		String[] spl = pkg.split("\\.");
+		String ret = "";
+		for (String s : spl)
+			ret += "/" + s;
+		return ret.substring(1);
+	}
 
 	public static File fileConcat(String... spl) {
 		File ret = null;

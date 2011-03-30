@@ -2,6 +2,7 @@ package com.gmmapowell.lambda;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -20,5 +21,13 @@ public class Lambda {
 		for (T1 in : input)
 			ret.add(func.apply(in));
 		return ret;
+	}
+
+	public static <TR, T1> Iterator<TR> map(FuncR1<TR, T1> func, Iterator<T1> input) {
+		return new MapIterator<TR,T1>(func, input);
+	}
+
+	public static <T1> Iterator<T1> filter(FuncR1<Boolean, T1> func, Iterator<T1> iterator) {
+		return new FilterIterator<T1>(func, iterator);
 	}
 }

@@ -2,6 +2,7 @@ package com.gmmapowell.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.jar.JarEntry;
@@ -20,7 +21,7 @@ public class GPJarFile implements Iterable<GPJarEntry> {
 
 		@Override
 		public GPJarEntry next() {
-			return new GPJarEntry(en.nextElement());
+			return new GPJarEntry(GPJarFile.this, en.nextElement());
 		}
 
 		@Override
@@ -43,6 +44,17 @@ public class GPJarFile implements Iterable<GPJarEntry> {
 	@Override
 	public Iterator<GPJarEntry> iterator() {
 		return new JEIterator();
+	}
+
+	public InputStream getInputStream(JarEntry entry) {
+		try
+		{
+			return jf.getInputStream(entry);
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
 	}
 
 }

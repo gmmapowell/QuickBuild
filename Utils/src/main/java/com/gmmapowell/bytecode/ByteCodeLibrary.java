@@ -6,15 +6,15 @@ import java.io.File;
  * byte code files.
  */
 public class ByteCodeLibrary {
-	public void loadIntoMemory(byte[] bytecode)
+	public static void loadIntoMemory(byte[] bytecode)
 	{
 	}
 	
-	public void saveBytecode(File f, byte[] bytecode)
+	public static void saveBytecode(File f, byte[] bytecode)
 	{
 	}
 	
-	public void compareBytecodes(byte[] golden, byte[] test)
+	public static void compareBytecodes(byte[] golden, byte[] test)
 	{
 	}
 }
