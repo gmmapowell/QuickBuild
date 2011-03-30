@@ -12,10 +12,10 @@ mkdir -p $name/src/main/resources
 mkdir -p $name/src/test/java
 mkdir -p $name/src/test/resources
 
-touch $name/src/main/java/.gitignore
-touch $name/src/main/resources/.git
-touch $name/src/test/java/.gitignore
-touch $name/src/test/resources/.git
+touch $name/src/main/java/.gitsmj
+touch $name/src/main/resources/.gitsmr
+touch $name/src/test/java/.gitstj
+touch $name/src/test/resources/.gitstr
 
 cat << HERE > $name/.project
 <?xml version="1.0" encoding="UTF-8"?>
