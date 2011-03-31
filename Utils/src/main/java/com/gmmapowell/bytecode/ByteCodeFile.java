@@ -127,6 +127,7 @@ public class ByteCodeFile {
 		int cnt = dis.readUnsignedShort();
 		for (int i=0;i<cnt;i++)
 		{
+			@SuppressWarnings("unused")
 			int idx = dis.readUnsignedShort(); // name_index
 			int len = dis.readInt(); // length
 			byte[] bytes = new byte[len];
