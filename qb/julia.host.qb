@@ -1,0 +1,7 @@
+var os windows
+
+# The android SDK to use and the platform version
+# TODO: host-based path setting
+path androidsdk C:/android-sdk-windows-1.6_r1
+var androidplatform android-1.5 
+path dp_resources C:/Personal/ASG/GarethSpikes/20110316-DesignPatterns/resources

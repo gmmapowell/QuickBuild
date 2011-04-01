@@ -15,21 +15,29 @@ public class AndroidContext {
 
 	// TODO: this needs to be cross-platform (somehow)
 	public AndroidContext(Config conf) {
+		String os = conf.getVar("os");
+		String bat = "";
+		if (os.equals("windows"))
+			bat =".bat";
 		File androidSDK = conf.getPath("androidsdk");
 		String androidPlatform = conf.getVar("androidplatform");
 		File platformDir = FileUtils.fileConcat(androidSDK.getPath(), "platforms", androidPlatform);
-		aapt = new File(platformDir, "tools/aapt.exe");
+		aapt = new File(platformDir, "tools/aapt");
 		if (!aapt.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + aapt);
-		dx = new File(platformDir, "tools/dx.bat");
+		dx = new File(platformDir, "tools/dx" +bat);
 		if (!dx.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + dx);
-		apk = new File(androidSDK, "tools/apkbuilder.bat");
+		apk = new File(androidSDK, "tools/apkbuilder" + bat);
 		if (!apk.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + apk);
-		adb = new File(androidSDK, "tools/adb.exe");
+		adb = new File(androidSDK, "tools/adb");
 		if (!adb.exists())
-			throw new QBConfigurationException("Invalid android configuration: cannot find " + adb);
+		{
+			adb = new File(androidSDK, "platform-tools/adb");
+			if (!adb.exists())
+				throw new QBConfigurationException("Invalid android configuration: cannot find " + adb + " in either location");
+		}
 		platformJar = new File(platformDir, "android.jar");
 		if (!platformJar.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + platformJar);

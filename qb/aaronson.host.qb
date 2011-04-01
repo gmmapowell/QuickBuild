@@ -1,0 +1,7 @@
+var os macosx
+
+# The android SDK to use and the platform version
+# TODO: host-based path setting
+path androidsdk /Users/gareth/android-r10
+var androidplatform android-4
+path dp_resources /Users/gareth/user/Personal/ASG/GarethSpikes/20110316-DesignPatterns/resources

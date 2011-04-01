@@ -14,6 +14,7 @@ import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.config.Project;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
+import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.ProcessArgs;
 
 public class QuickBuild {
@@ -33,7 +34,10 @@ public class QuickBuild {
 		ProcessArgs.process(arguments, argumentDefinitions, args);
 		
 		Config conf = new Config(new File(arguments.file).getParentFile());
-		SignificantWhiteSpaceFileReader.read(conf, configFactory, arguments.file);
+		File hostfile = FileUtils.relativePath(new File(FileUtils.getHostName() + ".host.qb"));
+		if (hostfile.exists())
+			SignificantWhiteSpaceFileReader.read(conf, configFactory, hostfile);
+		SignificantWhiteSpaceFileReader.read(conf, configFactory, new File(arguments.file));
 		conf.done();
 		System.out.println("Configuration:");
 		System.out.print(conf);

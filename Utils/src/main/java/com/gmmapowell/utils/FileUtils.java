@@ -5,6 +5,8 @@ import java.io.FileFilter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -265,5 +267,13 @@ public class FileUtils {
 			return path1;
 		else
 			return new File(path1, path2.getPath());
+	}
+
+	public static String getHostName() {
+		try {
+		    return InetAddress.getLocalHost().getHostName();
+		} catch (UnknownHostException e) {
+			throw UtilException.wrap(e);
+		}
 	}
 }

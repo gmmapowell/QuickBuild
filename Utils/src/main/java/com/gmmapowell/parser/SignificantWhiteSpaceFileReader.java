@@ -80,10 +80,10 @@ public class SignificantWhiteSpaceFileReader {
 		nextLine = null;
 	}
 
-	public static <U, T extends Parent<U>> void read(T parent, CommandObjectFactory factory, String file) {
-		File f = new File(file);
+	public static <U, T extends Parent<U>> void read(T parent, CommandObjectFactory factory, File f) {
+		System.out.println("Reading configuration " + f);
 		if (!f.exists())
-			throw new UtilException("The file '" + file + "' does not exist");
+			throw new UtilException("The file '" + f.getPath() + "' does not exist");
 		
 		SignificantWhiteSpaceFileReader fr = null;
 		try {

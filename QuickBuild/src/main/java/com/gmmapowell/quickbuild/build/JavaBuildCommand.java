@@ -54,7 +54,7 @@ public class JavaBuildCommand implements BuildCommand {
 			FileUtils.cleanDirectory(bindir);
 		else
 			classpath.add(bindir);
-		RunProcess proc = new RunProcess("javac.exe");
+		RunProcess proc = new RunProcess("javac");
 		proc.showArgs(showArgs);
 		proc.captureStdout();
 		proc.captureStderr();

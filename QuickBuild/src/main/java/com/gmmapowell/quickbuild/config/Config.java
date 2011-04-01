@@ -93,8 +93,6 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	}
 
 	public void done() {
-		if (output == null)
-			setOutputDir("qbout");
 		mvnCache = FileUtils.relativePath(qbdir, "mvncache");
 		if (!mvnCache.exists())
 			if (!mvnCache.mkdirs())
@@ -104,6 +102,9 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 
 		for (ConfigApplyCommand cmd : applicators)
 			cmd.applyTo(this);
+
+		if (output == null)
+			setOutputDir("qbout");
 
 		for (ConfigBuildCommand c : commands)
 		{
