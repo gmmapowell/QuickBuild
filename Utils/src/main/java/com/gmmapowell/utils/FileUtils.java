@@ -3,8 +3,10 @@ package com.gmmapowell.utils;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.LineNumberReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -273,6 +275,17 @@ public class FileUtils {
 		try {
 		    return InetAddress.getLocalHost().getHostName();
 		} catch (UnknownHostException e) {
+			throw UtilException.wrap(e);
+		}
+	}
+
+	public static void cat(File file) {
+		try {
+			LineNumberReader lnr = new LineNumberReader(new FileReader(file));
+			String s;
+			while ((s = lnr.readLine()) != null)
+				System.out.println(s);
+		} catch (IOException e) {
 			throw UtilException.wrap(e);
 		}
 	}
