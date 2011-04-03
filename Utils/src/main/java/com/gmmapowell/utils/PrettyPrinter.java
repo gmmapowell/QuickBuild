@@ -80,4 +80,17 @@ public class PrettyPrinter {
 	public String toString() {
 		return sb.toString();
 	}
+
+	public void hollerith(String text, int len) {
+		hollerith(text, len, Justification.LEFT);
+	}
+
+	public void hollerith(String text, int len, Justification j) {
+		String ins = j.format(text, len);
+		append(ins);
+	}
+
+	public void pad(int len) {
+		append(Justification.pad(len));
+	}
 }
