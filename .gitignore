@@ -1,5 +1,6 @@
 .project
 bin/
+testbin/
 qbout/
 mvncache/
 cache/
