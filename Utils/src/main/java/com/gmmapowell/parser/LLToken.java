@@ -6,7 +6,6 @@ public class LLToken {
 	private final String tag;
 	private final String text;
 
-	//I think we just want the symbol
 	public LLToken(TokenMatcher tm, String substring) {
 		this(tm.tag(), substring);
 	}
@@ -23,6 +22,14 @@ public class LLToken {
 	@Override
 	public String toString() {
 		return "Token {" + tag + ": " + text + "}";
+	}
+
+	public String text() {
+		return text;
+	}
+
+	public String tag() {
+		return tag;
 	}
 
 }

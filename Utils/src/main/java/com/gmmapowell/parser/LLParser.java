@@ -8,10 +8,11 @@ import java.util.List;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.LLGrammar.Production;
+import com.gmmapowell.parser.LLGrammar.ProductionElement;
 import com.gmmapowell.parser.LLGrammar.TokenMatcher;
 
 public class LLParser {
-	private class InputState {
+	class InputState {
 		private final LineNumberReader lnr;
 		private LLToken nextToken;
 		private String currentInput;
@@ -24,7 +25,7 @@ public class LLParser {
 			return next() == null;
 		}
 
-		private LLToken next() {
+		LLToken next() {
 			if (nextToken != null)
 				return nextToken;
 			return (nextToken = tokenize());
@@ -110,13 +111,16 @@ public class LLParser {
 		return ret;
 	}
 
-	private LLTree parse(InputState is, Production production) {
-		LLToken token;
-		while ((token = is.next()) != null)
+	LLTree parse(InputState is, LLProductionList production) {
+		Production p = production.choose(is.next());
+//		System.out.println("Chose rule " + p);
+		List<Object> nts = new ArrayList<Object>();
+		for (ProductionElement pe : p)
 		{
-			System.out.println(token);
-			is.advance();
+			Object o = pe.dealWith(this, is);
+			if (o != null)
+				nts.add(o);
 		}
-		return null;
+		return new LLTree(p, nts);
 	}
 }
