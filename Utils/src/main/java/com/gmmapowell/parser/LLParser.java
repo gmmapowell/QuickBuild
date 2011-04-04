@@ -93,6 +93,18 @@ public class LLParser {
 				throw new RuntimeException("Cannot advance without examining token");
 			nextToken = null;
 		}
+
+		public String nextLine() {
+			try
+			{
+				String ret = lnr.readLine();
+				return currentInput + "\n" + ret;
+			}
+			catch (Exception ex)
+			{
+				throw UtilException.wrap(ex);
+			}
+		}
 	}
 
 	private final LLGrammar grammar;
@@ -107,7 +119,7 @@ public class LLParser {
 		InputState is = new InputState(r);
 		LLTree ret = parse(is, grammar.top());
 		if (!is.eof())
-			throw new RuntimeException("Did not reach end-of-file");
+			throw new RuntimeException("Did not reach end-of-file " + is.nextLine());
 		return ret;
 	}
 

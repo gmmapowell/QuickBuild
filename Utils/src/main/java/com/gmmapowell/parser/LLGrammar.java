@@ -166,6 +166,10 @@ public class LLGrammar {
 			sb.append("}");
 			return sb.toString();
 		}
+
+		public String result() {
+			return name;
+		}
 	}
 	
 	private static final LLGrammar grammarGrammar = new LLGrammar();
@@ -180,10 +184,54 @@ public class LLGrammar {
 	
 	public static LLGrammar read(Reader r)
 	{
+		LLGrammar ret = readNoComplete(r);
+		ret.complete();
+		return ret;
+	}
+
+	public static LLGrammar readNoComplete(Reader r)
+	{
 		LLGrammar ret = new LLGrammar();
 		LLParser p = new LLParser(grammarGrammar);
 		LLTree tree = p.parse(r);
+//		System.out.println(tree);
+		for (LLTree t : tree.items("Production"))
+		{
+			System.out.println(t);
+			LLToken define = t.route("nonterm", 0, 0);
+			ret.production(define.text(), getArgs(ret, t));
+			for (LLTree c : t.items("Continuation"))
+			{
+				System.out.println(c);
+				ret.production(define.text(), getArgs(ret, c));
+			}
+		}
+		
+		// this is repeatable and doesn't throw errors
+		ret.completePhase1();
+		
+//		grammarGrammar.production("Grammar", grammarGrammar.new NonTerm("ProductionList"), grammarGrammar.new NonTerm("SymbolList"));
+//		grammarGrammar.production("ProductionList", grammarGrammar.new NonTerm("Production"), grammarGrammar.new NonTerm("OptionalProductionList"));
 		return ret;
+	}
+
+	private static ProductionElement[] getArgs(LLGrammar ret, LLTree t) {
+		List<ProductionElement> args = new ArrayList<ProductionElement>();
+		for (LLTree i : t.items("Item", 0))
+			args.add(ret.mapTokenToElement(i.route(null, 0)));
+		ProductionElement[] linargs = args.toArray(new ProductionElement[args.size()]);
+		return linargs;
+	}
+
+	private ProductionElement mapTokenToElement(LLToken token) {
+		if (token.tag().equals("nonterm"))
+			return new NonTerm(token.text());
+		else if (token.tag().equals("quoted"))
+			return new Quoted(token.text());
+		else if (token.tag().equals("token"))
+			return new Token(token.text());
+		else
+			throw new UtilException("Cannot handle item with token of type " + token.tag());
 	}
 
 	public LLProductionList top() {
@@ -202,13 +250,7 @@ public class LLGrammar {
 	}
 
 	private void complete() {
-		// first build up the basic list of productions, and find terminals that apply
-		for (String s : productions)
-		{
-			List<Production> lp = productions.get(s);
-			LLProductionList ll = new LLProductionList(s, lp);
-			productionList.put(s, ll);
-		}
+		completePhase1();
 		
 		// now loop through all the productions, sucking up the initial terms of all initial nonterms
 		while (true)
@@ -222,10 +264,23 @@ public class LLGrammar {
 			if (!loop)
 				break;
 		}
-
-		System.out.println(prettyPrint());
 	}
 
+	private void completePhase1() {
+		// first build up the basic list of productions, and find terminals that apply
+		for (String s : productions)
+		{
+			List<Production> lp = productions.get(s);
+			LLProductionList ll = new LLProductionList(s, lp);
+			productionList.put(s, ll);
+		}
+	}
+
+	@Override
+	public String toString() {
+		return prettyPrint();
+	}
+	
 	private String prettyPrint() {
 		PrettyPrinter pp = new PrettyPrinter();
 		pp.append("Tokens:");
