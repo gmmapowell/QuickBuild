@@ -64,6 +64,7 @@ public class LLParser {
 						throw new RuntimeException("No tokens could match at: " + currentInput.substring(i));
 					LLToken tok = new LLToken(tm, currentInput.substring(i,j));
 					currentInput = currentInput.substring(j);
+//					System.out.println("Returning tok " + tok);
 					return tok;
 				}
 			} catch (IOException e) {
@@ -97,8 +98,15 @@ public class LLParser {
 		public String nextLine() {
 			try
 			{
-				String ret = lnr.readLine();
-				return currentInput + "\n" + ret;
+				String ret = "";
+				if (nextToken != null)
+					ret += nextToken.text() + " ";
+				if (currentInput != null)
+					ret += currentInput + " ";
+				String s = lnr.readLine();
+				if (s != null)
+					ret += s;
+				return ret;
 			}
 			catch (Exception ex)
 			{

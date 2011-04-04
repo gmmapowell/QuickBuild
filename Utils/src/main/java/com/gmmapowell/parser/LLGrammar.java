@@ -3,10 +3,13 @@ package com.gmmapowell.parser;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import com.gmmapowell.collections.CollectionUtils;
@@ -197,14 +200,19 @@ public class LLGrammar {
 //		System.out.println(tree);
 		for (LLTree t : tree.items("Production"))
 		{
-			System.out.println(t);
 			LLToken define = t.route("nonterm", 0, 0);
 			ret.production(define.text(), getArgs(ret, t));
 			for (LLTree c : t.items("Continuation"))
 			{
-				System.out.println(c);
 				ret.production(define.text(), getArgs(ret, c));
 			}
+		}
+		for (LLTree s : tree.items("Symbol"))
+		{
+			System.out.println(s);
+			LLToken sym = s.route("token", 0);
+			LLToken pattern = s.route("pattern", 1);
+			ret.token(sym.text(), pattern.text());
 		}
 		
 		// this is repeatable and doesn't throw errors
@@ -264,6 +272,28 @@ public class LLGrammar {
 			if (!loop)
 				break;
 		}
+		
+		Set<String> missing = new TreeSet<String>();
+		loop:
+		for (LLProductionList ll : productionList.values())
+		{
+			for (String tok : ll.tokenChoices.keySet())
+			{
+				for (TokenMatcher lt : tokens)
+					if (lt.tag.equals(tok))
+						continue loop;
+				missing.add(tok);
+			}
+		}
+		if (missing.size() > 0)
+		{
+			StringBuilder sb = new StringBuilder("The following tokens were not defined:");
+			for (String s: missing)
+				sb.append(" " + s);
+			System.out.println(this);
+			throw new UtilException(sb.toString());
+		}
+//		System.out.println(this);
 	}
 
 	private void completePhase1() {
@@ -337,7 +367,7 @@ public class LLGrammar {
 	private String mapQuotedChars(String text) {
 		StringBuilder sb = new StringBuilder(text);
 		for (int i=0;i<sb.length();i++)
-			if (sb.charAt(i) == '|')
+			if (sb.charAt(i) == '|' || sb.charAt(i) == '(' || sb.charAt(i) == ')')
 				sb.insert(i++, '\\');
 		return sb.toString();
 	}
@@ -379,7 +409,7 @@ public class LLGrammar {
 		grammarGrammar.production("Grammar", grammarGrammar.new NonTerm("ProductionList"), grammarGrammar.new NonTerm("SymbolList"));
 		grammarGrammar.production("ProductionList", grammarGrammar.new NonTerm("Production"), grammarGrammar.new NonTerm("OptionalProductionList"));
 		grammarGrammar.production("OptionalProductionList");
-		grammarGrammar.production("OptionalProductionList", new Quoted("|"), grammarGrammar.new NonTerm("Production"), grammarGrammar.new NonTerm("ProductionList"));
+		grammarGrammar.production("OptionalProductionList", grammarGrammar.new NonTerm("ProductionList"));
 		grammarGrammar.production("Production", grammarGrammar.new NonTerm("Define"), grammarGrammar.new NonTerm("ContinuationList"));
 		grammarGrammar.production("ContinuationList");
 		grammarGrammar.production("ContinuationList", grammarGrammar.new NonTerm("Continuation"), grammarGrammar.new NonTerm("ContinuationList"));
@@ -391,12 +421,13 @@ public class LLGrammar {
 		grammarGrammar.production("Item", new Token("token"));
 		grammarGrammar.production("Item", new Token("quoted"));
 		grammarGrammar.production("SymbolList");
-		grammarGrammar.production("SymbolList", new Token("symbol"), new Quoted("="), new Token("pattern"));
+		grammarGrammar.production("SymbolList", grammarGrammar.new NonTerm("Symbol"), grammarGrammar.new NonTerm("SymbolList"));
+		grammarGrammar.production("Symbol", new Token("token"), new Quoted("~"), new Token("pattern"), new Token("newline"));
 		
 		
 		grammarGrammar.token("nonterm", "[A-Z][a-zA-z]*");
 		grammarGrammar.token("token", "[a-z][a-zA-z]*");
 		grammarGrammar.token("quoted", "\"[^\"]+\"");
-		grammarGrammar.token("pattern", "[a-zA-Z0-9.\\[\\]\\\\\"']+");
+		grammarGrammar.token("pattern", "[a-zA-Z0-9.(){}\\[\\]\\\\\"'\\-+*/=?!@#$%^&]+");
 	}
 }
