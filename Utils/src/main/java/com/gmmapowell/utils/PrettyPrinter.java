@@ -4,6 +4,7 @@ public class PrettyPrinter {
 	private StringBuilder sb = new StringBuilder();
 	private int indWidth = 4;
 	private int levels = 0;
+	private Hollerith hollerith;
 	
 	/** Number of spaces to indent each level.  The default is 4.
 	 * 
@@ -38,6 +39,8 @@ public class PrettyPrinter {
 	/** Make sure that the cursor is at the start of a line, but don't insert duplicate newlines. */
 	public void requireNewline()
 	{
+		if (hollerith != null)
+			sb.append(hollerith.format());
 		if (atLineStart())
 			return;
 		sb.append('\n');
@@ -78,19 +81,14 @@ public class PrettyPrinter {
 	
 	@Override
 	public String toString() {
+		requireNewline();
 		return sb.toString();
 	}
 
-	public void hollerith(String text, int len) {
-		hollerith(text, len, Justification.LEFT);
-	}
-
-	public void hollerith(String text, int len, Justification j) {
-		String ins = j.format(text, len);
-		append(ins);
-	}
-
-	public void pad(int len) {
-		append(Justification.pad(len));
+	public Hollerith hollerith(HollerithFormat fmt)
+	{
+		requireNewline();
+		hollerith = new Hollerith(fmt);
+		return hollerith; 
 	}
 }

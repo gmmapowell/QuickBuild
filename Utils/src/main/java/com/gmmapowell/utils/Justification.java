@@ -14,10 +14,10 @@ public enum Justification {
 			switch (this)
 			{
 			case LEFT:
-			case PADLEFT_TRUNCRIGHT:
+			case PADRIGHT_TRUNCLEFT:
 				return text + pad(len-tlen);
 			case RIGHT:
-			case PADRIGHT_TRUNCLEFT:
+			case PADLEFT_TRUNCRIGHT:
 				return pad(len-tlen) + text;
 			}
 		}
@@ -26,10 +26,10 @@ public enum Justification {
 			switch (this)
 			{
 			case LEFT:
-			case PADRIGHT_TRUNCLEFT:
+			case PADLEFT_TRUNCRIGHT:
 				return text.substring(0, len);
 			case RIGHT:
-			case PADLEFT_TRUNCRIGHT:
+			case PADRIGHT_TRUNCLEFT:
 				return text.substring(tlen-len);
 			}
 		}
