@@ -47,6 +47,8 @@ public class DexBuildCommand implements BuildCommand {
 		proc.arg("--dex");
 		proc.arg("--output="+dexFile.getPath());
 		proc.arg(bindir.getPath());
+		
+		// TODO: bind in any jars here ...
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
