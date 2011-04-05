@@ -101,7 +101,7 @@ public class XMLElement {
 	// and then give it that in the most appropriate order.
 	// I would like this to involve dynamically re-ordering the input file if the alternative would be an error,
 	// but that seems difficult to get right in the general case.
-	public void populate(Object callbacks) {
+	public void populate(Object cxt, Object callbacks) {
 		ObjectMetaInfo info = new ObjectMetaInfo(callbacks);
 		
 		NodeList nl = elt.getChildNodes();
@@ -113,7 +113,7 @@ public class XMLElement {
 			if (n instanceof Element)
 			{
 				XMLElement xe = new XMLElement(inside, (Element)n);
-				Object inner = info.dispatch(xe);
+				Object inner = info.dispatch(cxt, xe);
 				if (inner == null)
 				{
 					xe.assertNoSubContents();
@@ -121,14 +121,19 @@ public class XMLElement {
 				}
 				else if (!(inner instanceof XMLCompletelyHandled))
 				{
-					xe.populate(inner);
+					xe.populate(cxt, inner);
 				}
 			}
 			else if (n instanceof Text)
 			{
 				if (!info.wantsText)
 					continue;
-				((XMLTextReceiver)callbacks).receiveText(((Text)n).getData());
+				if (callbacks instanceof XMLContextTextReceiver)
+					((XMLContextTextReceiver)callbacks).receiveText(cxt, ((Text)n).getData());
+				else if (callbacks instanceof XMLTextReceiver)
+					((XMLTextReceiver)callbacks).receiveText(((Text)n).getData());
+				else
+					throw new UtilException("There is no valid text handler");
 			}
 		}
 		if (callbacks instanceof XMLNotifyOnComplete)

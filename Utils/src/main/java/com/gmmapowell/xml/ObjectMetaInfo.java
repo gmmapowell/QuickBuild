@@ -8,10 +8,9 @@ import com.gmmapowell.exceptions.UtilException;
 
 // I would expect this to be capable of handling sensible defaults
 class ObjectMetaInfo {
-
 	private final Object callbacks;
-	private Map<String, MethodMetaInfo> callbackTable = new HashMap<String, MethodMetaInfo>();
 	public final boolean wantsText;
+	private CallbackTable callbackTable;
 
 	public ObjectMetaInfo(Object callbacks) {
 		this.callbacks = callbacks;
@@ -29,18 +28,12 @@ class ObjectMetaInfo {
 			}
 		}
 		else
-			wantsText = false;
-		for (Method m : clz.getDeclaredMethods())
-		{
-			// System.out.println(m);
-			Class<?>[] ptypes = m.getParameterTypes();
-			if (m.getReturnType().equals(Object.class) && ptypes.length == 1 && ptypes[0].equals(XMLElement.class))
-				callbackTable.put(m.getName().toLowerCase(), new MethodMetaInfo(m));
-		}
+			wantsText = (callbacks instanceof XMLTextReceiver) || (callbacks instanceof XMLContextTextReceiver);
+		callbackTable = new CallbackTable(clz);
 				
 	}
 
-	public Object dispatch(XMLElement xe) {
+	public Object dispatch(Object cxt, XMLElement xe) {
 		// There should be ordering checks
 		// There should be an indirection table
 		// There should be checks that the method exists
@@ -50,25 +43,65 @@ class ObjectMetaInfo {
 			return ((XMLElementReceiver)callbacks).receiveElement(xe);
 		}
 		String tag = xe.tag().toLowerCase();
-		if (!callbackTable.containsKey(tag))
-			throw new UtilException("The tag " + tag + " is not valid for the handler " + callbacks);
+		return callbackTable.invoke(callbacks, tag, cxt, xe);
+	}
+}
+
+class CallbackTable {
+	static class MethodMetaInfo {
+		public final Method method1;
+		public final Method method2;
+		
+		public MethodMetaInfo(Method m1, Method m2)
+		{
+			method1 = m1;
+			if (m1 != null)
+				method1.setAccessible(true);
+			method2 = m2;
+			if (m2 != null)
+				method2.setAccessible(true);
+		}
+	}
+	
+	private Map<String, MethodMetaInfo> callbackTable = new HashMap<String, MethodMetaInfo>();
+
+	public CallbackTable(Class<?> clz) {
+		for (Method m : clz.getDeclaredMethods())
+		{
+			// System.out.println(m);
+			Class<?>[] ptypes = m.getParameterTypes();
+			Method method1 = null;
+			Method method2 = null;
+			String name = m.getName().toLowerCase();
+			if (callbackTable.containsKey(name))
+			{
+				MethodMetaInfo minfo = callbackTable.get(name);
+				method1 = minfo.method1;
+				method2 = minfo.method2;
+			}
+			if (m.getReturnType().equals(Object.class) && ptypes.length == 1 && ptypes[0].equals(XMLElement.class))
+				method1 = m;
+			if (m.getReturnType().equals(Object.class) && ptypes.length == 2 && ptypes[1].equals(XMLElement.class))
+				method2 = m;
+			
+			callbackTable.put(name, new MethodMetaInfo(method1, method2));
+		}
+	}
+
+	public Object invoke(Object callbacks, String which, Object cxt, XMLElement xe)
+	{
+		if (!callbackTable.containsKey(which))
+			throw new UtilException("The tag " + which + " is not valid for the handler " + callbacks);
 		try
 		{
-			return callbackTable.get(tag).method.invoke(callbacks, xe);
+			MethodMetaInfo minfo = callbackTable.get(which);
+			if (minfo.method2 != null)
+				return minfo.method2.invoke(callbacks, cxt, xe);
+			return minfo.method1.invoke(callbacks, xe);
 		}
 		catch (Exception ex)
 		{
 			throw UtilException.wrap(ex);
 		}
-	}
-}
-
-class MethodMetaInfo {
-	public final Method method;
-	
-	public MethodMetaInfo(Method m)
-	{
-		method = m;
-		method.setAccessible(true);
 	}
 }
