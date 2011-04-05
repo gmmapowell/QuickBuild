@@ -45,6 +45,8 @@ public class ByteCodeInspector extends ByteCodeFile {
 		@Override
 		public int read() throws IOException {
 			int b = fis.read();
+			if (b == -1)
+				return -1;
 			if (cnt >= wrap)
 			{
 				out.println(new String(str));
@@ -81,11 +83,16 @@ public class ByteCodeInspector extends ByteCodeFile {
 	{
 		try
 		{
+			if (args.length != 1)
+			{
+				System.out.println("Usage: inspector <class>");
+				return;
+			}
 			ByteCodeInspector bci = new ByteCodeInspector();
 			InputStream fis = ByteCodeInspector.class.getResourceAsStream(args[0]);
 			if (fis == null)
-				throw new RuntimeException("Could not find " + fis);
-			OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream("C:\\tmp\\dump.txt"));
+				throw new RuntimeException("Could not find " + args[0]);
+			OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream("dumpClass.txt"));
 			bci.read(new PrintWriter(writer), fis);
 			writer.close();
 		}

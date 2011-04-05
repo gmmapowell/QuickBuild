@@ -1,9 +1,11 @@
 package com.gmmapowell.bytecode;
 
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.gmmapowell.bytecode.CPInfo.ClassInfo;
@@ -49,6 +51,13 @@ public class ByteCodeFile {
 	
 	protected CPInfo[] pool;
 	protected List<ClassInfo> interfaces = new ArrayList<ClassInfo>();
+	private int nextPoolEntry = 1;
+	private int access_flags;
+	private int this_idx;
+	private int super_idx;
+	private List<FieldInfo> fields = new ArrayList<FieldInfo>();
+	private List<MethodInfo> methods = new ArrayList<MethodInfo>();
+	private List<AttributeInfo> attributes = new ArrayList<AttributeInfo>();
 	
 	public ByteCodeFile(InputStream fis)
 	{
@@ -61,9 +70,9 @@ public class ByteCodeFile {
 			dis.readUnsignedShort(); //minor
 			dis.readUnsignedShort(); // major
 			readConstantPool(dis);
-			dis.readUnsignedShort(); // access_flags
-			dis.readUnsignedShort(); // this_class
-			dis.readUnsignedShort(); // super_class
+			access_flags = dis.readUnsignedShort(); // access_flags
+			this_idx = dis.readUnsignedShort(); // this_class
+			super_idx = dis.readUnsignedShort(); // super_class
 			readInterfaces(dis);
 			readFields(dis);
 			readMethods(dis);
@@ -79,6 +88,23 @@ public class ByteCodeFile {
 
 	protected ByteCodeFile()
 	{
+		access_flags = ACC_PUBLIC | ACC_SUPER;
+		super_idx = 1; // wrong
+		this_idx = 1; // wrong
+	}
+
+	public void write(DataOutputStream dos) throws IOException {
+		dos.writeInt(javaMagic);
+		dos.writeShort(0);
+		dos.writeShort(50);
+		writeConstantPool(dos);
+		dos.writeShort(access_flags);
+		dos.writeShort(this_idx);
+		dos.writeShort(super_idx);
+		writeInterfaces(dos);
+		writeFields(dos);
+		writeMethods(dos);
+		writeAttributes(dos);
 	}
 
 	private void readConstantPool(DataInputStream dis) throws IOException {
@@ -95,10 +121,43 @@ public class ByteCodeFile {
 		}
 	}
 
+	public void addPoolEntry(CPInfo entry)
+	{
+		if (pool == null)
+			pool = new CPInfo[10];
+		else if (nextPoolEntry >= pool.length)
+		{
+			pool = Arrays.copyOf(pool, pool.length*2);
+		}
+		pool[nextPoolEntry++] = entry;
+		if (entry instanceof DoubleEntry)
+			nextPoolEntry++;
+	}
+
+	private void writeConstantPool(DataOutputStream dos) throws IOException {
+		dos.writeShort(nextPoolEntry);
+		for (int idx=1;idx<nextPoolEntry;idx++)
+		{
+			pool[idx].writeEntry(dos);
+			if (pool[idx] instanceof DoubleEntry)
+				idx++;
+		}
+	}
+
 	private void readInterfaces(DataInputStream dis) throws IOException {
 		int cnt = dis.readUnsignedShort();
 		for (int i=0;i<cnt;i++)
 			interfaces.add((ClassInfo) pool[dis.readUnsignedShort()]); // the pool id of the interface
+	}
+
+	private void writeInterfaces(DataOutputStream dos) throws IOException {
+		dos.writeShort(interfaces.size());
+		for (ClassInfo ci : interfaces)
+			dos.writeShort(ci.idx);
+	}
+
+	private void writeFields(DataOutputStream dos) throws IOException {
+		dos.writeShort(fields.size());
 	}
 
 	private void readFields(DataInputStream dis) throws IOException {
@@ -131,6 +190,11 @@ public class ByteCodeFile {
 		
 	}
 
+	private void writeMethods(DataOutputStream dos) throws IOException {
+		dos.writeShort(methods.size());
+		
+	}
+
 	private void readAttributes(DataInputStream dis) throws IOException {
 		int cnt = dis.readUnsignedShort();
 //		if (cnt > 0)
@@ -145,6 +209,10 @@ public class ByteCodeFile {
 			byte[] bytes = new byte[len];
 			readBytes(dis, bytes);
 		}		
+	}
+
+	private void writeAttributes(DataOutputStream dos) throws IOException {
+		dos.writeShort(attributes.size());
 	}
 
 	private CPInfo readPoolEntry(DataInputStream dis) throws IOException {

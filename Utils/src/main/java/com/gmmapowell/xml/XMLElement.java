@@ -193,4 +193,8 @@ public class XMLElement {
 	public boolean hasAttribute(String attr) {
 		return elt.hasAttribute(attr);
 	}
+
+	public void setAttribute(XMLNSAttr attr, String value) {
+		attr.applyTo(elt, value);
+	}
 }

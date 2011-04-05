@@ -149,6 +149,11 @@ public class XML {
 	public XMLElement addElement(String tag) {
 		return top.addElement(tag);
 	}
+
+	public XMLNamespace namespace(String ns, String url) {
+		top.elt.setAttribute("xmlns:"+ns, url);
+		return new XMLNamespace(ns, url);
+	}
 }
 
 	

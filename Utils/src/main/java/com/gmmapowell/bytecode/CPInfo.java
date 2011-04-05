@@ -1,6 +1,9 @@
 package com.gmmapowell.bytecode;
 
-public class CPInfo {
+import java.io.DataOutputStream;
+import java.io.IOException;
+
+public abstract class CPInfo {
 	public interface DoubleEntry {
 
 	}
@@ -20,15 +23,26 @@ public class CPInfo {
 	}
 
 	public static class Utf8Info extends CPInfo {
-		private String utf8;
+		private final String utf8;
 
 		public Utf8Info(byte[] bytes) {
 			utf8 = new String(bytes);
 		}
 
+		public Utf8Info(String str) {
+			utf8 = str;
+		}
+
 		@Override
 		public String toString() {
 			return "U8: " + utf8;
+		}
+
+		@Override
+		public void writeEntry(DataOutputStream dos) throws IOException {
+			dos.write(ByteCodeFile.CONSTANT_UTF8);
+			dos.writeShort(utf8.length());
+			dos.writeBytes(utf8);
 		}
 	}
 
@@ -44,6 +58,12 @@ public class CPInfo {
 		public String toString() {
 			return "Integer: " + val;
 		}
+
+		@Override
+		public void writeEntry(DataOutputStream dos) throws IOException {
+			dos.write(ByteCodeFile.CONSTANT_Integer);
+			dos.writeInt(val);
+		}
 	}
 
 	public static class FloatInfo extends CPInfo {
@@ -56,6 +76,12 @@ public class CPInfo {
 		@Override
 		public String toString() {
 			return "Float: " + val;
+		}
+
+		@Override
+		public void writeEntry(DataOutputStream dos) throws IOException {
+			dos.write(ByteCodeFile.CONSTANT_Float);
+			dos.writeFloat(val);
 		}
 	}
 
@@ -71,6 +97,13 @@ public class CPInfo {
 		public String toString() {
 			return "Long: " + val;
 		}
+
+		@Override
+		public void writeEntry(DataOutputStream dos) throws IOException {
+			dos.write(ByteCodeFile.CONSTANT_Long);
+			dos.writeInt((int)(val >> 32));
+			dos.writeInt((int)(val & 0xfffffffL));
+		}
 	}
 
 
@@ -84,6 +117,12 @@ public class CPInfo {
 		@Override
 		public String toString() {
 			return "Double: " + val;
+		}
+
+		@Override
+		public void writeEntry(DataOutputStream dos) throws IOException {
+			dos.write(ByteCodeFile.CONSTANT_Double);
+			dos.writeDouble(val);
 		}
 	}
 
@@ -107,12 +146,24 @@ public class CPInfo {
 			return super.equals(obj);
 		}
 
+		@Override
+		public void writeEntry(DataOutputStream dos) throws IOException {
+			dos.write(ByteCodeFile.CONSTANT_Class);
+			dos.writeShort(idx);
+		}
+
 	}
 
 	public static class StringInfo extends CPInfo {
 
 		public StringInfo(CPInfo[] pool, int idx) {
 			super(pool, idx);
+		}
+
+		@Override
+		public void writeEntry(DataOutputStream dos) throws IOException {
+			dos.write(ByteCodeFile.CONSTANT_String);
+			dos.writeShort(idx);
 		}
 
 	}
@@ -140,6 +191,14 @@ public class CPInfo {
 //				return + idx + "/" + Integer.toHexString(idx) + "]> " + pool[idx].toString();
 			return s;
 		}
+
+
+		@Override
+		public void writeEntry(DataOutputStream dos) throws IOException {
+			dos.write(tag);
+			dos.writeShort(clz);
+			dos.writeShort(nt);
+		}
 	}
 
 	public static class NTInfo extends CPInfo {
@@ -151,8 +210,6 @@ public class CPInfo {
 			super(pool, 0);
 			this.name = name;
 			this.descriptor = descriptor;
-			
-			// TODO Auto-generated constructor stub
 		}
 
 		@Override
@@ -161,6 +218,13 @@ public class CPInfo {
 //			if (super.pool != null && super.pool[super.idx] != null)
 //				return + idx + "/" + Integer.toHexString(idx) + "]> " + pool[idx].toString();
 			return s;
+		}
+
+		@Override
+		public void writeEntry(DataOutputStream dos) throws IOException {
+			dos.write(ByteCodeFile.CONSTANT_NameAndType);
+			dos.writeShort(name);
+			dos.writeShort(descriptor);
 		}
 
 	}
@@ -177,4 +241,5 @@ public class CPInfo {
 		return super.toString();
 	}
 
+	public abstract void writeEntry(DataOutputStream dos) throws IOException;
 }

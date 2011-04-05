@@ -289,4 +289,15 @@ public class FileUtils {
 			throw UtilException.wrap(e);
 		}
 	}
+
+	public static String getUnextendedName(File file) {
+		String ret = file.getName();
+		if (ret.indexOf(".") == -1)
+			return ret;
+		return ret.substring(0, ret.indexOf("."));
+	}
+
+	public static String getPackage(File file) {
+		return convertToDottedName(file.getParentFile());
+	}
 }
