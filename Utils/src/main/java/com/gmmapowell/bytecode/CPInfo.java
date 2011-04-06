@@ -44,6 +44,10 @@ public abstract class CPInfo {
 			dos.writeShort(utf8.length());
 			dos.writeBytes(utf8);
 		}
+
+		public String asString() {
+			return utf8;
+		}
 	}
 
 	public static class IntegerInfo extends CPInfo {
@@ -130,6 +134,11 @@ public abstract class CPInfo {
 
 		public ClassInfo(CPInfo[] pool, int idx) {
 			super(pool, idx);
+		}
+		
+		@Override
+		public String toString() {
+			return "ClassInfo[" + idx + "]";
 		}
 		
 		@Override

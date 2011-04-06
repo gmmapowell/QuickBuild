@@ -52,9 +52,9 @@ public class ByteCodeFile {
 	protected CPInfo[] pool;
 	protected List<ClassInfo> interfaces = new ArrayList<ClassInfo>();
 	private int nextPoolEntry = 1;
-	private int access_flags;
-	private int this_idx;
-	private int super_idx;
+	private int access_flags = -1;
+	private int this_idx = -1;
+	private int super_idx = -1;
 	private List<FieldInfo> fields = new ArrayList<FieldInfo>();
 	private List<MethodInfo> methods = new ArrayList<MethodInfo>();
 	private List<AttributeInfo> attributes = new ArrayList<AttributeInfo>();
@@ -88,12 +88,19 @@ public class ByteCodeFile {
 
 	protected ByteCodeFile()
 	{
-		access_flags = ACC_PUBLIC | ACC_SUPER;
-		super_idx = 1; // wrong
-		this_idx = 1; // wrong
 	}
 
 	public void write(DataOutputStream dos) throws IOException {
+		if (access_flags == -1)
+			access_flags = ACC_SUPER | ACC_PUBLIC;
+		if (this_idx == -1)
+			throw new UtilException("You must specify a this class");
+		if (super_idx == -1)
+			super_idx = requireClass("java/lang/Object");
+
+		for (MethodInfo mi : methods)
+			((MethodCreator)mi).complete();
+		
 		dos.writeInt(javaMagic);
 		dos.writeShort(0);
 		dos.writeShort(50);
@@ -104,7 +111,29 @@ public class ByteCodeFile {
 		writeInterfaces(dos);
 		writeFields(dos);
 		writeMethods(dos);
-		writeAttributes(dos);
+		writeAttributes(dos, attributes);
+	}
+
+	private int requireClass(String string) {
+		int utf8Idx = 0;
+		for (int i=1;i<nextPoolEntry;i++)
+			if (pool[i] != null && pool[i] instanceof CPInfo.Utf8Info && ((CPInfo.Utf8Info)pool[i]).asString().equals(string))
+			{
+				utf8Idx = i;
+				break;
+			}
+		if (utf8Idx > 0)
+		{
+			for (int i=1;i<nextPoolEntry;i++)
+				if (pool[i] != null && pool[i] instanceof CPInfo.ClassInfo && ((CPInfo.ClassInfo)pool[i]).idx == utf8Idx)
+					return i;
+		}
+		else
+			utf8Idx = nextPoolEntry+1;
+		int clzIdx = nextPoolEntry;
+		addPoolEntry(new CPInfo.ClassInfo(pool, utf8Idx));
+		addPoolEntry(new CPInfo.Utf8Info(string));
+		return clzIdx;
 	}
 
 	private void readConstantPool(DataInputStream dis) throws IOException {
@@ -121,7 +150,7 @@ public class ByteCodeFile {
 		}
 	}
 
-	public void addPoolEntry(CPInfo entry)
+	public short addPoolEntry(CPInfo entry)
 	{
 		if (pool == null)
 			pool = new CPInfo[10];
@@ -129,15 +158,19 @@ public class ByteCodeFile {
 		{
 			pool = Arrays.copyOf(pool, pool.length*2);
 		}
+		short ret = (short) nextPoolEntry;
 		pool[nextPoolEntry++] = entry;
 		if (entry instanceof DoubleEntry)
 			nextPoolEntry++;
+		return ret;
 	}
 
 	private void writeConstantPool(DataOutputStream dos) throws IOException {
 		dos.writeShort(nextPoolEntry);
 		for (int idx=1;idx<nextPoolEntry;idx++)
 		{
+			if (pool[idx] == null)
+				continue;
 			pool[idx].writeEntry(dos);
 			if (pool[idx] instanceof DoubleEntry)
 				idx++;
@@ -192,7 +225,10 @@ public class ByteCodeFile {
 
 	private void writeMethods(DataOutputStream dos) throws IOException {
 		dos.writeShort(methods.size());
-		
+		for (MethodInfo mi : methods)
+		{
+			mi.write(dos);
+		}
 	}
 
 	private void readAttributes(DataInputStream dis) throws IOException {
@@ -211,8 +247,8 @@ public class ByteCodeFile {
 		}		
 	}
 
-	private void writeAttributes(DataOutputStream dos) throws IOException {
-		dos.writeShort(attributes.size());
+	void writeAttributes(DataOutputStream dos, List<AttributeInfo> attrs) throws IOException {
+		dos.writeShort(attrs.size());
 	}
 
 	private CPInfo readPoolEntry(DataInputStream dis) throws IOException {
@@ -313,5 +349,30 @@ public class ByteCodeFile {
 			int cnt = dis.read(bytes, off, bytes.length-off);
 			off += cnt;
 		}
+	}
+
+	public void thisClass(String name) {
+		if (this_idx != -1)
+			throw new UtilException("Cannot define 'this' class twice");
+		this_idx = requireClass(name);
+	}
+
+	public void superClass(String name) {
+		if (super_idx != -1)
+			throw new UtilException("Cannot define 'super' class twice");
+		super_idx = requireClass(name);
+	}
+
+	public void addMethod(MethodCreator ret) {
+		methods.add(ret);
+	}
+
+	public short requireUtf8(String name) {
+		for (short i=1;i<nextPoolEntry;i++)
+			if (pool[i] != null && pool[i] instanceof CPInfo.Utf8Info && ((CPInfo.Utf8Info)pool[i]).asString().equals(name))
+			{
+				return i;
+			}
+		return addPoolEntry(new CPInfo.Utf8Info(name));
 	}
 }

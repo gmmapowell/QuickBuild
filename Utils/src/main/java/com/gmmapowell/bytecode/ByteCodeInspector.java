@@ -67,6 +67,8 @@ public class ByteCodeInspector extends ByteCodeFile {
 		}
 
 		public void print(Object obj) {
+			if (cnt == 0)
+				out.print("         ");
 			for (int i=cnt;i<wrap;i++)
 			{
 				out.print("   ");
@@ -200,8 +202,7 @@ public class ByteCodeInspector extends ByteCodeFile {
 	}
 	private void readAttributes(DataInputStream dis) throws IOException {
 		int cnt = dis.readUnsignedShort();
-		if (cnt > 0)
-			hexdump.print(cnt + " attributes");
+		hexdump.print(cnt + " attributes");
 		for (int i=0;i<cnt;i++)
 		{
 			int idx = dis.readUnsignedShort(); // name_index
@@ -211,6 +212,7 @@ public class ByteCodeInspector extends ByteCodeFile {
 			hexdump.print("idx = " + idx + ": " + pool[idx] + " len=" + len);
 			byte[] bytes = new byte[len];
 			readBytes(dis, bytes);
+			hexdump.print("");
 		}		
 	}
 

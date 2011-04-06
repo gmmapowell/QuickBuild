@@ -20,12 +20,11 @@ public class ByteCodeCreator {
 		this.file = file;
 		pkg = FileUtils.getPackage(file);
 		name = FileUtils.getUnextendedName(file);
-		bcf.addPoolEntry(new CPInfo.Utf8Info(FileUtils.convertToDottedNameDroppingExtension(file)));
+		bcf.thisClass(FileUtils.convertToDottedNameDroppingExtension(file));
 	}
 
 	public void superclass(String string) {
-		// TODO Auto-generated method stub
-		
+		bcf.superClass(string);
 	}
 
 	public void addToJar(JarOutputStream jos) {
@@ -42,6 +41,12 @@ public class ByteCodeCreator {
 		DataOutputStream dos = new DataOutputStream(os);
 		bcf.write(dos);
 		dos.flush();
+	}
+
+	public MethodCreator method(String string) {
+		MethodCreator ret = new MethodCreator(bcf, string);
+		bcf.addMethod(ret);
+		return ret;
 	}
 
 }
