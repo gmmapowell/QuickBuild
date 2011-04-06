@@ -114,7 +114,7 @@ public class ByteCodeFile {
 		writeAttributes(dos, attributes);
 	}
 
-	private int requireClass(String string) {
+	int requireClass(String string) {
 		int utf8Idx = 0;
 		for (int i=1;i<nextPoolEntry;i++)
 			if (pool[i] != null && pool[i] instanceof CPInfo.Utf8Info && ((CPInfo.Utf8Info)pool[i]).asString().equals(string))
@@ -249,6 +249,8 @@ public class ByteCodeFile {
 
 	void writeAttributes(DataOutputStream dos, List<AttributeInfo> attrs) throws IOException {
 		dos.writeShort(attrs.size());
+		for (AttributeInfo ai : attrs)
+			dos.write(ai.getBytes());
 	}
 
 	private CPInfo readPoolEntry(DataInputStream dis) throws IOException {
@@ -374,5 +376,27 @@ public class ByteCodeFile {
 				return i;
 			}
 		return addPoolEntry(new CPInfo.Utf8Info(name));
+	}
+	
+	public int requireNT(int methIdx, int sigIdx) {
+		for (short i=1;i<nextPoolEntry;i++)
+			if (pool[i] != null && pool[i] instanceof CPInfo.NTInfo)
+			{
+				CPInfo.NTInfo nt = (CPInfo.NTInfo)pool[i];
+				if (nt.isA(methIdx, sigIdx))
+					return i;
+			}
+		return addPoolEntry(new CPInfo.NTInfo(pool, methIdx, sigIdx));
+	}
+
+	public int requireRef(int refType, int clzIdx, int ntIdx) {
+		for (short i=1;i<nextPoolEntry;i++)
+			if (pool[i] != null && pool[i] instanceof CPInfo.RefInfo)
+			{
+				CPInfo.RefInfo r = (CPInfo.RefInfo)pool[i];
+				if (r.isA(refType, clzIdx, ntIdx))
+					return i;
+			}
+		return addPoolEntry(new CPInfo.RefInfo(pool, clzIdx, ntIdx, refType));
 	}
 }

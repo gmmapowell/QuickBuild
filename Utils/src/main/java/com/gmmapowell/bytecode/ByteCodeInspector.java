@@ -211,9 +211,86 @@ public class ByteCodeInspector extends ByteCodeFile {
 				throw new RuntimeException("What?");
 			hexdump.print("idx = " + idx + ": " + pool[idx] + " len=" + len);
 			byte[] bytes = new byte[len];
-			readBytes(dis, bytes);
-			hexdump.print("");
+			if (pool[idx] != null && pool[idx] instanceof CPInfo.Utf8Info && ((CPInfo.Utf8Info)pool[idx]).asString().equals("Code"))
+			{
+				/*
+				 * Code_attribute {
+    	u2 max_stack;
+    	u2 max_locals;
+    	u4 code_length;
+    	u1 code[code_length];
+    	u2 exception_table_length;
+    	{    	u2 start_pc;
+    	      	u2 end_pc;
+    	      	u2  handler_pc;
+    	      	u2  catch_type;
+    	}	exception_table[exception_table_length];
+    	u2 attributes_count;
+    	attribute_info attributes[attributes_count];
+    }
+				 */
+				int maxStack = dis.readUnsignedShort();
+				int maxLocals = dis.readUnsignedShort();
+				int codeLength = dis.readInt();
+				hexdump.print("maxStack = " + maxStack + " maxLocals = " + maxLocals + " codeLen = " + codeLength);
+				int k=0;
+				while (k<codeLength)
+					k += disassemble(dis);
+				int excLength = dis.readUnsignedShort();
+				hexdump.print(excLength + " exceptions");
+				for (int j=0;j<excLength;j++)
+				{
+					int start_pc = dis.readUnsignedShort();
+					int end_pc = dis.readUnsignedShort();
+					int handler_pc = dis.readUnsignedShort();
+					int catch_type = dis.readUnsignedShort();
+					hexdump.print("");
+				}
+				readAttributes(dis);
+			}
+			else
+			{
+				readBytes(dis, bytes);
+				hexdump.print("");
+			}
 		}		
+	}
+
+	private int disassemble(DataInputStream dis) throws IOException {
+		int opcode = dis.readUnsignedByte();
+		if (opcode >= 0x2a && opcode <= 0x2d)
+		{
+			hexdump.print("aload_"+(opcode-0x2a));
+			return 1;
+		}
+		switch (opcode)
+		{
+		case 0x12:
+		{
+			int idx = dis.readUnsignedByte();
+			hexdump.print("ldc " + pool[idx]);
+			return 2;
+		}
+		case 0xb1:
+			hexdump.print("return");
+			return 1;
+		case 0xb6:
+		{
+			int idx = dis.readUnsignedShort();
+			CPInfo info = pool[idx];
+			hexdump.print("invokevirtual " + info);
+			return 3;
+		}
+		case 0xb7:
+		{
+			int idx = dis.readUnsignedShort();
+			CPInfo info = pool[idx];
+			hexdump.print("invokespecial " + info);
+			return 3;
+		}
+		default:
+			throw new UtilException("Invalid opcode " + StringUtil.hex(opcode, 2));
+		}
 	}
 
 	private CPInfo readPoolEntry(DataInputStream dis) throws IOException {

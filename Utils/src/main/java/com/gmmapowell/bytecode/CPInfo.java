@@ -208,6 +208,11 @@ public abstract class CPInfo {
 			dos.writeShort(clz);
 			dos.writeShort(nt);
 		}
+
+
+		public boolean isA(int refType, int clzIdx, int sigIdx) {
+			return this.tag == refType && this.clz == clzIdx && this.nt == sigIdx;
+		}
 	}
 
 	public static class NTInfo extends CPInfo {
@@ -234,6 +239,10 @@ public abstract class CPInfo {
 			dos.write(ByteCodeFile.CONSTANT_NameAndType);
 			dos.writeShort(name);
 			dos.writeShort(descriptor);
+		}
+
+		public boolean isA(int methIdx, int sigIdx) {
+			return this.name == methIdx && this.descriptor == sigIdx;
 		}
 
 	}

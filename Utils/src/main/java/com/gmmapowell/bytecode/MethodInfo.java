@@ -11,11 +11,10 @@ public class MethodInfo {
 	protected short descriptorIdx = -1;
 	protected final ByteCodeFile bcf;
 	protected final List<AttributeInfo> attributes = new ArrayList<AttributeInfo>();
-	
+
 	public MethodInfo(ByteCodeFile bcf)
 	{
 		this.bcf = bcf;
-		
 	}
 	
 	public void write(DataOutputStream dos) throws IOException {

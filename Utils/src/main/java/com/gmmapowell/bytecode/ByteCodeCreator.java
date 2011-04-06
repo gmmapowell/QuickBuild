@@ -43,8 +43,8 @@ public class ByteCodeCreator {
 		dos.flush();
 	}
 
-	public MethodCreator method(String string) {
-		MethodCreator ret = new MethodCreator(bcf, string);
+	public MethodCreator method(boolean isStatic, String string) {
+		MethodCreator ret = new MethodCreator(bcf, isStatic, string);
 		bcf.addMethod(ret);
 		return ret;
 	}
