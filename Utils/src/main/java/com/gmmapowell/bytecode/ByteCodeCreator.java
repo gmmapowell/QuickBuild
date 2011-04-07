@@ -15,15 +15,18 @@ public class ByteCodeCreator {
 	private String name;
 	private String pkg;
 	private final File file;
+	private String superclass;
 
-	public ByteCodeCreator(File file) {
-		this.file = file;
+	public ByteCodeCreator(String qualifiedName) {
+		File tmp = FileUtils.convertDottedToPath(qualifiedName);
+		this.file = new File(tmp.getParentFile(), tmp.getName() + ".class");
 		pkg = FileUtils.getPackage(file);
 		name = FileUtils.getUnextendedName(file);
 		bcf.thisClass(FileUtils.convertToDottedNameDroppingExtension(file));
 	}
 
 	public void superclass(String string) {
+		this.superclass = string;
 		bcf.superClass(string);
 	}
 
@@ -43,10 +46,18 @@ public class ByteCodeCreator {
 		dos.flush();
 	}
 
-	public MethodCreator method(boolean isStatic, String string) {
-		MethodCreator ret = new MethodCreator(bcf, isStatic, string);
+	private MethodCreator createAnyMethod(boolean isStatic, String string) {
+		MethodCreator ret = new MethodCreator(this, bcf, isStatic, string);
 		bcf.addMethod(ret);
 		return ret;
+	}
+
+	public MethodCreator ctor() {
+		return createAnyMethod(false, "<init>");
+	}
+
+	public String getSuperClass() {
+		return superclass;
 	}
 
 }

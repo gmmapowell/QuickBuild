@@ -114,9 +114,34 @@ public class FileUtils {
 		File ret = new File(root, projectName);
 		if (ret.isDirectory())
 			return ret;
+		if ((ret = findDirNamedRecursive(root, projectName)) != null)
+			return ret;
 		throw new UtilException("There is no project directory: " + projectName);
 	}
 	
+	private static File findDirNamedRecursive(File base, String remaining) {
+		System.out.println("Looking for " + remaining + " in " + base);
+		int idx = -1;
+		do
+		{
+			idx = remaining.indexOf("-", idx+1);
+			File rec;
+			if (idx == -1)
+				rec = new File(base, remaining);
+			else
+				rec = new File(base, remaining.substring(0, idx));
+			if (rec.isDirectory())
+			{
+				if (idx == -1)
+					return rec;
+				File ret = findDirNamedRecursive(rec, remaining.substring(idx+1));
+				if (ret != null)
+					return ret;
+			}
+		} while (idx != -1);
+		return null;
+	}
+
 	public static List<File> findFilesMatching(File file, String string) {
 		return findFiles(file, null, string);
 	}

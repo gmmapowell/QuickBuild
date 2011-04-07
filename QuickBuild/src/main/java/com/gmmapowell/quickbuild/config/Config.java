@@ -19,6 +19,7 @@ import com.gmmapowell.http.ProxyInfo;
 import com.gmmapowell.http.ProxyableConnection;
 import com.gmmapowell.quickbuild.build.BuildCommand;
 import com.gmmapowell.quickbuild.build.BuildResource;
+import com.gmmapowell.quickbuild.build.DirectoryResource;
 import com.gmmapowell.quickbuild.build.JarResource;
 import com.gmmapowell.quickbuild.build.MavenResource;
 import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
@@ -251,6 +252,14 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 			ret.addAll(projects.get(f));
 		return ret;
 	}
+	
+	public Project findProject(String name)
+	{
+		for (Project p : projects.values())
+			if (p.getName().equals(name))
+				return p;
+		throw new QuickBuildException("There is no project " + name);
+	}
 
 	public BuildResource findResource(String res) {
 		for (JarResource jr : availableJars)
@@ -262,7 +271,7 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		for (BuildResource br : willbuild)
 			if (br.toString().equals(res))
 				return br;
-		throw new QuickBuildException("There is no resource called " + res);
+		throw new QuickBuildException("Cannot find resource " + res);
 	}
 
 	public AndroidContext getAndroidContext() {

@@ -5,4 +5,6 @@ if [ $# -lt 1 ] ; then
   exit 1
 fi
 
-java -cp dp.jar:quickbuild.jar:utils.jar com.gmmapowell.quickbuild.app.QuickBuild "$@"
+ROOTDIR="`dirname $0`"
+
+java -cp $ROOTDIR/dp.jar:$ROOTDIR/spritzerc.jar:$ROOTDIR/quickbuild.jar:$ROOTDIR/utils.jar com.gmmapowell.quickbuild.app.QuickBuild "$@"

@@ -24,9 +24,13 @@ public class MethodCreator extends MethodInfo {
 			return map(arg1);
 		}
 	};
+	private final ByteCodeCreator byteCodeCreator;
+	private final String name;
 
-	public MethodCreator(ByteCodeFile bcf, boolean isStatic, String name) {
+	public MethodCreator(ByteCodeCreator byteCodeCreator, ByteCodeFile bcf, boolean isStatic, String name) {
 		super(bcf);
+		this.byteCodeCreator = byteCodeCreator;
+		this.name = name;
 		nameIdx = bcf.requireUtf8(name);
 		if (!isStatic)
 			locals++;
@@ -91,6 +95,8 @@ public class MethodCreator extends MethodInfo {
 	}
 
 	private String map(String type) {
+		if (type.startsWith("@")) // this is my own annotation to allow pre-mapped types to be passed around
+			return type.substring(1);
 		int dims = 0;
 		while (type.charAt(dims) == '[')
 			dims++;
@@ -134,12 +140,15 @@ public class MethodCreator extends MethodInfo {
 			instructions.add(new Instruction(0x19, i));
 		opstack(1);
 	}
+	
+	public void invokeparent(String... args) {
+		invokespecial(byteCodeCreator.getSuperClass(), "@" + returnType, name, args);
+	}
 
-	// I would like to offer more help ...
-	public void invokespecial(String clz, String ret, String meth, String... args) {
+	private void invokespecial(String clz, String ret, String meth, String... args) {
 		int clzIdx = bcf.requireClass(clz);
 		int methIdx = bcf.requireUtf8(meth);
-		int sigIdx = bcf.requireUtf8(signature(map(ret), Lambda.map(mapType , CollectionUtils.listOf(args))));
+		int sigIdx = bcf.requireUtf8(signature(map(ret), Lambda.map(mapType, CollectionUtils.listOf(args))));
 		int ntIdx = bcf.requireNT(methIdx, sigIdx);
 		int idx = bcf.requireRef(ByteCodeFile.CONSTANT_Methodref, clzIdx, ntIdx);
 		instructions.add(new Instruction(0xb7, (idx>>8)&0xff, (idx&0xff)));

@@ -101,6 +101,7 @@ public class ByteCodeInspector extends ByteCodeFile {
 		catch (Exception ex)
 		{
 			ex.printStackTrace(System.out);
+			System.exit(1);
 		}
 	}
 		

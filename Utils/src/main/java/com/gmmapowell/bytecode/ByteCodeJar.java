@@ -16,8 +16,8 @@ public class ByteCodeJar {
 		// sort out something about the manifest
 	}
 
-	public ByteCodeCreator newEntry(File file) {
-		ByteCodeCreator ret = new ByteCodeCreator(file);
+	public ByteCodeCreator newEntry(String string) {
+		ByteCodeCreator ret = new ByteCodeCreator(string);
 		files.add(ret);
 		return ret;
 	}

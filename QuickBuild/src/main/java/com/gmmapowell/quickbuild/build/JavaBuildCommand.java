@@ -50,7 +50,9 @@ public class JavaBuildCommand implements BuildCommand {
 	
 	@Override
 	public BuildStatus execute(BuildContext cxt) {
-		if (doClean )
+		if (!srcdir.isDirectory())
+			return BuildStatus.IGNORED;
+		if (doClean)
 			FileUtils.cleanDirectory(bindir);
 		else
 			classpath.add(bindir);

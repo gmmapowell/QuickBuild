@@ -29,8 +29,16 @@ public class DirectoryResource implements BuildResource {
 		return toString().hashCode();
 	}
 	
+	public File getDirectory() {
+		return dir;
+	}
+	
 	@Override
 	public String toString() {
 		return "Directory: " + FileUtils.makeRelative(dir);
+	}
+
+	public boolean exists() {
+		return dir.exists();
 	}
 }
