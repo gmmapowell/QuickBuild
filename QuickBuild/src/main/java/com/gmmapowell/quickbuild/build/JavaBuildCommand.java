@@ -51,7 +51,7 @@ public class JavaBuildCommand implements BuildCommand {
 	@Override
 	public BuildStatus execute(BuildContext cxt) {
 		if (!srcdir.isDirectory())
-			return BuildStatus.IGNORED;
+			return BuildStatus.SKIPPED;
 		if (doClean)
 			FileUtils.cleanDirectory(bindir);
 		else
@@ -75,10 +75,14 @@ public class JavaBuildCommand implements BuildCommand {
 			proc.arg("-classpath");
 			proc.arg(classpath.toString());
 		}
+		boolean any = false;
 		for (File f : FileUtils.findFilesMatching(srcdir, "*.java"))
 		{
 			proc.arg(f.getPath());
+			any = true;
 		}
+		if (!any)
+			return BuildStatus.SKIPPED;
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{

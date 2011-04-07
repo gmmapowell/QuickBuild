@@ -31,11 +31,15 @@ public class JUnitRunCommand implements BuildCommand {
 		proc.arg("-classpath");
 		proc.arg(classpath.toString());
 		proc.arg("org.junit.runner.JUnitCore");
+		boolean any = false;
 		for (File f : FileUtils.findFilesUnderMatching(srcdir, "*.java"))
 		{
 			// TODO: check whether it has any @Test annotations
+			any = true;
 			proc.arg(FileUtils.convertToDottedNameDroppingExtension(f));
 		}
+		if (!any)
+			return BuildStatus.SKIPPED;
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{

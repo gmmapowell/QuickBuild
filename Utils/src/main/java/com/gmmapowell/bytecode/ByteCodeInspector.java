@@ -1,6 +1,7 @@
 package com.gmmapowell.bytecode;
 
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,6 +19,7 @@ import com.gmmapowell.bytecode.CPInfo.RefInfo;
 import com.gmmapowell.bytecode.CPInfo.StringInfo;
 import com.gmmapowell.bytecode.CPInfo.Utf8Info;
 import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.StringUtil;
 
 public class ByteCodeInspector extends ByteCodeFile {
@@ -85,18 +87,24 @@ public class ByteCodeInspector extends ByteCodeFile {
 	{
 		try
 		{
-			if (args.length != 1)
+			if (args.length < 1)
 			{
-				System.out.println("Usage: inspector <class>");
+				System.out.println("Usage: inspector <class> ...");
 				return;
 			}
 			ByteCodeInspector bci = new ByteCodeInspector();
-			InputStream fis = ByteCodeInspector.class.getResourceAsStream(args[0]);
-			if (fis == null)
-				throw new RuntimeException("Could not find " + args[0]);
 			OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream("dumpClass.txt"));
-			bci.read(new PrintWriter(writer), fis);
+			for (String s : args)
+			{
+				writer.append(" ======= " + s + "\n");
+				InputStream fis = ByteCodeInspector.class.getResourceAsStream(s);
+				if (fis == null)
+					throw new RuntimeException("Could not find " + s);
+				bci.read(new PrintWriter(writer), fis);
+				fis.close();
+			}
 			writer.close();
+			FileUtils.cat(new File("dumpClass.txt"));
 		}
 		catch (Exception ex)
 		{
@@ -290,7 +298,8 @@ public class ByteCodeInspector extends ByteCodeFile {
 			return 3;
 		}
 		default:
-			throw new UtilException("Invalid opcode " + StringUtil.hex(opcode, 2));
+			// throw new UtilException("Invalid opcode " + StringUtil.hex(opcode, 2));
+			return 1;
 		}
 	}
 

@@ -115,9 +115,10 @@ public class ByteCodeFile {
 	}
 
 	int requireClass(String string) {
+		String s = FileUtils.convertDottedToSlashPath(string);
 		int utf8Idx = 0;
 		for (int i=1;i<nextPoolEntry;i++)
-			if (pool[i] != null && pool[i] instanceof CPInfo.Utf8Info && ((CPInfo.Utf8Info)pool[i]).asString().equals(string))
+			if (pool[i] != null && pool[i] instanceof CPInfo.Utf8Info && ((CPInfo.Utf8Info)pool[i]).asString().equals(s))
 			{
 				utf8Idx = i;
 				break;
@@ -132,7 +133,7 @@ public class ByteCodeFile {
 			utf8Idx = nextPoolEntry+1;
 		int clzIdx = nextPoolEntry;
 		addPoolEntry(new CPInfo.ClassInfo(pool, utf8Idx));
-		addPoolEntry(new CPInfo.Utf8Info(string));
+		addPoolEntry(new CPInfo.Utf8Info(s));
 		return clzIdx;
 	}
 

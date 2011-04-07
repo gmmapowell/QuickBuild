@@ -22,6 +22,7 @@ public class ConfigFactory implements CommandObjectFactory {
 		{
 			return new ProxyCommand(toks);
 		}
+		// these should all be in a proxyOptionsProcessor ...
 		else if (cmd.equals("host"))
 		{
 			return new ProxyHostCommand(toks);
@@ -73,6 +74,15 @@ public class ConfigFactory implements CommandObjectFactory {
 		else if (cmd.equals("android"))
 		{
 			return new AndroidCommand(toks);
+		}
+		// this should be in some android options processor
+		else if (cmd.equals("use"))
+		{
+			return new AndroidUseLibraryCommand(toks);
+		}
+		else if (cmd.equals("android-jar"))
+		{
+			return new AndroidJarCommand(toks);
 		}
 		else if (cmd.equals("adbinstall"))
 		{

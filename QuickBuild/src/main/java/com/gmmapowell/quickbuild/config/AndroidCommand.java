@@ -73,6 +73,11 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		}
 		
 		DexBuildCommand dex = new DexBuildCommand(acxt, project, project.getOutput("classes"), dexFile);
+		for (ConfigApplyCommand cmd : options)
+		{
+			if (cmd instanceof AndroidUseLibraryCommand)
+				((AndroidUseLibraryCommand)cmd).provideTo(dex);
+		}
 		ret.add(dex);
 		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(acxt, project, manifest, zipfile, resdir);
 		ret.add(pkg);

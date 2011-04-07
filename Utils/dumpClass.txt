@@ -1,0 +1,106 @@
+ ======= /com/gmmapowell/capture-ui.class
+00000000 CA FE BA BE                                     ....              Magic: -889275714
+00000004 00 00 00 32                                     ...2              Version: 50-0
+00000008 00 0A                                           ..                pool has 10 entries, including #0
+0000000A 07 00 02                                        ...               1 => ClassInfo[2]
+0000000D 01 00 19 63 6F 6D 2F 67 6D 6D 61 70 6F 77 65 6C ...com/gmmapowel
+0000001D 6C 2F 63 61 70 74 75 72 65 2D 75 69             l/capture-ui      2 => U8: com/gmmapowell/capture-ui
+00000029 07 00 04                                        ...               3 => ClassInfo[4]
+0000002C 01 00 20 63 6F 6D 2F 67 6D 6D 61 70 6F 77 65 6C ...com/gmmapowel
+0000003C 6C 2F 73 70 72 69 74 7A 65 72 2F 41 63 74 69 76 l/spritzer/Activ
+0000004C 69 74 79                                        ity               4 => U8: com/gmmapowell/spritzer/Activity
+0000004F 01 00 06 3C 69 6E 69 74 3E                      ...<init>         5 => U8: <init>
+00000058 01 00 03 28 29 56                               ...()V            6 => U8: ()V
+0000005E 0C 00 05 00 06                                  .....             7 => NTInfo[5/#5,6/#6]
+00000063 0A 00 03 00 07                                  .....             8 => RefInfo[3/#3,7/#7,10] > 
+00000068 01 00 04 43 6F 64 65                            ...Code           9 => U8: Code
+0000006F 00 21                                           .!                Access = 33
+00000071 00 01                                           ..                This = ClassInfo[2]
+00000073 00 03                                           ..                Super = ClassInfo[4]
+00000075 00 00                                           ..                0 interfaces
+00000077 00 00                                           ..                # of fields = 0
+00000079 00 01                                           ..                # of methods = 1
+0000007B 00 01 00 05 00 06                               ......            Method U8: <init> U8: ()V 1
+00000081 00 01                                           ..                1 attributes
+00000083 00 09 00 00 00 11                               ......            idx = 9: U8: Code len=17
+00000089 00 01 00 01 00 00 00 05                         ........          maxStack = 1 maxLocals = 1 codeLen = 5
+00000091 2A                                              *                 aload_0
+00000092 B7 00 08                                        ...               invokespecial RefInfo[3/#3,7/#7,10] > 
+00000095 B1                                              .                 return
+00000096 00 00                                           ..                0 exceptions
+00000098 00 00                                           ..                0 attributes
+                                                                           Class Attributes
+0000009A 00 00                                           ..                0 attributes
+ ======= /com/gmmapowell/bytecode/AttributeInfo.class
+00000000 CA FE BA BE                                     ....              Magic: -889275714
+00000004 00 00 00 32                                     ...2              Version: 50-0
+00000008 00 17                                           ..                pool has 23 entries, including #0
+0000000A 07 00 02                                        ...               1 => ClassInfo[2]
+0000000D 01 00 25 63 6F 6D 2F 67 6D 6D 61 70 6F 77 65 6C ..%com/gmmapowel
+0000001D 6C 2F 62 79 74 65 63 6F 64 65 2F 41 74 74 72 69 l/bytecode/Attri
+0000002D 62 75 74 65 49 6E 66 6F                         buteInfo          2 => U8: com/gmmapowell/bytecode/AttributeInfo
+00000035 07 00 04                                        ...               3 => ClassInfo[4]
+00000038 01 00 10 6A 61 76 61 2F 6C 61 6E 67 2F 4F 62 6A ...java/lang/Obj
+00000048 65 63 74                                        ect               4 => U8: java/lang/Object
+0000004B 01 00 05 62 79 74 65 73                         ...bytes          5 => U8: bytes
+00000053 01 00 02 5B 42                                  ...[B             6 => U8: [B
+00000058 01 00 06 3C 69 6E 69 74 3E                      ...<init>         7 => U8: <init>
+00000061 01 00 05 28 5B 42 29 56                         ...([B)V          8 => U8: ([B)V
+00000069 01 00 04 43 6F 64 65                            ...Code           9 => U8: Code
+00000070 0A 00 03 00 0B                                  .....             10 => RefInfo[3/#3,11/#b,10] > 
+00000075 0C 00 07 00 0C                                  .....             11 => NTInfo[7/#7,12/#c]
+0000007A 01 00 03 28 29 56                               ...()V            12 => U8: ()V
+00000080 09 00 01 00 0E                                  .....             13 => RefInfo[1/#1,14/#e,9] > 
+00000085 0C 00 05 00 06                                  .....             14 => NTInfo[5/#5,6/#6]
+0000008A 01 00 0F 4C 69 6E 65 4E 75 6D 62 65 72 54 61 62 ...LineNumberTab
+0000009A 6C 65                                           le                15 => U8: LineNumberTable
+0000009C 01 00 12 4C 6F 63 61 6C 56 61 72 69 61 62 6C 65 ...LocalVariable
+000000AC 54 61 62 6C 65                                  Table             16 => U8: LocalVariableTable
+000000B1 01 00 04 74 68 69 73                            ...this           17 => U8: this
+000000B8 01 00 27 4C 63 6F 6D 2F 67 6D 6D 61 70 6F 77 65 ..'Lcom/gmmapowe
+000000C8 6C 6C 2F 62 79 74 65 63 6F 64 65 2F 41 74 74 72 ll/bytecode/Attr
+000000D8 69 62 75 74 65 49 6E 66 6F 3B                   ibuteInfo;        18 => U8: Lcom/gmmapowell/bytecode/AttributeInfo;
+000000E2 01 00 08 67 65 74 42 79 74 65 73                ...getBytes       19 => U8: getBytes
+000000ED 01 00 04 28 29 5B 42                            ...()[B           20 => U8: ()[B
+000000F4 01 00 0A 53 6F 75 72 63 65 46 69 6C 65          ...SourceFile     21 => U8: SourceFile
+00000101 01 00 12 41 74 74 72 69 62 75 74 65 49 6E 66 6F ...AttributeInfo
+00000111 2E 6A 61 76 61                                  .java             22 => U8: AttributeInfo.java
+00000116 00 21                                           .!                Access = 33
+00000118 00 01                                           ..                This = ClassInfo[2]
+0000011A 00 03                                           ..                Super = ClassInfo[4]
+0000011C 00 00                                           ..                0 interfaces
+0000011E 00 01                                           ..                # of fields = 1
+00000120 00 12 00 05 00 06                               ......            Field U8: bytes U8: [B 18
+00000126 00 00                                           ..                0 attributes
+00000128 00 02                                           ..                # of methods = 2
+0000012A 00 01 00 07 00 08                               ......            Method U8: <init> U8: ([B)V 1
+00000130 00 01                                           ..                1 attributes
+00000132 00 09 00 00 00 46                               .....F            idx = 9: U8: Code len=70
+00000138 00 02 00 02 00 00 00 0A                         ........          maxStack = 2 maxLocals = 2 codeLen = 10
+00000140 2A                                              *                 aload_0
+00000141 B7 00 0A                                        ...               invokespecial RefInfo[3/#3,11/#b,10] > 
+00000144 2A                                              *                 aload_0
+00000145 2B                                              +                 aload_1
+00000146 B5 00 0D B1                                     ....              return
+0000014A 00 00                                           ..                0 exceptions
+0000014C 00 02                                           ..                2 attributes
+0000014E 00 0F 00 00 00 0E                               ......            idx = 15: U8: LineNumberTable len=14
+00000154 00 03 00 00 00 06 00 04 00 07 00 09 00 08       ..............    
+00000162 00 10 00 00 00 16                               ......            idx = 16: U8: LocalVariableTable len=22
+00000168 00 02 00 00 00 0A 00 11 00 12 00 00 00 00 00 0A ................
+00000178 00 05 00 06 00 01                               ......            
+0000017E 00 01 00 13 00 14                               ......            Method U8: getBytes U8: ()[B 1
+00000184 00 01                                           ..                1 attributes
+00000186 00 09 00 00 00 2F                               ...../            idx = 9: U8: Code len=47
+0000018C 00 01 00 01 00 00 00 05                         ........          maxStack = 1 maxLocals = 1 codeLen = 5
+00000194 2A                                              *                 aload_0
+00000195 B4 00 0D B0 00 00                               ......            0 exceptions
+0000019B 00 02                                           ..                2 attributes
+0000019D 00 0F 00 00 00 06                               ......            idx = 15: U8: LineNumberTable len=6
+000001A3 00 01 00 00 00 0B                               ......            
+000001A9 00 10 00 00 00 0C                               ......            idx = 16: U8: LocalVariableTable len=12
+000001AF 00 01 00 00 00 05 00 11 00 12 00 00             ............      
+                                                                           Class Attributes
+000001BB 00 01                                           ..                1 attributes
+000001BD 00 15 00 00 00 02                               ......            idx = 21: U8: SourceFile len=2
+000001C3 00 16                                           ..                

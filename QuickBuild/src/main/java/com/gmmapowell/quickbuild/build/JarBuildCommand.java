@@ -15,6 +15,7 @@ public class JarBuildCommand implements BuildCommand {
 	private final File jarfile;
 	private final JarResource jar;
 	private final List<File> dirsToJar = new ArrayList<File>();
+	private boolean showArgs;
 
 	public JarBuildCommand(Project project, String jarfile) {
 		this.project = project;
@@ -36,6 +37,8 @@ public class JarBuildCommand implements BuildCommand {
 		if (jarfile.exists() && !jarfile.delete())
 			throw new QuickBuildException("Could not delete " + jarfile);
 		RunProcess proc = new RunProcess("jar");
+		if (showArgs)
+			proc.showArgs(showArgs);
 		proc.captureStdout();
 		proc.redirectStderr(System.out);
 		proc.arg("cvf");
@@ -78,5 +81,10 @@ public class JarBuildCommand implements BuildCommand {
 		List<BuildResource> ret = new ArrayList<BuildResource>();
 		ret.add(jar);
 		return ret;
+	}
+
+	public void showArgs(boolean b) {
+		this.showArgs = b;
+		
 	}
 }
