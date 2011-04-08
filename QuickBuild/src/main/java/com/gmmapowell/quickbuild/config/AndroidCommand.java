@@ -42,6 +42,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		File manifest = project.getRelative("AndroidManifest.xml");
 		File gendir = project.getRelative("gen");
 		File resdir = project.getRelative("res");
+		File assetsDir = project.getRelative("assets");
 		File dexFile = project.getOutput("classes.dex");
 		File zipfile = project.getOutput(project.getName()+".ap_");
 		File apkFile = project.getOutput(project.getName()+".apk");
@@ -79,7 +80,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 				((AndroidUseLibraryCommand)cmd).provideTo(dex);
 		}
 		ret.add(dex);
-		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(acxt, project, manifest, zipfile, resdir);
+		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(acxt, project, manifest, zipfile, resdir, assetsDir);
 		ret.add(pkg);
 		ApkBuildCommand apk = new ApkBuildCommand(acxt, project, zipfile, dexFile, apkFile);
 		ret.add(apk);

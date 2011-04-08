@@ -16,13 +16,15 @@ public class AaptPackageBuildCommand implements BuildCommand {
 	private final File zipfile;
 	private final File manifestFile;
 	private final File resdir;
+	private final File assetsDir;
 
-	public AaptPackageBuildCommand(AndroidContext acxt, Project project, File manifest, File zipfile, File resdir) {
+	public AaptPackageBuildCommand(AndroidContext acxt, Project project, File manifest, File zipfile, File resdir, File assetsDir) {
 		this.acxt = acxt;
 		this.project = project;
 		this.zipfile = zipfile;
 		this.manifestFile = manifest;
 		this.resdir = resdir;
+		this.assetsDir = assetsDir;
 	}
 	
 	@Override
@@ -52,6 +54,11 @@ public class AaptPackageBuildCommand implements BuildCommand {
 		proc.arg(zipfile.getPath());
 		proc.arg("-M");
 		proc.arg(manifestFile.getPath());
+		if (assetsDir.exists())
+		{
+			proc.arg("-A");
+			proc.arg(assetsDir.getPath());
+		}
 		proc.arg("-S");
 		proc.arg(resdir.getPath());
 		proc.arg("-I");

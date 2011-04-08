@@ -52,6 +52,7 @@ public class AaptGenBuildCommand implements BuildCommand {
 		FileUtils.assertDirectory(gendir);
 		FileUtils.cleanDirectory(gendir);
 		RunProcess proc = new RunProcess(acxt.getAAPT().getPath());
+		proc.showArgs(true);
 		proc.captureStdout();
 		proc.captureStderr();
 		
