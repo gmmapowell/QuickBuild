@@ -33,9 +33,9 @@ public class ManifestCreator {
 		out.write(saveTo);
 	}
 
-	public ManifestActivity addActivity(String id, String name) {
+	public ManifestActivity addActivity(String id, String name, String label) {
 		if (!id.startsWith(pkg + "."))
 			throw new UtilException("The activity " + id + " does not start with " + pkg);
-		return new ManifestActivity(android, application, id.substring(pkg.length()+1), name);
+		return new ManifestActivity(android, application, id.substring(pkg.length()+1), name, label);
 	}
 }

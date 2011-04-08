@@ -8,11 +8,11 @@ public class ManifestActivity {
 	private final XMLElement activity;
 	private final XMLNamespace android;
 
-	public ManifestActivity(XMLNamespace android, XMLElement appl, String id, String name) {
+	public ManifestActivity(XMLNamespace android, XMLElement appl, String id, String name, String label) {
 		this.android = android;
 		activity = appl.addElement("activity");
 		activity.setAttribute(android.attr("name"), "." + id);
-		activity.setAttribute(android.attr("label"), name);
+		activity.setAttribute(android.attr("label"), label);
 	}
 
 	public void launch()
