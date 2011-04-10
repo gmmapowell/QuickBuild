@@ -18,12 +18,14 @@ public class PrettyPrinter {
 	/** Indent one level more */
 	public void indentMore()
 	{
+		requireNewline();
 		levels++;
 	}
 	
 	/** Indent one level less */
 	public void indentLess()
 	{
+		requireNewline();
 		levels--;
 	}
 	

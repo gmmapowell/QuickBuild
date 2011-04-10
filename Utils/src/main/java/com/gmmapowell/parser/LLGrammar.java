@@ -33,7 +33,11 @@ public class LLGrammar {
 		private final String text;
 
 		public Quoted(String text) {
-			this.text = text;
+			String stripped = text;
+			if (stripped.startsWith("\"") && stripped.startsWith("\""))
+				stripped = stripped.substring(1, text.length()-1);
+
+			this.text = stripped;
 		}
 
 		@Override
@@ -134,9 +138,11 @@ public class LLGrammar {
 	public static class Production implements Iterable<ProductionElement> {
 		private final String name;
 		private final ProductionElement[] elts;
+		private final int continuationNo;
 
-		public Production(String name, ProductionElement[] elts) {
+		public Production(String name, int continuationNo, ProductionElement[] elts) {
 			this.name = name;
+			this.continuationNo = continuationNo;
 			this.elts = elts;
 		}
 
@@ -172,6 +178,14 @@ public class LLGrammar {
 		public String result() {
 			return name;
 		}
+
+		public boolean produces(String string) {
+			return name.equals(string);
+		}
+
+		public boolean isContinuation(int i) {
+			return continuationNo == i;
+		}
 	}
 	
 	private static final LLGrammar grammarGrammar = new LLGrammar();
@@ -199,18 +213,18 @@ public class LLGrammar {
 //		System.out.println(tree);
 		for (LLTree t : tree.items("Production"))
 		{
-			LLToken define = t.route("nonterm", 0, 0);
-			ret.production(define.text(), getArgs(ret, t));
+			LLToken define = t.token("nonterm", 0, 0);
+			int cnt = 0;
+			ret.production(define.text(), cnt++, getArgs(ret, t));
 			for (LLTree c : t.items("Continuation"))
 			{
-				ret.production(define.text(), getArgs(ret, c));
+				ret.production(define.text(), cnt++, getArgs(ret, c));
 			}
 		}
 		for (LLTree s : tree.items("Symbol"))
 		{
-			System.out.println(s);
-			LLToken sym = s.route("token", 0);
-			LLToken pattern = s.route("pattern", 1);
+			LLToken sym = s.token("token", 0);
+			LLToken pattern = s.token("pattern", 1);
 			ret.token(sym.text(), pattern.text());
 		}
 		
@@ -225,7 +239,7 @@ public class LLGrammar {
 	private static ProductionElement[] getArgs(LLGrammar ret, LLTree t) {
 		List<ProductionElement> args = new ArrayList<ProductionElement>();
 		for (LLTree i : t.items("Item", 0))
-			args.add(ret.mapTokenToElement(i.route(null, 0)));
+			args.add(ret.mapTokenToElement(i.token(null, 0)));
 		ProductionElement[] linargs = args.toArray(new ProductionElement[args.size()]);
 		return linargs;
 	}
@@ -332,7 +346,7 @@ public class LLGrammar {
 		return pp.toString();
 	}
 
-	private void production(String string, ProductionElement... elts) {
+	private void production(String string, int continuationNo, ProductionElement... elts) {
 		if (!productionList.isEmpty())
 			throw new UtilException("Cannot add more productions when complete");
 		for (ProductionElement e : elts)
@@ -350,7 +364,7 @@ public class LLGrammar {
 					}
 				}
 				if (!matched)
-					tokens.add(new TokenMatcher("quoted", mapped));
+					tokens.add(0, new TokenMatcher("quoted", mapped));
 			}
 			else if (e instanceof Token)
 			{
@@ -358,7 +372,7 @@ public class LLGrammar {
 					significantNewlines = true;
 			}
 		}
-		productions.add(string, new Production(string, elts));
+		productions.add(string, new Production(string, continuationNo, elts));
 		if (top == null)
 			top = string;
 	}
@@ -405,23 +419,23 @@ public class LLGrammar {
 		quoted = "[^"]+"
 		pattern = [a-zA-Z0-9.\[\]\\\"\']+
 		 */
-		grammarGrammar.production("Grammar", grammarGrammar.new NonTerm("ProductionList"), grammarGrammar.new NonTerm("SymbolList"));
-		grammarGrammar.production("ProductionList", grammarGrammar.new NonTerm("Production"), grammarGrammar.new NonTerm("OptionalProductionList"));
-		grammarGrammar.production("OptionalProductionList");
-		grammarGrammar.production("OptionalProductionList", grammarGrammar.new NonTerm("ProductionList"));
-		grammarGrammar.production("Production", grammarGrammar.new NonTerm("Define"), grammarGrammar.new NonTerm("ContinuationList"));
-		grammarGrammar.production("ContinuationList");
-		grammarGrammar.production("ContinuationList", grammarGrammar.new NonTerm("Continuation"), grammarGrammar.new NonTerm("ContinuationList"));
-		grammarGrammar.production("Define", new Token("nonterm"), new Quoted("="), grammarGrammar.new NonTerm("ItemList"), new Token("newline"));
-		grammarGrammar.production("Continuation", new Quoted("|"), grammarGrammar.new NonTerm("ItemList"), new Token("newline"));
-		grammarGrammar.production("ItemList");
-		grammarGrammar.production("ItemList", grammarGrammar.new NonTerm("Item"), grammarGrammar.new NonTerm("ItemList"));
-		grammarGrammar.production("Item", new Token("nonterm"));
-		grammarGrammar.production("Item", new Token("token"));
-		grammarGrammar.production("Item", new Token("quoted"));
-		grammarGrammar.production("SymbolList");
-		grammarGrammar.production("SymbolList", grammarGrammar.new NonTerm("Symbol"), grammarGrammar.new NonTerm("SymbolList"));
-		grammarGrammar.production("Symbol", new Token("token"), new Quoted("~"), new Token("pattern"), new Token("newline"));
+		grammarGrammar.production("Grammar", 0, grammarGrammar.new NonTerm("ProductionList"), grammarGrammar.new NonTerm("SymbolList"));
+		grammarGrammar.production("ProductionList", 0, grammarGrammar.new NonTerm("Production"), grammarGrammar.new NonTerm("OptionalProductionList"));
+		grammarGrammar.production("OptionalProductionList", 0);
+		grammarGrammar.production("OptionalProductionList", 1, grammarGrammar.new NonTerm("ProductionList"));
+		grammarGrammar.production("Production", 0, grammarGrammar.new NonTerm("Define"), grammarGrammar.new NonTerm("ContinuationList"));
+		grammarGrammar.production("ContinuationList", 0);
+		grammarGrammar.production("ContinuationList", 1, grammarGrammar.new NonTerm("Continuation"), grammarGrammar.new NonTerm("ContinuationList"));
+		grammarGrammar.production("Define", 0, new Token("nonterm"), new Quoted("="), grammarGrammar.new NonTerm("ItemList"), new Token("newline"));
+		grammarGrammar.production("Continuation", 0, new Quoted("|"), grammarGrammar.new NonTerm("ItemList"), new Token("newline"));
+		grammarGrammar.production("ItemList", 0);
+		grammarGrammar.production("ItemList", 0, grammarGrammar.new NonTerm("Item"), grammarGrammar.new NonTerm("ItemList"));
+		grammarGrammar.production("Item", 0, new Token("nonterm"));
+		grammarGrammar.production("Item", 1, new Token("token"));
+		grammarGrammar.production("Item", 2, new Token("quoted"));
+		grammarGrammar.production("SymbolList", 0);
+		grammarGrammar.production("SymbolList", 1, grammarGrammar.new NonTerm("Symbol"), grammarGrammar.new NonTerm("SymbolList"));
+		grammarGrammar.production("Symbol", 0, new Token("token"), new Quoted("~"), new Token("pattern"), new Token("newline"));
 		
 		
 		grammarGrammar.token("nonterm", "[A-Z][a-zA-z]*");

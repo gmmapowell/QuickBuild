@@ -22,10 +22,10 @@ public class LLProductionList {
 		{
 			if (p.isEmpty())
 				handleEmpty = p;
-			else if (p.first() instanceof LLGrammar.Token)
-				tokenChoices.put(p.first().text(), p);
 			else if (p.first() instanceof LLGrammar.Quoted)
 				quotedChoices.put(p.first().text(), p);
+			else if (p.first() instanceof LLGrammar.Token)
+				tokenChoices.put(p.first().text(), p);
 		}
 	}
 
@@ -46,21 +46,6 @@ public class LLProductionList {
 				LLProductionList nt = productions.get(p.first().text());
 				if (nt == null)
 					throw new UtilException("Incomplete Grammar: no non-terminal " + p.first().text());
-				for (String s : nt.tokenChoices.keySet())
-				{
-					// if we already have it, it better go to the same place
-					if (tokenChoices.containsKey(s))
-					{
-						if (tokenChoices.get(s) != p)
-							throw new UtilException("Conflict during augmentation of " + name + ".  Currently token " + s + " maps to " + tokenChoices.get(s) + "; cannot also map to " + p);
-					}
-					else
-					{
-						// capture this one, and record true
-						tokenChoices.put(s, p);
-						ret = true;
-					}
-				}
 				for (String s : nt.quotedChoices.keySet())
 				{
 					// if we already have it, it better go to the same place
@@ -73,6 +58,21 @@ public class LLProductionList {
 					{
 						// capture this one, and record true
 						quotedChoices.put(s, p);
+						ret = true;
+					}
+				}
+				for (String s : nt.tokenChoices.keySet())
+				{
+					// if we already have it, it better go to the same place
+					if (tokenChoices.containsKey(s))
+					{
+						if (tokenChoices.get(s) != p)
+							throw new UtilException("Conflict during augmentation of " + name + ".  Currently token " + s + " maps to " + tokenChoices.get(s) + "; cannot also map to " + p);
+					}
+					else
+					{
+						// capture this one, and record true
+						tokenChoices.put(s, p);
 						ret = true;
 					}
 				}
@@ -92,10 +92,10 @@ public class LLProductionList {
 		String tag = next.tag();
 		String text = next.text();
 		// System.out.println(name +" has been asked to choose a rule based on: {" + tag +" => " + text + "}");
-		if (tokenChoices.containsKey(tag))
-			return tokenChoices.get(tag);
 		if (quotedChoices.containsKey(text))
 			return quotedChoices.get(text);
+		if (tokenChoices.containsKey(tag))
+			return tokenChoices.get(tag);
 		if (handleEmpty != null)
 			return handleEmpty;
 		throw new UtilException("There is no matching rule at " + next);
@@ -103,23 +103,23 @@ public class LLProductionList {
 
 	public void prettyPrint(PrettyPrinter pp) {
 		pp.requireNewline();
-		pp.append("Token Choices: {");
-		pp.indentMore();
-		for (Entry<String, Production> tc : tokenChoices.entrySet())
-		{
-			pp.requireNewline();
-			pp.append(tc.getKey() + " => " + tc.getValue());
-			pp.requireNewline();
-		}
-		pp.indentLess();
-		pp.append("}");
-		pp.requireNewline();
 		pp.append("Quoted Choices: {");
 		pp.indentMore();
 		for (Entry<String, Production> qc : quotedChoices.entrySet())
 		{
 			pp.requireNewline();
 			pp.append(qc.getKey() + " => " + qc.getValue());
+			pp.requireNewline();
+		}
+		pp.indentLess();
+		pp.append("}");
+		pp.requireNewline();
+		pp.append("Token Choices: {");
+		pp.indentMore();
+		for (Entry<String, Production> tc : tokenChoices.entrySet())
+		{
+			pp.requireNewline();
+			pp.append(tc.getKey() + " => " + tc.getValue());
 			pp.requireNewline();
 		}
 		pp.indentLess();

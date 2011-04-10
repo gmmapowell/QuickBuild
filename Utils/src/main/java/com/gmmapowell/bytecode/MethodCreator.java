@@ -130,7 +130,7 @@ public class MethodCreator extends MethodInfo {
 		opdepth += i;
 		if (i > maxStack)
 			maxStack = opdepth;
-		System.out.println("Opdepth = " + opdepth);
+//		System.out.println("Opdepth = " + opdepth);
 	}
 	
 	public void aload(int i) {

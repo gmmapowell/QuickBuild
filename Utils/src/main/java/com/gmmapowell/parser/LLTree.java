@@ -59,17 +59,31 @@ public class LLTree {
 		}
 	}
 
-	public LLToken route(String string, int... route) {
+	public LLToken token(String string, int... route) {
 		int k = route.length-1;
 		LLTree curr = followRoute(k, route);
 		if (route[k] >= curr.nts.size())
 			throw new UtilException("Node does not have " + route[k] + " items");
 		Object o = curr.nts.get(route[k]);
 		if (!(o instanceof LLToken))
-			throw new UtilException("Node " + k + " is not a token");
+			throw new UtilException("Node " + route[k] + " is not a token, but " + o);
 		LLToken ret = (LLToken)o;
 		if (string != null && !ret.tag().equals(string))
 			throw new UtilException("Node did not have tag " + string + " but " + ret.tag());
+		return ret;
+	}
+
+	public LLTree nonterm(String checkType, int... route) {
+		int k = route.length-1;
+		LLTree curr = followRoute(k, route);
+		if (route[k] >= curr.nts.size())
+			throw new UtilException("Node does not have " + route[k] + " items");
+		Object o = curr.nts.get(route[k]);
+		if (!(o instanceof LLTree))
+			throw new UtilException("Node " + route[k] + " is not a tree, but " + o);
+		LLTree ret = (LLTree)o;
+		if (!ret.produces(checkType))
+			throw new UtilException("Node does not produce " + checkType + " but " + ret);
 		return ret;
 	}
 
@@ -85,5 +99,17 @@ public class LLTree {
 			curr = (LLTree)o;
 		}
 		return curr;
+	}
+
+	private boolean produces(String checkType) {
+		return production.produces(checkType);
+	}
+	
+	public boolean isProduction(String string, int i) {
+		return production.produces(string) && production.isContinuation(i);
+	}
+
+	public boolean isProduction(int i) {
+		return production.isContinuation(i);
 	}
 }
