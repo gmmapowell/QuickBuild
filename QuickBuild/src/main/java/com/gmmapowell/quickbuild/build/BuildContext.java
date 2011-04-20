@@ -89,7 +89,8 @@ public class BuildContext {
 		System.out.println("The resource '" + resource + "' has been provided");
 		builtResources.add(resource);
 		dependencies.ensure(resource);
-		dependencies.ensureLink(resource, resource.getBuiltBy());
+		if (resource.getBuiltBy() != null)
+			dependencies.ensureLink(resource, resource.getBuiltBy());
 	}
 
 	public boolean requiresBuiltResource(BuildCommand from, BuildResource resource) {

@@ -19,7 +19,6 @@ import com.gmmapowell.http.ProxyInfo;
 import com.gmmapowell.http.ProxyableConnection;
 import com.gmmapowell.quickbuild.build.BuildCommand;
 import com.gmmapowell.quickbuild.build.BuildResource;
-import com.gmmapowell.quickbuild.build.DirectoryResource;
 import com.gmmapowell.quickbuild.build.JarResource;
 import com.gmmapowell.quickbuild.build.MavenResource;
 import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;

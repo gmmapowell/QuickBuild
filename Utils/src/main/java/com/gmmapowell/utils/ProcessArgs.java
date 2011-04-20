@@ -32,7 +32,16 @@ public class ProcessArgs {
 			}
 			else if (args[i].startsWith("-"))
 			{
-				
+				for (ArgumentDefinition ad : argumentDefinitions)
+				{
+					if (!ad.text.startsWith("-"))
+						continue;
+					if (StringUtil.globMatch(ad.text, args[i]))
+					{
+						Reflection.setField(config, ad.toVar, args[i]);
+						continue loop;
+					}
+				}
 			}
 			else
 			{
@@ -47,7 +56,6 @@ public class ProcessArgs {
 						else
 						{
 							Reflection.setField(config, ad.toVar, args[i]);
-							// need to save it
 							argcount.op(ad, 1, new FuncR1<Integer, Integer>() {
 								@Override
 								public Integer apply(Integer arg) {

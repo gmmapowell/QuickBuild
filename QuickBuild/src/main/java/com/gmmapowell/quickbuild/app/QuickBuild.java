@@ -8,6 +8,7 @@ import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
 import com.gmmapowell.quickbuild.build.BuildCommand;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.DirectoryResource;
 import com.gmmapowell.quickbuild.config.Arguments;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
@@ -21,7 +22,8 @@ public class QuickBuild {
 	private static ArgumentDefinition[] argumentDefinitions = new ArgumentDefinition[] {
 		new ArgumentDefinition("*.qb", Cardinality.REQUIRED, "file", "configuration file"),
 		new ArgumentDefinition("--config-only", Cardinality.OPTION, "configOnly", null),
-		new ArgumentDefinition("--build-all", Cardinality.OPTION, "buildAll", null)
+		new ArgumentDefinition("--build-all", Cardinality.OPTION, "buildAll", null),
+		new ArgumentDefinition("-D*", Cardinality.ZERO_OR_MORE, "dirResources", "provide directory resource")
 	};
 
 	private static Arguments arguments;
@@ -45,10 +47,17 @@ public class QuickBuild {
 		if (arguments.configOnly)
 			return;
 		
+			
 		// now we need to read back anything we've cached ...
 		BuildContext cxt = new BuildContext(conf);
 		cxt.loadCache();
 		
+		for (String s : arguments.dirResources)
+		{
+			System.out.println("Adding proj " + s);
+			cxt.addBuiltResource(new DirectoryResource(null, new File(s.substring(2))));
+		}
+			
 		// determine what we need to build from git ...
 		if (!arguments.buildAll)
 		{

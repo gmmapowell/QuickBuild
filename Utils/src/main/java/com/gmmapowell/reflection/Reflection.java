@@ -1,11 +1,13 @@
 package com.gmmapowell.reflection;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
 
 import com.gmmapowell.exceptions.UtilException;
 
 public class Reflection {
 
+	@SuppressWarnings("unchecked")
 	public static void setField(Object target, String fieldName, Object value) {
 		try
 		{
@@ -22,6 +24,8 @@ public class Reflection {
 				f.setBoolean(target, (Boolean)value);
 			else if (value == null || f.getType().isAssignableFrom(value.getClass()))
 				f.set(target, value);
+			else if (value != null && Collection.class.isAssignableFrom(f.getType()))
+				((Collection<Object>)f.get(target)).add(value);
 			else
 				throw new UtilException("The field " + fieldName + " is not assignable from " + value.getClass());
 		}

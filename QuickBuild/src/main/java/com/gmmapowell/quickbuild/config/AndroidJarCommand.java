@@ -7,7 +7,6 @@ import java.util.List;
 
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildCommand;
-import com.gmmapowell.quickbuild.build.JUnitRunCommand;
 import com.gmmapowell.quickbuild.build.JarBuildCommand;
 import com.gmmapowell.quickbuild.build.JavaBuildCommand;
 import com.gmmapowell.utils.ArgumentDefinition;
@@ -49,6 +48,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 		ret.add(buildSrc);
 		
 		File resdir = project.getRelative("src/main/resources");
+		/* I think this is a bad idea ...
 		if (project.getRelative("src/test/java").exists())
 		{
 			JavaBuildCommand buildTests = new JavaBuildCommand(project, "src/test/java", "test-classes");
@@ -64,7 +64,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 			junitRun.addToBootClasspath(acxt.getPlatformJar());
 			ret.add(junitRun);
 		}
-
+		*/
 		JarBuildCommand jar = new JarBuildCommand(project, project.getName() + ".jar");
 		jar.add(project.getOutput("classes"));
 		if (resdir.exists())

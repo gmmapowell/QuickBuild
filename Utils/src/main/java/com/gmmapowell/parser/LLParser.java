@@ -64,7 +64,7 @@ public class LLParser {
 						throw new RuntimeException("No tokens could match at: " + currentInput.substring(i));
 					LLToken tok = new LLToken(tm, currentInput.substring(i,j));
 					currentInput = currentInput.substring(j);
-//					System.out.println("Returning tok " + tok);
+					System.out.println("Returning tok " + tok);
 					return tok;
 				}
 			} catch (IOException e) {
@@ -133,7 +133,7 @@ public class LLParser {
 
 	LLTree parse(InputState is, LLProductionList production) {
 		Production p = production.choose(is.next());
-//		System.out.println("Chose rule " + p);
+		System.out.println("Chose rule " + p);
 		List<Object> nts = new ArrayList<Object>();
 		for (ProductionElement pe : p)
 		{

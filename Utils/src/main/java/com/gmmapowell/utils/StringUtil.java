@@ -18,6 +18,8 @@ public class StringUtil {
 	public static boolean globMatch(String pattern, String string) {
 		if (pattern.startsWith("*"))
 			return string.endsWith(pattern.substring(1));
+		else if (pattern.endsWith("*"))
+			return string.startsWith(pattern.substring(0, pattern.length()-1));
 		else
 			return string.equals(pattern);
 	}

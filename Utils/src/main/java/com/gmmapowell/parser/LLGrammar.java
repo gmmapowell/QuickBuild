@@ -306,7 +306,7 @@ public class LLGrammar {
 			System.out.println(this);
 			throw new UtilException(sb.toString());
 		}
-//		System.out.println(this);
+		System.out.println(this);
 	}
 
 	private void completePhase1() {

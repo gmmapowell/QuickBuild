@@ -15,12 +15,14 @@ import com.gmmapowell.utils.FileUtils;
 
 public class AdbInstallCommand extends NoChildCommand implements ConfigBuildCommand {
 	private String projectName;
+	private String emulator;
 	private final File projectDir;
 	private Project project;
 	private AndroidContext acxt;
 
 	public AdbInstallCommand(TokenizedLine toks) {
-		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
+		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"),
+				new ArgumentDefinition("-emulator", Cardinality.OPTION, "emulator", "use emulator"));
 		projectDir = FileUtils.findDirectoryNamed(projectName);
 	}
 

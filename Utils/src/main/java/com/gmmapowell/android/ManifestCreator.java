@@ -33,6 +33,11 @@ public class ManifestCreator {
 		out.write(saveTo);
 	}
 
+	public void setApplicationName(String id)
+	{
+		application.setAttribute(android.attr("name"), id);
+	}
+	
 	public ManifestActivity addActivity(String id, String name, String label) {
 		if (!id.startsWith(pkg + "."))
 			throw new UtilException("The activity " + id + " does not start with " + pkg);

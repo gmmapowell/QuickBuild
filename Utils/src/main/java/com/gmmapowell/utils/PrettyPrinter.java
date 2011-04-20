@@ -93,4 +93,12 @@ public class PrettyPrinter {
 		hollerith = new Hollerith(fmt);
 		return hollerith; 
 	}
+
+	public void appendIndentedBlock(PrettyPrintable obj) {
+		if (obj == null)
+			return;
+		indentMore();
+		obj.prettyPrint(this);
+		indentLess();
+	}
 }
