@@ -4,6 +4,7 @@ import java.io.File;
 import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.java.JavaNature;
 import com.gmmapowell.quickbuild.config.Arguments;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
@@ -31,23 +32,22 @@ public class QuickBuild {
 		arguments = new Arguments();
 		ProcessArgs.process(arguments, argumentDefinitions, args);
 		
-		Config conf = new Config(new File(arguments.file).getParentFile());
+		File file = new File(arguments.file);
+		Config conf = new Config(file.getParentFile(), FileUtils.dropExtension(file.getName()));
 		File hostfile = FileUtils.relativePath(new File(FileUtils.getHostName() + ".host.qb"));
 		if (hostfile.exists())
 			SignificantWhiteSpaceFileReader.read(conf, configFactory, hostfile);
-		SignificantWhiteSpaceFileReader.read(conf, configFactory, new File(arguments.file));
+		SignificantWhiteSpaceFileReader.read(conf, configFactory, file);
 		conf.done();
 		System.out.println("Configuration:");
 		System.out.print(conf);
-		
-		if (arguments.configOnly)
-			return;
-		
 			
 		// now we need to read back anything we've cached ...
 		BuildContext cxt = new BuildContext(conf);
 		try
 		{
+			cxt.registerNature(JavaNature.class);
+			cxt.configure();
 			cxt.loadCache();
 		}
 		catch (QuickBuildCacheException ex) {
@@ -55,7 +55,13 @@ public class QuickBuild {
 			// ignore it and try again
 			System.out.println("Cache was out of date; ignoring");
 		}
-		
+
+		System.out.println("---- Dependencies");
+		System.out.print(cxt.printableDependencyGraph());
+		System.out.println("----");
+		if (arguments.configOnly)
+			return;
+
 		/* TODO: I like this, but it needs to be more general
 		for (String s : arguments.dirResources)
 		{

@@ -1,4 +1,4 @@
-package com.gmmapowell.quickbuild.build;
+package com.gmmapowell.quickbuild.build.java;
 
 import com.gmmapowell.utils.PathBuilder;
 
@@ -7,7 +7,7 @@ public class RunClassPath extends BuildClassPath {
 	
 	public RunClassPath(JavaBuildCommand jbc)
 	{
-		basedOn = null; // TODO: jbc.getClassPath();
+		basedOn = jbc.getClassPath();
 	}
 	
 	public String toString()

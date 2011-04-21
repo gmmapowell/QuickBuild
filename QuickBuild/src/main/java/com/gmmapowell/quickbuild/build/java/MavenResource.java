@@ -1,4 +1,4 @@
-package com.gmmapowell.quickbuild.build;
+package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
 
@@ -7,7 +7,7 @@ public class MavenResource extends JarResource {
 	private final String pkgname;
 
 	public MavenResource(String pkgname, File f) {
-		super(f, null);
+		super(null, f);
 		this.pkgname = pkgname;
 	}
 

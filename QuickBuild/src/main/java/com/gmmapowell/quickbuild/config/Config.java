@@ -5,48 +5,45 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
-import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.graphs.DependencyGraph;
 import com.gmmapowell.http.ProxyInfo;
 import com.gmmapowell.http.ProxyableConnection;
-import com.gmmapowell.quickbuild.build.JarResource;
-import com.gmmapowell.quickbuild.build.MavenResource;
-import com.gmmapowell.quickbuild.core.Strategem;
-import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.quickbuild.build.java.MavenResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.ResourceListener;
+import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
-import com.gmmapowell.utils.GPJarEntry;
-import com.gmmapowell.utils.GPJarFile;
 
 public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	private final List<Strategem> strategems = new ArrayList<Strategem>();
 	private final List<ConfigBuildCommand> commands = new ArrayList<ConfigBuildCommand>();
-	private final List<Tactic> buildcmds = new ArrayList<Tactic>();
 	private final List<String> mvnrepos = new ArrayList<String>();
 	private final ProxyInfo proxyInfo = new ProxyInfo();
 	private final List<ConfigApplyCommand> applicators = new ArrayList<ConfigApplyCommand>();
 	private final File qbdir;
-	private final List<JarResource> availableJars = new ArrayList<JarResource>();
 
 	private String output;
 	private File mvnCache;
-	private ListMap<String, BuildResource> duplicates = new ListMap<String, BuildResource>();
 	private List<BuildResource> willbuild = new ArrayList<BuildResource>();
 	private Map<String, File> fileProps = new HashMap<String, File>();
 	private Map<String, String> varProps = new HashMap<String, String>();
 	private AndroidContext acxt;
+	private final String quickBuildName;
+	private final Set<BuildResource> availableResources = new HashSet<BuildResource>();
 
 	@SuppressWarnings("unchecked")
-	public Config(File qbdir)
+	public Config(File qbdir, String quickBuildName)
 	{
 		super(ConfigApplyCommand.class, ConfigBuildCommand.class);
+		this.quickBuildName = quickBuildName;
 		try
 		{
 			if (qbdir == null)
@@ -109,16 +106,10 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 			Strategem s = c.applyConfig(this);
 			strategems.add(s);
 
-			buildcmds.addAll(s.tactics());
-			
 			// TODO: provide all initial resources
 		}
 	}
 	
-	public List<Tactic> getBuildCommandsInOrder() {
-		return buildcmds;
-	}
-
 	public void willBuild(BuildResource br) {
 		willbuild.add(br);
 	}
@@ -128,7 +119,7 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		File cacheFile = new File(mvnCache, mavenToFile.getPath());
 		if (!cacheFile.exists())
 			downloadFromMaven(pkginfo, mavenToFile, cacheFile);
-		availableJars.add(new MavenResource(pkginfo, cacheFile));
+		availableResources.add(new MavenResource(pkginfo, cacheFile));
 	}
 
 	private void downloadFromMaven(String pkginfo, File mavenToFile, File cacheTo) {
@@ -151,57 +142,14 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		throw new QuickBuildException("Could not find maven package " + pkginfo);
 	}
 	
-	public void provideBaseJars(DependencyGraph<BuildResource> dependencies) {
-		for (JarResource jr : availableJars)
-		{
-			dependencies.newNode(jr);
-		}
+
+	public void tellMeAboutExtantResources(ResourceListener lsnr) {
+		for (BuildResource r : availableResources)
+			lsnr.resourceAvailable(r);
+		// TODO: keep track of this for later ?
 	}
 
-	/** Copy across all the packages which are defined in global things to a build context
-	 * @param availablePackages the map to copy into
-	 */
-	public void supplyPackages(Map<String, JarResource> availablePackages) {
-		for (JarResource jr : availableJars)
-		{
-			jarSupplies(jr, availablePackages);
-		}
-		showDuplicates();
-	}
-
-	public void jarSupplies(JarResource jarfile, Map<String, JarResource> availablePackages) {
-		GPJarFile jar = new GPJarFile(jarfile.getFile());
-		for (GPJarEntry e : jar)
-		{
-			if (!e.isClassFile())
-				continue;
-			String pkg = e.getPackage();
-			if (!availablePackages.containsKey(pkg))
-			{
-				availablePackages.put(pkg, jarfile);
-			}
-			else if (availablePackages.get(pkg).equals(jarfile))
-				continue;
-			else
-			{
-				if (!duplicates.contains(pkg))
-					duplicates.add(pkg, availablePackages.get(pkg));
-				duplicates.add(pkg, jarfile);
-			}
-		}
-		
-	}
 	
-	public void showDuplicates() {
-		for (String s : duplicates)
-		{
-			System.out.println("Duplicate/overlapping definitions found for package: " + s);
-			for (BuildResource f : duplicates.get(s))
-				System.out.println("  " + f);
-		}
-	}
-	
-
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -236,7 +184,11 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	}
 
 	public File getCacheDir() {
-		return new File(qbdir, "cache");
+		return new File(getWorkingDir(), "cache");
+	}
+
+	private File getWorkingDir() {
+		return new File(qbdir, quickBuildName);
 	}
 
 	public AndroidContext getAndroidContext() {

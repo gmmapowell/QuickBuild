@@ -6,12 +6,12 @@ import java.util.Collection;
 import java.util.List;
 
 import com.gmmapowell.parser.TokenizedLine;
-import com.gmmapowell.quickbuild.build.AaptGenBuildCommand;
-import com.gmmapowell.quickbuild.build.AaptPackageBuildCommand;
-import com.gmmapowell.quickbuild.build.ApkBuildCommand;
-import com.gmmapowell.quickbuild.build.DexBuildCommand;
-import com.gmmapowell.quickbuild.build.JUnitRunCommand;
-import com.gmmapowell.quickbuild.build.JavaBuildCommand;
+import com.gmmapowell.quickbuild.build.android.AaptGenBuildCommand;
+import com.gmmapowell.quickbuild.build.android.AaptPackageBuildCommand;
+import com.gmmapowell.quickbuild.build.android.ApkBuildCommand;
+import com.gmmapowell.quickbuild.build.android.DexBuildCommand;
+import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
+import com.gmmapowell.quickbuild.build.java.JavaBuildCommand;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;

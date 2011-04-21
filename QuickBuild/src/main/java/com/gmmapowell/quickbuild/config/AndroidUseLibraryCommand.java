@@ -4,7 +4,7 @@ import java.io.File;
 
 import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.TokenizedLine;
-import com.gmmapowell.quickbuild.build.DexBuildCommand;
+import com.gmmapowell.quickbuild.build.android.DexBuildCommand;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 

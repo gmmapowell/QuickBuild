@@ -1,4 +1,4 @@
-package com.gmmapowell.quickbuild.build;
+package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
 import java.util.HashSet;

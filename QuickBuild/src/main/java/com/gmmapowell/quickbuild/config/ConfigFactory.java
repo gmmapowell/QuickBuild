@@ -8,6 +8,7 @@ import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.CommandObjectFactory;
 import com.gmmapowell.parser.Parent;
 import com.gmmapowell.parser.TokenizedLine;
+import com.gmmapowell.quickbuild.build.java.JarCommand;
 import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.ArgumentDefinition;

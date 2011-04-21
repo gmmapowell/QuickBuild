@@ -11,18 +11,33 @@ import java.util.Set;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.graphs.DependencyGraph;
+import com.gmmapowell.quickbuild.build.java.JUnitFailure;
+import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
 import com.gmmapowell.quickbuild.config.Config;
+import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.Nature;
+import com.gmmapowell.quickbuild.core.ResourceListener;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
-import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.utils.DateUtils;
 
-public class BuildContext {
-	private final Map<String, JarResource> availablePackages = new HashMap<String, JarResource>();
-//	private final ListMap<String, Project> projectPackages = new ListMap<String, Project>();
-//	private final ListMap<Project, File> previouslyBuilt = new ListMap<Project, File>();
-//	private final StateMap<Project, SetMap<String, File>> packagesProvidedByDirectoriesInProject = new StateMap<Project, SetMap<String, File>>();
-	private final List<BuildResource> builtResources = new ArrayList<BuildResource>();
+public class BuildContext implements ResourceListener {
+	public class Notification {
+		private final Class<? extends BuildResource> cls;
+		private final Nature nature;
+
+		public Notification(Class<? extends BuildResource> cls, Nature nature) {
+			this.cls = cls;
+			this.nature = nature;
+		}
+
+		public void dispatch(BuildResource br)
+		{
+			if (cls.isAssignableFrom(br.getClass()))
+				nature.resourceAvailable(br);
+		}
+	}
+
 	private final Config conf;
 	private final DependencyGraph<BuildResource> dependencies = new DependencyGraph<BuildResource>();
 	private final List<JUnitFailure> failures = new ArrayList<JUnitFailure>();
@@ -37,15 +52,26 @@ public class BuildContext {
 	private List<Strategem> strats;
 	private Strategem currentStrat;
 	private Iterator<? extends Tactic> currentCommands;
+	private int currentStrategemCommandNo;
+	private boolean moveOn = true;
+	private Map<Class<?>, Object> natures = new HashMap<Class<?>, Object>();
+	private final List<Notification> notifications = new ArrayList<BuildContext.Notification>();
+	private Tactic repeat;
 
 	public BuildContext(Config conf) {
 		this.conf = conf;
-		conf.supplyPackages(availablePackages);
-		conf.provideBaseJars(dependencies);
 		dependencyFile = new File(conf.getCacheDir(), "dependencies.xml");
 		strats = conf.getStrategems();
+	}
+	
+	public void configure()
+	{
+		conf.tellMeAboutExtantResources(this);
 		for (Strategem s : strats)
 		{
+			StrategemResource node = new StrategemResource(s);
+			dependencies.ensure(node);
+			
 			// TODO: understand how this should work for these different cases
 			for (BuildResource br : s.needsResources())
 			{
@@ -56,6 +82,7 @@ public class BuildContext {
 			{
 				// conf.willBuild(br);
 				dependencies.ensure(br);
+				resourceAvailable(br);
 			}
 			
 			for (BuildResource br : s.buildsResources())
@@ -66,23 +93,8 @@ public class BuildContext {
 		}
 	}
 	
-	/* TODO: java nature
-	public void addClassDirForProject(Project proj, File dir)
-	{
-		previouslyBuilt.add(proj, dir);
-		SetMap<String, File> dirProvider = packagesProvidedByDirectoriesInProject.require(proj, SetMap.class);
-		for (File f : FileUtils.findFilesUnderMatching(dir, "*.class"))
-			dirProvider.add(FileUtils.convertToDottedName(f.getParentFile()), dir);
-	}
-	*/
-
-	public void addBuiltJar(JarResource jar) {
-		addBuiltResource(jar);
-		conf.jarSupplies(jar, availablePackages);
-		conf.showDuplicates();
-	}
-
 	public void addBuiltResource(BuildResource resource) {
+		resourceAvailable(resource);
 		/* TODO: dependencies
 		System.out.println("The resource '" + resource + "' has been provided");
 		builtResources.add(resource);
@@ -90,62 +102,6 @@ public class BuildContext {
 		if (resource.getBuiltBy() != null)
 			dependencies.ensureLink(resource, resource.getBuiltBy());
 			*/
-	}
-
-	// TODO: this should be in Java Nature
-	public void addAllProjectDirs(RunClassPath classpath) {
-		/*
-		if (packagesProvidedByDirectoriesInProject.containsKey(project))
-		{
-			SetMap<String, File> setMap = packagesProvidedByDirectoriesInProject.get(project);
-			for (File f : setMap.values())
-				classpath.add(f);
-		}
-		*/			
-	}
-	
-	// TODO: this is more general than just a java build command, but what?
-	public void addDependency(JavaBuildCommand javaBuildCommand, String needsJavaPackage) {
-		/*
-		// First, try and resolve it with a base jar, or a built jar
-		if (availablePackages.containsKey(needsJavaPackage))
-		{
-			JarResource provider = availablePackages.get(needsJavaPackage);
-			javaBuildCommand.addToClasspath(provider.getFile());
-			// TODO: this is grouping all commands to the same project, which is losing some info.  I think Eclipse does the same though.
-			dependencies.ensureLink(javaBuildCommand.getProject(), provider);
-			if (provider.getBuiltBy() != null)
-				dependencies.ensureLink(javaBuildCommand.getProject(), provider.getBuiltBy());
-			return; // do something
-		}
-		
-		// Then see if it is somewhere else in the same project
-		if (packagesProvidedByDirectoriesInProject.containsKey(javaBuildCommand.getProject()))
-		{
-			SetMap<String, File> listMap = packagesProvidedByDirectoriesInProject.get(javaBuildCommand.getProject());
-			if (listMap.contains(needsJavaPackage))
-			{
-				for (File f : packagesProvidedByDirectoriesInProject.get(javaBuildCommand.getProject()).get(needsJavaPackage))
-				{
-					javaBuildCommand.addToClasspath(f);
-				}
-				return;
-			}
-		}
-		
-		// OK, try and move the projects around a bit
-		if (projectPackages.contains(needsJavaPackage))
-		{
-			List<Project> list = projectPackages.get(needsJavaPackage);
-			for (Project p : list)
-			{
-				moveUp(javaBuildCommand, p);
-				dependencies.ensureLink(javaBuildCommand.getProject(), p);
-			}
-			return;
-		}
-		throw new JavaBuildFailure("cannot find any code that defines package " + needsJavaPackage);
-		*/
 	}
 
 	// TODO: should reference strategems, not build commands
@@ -157,6 +113,9 @@ public class BuildContext {
 			{
 				strats.remove(idx);
 				strats.add(commandToExecute, required);
+				currentCommands = null;
+				moveOn = false;
+				repeat = null;
 				return;
 			}
 		}
@@ -225,6 +184,7 @@ public class BuildContext {
 	}
 
 	public void saveDependencies() {
+		System.out.println(dependencies);
 		/* TODO: come back to me 
 		final XML output = XML.create("1.0", "Dependencies");
 		dependencies.postOrderTraverse(new NodeWalker<BuildResource>() {
@@ -269,7 +229,7 @@ public class BuildContext {
 		}
 		else
 			System.out.print("* ");
-		System.out.println((commandToExecute+1) + ": " + bc);
+		System.out.println(commandToExecute+"."+currentStrategemCommandNo + ": " + bc);
 		if (!doit)
 			return BuildStatus.IGNORED;
 		return bc.execute(this);
@@ -303,8 +263,15 @@ public class BuildContext {
 	public Tactic next() {
 		for (;;)
 		{
+			if (repeat != null)
+				return repeat;
+			
 			if (currentCommands != null && currentCommands.hasNext())
-				return currentCommands.next();
+			{
+				currentStrategemCommandNo++;
+				repeat = currentCommands.next();
+				return repeat;
+			}
 			
 			if (commandToExecute >= strats.size())
 				return null;
@@ -312,13 +279,16 @@ public class BuildContext {
 			currentStrat = strats.get(commandToExecute);
 			currentCommands = currentStrat.tactics().iterator();
 			
-			commandToExecute++; 
+			if (moveOn)
+				commandToExecute++; 
+			currentStrategemCommandNo = 0;
 		}
 	}
 
 	public void advance() {
 		targetFailures = 0;
-		commandToExecute++;
+		repeat = null;
+		moveOn = true;
 	}
 
 	public void buildFail(BuildStatus outcome) {
@@ -328,7 +298,6 @@ public class BuildContext {
 	}
 
 	public void tryAgain() {
-		currentCommands = null;
 		if (++targetFailures >= 3)
 			throw new UtilException("The strategy " + currentStrat + " failed 3 times in a row");
 	}
@@ -339,6 +308,50 @@ public class BuildContext {
 
 	public void clearCache() {
 		dependencies.clear();
+	}
+
+	public String printableDependencyGraph() {
+		return dependencies.toString();
+	}
+
+	@Override
+	public void resourceAvailable(BuildResource r) {
+		dependencies.ensure(r);
+		
+		for (Notification n : notifications)
+			n.dispatch(r);
+	}
+
+	public void registerNature(Class<?> class1) {
+		try
+		{
+			natures.put(class1, class1.getConstructor(BuildContext.class).newInstance(this));
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T getNature(Class<T> cls) {
+		return (T) natures.get(cls);
+	}
+
+	public void tellMeAbout(Nature nature, Class<? extends BuildResource> cls) {
+		notifications.add(new Notification(cls, nature));
+	}
+
+	public void addDependency(Strategem dependent, BuildResource resource) {
+		StrategemResource node = new StrategemResource(dependent);
+		dependencies.ensureLink(node, resource);
+		if (resource.getBuiltBy() != null)
+			moveUp(dependent, resource.getBuiltBy());
+	}
+
+	public Iterable<BuildResource> getDependencies(Strategem dependent) {
+		StrategemResource node = new StrategemResource(dependent);
+		return dependencies.allChildren(node);
 	}
 
 }

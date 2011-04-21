@@ -1,9 +1,12 @@
-package com.gmmapowell.quickbuild.build;
+package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
 import java.io.StringReader;
 import com.gmmapowell.parser.LinePatternMatch;
 import com.gmmapowell.parser.LinePatternParser;
+import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -18,8 +21,10 @@ public class JavaBuildCommand implements Tactic {
 	private final BuildClassPath bootclasspath;
 	private boolean showArgs;
 	private boolean doClean = true;
+	private final Strategem parent;
 
 	public JavaBuildCommand(Strategem parent, StructureHelper files, String src, String bin) {
+		this.parent = parent;
 		this.srcdir = new File(files.getBaseDir(), src);
 		this.bindir = new File(files.getOutputDir(), bin);
 		if (!bindir.exists())
@@ -38,6 +43,10 @@ public class JavaBuildCommand implements Tactic {
 	public void addToBootClasspath(File file) {
 		bootclasspath.add(FileUtils.relativePath(file));
 	}
+	
+	public BuildClassPath getClassPath() {
+		return classpath;
+	}
 
 	public void dontClean()
 	{
@@ -50,8 +59,12 @@ public class JavaBuildCommand implements Tactic {
 			return BuildStatus.SKIPPED;
 		if (doClean)
 			FileUtils.cleanDirectory(bindir);
-		else
-			classpath.add(bindir);
+		classpath.add(bindir);
+		for (BuildResource br : cxt.getDependencies(parent))
+		{
+			if (br instanceof JarResource)
+				classpath.add(((JarResource)br).getPath());
+		}
 		RunProcess proc = new RunProcess("javac");
 		proc.showArgs(showArgs);
 		proc.captureStdout();
@@ -95,7 +108,7 @@ public class JavaBuildCommand implements Tactic {
 			{
 				if (lpm.is("nopackage"))
 				{
-					cxt.addDependency(this, lpm.get("pkgname"));
+					cxt.getNature(JavaNature.class).addDependency(parent, lpm.get("pkgname"));
 					cnt++;
 				}
 				else
@@ -119,7 +132,6 @@ public class JavaBuildCommand implements Tactic {
 
 	@Override
 	public Strategem belongsTo() {
-		// TODO Auto-generated method stub
-		return null;
+		return parent;
 	}
 }

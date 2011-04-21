@@ -98,6 +98,27 @@ public class DirectedAcyclicGraph<N> {
 		return ret;
 	}
 	
+
+	public Iterable<N> allChildren(N node) {
+		Set<N> ret = new HashSet<N>();
+		int cnt;
+		ret.add(node);
+		do
+		{
+			cnt = ret.size();
+			Set<N> n2 = new HashSet<N>();
+			for (N n : ret)
+			{
+				Node<N> root = find(n);
+				for (Link<N> l : root.linksFrom())
+					n2.add(l.to.node);
+			}
+			ret.addAll(n2);
+		} while (ret.size() > cnt);
+		ret.remove(node);
+		return ret;
+	}
+
 	public void postOrderTraverse(NodeWalker<N> nodeWalker) {
 		Set<Node<N>> done = new HashSet<Node<N>>();
 		postOrder(nodeWalker, done, Lambda.map(findNode, roots()));

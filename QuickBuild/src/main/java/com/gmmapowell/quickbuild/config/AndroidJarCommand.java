@@ -6,8 +6,8 @@ import java.util.Collection;
 import java.util.List;
 
 import com.gmmapowell.parser.TokenizedLine;
-import com.gmmapowell.quickbuild.build.JarBuildCommand;
-import com.gmmapowell.quickbuild.build.JavaBuildCommand;
+import com.gmmapowell.quickbuild.build.java.JarBuildCommand;
+import com.gmmapowell.quickbuild.build.java.JavaBuildCommand;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;

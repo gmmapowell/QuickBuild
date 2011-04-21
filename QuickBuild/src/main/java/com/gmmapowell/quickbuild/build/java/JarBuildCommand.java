@@ -1,9 +1,11 @@
-package com.gmmapowell.quickbuild.build;
+package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -19,7 +21,7 @@ public class JarBuildCommand implements Tactic {
 
 	public JarBuildCommand(Strategem parent, StructureHelper files, String targetName) {
 		this.jarfile = new File(files.getOutputDir(), targetName);
-		jar = new JarResource(this.jarfile, parent);
+		jar = new JarResource(parent, this.jarfile);
 	}
 	
 	public void add(File file) {
@@ -53,7 +55,7 @@ public class JarBuildCommand implements Tactic {
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
-			cxt.addBuiltJar(jar);
+			cxt.addBuiltResource(jar);
 			return BuildStatus.SUCCESS;
 		}
 		return BuildStatus.BROKEN;

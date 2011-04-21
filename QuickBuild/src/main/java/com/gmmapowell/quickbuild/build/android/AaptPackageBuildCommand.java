@@ -1,48 +1,48 @@
-package com.gmmapowell.quickbuild.build;
+package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
+
+import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.config.AndroidContext;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
-public class AaptGenBuildCommand implements Tactic {
+public class AaptPackageBuildCommand implements Tactic {
 
 	private final AndroidContext acxt;
-	private final File gendir;
+	private final File zipfile;
 	private final File manifestFile;
 	private final File resdir;
+	private final File assetsDir;
 
-	public AaptGenBuildCommand(AndroidContext acxt, File manifest, File gendir, File resdir) {
+	public AaptPackageBuildCommand(AndroidContext acxt, File manifest, File zipfile, File resdir, File assetsDir) {
 		this.acxt = acxt;
-		this.gendir = gendir;
+		this.zipfile = zipfile;
 		this.manifestFile = manifest;
 		this.resdir = resdir;
+		this.assetsDir = assetsDir;
 	}
 	
 	@Override
 	public BuildStatus execute(BuildContext cxt) {
-		/* TODO: someone else should handle this
-		if (!cxt.requiresBuiltResource(this, resResource))
-		{
-			System.out.println("Need resource '" + resResource + "' ... failing");
-			return BuildStatus.RETRY;
-		}
-		*/
-		FileUtils.assertDirectory(gendir);
-		FileUtils.cleanDirectory(gendir);
 		RunProcess proc = new RunProcess(acxt.getAAPT().getPath());
-		proc.showArgs(true);
 		proc.captureStdout();
 		proc.captureStderr();
 		
 		proc.arg("package");
-		proc.arg("-m");
-		proc.arg("-J");
-		proc.arg(gendir.getPath());
+		proc.arg("-f");
+		proc.arg("-F");
+		proc.arg(zipfile.getPath());
 		proc.arg("-M");
 		proc.arg(manifestFile.getPath());
+		if (assetsDir.exists())
+		{
+			proc.arg("-A");
+			proc.arg(assetsDir.getPath());
+		}
 		proc.arg("-S");
 		proc.arg(resdir.getPath());
 		proc.arg("-I");
@@ -58,7 +58,7 @@ public class AaptGenBuildCommand implements Tactic {
 
 	@Override
 	public String toString() {
-		return "aapt gen: " + FileUtils.makeRelative(gendir);
+		return "aapt package: " + FileUtils.makeRelative(zipfile);
 	}
 
 	@Override

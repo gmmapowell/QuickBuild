@@ -1,7 +1,11 @@
-package com.gmmapowell.quickbuild.build;
+package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
+
+import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.config.AndroidContext;
+import com.gmmapowell.quickbuild.core.SolidResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.system.RunProcess;
@@ -13,7 +17,7 @@ public class ApkBuildCommand implements Tactic {
 	private final File zipfile;
 	private final File dexFile;
 	private final File apkFile;
-	ApkResource apkResource;
+	SolidResource apkResource;
 
 	public ApkBuildCommand(AndroidContext acxt, File zipfile, File dexFile, File apkFile) {
 		this.acxt = acxt;

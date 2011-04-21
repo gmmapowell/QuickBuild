@@ -7,7 +7,7 @@ import java.util.List;
 
 import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.TokenizedLine;
-import com.gmmapowell.quickbuild.build.AdbCommand;
+import com.gmmapowell.quickbuild.build.android.AdbCommand;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;

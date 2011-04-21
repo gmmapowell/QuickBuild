@@ -1,0 +1,116 @@
+package com.gmmapowell.quickbuild.build.java;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
+import com.gmmapowell.collections.ListMap;
+import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.StrategemResource;
+import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.Nature;
+import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.utils.FileUtils;
+import com.gmmapowell.utils.GPJarEntry;
+import com.gmmapowell.utils.GPJarFile;
+
+public class JavaNature implements Nature {
+	private final Map<String, JarResource> availablePackages = new HashMap<String, JarResource>();
+	private final ListMap<String, BuildResource> duplicates = new ListMap<String, BuildResource>();
+	private final ListMap<String, Strategem> projectPackages = new ListMap<String, Strategem>();
+	private final BuildContext cxt;
+
+	public JavaNature(BuildContext cxt)
+	{
+		this.cxt = cxt;
+		cxt.tellMeAbout(this, JarResource.class);
+		cxt.tellMeAbout(this, JavaSourceDirResource.class);
+	}
+
+	@Override
+	public void resourceAvailable(BuildResource br) {
+		if (br instanceof JarResource)
+			scanJar((JarResource)br);
+		else if (br instanceof JavaSourceDirResource)
+			rememberSources(br);
+		else
+			throw new UtilException("Can't handle " + br);
+	}
+
+	
+	private void scanJar(JarResource br) {
+		GPJarFile jar = new GPJarFile(br.getPath());
+		boolean addedDuplicates = false;
+		for (GPJarEntry e : jar)
+		{
+			if (!e.isClassFile())
+				continue;
+			String pkg = e.getPackage();
+			if (!availablePackages.containsKey(pkg))
+			{
+				availablePackages.put(pkg, br);
+			}
+			else if (availablePackages.get(pkg).equals(br))
+				continue;
+			else
+			{
+				if (!duplicates.contains(pkg))
+					duplicates.add(pkg, availablePackages.get(pkg));
+				duplicates.add(pkg, br);
+				addedDuplicates = true;
+			}
+		}
+		if (addedDuplicates)
+			showDuplicates();
+	}
+
+	private void rememberSources(BuildResource br) {
+		if (br.getBuiltBy() == null)
+			throw new UtilException("Cannot handle JavaSourceDir with no builder");
+		List<File> sources = FileUtils.findFilesUnderMatching(br.getPath(), "*.java");
+		HashSet<String> packages = new HashSet<String>();
+		for (File f : sources)
+		{
+			packages.add(FileUtils.convertToDottedName(f.getParentFile()));
+		}
+		for (String s : packages)
+			projectPackages.add(s, br.getBuiltBy());
+	}
+
+	public void showDuplicates() {
+		for (String s : duplicates)
+		{
+			System.out.println("Duplicate/overlapping definitions found for package: " + s);
+			for (BuildResource f : duplicates.get(s))
+				System.out.println("  " + f);
+		}
+	}
+
+	// TODO: this is more general than just a java build command, but what?
+	public void addDependency(Strategem dependent, String needsJavaPackage) {
+		// First, try and resolve it with a base jar, or a built jar
+		if (availablePackages.containsKey(needsJavaPackage))
+		{
+			JarResource resource = availablePackages.get(needsJavaPackage);
+			// TODO: this should be JBC's job based on dependencies .... javaBuildCommand.addToClasspath(resource.getFile());
+			// TODO: this is grouping all commands to the same project, which is losing some info.  I think Eclipse does the same though.
+			cxt.addDependency(dependent, resource);
+			return; // do something
+		}
+		
+		// OK, try and move the projects around a bit
+		if (projectPackages.contains(needsJavaPackage))
+		{
+			for (Strategem p : projectPackages.get(needsJavaPackage))
+			{
+				cxt.addDependency(dependent, new StrategemResource(p));
+			}
+			return;
+		}
+
+		throw new JavaBuildFailure("cannot find any code that defines package " + needsJavaPackage);
+	}
+}

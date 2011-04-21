@@ -1,8 +1,12 @@
-package com.gmmapowell.quickbuild.build;
+package com.gmmapowell.quickbuild.build.android;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.config.AndroidContext;
+import com.gmmapowell.quickbuild.core.SolidResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -23,9 +27,9 @@ public class AdbCommand implements Tactic {
 	private List<String[]> commands = new ArrayList<String[]>();
 	private List<BuildResource> requires = new ArrayList<BuildResource>();
 	private final StructureHelper files;
-	private final ApkResource apk;
+	private final SolidResource apk;
 
-	public AdbCommand(AndroidContext acxt, Strategem parent, StructureHelper files, ApkResource apk) {
+	public AdbCommand(AndroidContext acxt, Strategem parent, StructureHelper files, SolidResource apk) {
 		this.acxt = acxt;
 		this.parent = parent;
 		this.files = files;

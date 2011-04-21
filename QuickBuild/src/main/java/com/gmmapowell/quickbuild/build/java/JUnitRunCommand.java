@@ -1,7 +1,9 @@
-package com.gmmapowell.quickbuild.build;
+package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
 
+import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -22,7 +24,6 @@ public class JUnitRunCommand implements Tactic {
 
 	@Override
 	public BuildStatus execute(BuildContext cxt) {
-		// TODO: cxt.addAllProjectDirs(classpath, project);
 		RunProcess proc = new RunProcess("java");
 		proc.captureStdout();
 		proc.captureStderr();

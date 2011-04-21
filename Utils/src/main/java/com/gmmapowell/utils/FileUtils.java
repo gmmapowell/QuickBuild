@@ -191,7 +191,7 @@ public class FileUtils {
 		return convertToDottedName(path.getParentFile()) + "." + dropExtension(path.getName());
 	}
 
-	private static String dropExtension(String name) {
+	public static String dropExtension(String name) {
 		int idx = name.indexOf('.');
 		if (idx == -1)
 			return name;

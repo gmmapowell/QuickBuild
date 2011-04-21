@@ -1,4 +1,4 @@
-package com.gmmapowell.quickbuild.build;
+package com.gmmapowell.quickbuild.build.java;
 
 public class JUnitFailure {
 
