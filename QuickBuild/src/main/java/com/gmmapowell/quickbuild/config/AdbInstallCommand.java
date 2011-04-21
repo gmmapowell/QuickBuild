@@ -8,17 +8,20 @@ import java.util.List;
 import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.AdbCommand;
-import com.gmmapowell.quickbuild.build.BuildCommand;
+import com.gmmapowell.quickbuild.core.ResourcePacket;
+import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.StructureHelper;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 
-public class AdbInstallCommand extends NoChildCommand implements ConfigBuildCommand {
+public class AdbInstallCommand extends NoChildCommand implements ConfigBuildCommand, Strategem {
 	private String projectName;
 	private String emulator;
 	private final File projectDir;
-	private Project project;
 	private AndroidContext acxt;
+	private StructureHelper files;
 
 	public AdbInstallCommand(TokenizedLine toks) {
 		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"),
@@ -27,20 +30,17 @@ public class AdbInstallCommand extends NoChildCommand implements ConfigBuildComm
 	}
 
 	@Override
-	public void applyConfig(Config config) {
-		project = new Project("adb", projectName, projectDir, config.getOutput());
+	public Strategem applyConfig(Config config) {
 		acxt = config.getAndroidContext();
+		files = new StructureHelper(projectDir, config.getOutput());
+		return this;
 	}
 	
-	@Override
-	public Project project() {
-		return project;
-	}
 
 	@Override
-	public Collection<? extends BuildCommand> buildCommands() {
-		List<BuildCommand> ret = new ArrayList<BuildCommand>();
-		AdbCommand cmd = new AdbCommand(acxt, project);
+	public Collection<? extends Tactic> tactics() {
+		List<Tactic> ret = new ArrayList<Tactic>();
+		AdbCommand cmd = new AdbCommand(acxt, this, files, null);
 		cmd.reinstall();
 		ret.add(cmd);
 		return ret;
@@ -49,5 +49,28 @@ public class AdbInstallCommand extends NoChildCommand implements ConfigBuildComm
 	@Override
 	public String toString() {
 		return "adbinstall " + projectName;
+	}
+
+	@Override
+	public ResourcePacket needsResources() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ResourcePacket providesResources() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ResourcePacket buildsResources() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public File rootDirectory() {
+		return projectDir;
 	}
 }

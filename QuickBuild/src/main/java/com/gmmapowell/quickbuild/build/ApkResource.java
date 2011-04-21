@@ -2,21 +2,22 @@ package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
 
-import com.gmmapowell.quickbuild.config.Project;
+import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.Strategem;
 
 public class ApkResource implements BuildResource {
 
-	private final Project builder;
 	private final File apkFile;
+	private final Strategem parent;
 
-	public ApkResource(Project builder, File apkFile) {
-		this.builder = builder;
+	public ApkResource(Strategem parent, File apkFile) {
+		this.parent = parent;
 		this.apkFile = apkFile;
 	}
 
 	@Override
-	public Project getBuiltBy() {
-		return builder;
+	public Strategem getBuiltBy() {
+		return parent;
 	}
 
 	public File getFile() {
@@ -38,5 +39,10 @@ public class ApkResource implements BuildResource {
 	@Override
 	public String toString() {
 		return "apk: " + apkFile;
+	}
+
+	public File getPath() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

@@ -1,18 +1,13 @@
 package com.gmmapowell.quickbuild.app;
 
 import java.io.File;
-import java.util.Set;
-
-import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
-import com.gmmapowell.quickbuild.build.BuildCommand;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
-import com.gmmapowell.quickbuild.build.DirectoryResource;
 import com.gmmapowell.quickbuild.config.Arguments;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
-import com.gmmapowell.quickbuild.config.Project;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
@@ -61,13 +56,16 @@ public class QuickBuild {
 			System.out.println("Cache was out of date; ignoring");
 		}
 		
+		/* TODO: I like this, but it needs to be more general
 		for (String s : arguments.dirResources)
 		{
 			System.out.println("Adding proj " + s);
 			cxt.addBuiltResource(new DirectoryResource(null, new File(s.substring(2))));
 		}
+		*/
 			
 		// determine what we need to build from git ...
+		/*
 		if (!arguments.buildAll)
 		{
 			Set<Project> changedProjects = conf.projectsFor(GitHelper.dirtyProjects(conf.projectRoots()));
@@ -76,13 +74,14 @@ public class QuickBuild {
 			for (Project p : changedProjects)
 				System.out.println(p);
 
-			cxt.limitBuildTo(changedProjects);
+			// TODO: cxt.limitBuildTo(changedProjects);
 		}
+		*/
 		
 		// now we try and build stuff ...
 		System.out.println("");
 		System.out.println("Building ...");
-		BuildCommand bc;
+		Tactic bc;
 		while ((bc = cxt.next())!= null)
 		{
 			BuildStatus outcome = cxt.execute(bc);

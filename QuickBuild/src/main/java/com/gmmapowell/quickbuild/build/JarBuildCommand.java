@@ -3,25 +3,23 @@ package com.gmmapowell.quickbuild.build;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-import com.gmmapowell.quickbuild.config.Project;
+import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.StructureHelper;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
-public class JarBuildCommand implements BuildCommand {
-	private final Project project;
+public class JarBuildCommand implements Tactic {
 	private final File jarfile;
 	private final JarResource jar;
 	private final List<File> dirsToJar = new ArrayList<File>();
 	private boolean showArgs;
 
-	public JarBuildCommand(Project project, String jarfile) {
-		this.project = project;
-		this.jarfile = new File(project.getOutputDir(), jarfile);
-		jar = new JarResource(this.jarfile, project);
-
+	public JarBuildCommand(Strategem parent, StructureHelper files, String targetName) {
+		this.jarfile = new File(files.getOutputDir(), targetName);
+		jar = new JarResource(this.jarfile, parent);
 	}
 	
 	public void add(File file) {
@@ -63,28 +61,17 @@ public class JarBuildCommand implements BuildCommand {
 
 	@Override
 	public String toString() {
-		return "Jar Up: " + project.getBaseDir();
-	}
-
-	@Override
-	public Project getProject() {
-		return project;
-	}
-
-	@Override
-	public Set<String> getPackagesProvided() {
-		return null;
-	}
-
-	@Override
-	public List<BuildResource> generatedResources() {
-		List<BuildResource> ret = new ArrayList<BuildResource>();
-		ret.add(jar);
-		return ret;
+		return "Jar Up: " + jar;
 	}
 
 	public void showArgs(boolean b) {
 		this.showArgs = b;
 		
+	}
+
+	@Override
+	public Strategem belongsTo() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

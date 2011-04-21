@@ -2,19 +2,16 @@ package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
 import java.io.StringReader;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.gmmapowell.parser.LinePatternMatch;
 import com.gmmapowell.parser.LinePatternParser;
-import com.gmmapowell.quickbuild.config.Project;
+import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.StructureHelper;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
-public class JavaBuildCommand implements BuildCommand {
-	private final Project project;
+public class JavaBuildCommand implements Tactic {
 	private final File srcdir;
 	private final File bindir;
 	private final BuildClassPath classpath;
@@ -22,10 +19,9 @@ public class JavaBuildCommand implements BuildCommand {
 	private boolean showArgs;
 	private boolean doClean = true;
 
-	public JavaBuildCommand(Project project, String src, String bin) {
-		this.project = project;
-		this.srcdir = new File(project.getBaseDir(), src);
-		this.bindir = new File(project.getOutputDir(), bin);
+	public JavaBuildCommand(Strategem parent, StructureHelper files, String src, String bin) {
+		this.srcdir = new File(files.getBaseDir(), src);
+		this.bindir = new File(files.getOutputDir(), bin);
 		if (!bindir.exists())
 			if (!bindir.mkdirs())
 				throw new QuickBuildException("Cannot build " + srcdir + " because the build directory cannot be created");
@@ -86,7 +82,7 @@ public class JavaBuildCommand implements BuildCommand {
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
-			cxt.addClassDirForProject(project, bindir);
+			// TODO: cxt.addClassDirForProject(project, bindir);
 			return BuildStatus.SUCCESS;
 		}
 		if (proc.getExitCode() == 1)
@@ -117,32 +113,13 @@ public class JavaBuildCommand implements BuildCommand {
 		return "Java Compile: " + srcdir;
 	}
 
-	public Project getProject() {
-		return project;
-	}
-
-	public BuildClassPath getClassPath() {
-		return classpath;
-	}
-
-	@Override
-	public Set<String> getPackagesProvided() {
-		Set<String> ret = new HashSet<String>();
-		if (srcdir.exists())
-			for (File f : FileUtils.findDirectoriesUnder(srcdir))
-			{
-				ret.add(FileUtils.convertToDottedName(f));
-			}
-		return ret;
-	}
-
-	@Override
-	public List<BuildResource> generatedResources() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public void showArgs(boolean b) {
 		showArgs = b;
+	}
+
+	@Override
+	public Strategem belongsTo() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

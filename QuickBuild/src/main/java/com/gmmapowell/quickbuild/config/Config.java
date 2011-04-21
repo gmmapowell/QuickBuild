@@ -4,12 +4,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
 
 import com.gmmapowell.collections.ListMap;
@@ -17,10 +14,11 @@ import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.graphs.DependencyGraph;
 import com.gmmapowell.http.ProxyInfo;
 import com.gmmapowell.http.ProxyableConnection;
-import com.gmmapowell.quickbuild.build.BuildCommand;
-import com.gmmapowell.quickbuild.build.BuildResource;
 import com.gmmapowell.quickbuild.build.JarResource;
 import com.gmmapowell.quickbuild.build.MavenResource;
+import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
@@ -28,8 +26,9 @@ import com.gmmapowell.utils.GPJarEntry;
 import com.gmmapowell.utils.GPJarFile;
 
 public class Config extends SpecificChildrenParent<ConfigCommand>  {
+	private final List<Strategem> strategems = new ArrayList<Strategem>();
 	private final List<ConfigBuildCommand> commands = new ArrayList<ConfigBuildCommand>();
-	private final List<BuildCommand> buildcmds = new ArrayList<BuildCommand>();
+	private final List<Tactic> buildcmds = new ArrayList<Tactic>();
 	private final List<String> mvnrepos = new ArrayList<String>();
 	private final ProxyInfo proxyInfo = new ProxyInfo();
 	private final List<ConfigApplyCommand> applicators = new ArrayList<ConfigApplyCommand>();
@@ -38,7 +37,6 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 
 	private String output;
 	private File mvnCache;
-	private ListMap<File, Project> projects = new ListMap<File, Project>();
 	private ListMap<String, BuildResource> duplicates = new ListMap<String, BuildResource>();
 	private List<BuildResource> willbuild = new ArrayList<BuildResource>();
 	private Map<String, File> fileProps = new HashMap<String, File>();
@@ -108,16 +106,16 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 
 		for (ConfigBuildCommand c : commands)
 		{
-			c.applyConfig(this);
-			Project proj = c.project();
-			projects.add(proj.getBaseDir(), proj);
+			Strategem s = c.applyConfig(this);
+			strategems.add(s);
 
-			Collection<? extends BuildCommand> cmds = c.buildCommands();
-			buildcmds.addAll(cmds);
+			buildcmds.addAll(s.tactics());
+			
+			// TODO: provide all initial resources
 		}
 	}
 	
-	public List<BuildCommand> getBuildCommandsInOrder() {
+	public List<Tactic> getBuildCommandsInOrder() {
 		return buildcmds;
 	}
 
@@ -241,38 +239,6 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		return new File(qbdir, "cache");
 	}
 
-	public Set<File> projectRoots() {
-		return projects.keySet();
-	}
-
-	public Set<Project> projectsFor(Set<File> changedProjects) {
-		Set<Project> ret = new HashSet<Project>();
-		for (File f : changedProjects)
-			ret.addAll(projects.get(f));
-		return ret;
-	}
-	
-	public Project findProject(String name)
-	{
-		for (Project p : projects.values())
-			if (p.getName().equals(name))
-				return p;
-		throw new QuickBuildException("There is no project " + name);
-	}
-
-	public BuildResource findResource(String res) {
-		for (JarResource jr : availableJars)
-			if (jr.toString().equals(res))
-				return jr;
-		for (Project p : projects.values())
-			if (p.toString().equals(res))
-				return p;
-		for (BuildResource br : willbuild)
-			if (br.toString().equals(res))
-				return br;
-		throw new QuickBuildException("Cannot find resource " + res);
-	}
-
 	public AndroidContext getAndroidContext() {
 		if (acxt == null)
 			acxt = new AndroidContext(this); 
@@ -297,6 +263,15 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		if (!varProps.containsKey(name))
 			throw new QBConfigurationException("There is no var " + name);
 		return varProps.get(name);
+	}
+
+	public List<Strategem> getStrategems() {
+		return strategems;
+	}
+
+	public BuildResource getResourceByName(String fromProjectName) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

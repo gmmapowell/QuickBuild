@@ -2,57 +2,40 @@ package com.gmmapowell.quickbuild.config;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 
 import com.gmmapowell.collections.CollectionUtils;
 import com.gmmapowell.parser.TokenizedLine;
-import com.gmmapowell.quickbuild.build.BuildCommand;
 import com.gmmapowell.quickbuild.build.BuildContext;
-import com.gmmapowell.quickbuild.build.BuildResource;
 import com.gmmapowell.quickbuild.build.BuildStatus;
-import com.gmmapowell.quickbuild.build.DirectoryResource;
+import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.ResourcePacket;
+import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 
-// TODO: add the checking logic
-// TODO: add the FileUtils functions
-// TODO: resources
-public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, BuildCommand {
-	private Project project;
-	private String fromProjectName;
-	private File fromProjectDir;
-	private String fromDirectory;
-	private String toProjectName;
-	private File toProjectDir;
-	private String toDirectory;
-	private DirectoryResource fromResource;
-	private DirectoryResource toResource;
+public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem, Tactic {
+	private String fromResourceName;
+	private String toResourceName;
+	private BuildResource fromResource;
+	private BuildResource toResource;
 
 	@SuppressWarnings("unchecked")
 	public CopyDirectoryCommand(TokenizedLine toks) {
 		// TODO: want 4 args
 		toks.process(this,
-			new ArgumentDefinition("*", Cardinality.REQUIRED, "fromProjectName", "from project"),
-			new ArgumentDefinition("*", Cardinality.REQUIRED, "fromDirectory", "directory"),
-			new ArgumentDefinition("*", Cardinality.REQUIRED, "toProjectName", "to project"),
-			new ArgumentDefinition("*", Cardinality.REQUIRED, "toDirectory", "directory")
+			new ArgumentDefinition("*", Cardinality.REQUIRED, "fromResourceName", "from resource"),
+			new ArgumentDefinition("*", Cardinality.REQUIRED, "toResourceName", "destination")
 		);
-		fromProjectDir = FileUtils.findDirectoryNamed(fromProjectName);
-		toProjectDir = FileUtils.findDirectoryNamed(toProjectName);
 	}
 
 	@Override
-	public void applyConfig(Config config) {
-		project = new Project("copy", fromProjectName, fromProjectDir, config.getOutput());
-		fromResource = new DirectoryResource(project, new File(fromProjectDir, fromDirectory));
-		toResource = new DirectoryResource(project, new File(toProjectDir, toDirectory));
-	}
-
-	@Override
-	public Project project() {
-		return project;
+	public Strategem applyConfig(Config config) {
+		fromResource = config.getResourceByName(fromResourceName);
+		// TODO: should we create this?
+		toResource = config.getResourceByName(toResourceName);
+		return this;
 	}
 
 	@Override
@@ -62,32 +45,18 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 	}
 
 	@Override
-	public Collection<? extends BuildCommand> buildCommands() {
-		return CollectionUtils.listOf((BuildCommand)this);
-	}
-
-	@Override
-	public Project getProject() {
-		return project;
-	}
-
-	@Override
-	public Set<String> getPackagesProvided() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<BuildResource> generatedResources() {
-		return CollectionUtils.listOf((BuildResource)fromResource, toResource);
+	public Collection<? extends Tactic> tactics() {
+		return CollectionUtils.listOf((Tactic)this);
 	}
 
 	@Override
 	public BuildStatus execute(BuildContext cxt) {
+		/* TODO: not my problem
 		if (!cxt.requiresBuiltResource(this, fromResource))
 			return BuildStatus.RETRY;
-		FileUtils.assertDirectory(toResource.getDirectory());
-		FileUtils.copyRecursive(fromResource.getDirectory(), toResource.getDirectory());
+			*/
+		FileUtils.assertDirectory(toResource.getPath());
+		FileUtils.copyRecursive(fromResource.getPath(), toResource.getPath());
 		cxt.addBuiltResource(toResource);
 		return BuildStatus.SUCCESS;
 	}
@@ -95,6 +64,36 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 	@Override
 	public String toString() {
 		return "Copy " + fromResource + " to " + toResource;
+	}
+
+	@Override
+	public Strategem belongsTo() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ResourcePacket needsResources() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ResourcePacket providesResources() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ResourcePacket buildsResources() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public File rootDirectory() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

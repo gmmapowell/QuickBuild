@@ -1,54 +1,35 @@
 package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
-import java.util.List;
-import java.util.Set;
-
 import com.gmmapowell.quickbuild.config.AndroidContext;
-import com.gmmapowell.quickbuild.config.Project;
+import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
-public class AaptGenBuildCommand implements BuildCommand {
+public class AaptGenBuildCommand implements Tactic {
 
-	private final Project project;
 	private final AndroidContext acxt;
 	private final File gendir;
 	private final File manifestFile;
 	private final File resdir;
-	private DirectoryResource resResource;
 
-	public AaptGenBuildCommand(AndroidContext acxt, Project project, File manifest, File gendir, File resdir) {
+	public AaptGenBuildCommand(AndroidContext acxt, File manifest, File gendir, File resdir) {
 		this.acxt = acxt;
-		this.project = project;
 		this.gendir = gendir;
 		this.manifestFile = manifest;
 		this.resdir = resdir;
-		resResource = new DirectoryResource(null, resdir);
 	}
 	
 	@Override
-	public Project getProject() {
-		return project;
-	}
-
-	@Override
-	public List<BuildResource> generatedResources() {
-		return null;
-	}
-
-	@Override
-	public Set<String> getPackagesProvided() {
-		return null;
-	}
-
-	@Override
 	public BuildStatus execute(BuildContext cxt) {
+		/* TODO: someone else should handle this
 		if (!cxt.requiresBuiltResource(this, resResource))
 		{
 			System.out.println("Need resource '" + resResource + "' ... failing");
 			return BuildStatus.RETRY;
 		}
+		*/
 		FileUtils.assertDirectory(gendir);
 		FileUtils.cleanDirectory(gendir);
 		RunProcess proc = new RunProcess(acxt.getAAPT().getPath());
@@ -78,5 +59,11 @@ public class AaptGenBuildCommand implements BuildCommand {
 	@Override
 	public String toString() {
 		return "aapt gen: " + FileUtils.makeRelative(gendir);
+	}
+
+	@Override
+	public Strategem belongsTo() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

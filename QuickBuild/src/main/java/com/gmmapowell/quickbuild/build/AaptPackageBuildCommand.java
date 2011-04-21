@@ -1,47 +1,28 @@
 package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
-import java.util.List;
-import java.util.Set;
-
 import com.gmmapowell.quickbuild.config.AndroidContext;
-import com.gmmapowell.quickbuild.config.Project;
+import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
-public class AaptPackageBuildCommand implements BuildCommand {
+public class AaptPackageBuildCommand implements Tactic {
 
-	private final Project project;
 	private final AndroidContext acxt;
 	private final File zipfile;
 	private final File manifestFile;
 	private final File resdir;
 	private final File assetsDir;
 
-	public AaptPackageBuildCommand(AndroidContext acxt, Project project, File manifest, File zipfile, File resdir, File assetsDir) {
+	public AaptPackageBuildCommand(AndroidContext acxt, File manifest, File zipfile, File resdir, File assetsDir) {
 		this.acxt = acxt;
-		this.project = project;
 		this.zipfile = zipfile;
 		this.manifestFile = manifest;
 		this.resdir = resdir;
 		this.assetsDir = assetsDir;
 	}
 	
-	@Override
-	public Project getProject() {
-		return project;
-	}
-
-	@Override
-	public List<BuildResource> generatedResources() {
-		return null;
-	}
-
-	@Override
-	public Set<String> getPackagesProvided() {
-		return null;
-	}
-
 	@Override
 	public BuildStatus execute(BuildContext cxt) {
 		RunProcess proc = new RunProcess(acxt.getAAPT().getPath());
@@ -75,5 +56,11 @@ public class AaptPackageBuildCommand implements BuildCommand {
 	@Override
 	public String toString() {
 		return "aapt package: " + FileUtils.makeRelative(zipfile);
+	}
+
+	@Override
+	public Strategem belongsTo() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

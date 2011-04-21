@@ -1,12 +1,12 @@
 package com.gmmapowell.quickbuild.build;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-
 import com.gmmapowell.quickbuild.config.AndroidContext;
-import com.gmmapowell.quickbuild.config.Project;
+import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.StructureHelper;
+import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 
@@ -17,41 +17,29 @@ import com.gmmapowell.system.RunProcess;
 	# emulator.exe -avd my_avd
 */
 
-public class AdbCommand implements BuildCommand {
+public class AdbCommand implements Tactic {
 	private final AndroidContext acxt;
-	private final Project project;
+	private final Strategem parent;
 	private List<String[]> commands = new ArrayList<String[]>();
 	private List<BuildResource> requires = new ArrayList<BuildResource>();
+	private final StructureHelper files;
+	private final ApkResource apk;
 
-	public AdbCommand(AndroidContext acxt, Project project) {
+	public AdbCommand(AndroidContext acxt, Strategem parent, StructureHelper files, ApkResource apk) {
 		this.acxt = acxt;
-		this.project = project;
-	}
-
-	@Override
-	public Project getProject() {
-		return project;
+		this.parent = parent;
+		this.files = files;
+		this.apk = apk;
 	}
 
 	public void reinstall()
 	{
-		File apkFile = project.getOutput(project.getName()+".apk");
-		command("install", "-r", apkFile.getPath());
-		requires.add(new ApkResource(project, apkFile));
+		command("install", "-r", apk.getPath().getPath());
+		requires.add(apk);
 	}
 	
 	private void command(String... args) {
 		commands.add(args);
-	}
-
-	@Override
-	public List<BuildResource> generatedResources() {
-		return null;
-	}
-
-	@Override
-	public Set<String> getPackagesProvided() {
-		return null;
 	}
 
 	@Override
@@ -61,9 +49,11 @@ public class AdbCommand implements BuildCommand {
 		if (commands.size() != 1)
 			throw new QuickBuildException("Undecided about this - allowing multiple commands seems reasonable, but how would it be specified?  Either you have an idea, or something is wrong");
 
+		/* TODO: not my problem
 		for (BuildResource br : requires)
 			if (!cxt.requiresBuiltResource(this, br))
 				return BuildStatus.RETRY;
+		*/
 		
 		RunProcess proc = new RunProcess(acxt.getADB().getPath());
 		proc.captureStdout();
@@ -93,5 +83,11 @@ public class AdbCommand implements BuildCommand {
 				sb.append(" " + s);
 		}
 		return sb.toString();
+	}
+
+	@Override
+	public Strategem belongsTo() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

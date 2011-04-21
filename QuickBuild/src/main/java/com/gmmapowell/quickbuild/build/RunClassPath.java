@@ -7,7 +7,7 @@ public class RunClassPath extends BuildClassPath {
 	
 	public RunClassPath(JavaBuildCommand jbc)
 	{
-		basedOn = jbc.getClassPath();
+		basedOn = null; // TODO: jbc.getClassPath();
 	}
 	
 	public String toString()

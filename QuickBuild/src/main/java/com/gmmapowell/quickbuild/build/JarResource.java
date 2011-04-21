@@ -2,21 +2,19 @@ package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
 
-import com.gmmapowell.quickbuild.config.Project;
+import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.utils.FileUtils;
 
 public class JarResource implements BuildResource {
 	private final File jarFile;
-	private final Project builtBy;
+	private final Strategem builtBy;
 
-	public JarResource(File f, Project builtBy) {
+	public JarResource(File f, Strategem parent) {
 		this.jarFile = f;
-		this.builtBy = builtBy;
+		this.builtBy = parent;
 	}
 	
-	public Project getBuiltBy() {
-		return builtBy;
-	}
 	
 	public File getFile() {
 		return FileUtils.makeRelative(jarFile);
@@ -25,5 +23,17 @@ public class JarResource implements BuildResource {
 	@Override
 	public String toString() {
 		return "Jar["+FileUtils.makeRelative(jarFile)+"]";
+	}
+
+
+	@Override
+	public Strategem getBuiltBy() {
+		return builtBy;
+	}
+
+
+	@Override
+	public File getPath() {
+		return jarFile;
 	}
 }

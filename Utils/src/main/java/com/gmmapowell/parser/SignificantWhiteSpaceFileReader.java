@@ -35,7 +35,7 @@ public class SignificantWhiteSpaceFileReader {
 		T curr = null;
 		while ((s = nextLine()) != null)
 		{
-			System.out.println("Read line " + s.lineNo() + " ind = " + s.indent());
+//			System.out.println("Read line " + s.lineNo() + " ind = " + s.indent());
 			if (s.blank())
 				continue;
 			if (s.indent < ind)

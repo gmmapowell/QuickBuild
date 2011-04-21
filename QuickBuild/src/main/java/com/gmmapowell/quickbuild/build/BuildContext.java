@@ -4,74 +4,69 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.gmmapowell.collections.ListMap;
-import com.gmmapowell.collections.SetMap;
-import com.gmmapowell.collections.StateMap;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.graphs.DependencyGraph;
-import com.gmmapowell.graphs.Link;
-import com.gmmapowell.graphs.Node;
-import com.gmmapowell.graphs.NodeWalker;
 import com.gmmapowell.quickbuild.config.Config;
-import com.gmmapowell.quickbuild.config.Project;
-import com.gmmapowell.quickbuild.exceptions.JavaBuildFailure;
-import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
-import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
+import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.utils.DateUtils;
-import com.gmmapowell.utils.FileUtils;
-import com.gmmapowell.xml.XML;
-import com.gmmapowell.xml.XMLElement;
 
 public class BuildContext {
 	private final Map<String, JarResource> availablePackages = new HashMap<String, JarResource>();
-	private final ListMap<String, Project> projectPackages = new ListMap<String, Project>();
-	private final ListMap<Project, File> previouslyBuilt = new ListMap<Project, File>();
-	private final StateMap<Project, SetMap<String, File>> packagesProvidedByDirectoriesInProject = new StateMap<Project, SetMap<String, File>>();
+//	private final ListMap<String, Project> projectPackages = new ListMap<String, Project>();
+//	private final ListMap<Project, File> previouslyBuilt = new ListMap<Project, File>();
+//	private final StateMap<Project, SetMap<String, File>> packagesProvidedByDirectoriesInProject = new StateMap<Project, SetMap<String, File>>();
 	private final List<BuildResource> builtResources = new ArrayList<BuildResource>();
 	private final Config conf;
 	private final DependencyGraph<BuildResource> dependencies = new DependencyGraph<BuildResource>();
 	private final List<JUnitFailure> failures = new ArrayList<JUnitFailure>();
 	private final File dependencyFile;
-	private final List<BuildCommand> cmds;
-	private Set<BuildCommand> needed = null; // is null to indicate build all
+	private Set<Tactic> needed = null; // is null to indicate build all
 	private int commandToExecute;
 	private int targetFailures;
 	private Date buildStarted;
 	private int totalErrors;
 	private boolean buildBroken;
 	private int projectsWithTestFailures;
+	private List<Strategem> strats;
+	private Strategem currentStrat;
+	private Iterator<? extends Tactic> currentCommands;
 
 	public BuildContext(Config conf) {
 		this.conf = conf;
 		conf.supplyPackages(availablePackages);
 		conf.provideBaseJars(dependencies);
 		dependencyFile = new File(conf.getCacheDir(), "dependencies.xml");
-		cmds = conf.getBuildCommandsInOrder();
-		for (BuildCommand cmd : cmds)
+		strats = conf.getStrategems();
+		for (Strategem s : strats)
 		{
-			Set<String> packagesForCommand = cmd.getPackagesProvided();
-			if (packagesForCommand != null)
+			// TODO: understand how this should work for these different cases
+			for (BuildResource br : s.needsResources())
 			{
-				for (String s : packagesForCommand)
-					projectPackages.add(s, cmd.getProject());
+				dependencies.ensure(br);
+			}			
+
+			for (BuildResource br : s.providesResources())
+			{
+				// conf.willBuild(br);
+				dependencies.ensure(br);
 			}
-			dependencies.ensure(cmd.getProject());
 			
-			List<BuildResource> generatedResources = cmd.generatedResources();
-			if (generatedResources != null)
-				for (BuildResource br : generatedResources)
-				{
-					conf.willBuild(br);
-					dependencies.ensure(br);
-				}
+			for (BuildResource br : s.buildsResources())
+			{
+				conf.willBuild(br);
+				dependencies.ensure(br);
+			}
 		}
 	}
-
+	
+	/* TODO: java nature
 	public void addClassDirForProject(Project proj, File dir)
 	{
 		previouslyBuilt.add(proj, dir);
@@ -79,6 +74,7 @@ public class BuildContext {
 		for (File f : FileUtils.findFilesUnderMatching(dir, "*.class"))
 			dirProvider.add(FileUtils.convertToDottedName(f.getParentFile()), dir);
 	}
+	*/
 
 	public void addBuiltJar(JarResource jar) {
 		addBuiltResource(jar);
@@ -87,38 +83,30 @@ public class BuildContext {
 	}
 
 	public void addBuiltResource(BuildResource resource) {
+		/* TODO: dependencies
 		System.out.println("The resource '" + resource + "' has been provided");
 		builtResources.add(resource);
 		dependencies.ensure(resource);
 		if (resource.getBuiltBy() != null)
 			dependencies.ensureLink(resource, resource.getBuiltBy());
+			*/
 	}
 
-	public boolean requiresBuiltResource(BuildCommand from, BuildResource resource) {
-		if (builtResources.contains(resource))
-			return true;
-		
-		// record this dependency
-		dependencies.ensure(resource);
-		dependencies.ensureLink(from.getProject(), resource);
-		
-		// take action
-		BuildResource findResource = conf.findResource(resource.toString());
-		moveUp(from, findResource.getBuiltBy());
-		return false;
-	}
-
-	public void addAllProjectDirs(RunClassPath classpath, Project project) {
+	// TODO: this should be in Java Nature
+	public void addAllProjectDirs(RunClassPath classpath) {
+		/*
 		if (packagesProvidedByDirectoriesInProject.containsKey(project))
 		{
 			SetMap<String, File> setMap = packagesProvidedByDirectoriesInProject.get(project);
 			for (File f : setMap.values())
 				classpath.add(f);
-		}			
+		}
+		*/			
 	}
 	
 	// TODO: this is more general than just a java build command, but what?
 	public void addDependency(JavaBuildCommand javaBuildCommand, String needsJavaPackage) {
+		/*
 		// First, try and resolve it with a base jar, or a built jar
 		if (availablePackages.containsKey(needsJavaPackage))
 		{
@@ -157,61 +145,19 @@ public class BuildContext {
 			return;
 		}
 		throw new JavaBuildFailure("cannot find any code that defines package " + needsJavaPackage);
+		*/
 	}
 
-	public void limitBuildTo(Set<Project> changedProjects) {
-		needed = new HashSet<BuildCommand>();
-		
-		while (true)
+	// TODO: should reference strategems, not build commands
+	// but the build commands should go to
+	private void moveUp(Strategem current, Strategem required) {
+		for (int idx=commandToExecute;idx<strats.size();idx++)
 		{
-			HashSet<Project> more = new HashSet<Project>(); 
-			for (Project p : changedProjects)
+			if (strats.get(idx) == required)
 			{
-				// Everything north (or left, or whatever - things that depend on it) of here needs rebuilding
-				Node<BuildResource> find = dependencies.find(p);
-				more.addAll(findDependingProjects(find));
-			}
-			more.removeAll(changedProjects);
-			if (more.size() == 0)
-				break;
-			changedProjects.addAll(more);
-		}
-		
-		for (BuildCommand bc : cmds)
-		{
-			if (changedProjects.contains(bc.getProject()))
-				needed.add(bc);
-			
-			// TODO: and all parents ... unless that's included before we come in
-		}
-	}
-
-	private Set<Project> findDependingProjects(Node<BuildResource> find) {
-		Set<Link<BuildResource>> linksTo = find.linksTo(); // the ones that depend on it
-		Set<Project> ret = new HashSet<Project>();
-		for (Link<BuildResource> l : linksTo)
-		{
-			Node<BuildResource> br = l.getFromNode();
-			if (br.getEntry() instanceof Project)
-				ret.add((Project) br.getEntry());
-			ret.addAll(findDependingProjects(br));
-		}
-		return ret;
-	}
-
-	private void moveUp(BuildCommand from, Project p) {
-		int moveTo = -1;
-		for (int cmd=commandToExecute;cmd<cmds.size();cmd++)
-		{
-			BuildCommand bc = cmds.get(cmd);
-			if (bc == from)
-				moveTo = cmd;
-			if (moveTo == -1)
-				continue;
-			if (bc.getProject() == p)
-			{
-				cmds.remove(cmd);
-				cmds.add(moveTo++, bc);
+				strats.remove(idx);
+				strats.add(commandToExecute, required);
+				return;
 			}
 		}
 	}
@@ -219,6 +165,7 @@ public class BuildContext {
 	public void loadCache() {
 		if (!dependencyFile.canRead())
 			return;
+		/* TODO: come back to me
 		final XML input = XML.fromFile(dependencyFile);
 		int moveTo = 0;
 		List<Object[]> pass2 = new ArrayList<Object[]>();
@@ -228,7 +175,7 @@ public class BuildContext {
 			String from = e.get("from");
 			for (int i=moveTo;i<cmds.size();i++)
 			{
-				BuildCommand bc = cmds.get(i);
+				Tactic bc = cmds.get(i);
 				if (bc.getProject().toString().equals(from))
 				{
 					proj = bc.getProject();
@@ -259,7 +206,7 @@ public class BuildContext {
 					if (provider instanceof JarResource)
 					{
 						JarResource jr = (JarResource)provider;
-						for (BuildCommand jbc : commandsFor(proj))
+						for (Tactic jbc : commandsFor(proj))
 						{
 							if (jbc instanceof JavaBuildCommand)
 								((JavaBuildCommand)jbc).addToClasspath(jr.getFile());
@@ -274,9 +221,11 @@ public class BuildContext {
 					throw new QuickBuildException("The tag " + r.tag() + " is unknown");
 			}
 		}
+		*/
 	}
 
 	public void saveDependencies() {
+		/* TODO: come back to me 
 		final XML output = XML.create("1.0", "Dependencies");
 		dependencies.postOrderTraverse(new NodeWalker<BuildResource>() {
 			@Override
@@ -292,7 +241,7 @@ public class BuildContext {
 					BuildResource to = l.getTo();
 					ref.setAttribute("on", to.toString());
 				}
-				for (BuildCommand bc : commandsFor(proj))
+				for (Tactic bc : commandsFor(proj))
 				{
 					if (!(bc instanceof JarBuildCommand))
 						continue;
@@ -303,19 +252,10 @@ public class BuildContext {
 
 		});
 		output.write(dependencyFile);
+		*/
 	}
 
-	private Iterable<BuildCommand> commandsFor(Project proj) {
-		List<BuildCommand> ret = new ArrayList<BuildCommand>();
-		for (BuildCommand bc : cmds)
-		{
-			if (bc.getProject() == proj)
-				ret.add(bc);
-		}
-		return ret;
-	}
-
-	public BuildStatus execute(BuildCommand bc) {
+	public BuildStatus execute(Tactic bc) {
 		// Record when first build started
 		if (buildStarted == null)
 			buildStarted = new Date();
@@ -360,12 +300,20 @@ public class BuildContext {
 		}
 	}
 
-	public BuildCommand next() {
-		if (commandToExecute >= cmds.size())
-			return null;
-		
-		BuildCommand bc = cmds.get(commandToExecute);
-		return bc;
+	public Tactic next() {
+		for (;;)
+		{
+			if (currentCommands != null && currentCommands.hasNext())
+				return currentCommands.next();
+			
+			if (commandToExecute >= strats.size())
+				return null;
+	
+			currentStrat = strats.get(commandToExecute);
+			currentCommands = currentStrat.tactics().iterator();
+			
+			commandToExecute++; 
+		}
 	}
 
 	public void advance() {
@@ -380,9 +328,9 @@ public class BuildContext {
 	}
 
 	public void tryAgain() {
-		BuildCommand bc = cmds.get(commandToExecute);
+		currentCommands = null;
 		if (++targetFailures >= 3)
-			throw new UtilException("The command " + bc + " failed 3 times in a row");
+			throw new UtilException("The strategy " + currentStrat + " failed 3 times in a row");
 	}
 
 	public File getPath(String name) {

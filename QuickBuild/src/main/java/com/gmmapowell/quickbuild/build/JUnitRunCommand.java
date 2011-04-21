@@ -1,28 +1,28 @@
 package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
-import java.util.List;
-import java.util.Set;
 
-import com.gmmapowell.quickbuild.config.Project;
+import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.StructureHelper;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
-public class JUnitRunCommand implements BuildCommand {
-	private final Project project;
+public class JUnitRunCommand implements Tactic {
 	private final File srcdir;
 	private final RunClassPath classpath;
 	private final BuildClassPath bootclasspath = new BuildClassPath();
+	private final StructureHelper files;
 
-	public JUnitRunCommand(Project project, JavaBuildCommand jbc) {
-		this.project = project;
-		this.srcdir = new File(project.getBaseDir(), "src/test/java");
+	public JUnitRunCommand(Strategem parent, StructureHelper files, JavaBuildCommand jbc) {
+		this.files = files;
+		this.srcdir = new File(files.getBaseDir(), "src/test/java");
 		classpath = new RunClassPath(jbc);
 	}
 
 	@Override
 	public BuildStatus execute(BuildContext cxt) {
-		cxt.addAllProjectDirs(classpath, project);
+		// TODO: cxt.addAllProjectDirs(classpath, project);
 		RunProcess proc = new RunProcess("java");
 		proc.captureStdout();
 		proc.captureStderr();
@@ -51,28 +51,18 @@ public class JUnitRunCommand implements BuildCommand {
 	}
 
 	@Override
-	public Project getProject() {
-		return project;
-	}
-	
-	@Override
 	public String toString() {
 		return "JUnit Runner: " + srcdir;
 	}
 
-	@Override
-	public Set<String> getPackagesProvided() {
-		return null;
-	}
-
-	@Override
-	public List<BuildResource> generatedResources() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public void addToBootClasspath(File resource) {
 		bootclasspath.add(resource);
+	}
+
+	@Override
+	public Strategem belongsTo() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

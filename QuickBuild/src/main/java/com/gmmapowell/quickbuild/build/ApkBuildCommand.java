@@ -1,50 +1,27 @@
 package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import com.gmmapowell.quickbuild.config.AndroidContext;
-import com.gmmapowell.quickbuild.config.Project;
+import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
-public class ApkBuildCommand implements BuildCommand {
+public class ApkBuildCommand implements Tactic {
 
-	private final Project project;
 	private final AndroidContext acxt;
 	private final File zipfile;
 	private final File dexFile;
 	private final File apkFile;
 	ApkResource apkResource;
 
-	public ApkBuildCommand(AndroidContext acxt, Project project, File zipfile, File dexFile, File apkFile) {
+	public ApkBuildCommand(AndroidContext acxt, File zipfile, File dexFile, File apkFile) {
 		this.acxt = acxt;
-		this.project = project;
 		this.zipfile = zipfile;
 		this.dexFile = dexFile;
 		this.apkFile = apkFile;
-		apkResource = new ApkResource(project, apkFile);
 	}
 	
-	@Override
-	public Project getProject() {
-		return project;
-	}
-
-	@Override
-	public List<BuildResource> generatedResources() {
-		List<BuildResource> ret = new ArrayList<BuildResource>();
-		ret.add(apkResource);
-		return ret;
-	}
-
-	@Override
-	public Set<String> getPackagesProvided() {
-		return null;
-	}
-
 	@Override
 	public BuildStatus execute(BuildContext cxt) {
 		RunProcess proc = new RunProcess(acxt.getAPKBuilder().getPath());
@@ -70,5 +47,11 @@ public class ApkBuildCommand implements BuildCommand {
 	@Override
 	public String toString() {
 		return "apk builder: " + FileUtils.makeRelative(apkFile);
+	}
+
+	@Override
+	public Strategem belongsTo() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

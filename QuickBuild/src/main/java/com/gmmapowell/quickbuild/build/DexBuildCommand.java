@@ -3,44 +3,26 @@ package com.gmmapowell.quickbuild.build;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import com.gmmapowell.quickbuild.config.AndroidContext;
-import com.gmmapowell.quickbuild.config.Project;
+import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.StructureHelper;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
-public class DexBuildCommand implements BuildCommand {
+public class DexBuildCommand implements Tactic {
 	private final AndroidContext acxt;
-	private final Project project;
 	private final File bindir;
 	private final File dexFile;
 	private final List<File> jars = new ArrayList<File>();
 	private final File libdir;
 
-	public DexBuildCommand(AndroidContext acxt, Project project, File bindir, File dexFile) {
+	public DexBuildCommand(AndroidContext acxt, Strategem parent, StructureHelper files, File bindir, File dexFile) {
 		this.acxt = acxt;
-		this.project = project;
 		this.bindir = bindir;
-		this.libdir = project.getRelative("lib");
+		this.libdir = files.getRelative("lib");
 		this.dexFile = dexFile;
-	}
-
-	@Override
-	public Project getProject() {
-		return project;
-	}
-	
-	@Override
-	public List<BuildResource> generatedResources() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Set<String> getPackagesProvided() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	public void addJar(File file) {
@@ -82,6 +64,12 @@ public class DexBuildCommand implements BuildCommand {
 	@Override
 	public String toString() {
 		return "Create Dex: " + dexFile;
+	}
+
+	@Override
+	public Strategem belongsTo() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

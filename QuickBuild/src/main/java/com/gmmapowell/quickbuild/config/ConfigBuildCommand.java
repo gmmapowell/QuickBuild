@@ -1,13 +1,9 @@
 package com.gmmapowell.quickbuild.config;
 
-import java.util.Collection;
-
-import com.gmmapowell.quickbuild.build.BuildCommand;
+import com.gmmapowell.quickbuild.core.Strategem;
 
 public interface ConfigBuildCommand extends ConfigCommand {
 
-	Collection<? extends BuildCommand> buildCommands();
-	void applyConfig(Config config);
-	Project project();
+	Strategem applyConfig(Config config);
 
 }
