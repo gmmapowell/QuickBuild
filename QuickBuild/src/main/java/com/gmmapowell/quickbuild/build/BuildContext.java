@@ -20,6 +20,7 @@ import com.gmmapowell.graphs.NodeWalker;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.Project;
 import com.gmmapowell.quickbuild.exceptions.JavaBuildFailure;
+import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.DateUtils;
 import com.gmmapowell.utils.FileUtils;
@@ -220,6 +221,7 @@ public class BuildContext {
 			return;
 		final XML input = XML.fromFile(dependencyFile);
 		int moveTo = 0;
+		List<Object[]> pass2 = new ArrayList<Object[]>();
 		for (XMLElement e : input.top().elementChildren())
 		{
 			Project proj = null;
@@ -239,9 +241,16 @@ public class BuildContext {
 				}
 			}
 			if (proj == null)
-				throw new QuickBuildException("Did not find any build commands for " + from);
-			for (XMLElement r : e.elementChildren())
-			{
+				throw new QuickBuildCacheException("Did not find any build commands for " + from);
+			pass2.add(new Object[] { proj, e.elementChildren() });
+		}
+		
+		for (Object[] po : pass2)
+		{
+			Project proj = (Project) po[0];
+			@SuppressWarnings("unchecked")
+			List<XMLElement> elts = (List<XMLElement>) po[1];
+			for (XMLElement r : elts) {
 				if (r.hasTag("References"))
 				{
 					String on = r.get("on");
@@ -259,7 +268,7 @@ public class BuildContext {
 				}
 				else if (r.hasTag("Provides"))
 				{
-					
+					// no significance
 				}
 				else
 					throw new QuickBuildException("The tag " + r.tag() + " is unknown");
@@ -378,6 +387,10 @@ public class BuildContext {
 
 	public File getPath(String name) {
 		return conf.getPath(name);
+	}
+
+	public void clearCache() {
+		dependencies.clear();
 	}
 
 }

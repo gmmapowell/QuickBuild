@@ -9,6 +9,8 @@ public interface BuildCommand {
 
 	public Project getProject();
 
+	// TODO: this feels like "special-case" duplication.  Packages should just be resources like anything else.
+	// We should have a "PackageResource" class
 	public Set<String> getPackagesProvided();
 
 	public List<BuildResource> generatedResources();

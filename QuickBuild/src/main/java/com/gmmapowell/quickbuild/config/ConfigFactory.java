@@ -67,6 +67,10 @@ public class ConfigFactory implements CommandObjectFactory {
 		{
 			return new MavenLibraryCommand(toks);
 		}
+		else if (cmd.equals("copy"))
+		{
+			return new CopyDirectoryCommand(toks);
+		}
 		else if (cmd.equals("jar"))
 		{
 			return new JarCommand(toks);

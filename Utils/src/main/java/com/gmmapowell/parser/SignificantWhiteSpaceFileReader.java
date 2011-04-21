@@ -35,6 +35,7 @@ public class SignificantWhiteSpaceFileReader {
 		T curr = null;
 		while ((s = nextLine()) != null)
 		{
+			System.out.println("Read line " + s.lineNo() + " ind = " + s.indent());
 			if (s.blank())
 				continue;
 			if (s.indent < ind)
@@ -69,11 +70,11 @@ public class SignificantWhiteSpaceFileReader {
 		String s;
 		while ((s = lnr.readLine()) != null)
 		{
-			nextLine = new TokenizedLine(s);
+			nextLine = new TokenizedLine(lnr.getLineNumber(), s);
 			if (nextLine.length() > 0)
 				return nextLine;
 		}
-		return null;
+		return nextLine = null;
 	}
 
 	private void accept() {

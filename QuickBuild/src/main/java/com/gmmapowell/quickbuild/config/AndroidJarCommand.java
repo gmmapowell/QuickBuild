@@ -79,4 +79,8 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 		return project;
 	}
 
+	@Override
+	public String toString() {
+		return "AndroidJar " + project;
+	}
 }

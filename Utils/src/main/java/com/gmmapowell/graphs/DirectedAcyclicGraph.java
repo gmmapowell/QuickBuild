@@ -13,8 +13,8 @@ import com.gmmapowell.lambda.FuncR1;
 import com.gmmapowell.lambda.Lambda;
 
 public class DirectedAcyclicGraph<N> {
-	private HashSet<Node<N>> nodes = new HashSet<Node<N>>();
-	private HashSet<Link<N>> links = new HashSet<Link<N>>();
+	private final HashSet<Node<N>> nodes = new HashSet<Node<N>>();
+	private final HashSet<Link<N>> links = new HashSet<Link<N>>();
 	private Comparator<N> spanSize = new Comparator<N>() {
 		@Override
 		public int compare(N arg0, N arg1) {
@@ -139,5 +139,10 @@ public class DirectedAcyclicGraph<N> {
 		nodesDone.add(n);
 		for (Node<N> child : ineed)
 			recurseOver(ret, nodesDone, linksDone, child);
+	}
+
+	public void clear() {
+		nodes.clear();
+		links.clear();
 	}
 }

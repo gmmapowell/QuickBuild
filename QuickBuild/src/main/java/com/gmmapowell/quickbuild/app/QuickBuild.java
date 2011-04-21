@@ -13,6 +13,7 @@ import com.gmmapowell.quickbuild.config.Arguments;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.config.Project;
+import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
@@ -50,7 +51,15 @@ public class QuickBuild {
 			
 		// now we need to read back anything we've cached ...
 		BuildContext cxt = new BuildContext(conf);
-		cxt.loadCache();
+		try
+		{
+			cxt.loadCache();
+		}
+		catch (QuickBuildCacheException ex) {
+			// the cache failed to load because of inconsistencies or whatever
+			// ignore it and try again
+			System.out.println("Cache was out of date; ignoring");
+		}
 		
 		for (String s : arguments.dirResources)
 		{

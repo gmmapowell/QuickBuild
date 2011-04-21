@@ -10,28 +10,28 @@ import com.gmmapowell.parser.TokenizedLine;
 public class TestTokenizedLine {
 	@Test
 	public void testBlankIsOK() {
-		TokenizedLine toks = new TokenizedLine("");
+		TokenizedLine toks = new TokenizedLine(1, "");
 		assertEquals(0, toks.indent);
 		assertEquals(0, toks.tokens.length);
 	}
 
 	@Test
 	public void testCommentInColumn0() {
-		TokenizedLine toks = new TokenizedLine("# hello");
+		TokenizedLine toks = new TokenizedLine(1, "# hello");
 		assertEquals(0, toks.indent);
 		assertEquals(0, toks.tokens.length);
 	}
 
 	@Test
 	public void testCommentInColumn3Begin() {
-		TokenizedLine toks = new TokenizedLine("   # hello");
+		TokenizedLine toks = new TokenizedLine(1, "   # hello");
 		assertEquals(3, toks.indent);
 		assertEquals(0, toks.tokens.length);
 	}
 
 	@Test
 	public void testTokenInColumn0() {
-		TokenizedLine toks = new TokenizedLine("hello");
+		TokenizedLine toks = new TokenizedLine(1, "hello");
 		assertEquals(0, toks.indent);
 		assertEquals(1, toks.tokens.length);
 		assertEquals("hello", toks.tokens[0]);
@@ -39,7 +39,7 @@ public class TestTokenizedLine {
 
 	@Test
 	public void testTokenInColumn0WithTrailingWS() {
-		TokenizedLine toks = new TokenizedLine("hello  ");
+		TokenizedLine toks = new TokenizedLine(1, "hello  ");
 		assertEquals(0, toks.indent);
 		assertEquals(1, toks.tokens.length);
 		assertEquals("hello", toks.tokens[0]);
@@ -47,7 +47,7 @@ public class TestTokenizedLine {
 
 	@Test
 	public void testTokenInColumn3WithTrailingWS() {
-		TokenizedLine toks = new TokenizedLine("   hello  ");
+		TokenizedLine toks = new TokenizedLine(1, "   hello  ");
 		assertEquals(3, toks.indent);
 		assertEquals(1, toks.tokens.length);
 		assertEquals("hello", toks.tokens[0]);
@@ -55,7 +55,7 @@ public class TestTokenizedLine {
 
 	@Test
 	public void testCommentAfter1stTokInColumn3() {
-		TokenizedLine toks = new TokenizedLine("   hello # world");
+		TokenizedLine toks = new TokenizedLine(1, "   hello # world");
 		assertEquals(3, toks.indent);
 		assertEquals(1, toks.tokens.length);
 		assertEquals("hello", toks.tokens[0]);
@@ -63,7 +63,7 @@ public class TestTokenizedLine {
 
 	@Test
 	public void testTwoTokenInColumn3() {
-		TokenizedLine toks = new TokenizedLine("   hello world ");
+		TokenizedLine toks = new TokenizedLine(1, "   hello world ");
 		assertEquals(3, toks.indent);
 		assertEquals(2, toks.tokens.length);
 		assertEquals("hello", toks.tokens[0]);
@@ -72,7 +72,7 @@ public class TestTokenizedLine {
 	
 	@Test
 	public void testSingleQuotedStringWrapsSpace() {
-		TokenizedLine toks = new TokenizedLine("   'hello world'");
+		TokenizedLine toks = new TokenizedLine(1, "   'hello world'");
 		assertEquals(3, toks.indent);
 		assertEquals(1, toks.tokens.length);
 		assertEquals("hello world", toks.tokens[0]);
@@ -80,7 +80,7 @@ public class TestTokenizedLine {
 	
 	@Test
 	public void testSingleQuotedStringWrapsQUOT() {
-		TokenizedLine toks = new TokenizedLine("   'hello\"world'");
+		TokenizedLine toks = new TokenizedLine(1, "   'hello\"world'");
 		assertEquals(3, toks.indent);
 		assertEquals(1, toks.tokens.length);
 		assertEquals("hello\"world", toks.tokens[0]);
@@ -88,7 +88,7 @@ public class TestTokenizedLine {
 	
 	@Test
 	public void testSingleQuotedStringCanNestQuote() {
-		TokenizedLine toks = new TokenizedLine("   'hello''world'");
+		TokenizedLine toks = new TokenizedLine(1, "   'hello''world'");
 		assertEquals(3, toks.indent);
 		assertEquals(1, toks.tokens.length);
 		assertEquals("hello'world", toks.tokens[0]);
@@ -96,11 +96,11 @@ public class TestTokenizedLine {
 
 	@Test(expected=UtilException.class)
 	public void testStringCannotContinueAfterCloseQuote() {
-		new TokenizedLine("   'hello'world'");
+		new TokenizedLine(1, "   'hello'world'");
 	}
 	
 	@Test(expected=UtilException.class)
 	public void testStringCannotHaveTabInIndent() {
-		new TokenizedLine("\t");
+		new TokenizedLine(1, "\t");
 	}
 }

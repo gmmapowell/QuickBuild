@@ -29,10 +29,12 @@ public class TokenizedLine {
 		}
 	}
 
+	public final int lineNo;
 	public final int indent;
 	public final String[] tokens;
 	
-	public TokenizedLine(String str) {
+	public TokenizedLine(int lineNo, String str) {
+		this.lineNo = lineNo;
 		Mode mode = Mode.BEGIN;
 		int tokStart = -1;
 		boolean pendingQuote = false;
@@ -118,6 +120,14 @@ public class TokenizedLine {
 	public <T> void process(T into, ArgumentDefinition... defns) {
 		String[] args = Arrays.copyOfRange(tokens, 1, length());
 		ProcessArgs.process(into, defns, args);
+	}
+
+	public int lineNo() {
+		return lineNo;
+	}
+
+	public int indent() {
+		return indent;
 	}
 
 }

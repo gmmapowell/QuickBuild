@@ -2,6 +2,7 @@ package com.gmmapowell.utils;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -324,5 +325,35 @@ public class FileUtils {
 
 	public static String getPackage(File file) {
 		return convertToDottedName(file.getParentFile());
+	}
+
+	public static void copyRecursive(File from, File to) {
+		if (from == null)
+			return;
+		assertDirectory(to);
+		File[] toCopy = from.listFiles();
+		int nerrors = 0;
+		for (File f : toCopy)
+		{
+			try {
+				File f2 = new File(to, f.getName());
+				if (f.isDirectory())
+					copyRecursive(f, f2);
+				else
+					copy(f, f2);
+			} catch (Exception ex) {
+				nerrors++;
+			}
+		}
+		if (nerrors > 0)
+			throw new UtilException("Encountered " + nerrors + " copying " + from + " to " + to);
+	}
+
+	private static void copy(File f, File f2) throws IOException {
+		FileInputStream fis = new FileInputStream(f);
+		FileOutputStream fos = new FileOutputStream(f2);
+		copyStream(fis, fos);
+		fis.close();
+		fos.close();
 	}
 }
