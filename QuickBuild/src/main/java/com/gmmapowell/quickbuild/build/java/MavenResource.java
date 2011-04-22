@@ -12,6 +12,11 @@ public class MavenResource extends JarResource {
 	}
 
 	@Override
+	public String compareAs() {
+		return "MavenJar["+pkgname+"]";
+	}
+	
+	@Override
 	public String toString() {
 		return "MavenJar["+pkgname+"]";
 	}

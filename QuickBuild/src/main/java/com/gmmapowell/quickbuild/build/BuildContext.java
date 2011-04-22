@@ -11,17 +11,50 @@ import java.util.Set;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.graphs.DependencyGraph;
+import com.gmmapowell.graphs.Link;
+import com.gmmapowell.graphs.Node;
+import com.gmmapowell.graphs.NodeWalker;
 import com.gmmapowell.quickbuild.build.java.JUnitFailure;
 import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.ResourceListener;
+import com.gmmapowell.quickbuild.core.SolidResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.utils.DateUtils;
+import com.gmmapowell.utils.FileUtils;
+import com.gmmapowell.xml.XML;
+import com.gmmapowell.xml.XMLElement;
 
 public class BuildContext implements ResourceListener {
+	private static class ComparisonResource extends SolidResource {
+		private final String comparison;
+
+		public ComparisonResource(String from) {
+			super(null, new File(FileUtils.getCurrentDir(), "unused"));
+			this.comparison = from;
+		}
+
+		@Override
+		public Strategem getBuiltBy() {
+			throw new UtilException("Not implemented");
+		}
+
+		@Override
+		public File getPath() {
+			throw new UtilException("Not implemented");
+		}
+
+		@Override
+		public String compareAs() {
+			return comparison;
+		}
+
+	}
+
 	public class Notification {
 		private final Class<? extends BuildResource> cls;
 		private final Nature nature;
@@ -42,14 +75,15 @@ public class BuildContext implements ResourceListener {
 	private final DependencyGraph<BuildResource> dependencies = new DependencyGraph<BuildResource>();
 	private final List<JUnitFailure> failures = new ArrayList<JUnitFailure>();
 	private final File dependencyFile;
+	private final File buildOrderFile;
 	private Set<Tactic> needed = null; // is null to indicate build all
-	private int commandToExecute;
+	private int commandToExecute = -1;
 	private int targetFailures;
 	private Date buildStarted;
 	private int totalErrors;
 	private boolean buildBroken;
 	private int projectsWithTestFailures;
-	private List<Strategem> strats;
+	public List<Strategem> strats;
 	private Strategem currentStrat;
 	private Iterator<? extends Tactic> currentCommands;
 	private int currentStrategemCommandNo;
@@ -61,6 +95,7 @@ public class BuildContext implements ResourceListener {
 	public BuildContext(Config conf) {
 		this.conf = conf;
 		dependencyFile = new File(conf.getCacheDir(), "dependencies.xml");
+		buildOrderFile = new File(conf.getCacheDir(), "buildOrder.xml");
 		strats = conf.getStrategems();
 	}
 	
@@ -107,7 +142,7 @@ public class BuildContext implements ResourceListener {
 	// TODO: should reference strategems, not build commands
 	// but the build commands should go to
 	private void moveUp(Strategem current, Strategem required) {
-		for (int idx=commandToExecute;idx<strats.size();idx++)
+		for (int idx=commandToExecute+1;idx<strats.size();idx++)
 		{
 			if (strats.get(idx) == required)
 			{
@@ -122,97 +157,93 @@ public class BuildContext implements ResourceListener {
 	}
 
 	public void loadCache() {
-		if (!dependencyFile.canRead())
+		loadBuildOrderCache();
+		loadDependencyCache();
+	}
+	
+	private void loadBuildOrderCache() {
+		if (!buildOrderFile.canRead())
 			return;
-		/* TODO: come back to me
-		final XML input = XML.fromFile(dependencyFile);
+		final XML input = XML.fromFile(buildOrderFile);
 		int moveTo = 0;
-		List<Object[]> pass2 = new ArrayList<Object[]>();
+		loop:
 		for (XMLElement e : input.top().elementChildren())
 		{
-			Project proj = null;
-			String from = e.get("from");
-			for (int i=moveTo;i<cmds.size();i++)
+			String from = e.get("strategem");
+			for (int i=moveTo;i<strats.size();i++)
 			{
-				Tactic bc = cmds.get(i);
-				if (bc.getProject().toString().equals(from))
+				Strategem s = strats.get(i);
+				if (new StrategemResource(s).compareAs().equals(from))
 				{
-					proj = bc.getProject();
 					if (i != moveTo)
 					{
-						cmds.remove(i);
-						cmds.add(moveTo, bc);
+						strats.remove(i);
+						strats.add(moveTo, s);
 					}
 					moveTo++;
+					continue loop;
 				}
 			}
-			if (proj == null)
-				throw new QuickBuildCacheException("Did not find any build commands for " + from);
-			pass2.add(new Object[] { proj, e.elementChildren() });
+			throw new QuickBuildCacheException("Did not find any build commands for " + from);
 		}
-		
-		for (Object[] po : pass2)
+	}
+
+	public void loadDependencyCache()
+	{
+		if (!dependencyFile.canRead())
+			return;
+		try
 		{
-			Project proj = (Project) po[0];
-			@SuppressWarnings("unchecked")
-			List<XMLElement> elts = (List<XMLElement>) po[1];
-			for (XMLElement r : elts) {
-				if (r.hasTag("References"))
+			final XML input = XML.fromFile(dependencyFile);
+			for (XMLElement e : input.top().elementChildren())
+			{
+				String from = e.get("from");
+				Node<BuildResource> target = dependencies.find(new ComparisonResource(from));
+				for (XMLElement r : e.elementChildren())
 				{
-					String on = r.get("on");
-					BuildResource provider = conf.findResource(on);
-					dependencies.ensureLink(proj, provider);
-					if (provider instanceof JarResource)
-					{
-						JarResource jr = (JarResource)provider;
-						for (Tactic jbc : commandsFor(proj))
-						{
-							if (jbc instanceof JavaBuildCommand)
-								((JavaBuildCommand)jbc).addToClasspath(jr.getFile());
-						}
-					}
+					String resource = r.get("resource");
+					Node<BuildResource> source = dependencies.find(new ComparisonResource(resource));
+					System.out.println(target + " <= " + source);
+					dependencies.ensureLink(target.getEntry(), source.getEntry());
 				}
-				else if (r.hasTag("Provides"))
-				{
-					// no significance
-				}
-				else
-					throw new QuickBuildException("The tag " + r.tag() + " is unknown");
 			}
 		}
-		*/
+		catch (Exception ex)
+		{
+			throw new QuickBuildCacheException("Could not decipher the dependency cache");
+		}
 	}
 
 	public void saveDependencies() {
-		System.out.println(dependencies);
-		/* TODO: come back to me 
 		final XML output = XML.create("1.0", "Dependencies");
 		dependencies.postOrderTraverse(new NodeWalker<BuildResource>() {
 			@Override
 			public void present(Node<BuildResource> node) {
-				if (!(node.getEntry() instanceof Project))
-					return;
-				Project proj = (Project)node.getEntry();
 				XMLElement dep = output.addElement("Dependency");
-				dep.setAttribute("from", node.getEntry().toString());
+				dep.setAttribute("from", node.getEntry().compareAs());
 				for (Link<BuildResource> l : node.linksFrom())
 				{
 					XMLElement ref = dep.addElement("References");
 					BuildResource to = l.getTo();
-					ref.setAttribute("on", to.toString());
-				}
-				for (Tactic bc : commandsFor(proj))
-				{
-					if (!(bc instanceof JarBuildCommand))
-						continue;
-					XMLElement provides = dep.addElement("Provides");
-					provides.setAttribute("jar", ((JarBuildCommand)bc).getFile().getPath());
+					ref.setAttribute("resource", to.compareAs());
 				}
 			}
 
 		});
+		FileUtils.assertDirectory(dependencyFile.getParentFile());
 		output.write(dependencyFile);
-		*/
+	}
+
+
+	public void saveBuildOrder() {
+		final XML output = XML.create("1.0", "BuildOrder");
+		for (Strategem s : strats)
+		{
+			XMLElement item = output.addElement("BuildItem");
+			item.setAttribute("strategem", new StrategemResource(s).compareAs());
+		}
+		FileUtils.assertDirectory(buildOrderFile.getParentFile());
+		output.write(buildOrderFile);
 	}
 
 	public BuildStatus execute(Tactic bc) {
@@ -229,7 +260,7 @@ public class BuildContext implements ResourceListener {
 		}
 		else
 			System.out.print("* ");
-		System.out.println(commandToExecute+"."+currentStrategemCommandNo + ": " + bc);
+		System.out.println((commandToExecute+1)+"."+currentStrategemCommandNo + ": " + bc);
 		if (!doit)
 			return BuildStatus.IGNORED;
 		return bc.execute(this);
@@ -273,14 +304,14 @@ public class BuildContext implements ResourceListener {
 				return repeat;
 			}
 			
+			if (moveOn)
+				commandToExecute++; 
+
 			if (commandToExecute >= strats.size())
 				return null;
 	
 			currentStrat = strats.get(commandToExecute);
 			currentCommands = currentStrat.tactics().iterator();
-			
-			if (moveOn)
-				commandToExecute++; 
 			currentStrategemCommandNo = 0;
 		}
 	}

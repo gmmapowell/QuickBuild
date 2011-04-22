@@ -59,6 +59,7 @@ public class QuickBuild {
 		System.out.println("---- Dependencies");
 		System.out.print(cxt.printableDependencyGraph());
 		System.out.println("----");
+		System.out.println(cxt.strats);
 		if (arguments.configOnly)
 			return;
 
@@ -110,6 +111,7 @@ public class QuickBuild {
 			cxt.advance();
 		}
 		cxt.saveDependencies();
+		cxt.saveBuildOrder();
 		cxt.showAnyErrors();
 	}
 }
