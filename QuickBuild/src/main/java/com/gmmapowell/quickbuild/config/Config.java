@@ -14,6 +14,7 @@ import java.util.Set;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.http.ProxyInfo;
 import com.gmmapowell.http.ProxyableConnection;
+import com.gmmapowell.quickbuild.build.android.AndroidContext;
 import com.gmmapowell.quickbuild.build.java.MavenResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.ResourceListener;
@@ -119,7 +120,8 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		File cacheFile = new File(mvnCache, mavenToFile.getPath());
 		if (!cacheFile.exists())
 			downloadFromMaven(pkginfo, mavenToFile, cacheFile);
-		availableResources.add(new MavenResource(pkginfo, cacheFile));
+		MavenResource res = new MavenResource(pkginfo, cacheFile);
+		availableResources.add(res);
 	}
 
 	private void downloadFromMaven(String pkginfo, File mavenToFile, File cacheTo) {
@@ -142,13 +144,10 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		throw new QuickBuildException("Could not find maven package " + pkginfo);
 	}
 	
-
-	public void tellMeAboutExtantResources(ResourceListener lsnr) {
+	public void tellMeAboutInitialResources(ResourceListener lsnr) {
 		for (BuildResource r : availableResources)
 			lsnr.resourceAvailable(r);
-		// TODO: keep track of this for later ?
 	}
-
 	
 	@Override
 	public String toString() {
@@ -219,11 +218,6 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 
 	public List<Strategem> getStrategems() {
 		return strategems;
-	}
-
-	public BuildResource getResourceByName(String fromProjectName) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

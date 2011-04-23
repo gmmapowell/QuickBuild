@@ -7,4 +7,5 @@ public interface BuildResource {
 	Strategem getBuiltBy();
 	File getPath();
 	String compareAs();
+	BuildResource cloneInto(CloningResource toResource);
 }

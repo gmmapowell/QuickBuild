@@ -81,7 +81,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			if (jar != null)
 				jar.add(new File(files.getOutputDir(), bin));
 			
-			sources.add(new JavaSourceDirResource(this, jar, dir));
+			sources.add(new JavaSourceDirResource(this, dir));
 			JavaBuildCommand ret = new JavaBuildCommand(this, files, src, bin);
 			accum.add(ret);
 			return ret;

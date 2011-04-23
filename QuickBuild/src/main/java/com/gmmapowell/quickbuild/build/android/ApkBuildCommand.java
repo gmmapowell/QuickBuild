@@ -4,8 +4,6 @@ import java.io.File;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
-import com.gmmapowell.quickbuild.config.AndroidContext;
-import com.gmmapowell.quickbuild.core.SolidResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.system.RunProcess;
@@ -17,13 +15,14 @@ public class ApkBuildCommand implements Tactic {
 	private final File zipfile;
 	private final File dexFile;
 	private final File apkFile;
-	SolidResource apkResource;
+	private final ApkResource apkResource;
 
-	public ApkBuildCommand(AndroidContext acxt, File zipfile, File dexFile, File apkFile) {
+	public ApkBuildCommand(AndroidContext acxt, File zipfile, File dexFile, File apkFile, ApkResource apkResource) {
 		this.acxt = acxt;
 		this.zipfile = zipfile;
 		this.dexFile = dexFile;
 		this.apkFile = apkFile;
+		this.apkResource = apkResource;
 	}
 	
 	@Override
@@ -41,7 +40,7 @@ public class ApkBuildCommand implements Tactic {
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
-			cxt.addBuiltResource(apkResource);
+			cxt.resourceAvailable(apkResource);
 			return BuildStatus.SUCCESS;
 		}
 		System.out.println(proc.getStderr());

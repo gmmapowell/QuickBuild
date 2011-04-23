@@ -1,4 +1,4 @@
-package com.gmmapowell.quickbuild.config;
+package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -8,6 +8,11 @@ import java.util.List;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.java.JarBuildCommand;
 import com.gmmapowell.quickbuild.build.java.JavaBuildCommand;
+import com.gmmapowell.quickbuild.build.java.JavaSourceDirResource;
+import com.gmmapowell.quickbuild.config.Config;
+import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
+import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
+import com.gmmapowell.quickbuild.config.SpecificChildrenParent;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
@@ -22,6 +27,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 	private final File projectDir;
 	private AndroidContext acxt;
 	private StructureHelper files;
+	private File srcdir;
 
 	@SuppressWarnings("unchecked")
 	public AndroidJarCommand(TokenizedLine toks) {
@@ -33,6 +39,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 	public AndroidJarCommand applyConfig(Config config) {
 		acxt = config.getAndroidContext();
 		files = new StructureHelper(projectDir, config.getOutput());
+		srcdir = files.getRelative("src/main/java");
 		return this;
 	}
 
@@ -85,25 +92,23 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 
 	@Override
 	public ResourcePacket needsResources() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ResourcePacket();
 	}
 
 	@Override
 	public ResourcePacket providesResources() {
-		// TODO Auto-generated method stub
-		return null;
+		ResourcePacket ret = new ResourcePacket();
+		ret.add(new JavaSourceDirResource(this, srcdir));
+		return ret;
 	}
 
 	@Override
 	public ResourcePacket buildsResources() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ResourcePacket();
 	}
 
 	@Override
 	public File rootDirectory() {
-		// TODO Auto-generated method stub
-		return null;
+		return projectDir;
 	}
 }

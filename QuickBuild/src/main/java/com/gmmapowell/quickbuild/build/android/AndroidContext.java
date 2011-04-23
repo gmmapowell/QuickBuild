@@ -1,7 +1,8 @@
-package com.gmmapowell.quickbuild.config;
+package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
 
+import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
 import com.gmmapowell.utils.FileUtils;
 

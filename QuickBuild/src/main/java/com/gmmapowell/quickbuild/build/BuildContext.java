@@ -8,7 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import java.util.TreeMap;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.graphs.DependencyGraph;
 import com.gmmapowell.graphs.Link;
@@ -19,6 +19,7 @@ import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
+import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourceListener;
 import com.gmmapowell.quickbuild.core.SolidResource;
 import com.gmmapowell.quickbuild.core.Strategem;
@@ -72,6 +73,7 @@ public class BuildContext implements ResourceListener {
 	}
 
 	private final Config conf;
+	private final Map<String, BuildResource> availableResources = new TreeMap<String, BuildResource>();
 	private final DependencyGraph<BuildResource> dependencies = new DependencyGraph<BuildResource>();
 	private final List<JUnitFailure> failures = new ArrayList<JUnitFailure>();
 	private final File dependencyFile;
@@ -101,9 +103,10 @@ public class BuildContext implements ResourceListener {
 	
 	public void configure()
 	{
-		conf.tellMeAboutExtantResources(this);
+		conf.tellMeAboutInitialResources(this);
 		for (Strategem s : strats)
 		{
+			System.out.println("Configuring " + s);
 			StrategemResource node = new StrategemResource(s);
 			dependencies.ensure(node);
 			
@@ -128,17 +131,6 @@ public class BuildContext implements ResourceListener {
 		}
 	}
 	
-	public void addBuiltResource(BuildResource resource) {
-		resourceAvailable(resource);
-		/* TODO: dependencies
-		System.out.println("The resource '" + resource + "' has been provided");
-		builtResources.add(resource);
-		dependencies.ensure(resource);
-		if (resource.getBuiltBy() != null)
-			dependencies.ensureLink(resource, resource.getBuiltBy());
-			*/
-	}
-
 	// TODO: should reference strategems, not build commands
 	// but the build commands should go to
 	private void moveUp(Strategem current, Strategem required) {
@@ -347,6 +339,7 @@ public class BuildContext implements ResourceListener {
 
 	@Override
 	public void resourceAvailable(BuildResource r) {
+		availableResources.put(r.compareAs(), r);
 		dependencies.ensure(r);
 		
 		for (Notification n : notifications)
@@ -383,6 +376,18 @@ public class BuildContext implements ResourceListener {
 	public Iterable<BuildResource> getDependencies(Strategem dependent) {
 		StrategemResource node = new StrategemResource(dependent);
 		return dependencies.allChildren(node);
+	}
+
+	public BuildResource getPendingResource(PendingResource pending) {
+		String resourceName = pending.compareAs();
+		if (!availableResources.containsKey(resourceName))
+		{
+			System.out.println("Resource " + resourceName + " not found.  Available Resources are:");
+			for (String s : availableResources.keySet())
+				System.out.println("  " + s);
+			throw new UtilException("There is no resource called " + resourceName);
+		}
+		return availableResources.get(resourceName);
 	}
 
 }

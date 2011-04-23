@@ -14,10 +14,8 @@ public class JUnitRunCommand implements Tactic {
 	private final File srcdir;
 	private final RunClassPath classpath;
 	private final BuildClassPath bootclasspath = new BuildClassPath();
-	private final StructureHelper files;
 
 	public JUnitRunCommand(Strategem parent, StructureHelper files, JavaBuildCommand jbc) {
-		this.files = files;
 		this.srcdir = new File(files.getBaseDir(), "src/test/java");
 		classpath = new RunClassPath(jbc);
 	}

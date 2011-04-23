@@ -3,10 +3,11 @@ package com.gmmapowell.quickbuild.build.java;
 import java.io.File;
 
 import com.gmmapowell.quickbuild.core.SolidResource;
+import com.gmmapowell.quickbuild.core.Strategem;
 
 public class JavaSourceDirResource extends SolidResource {
-	public JavaSourceDirResource(JarCommand jarCommand, JarBuildCommand jar, File dir) {
-		super(jarCommand, dir);
+	public JavaSourceDirResource(Strategem builder, File dir) {
+		super(builder, dir);
 	}
 
 	@Override

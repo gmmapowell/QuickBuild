@@ -1,4 +1,4 @@
-package com.gmmapowell.quickbuild.config;
+package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -6,12 +6,12 @@ import java.util.Collection;
 import java.util.List;
 
 import com.gmmapowell.parser.TokenizedLine;
-import com.gmmapowell.quickbuild.build.android.AaptGenBuildCommand;
-import com.gmmapowell.quickbuild.build.android.AaptPackageBuildCommand;
-import com.gmmapowell.quickbuild.build.android.ApkBuildCommand;
-import com.gmmapowell.quickbuild.build.android.DexBuildCommand;
 import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
 import com.gmmapowell.quickbuild.build.java.JavaBuildCommand;
+import com.gmmapowell.quickbuild.config.Config;
+import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
+import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
+import com.gmmapowell.quickbuild.config.SpecificChildrenParent;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
@@ -23,33 +23,36 @@ import com.gmmapowell.utils.FileUtils;
 public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private String projectName;
-	private final File projectDir;
+	private final File rootDir;
 	private AndroidContext acxt;
 	private StructureHelper files;
+	private ApkResource apkResource;
+	private File apkFile;
 
 	@SuppressWarnings("unchecked")
 	public AndroidCommand(TokenizedLine toks) {
 		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
-		projectDir = FileUtils.findDirectoryNamed(projectName);
+		rootDir = FileUtils.findDirectoryNamed(projectName);
 	}
 
 	@Override
 	public Strategem applyConfig(Config config) {
-		files = new StructureHelper(projectDir, config.getOutput());
+		files = new StructureHelper(rootDir, config.getOutput());
 		acxt = config.getAndroidContext();
+		apkFile = files.getOutput(projectName+".apk");
+		apkResource = new ApkResource(this, apkFile);
 		return this;
 	}
 
 	@Override
 	public Collection<? extends Tactic> tactics() {
 		List<Tactic> ret = new ArrayList<Tactic>();
-		File manifest = files.getRelative("AndroidManifest.xml");
-		File gendir = files.getRelative("gen");
-		File resdir = files.getRelative("res");
-		File assetsDir = files.getRelative("assets");
+		File manifest = files.getRelative("src/android/AndroidManifest.xml");
+		File gendir = files.getRelative("src/android/gen");
+		File resdir = files.getRelative("src/android/res");
+		File assetsDir = files.getRelative("src/android/assets");
 		File dexFile = files.getOutput("classes.dex");
 		File zipfile = files.getOutput(projectName+".ap_");
-		File apkFile = files.getOutput(projectName+".apk");
 		
 		AaptGenBuildCommand gen = new AaptGenBuildCommand(acxt, manifest, gendir, resdir);
 		ret.add(gen);
@@ -77,7 +80,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 			ret.add(junitRun);
 		}
 		
-		DexBuildCommand dex = new DexBuildCommand(acxt, this, files, files.getOutput("classes"), dexFile);
+		DexBuildCommand dex = new DexBuildCommand(acxt, this, files, files.getOutput("classes"), files.getRelative("src/android/lib"), dexFile);
 		for (ConfigApplyCommand cmd : options)
 		{
 			if (cmd instanceof AndroidUseLibraryCommand)
@@ -86,7 +89,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		ret.add(dex);
 		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(acxt, manifest, zipfile, resdir, assetsDir);
 		ret.add(pkg);
-		ApkBuildCommand apk = new ApkBuildCommand(acxt, zipfile, dexFile, apkFile); // TODO: pass down apk as a resource
+		ApkBuildCommand apk = new ApkBuildCommand(acxt, zipfile, dexFile, apkFile, apkResource);
 		ret.add(apk);
 		return ret;
 	}
@@ -105,25 +108,21 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 
 	@Override
 	public ResourcePacket needsResources() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ResourcePacket();
 	}
 
 	@Override
 	public ResourcePacket providesResources() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ResourcePacket();
 	}
 
 	@Override
 	public ResourcePacket buildsResources() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ResourcePacket();
 	}
 
 	@Override
 	public File rootDirectory() {
-		// TODO Auto-generated method stub
-		return null;
+		return rootDir;
 	}
 }

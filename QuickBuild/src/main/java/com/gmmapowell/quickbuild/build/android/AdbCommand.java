@@ -3,14 +3,15 @@ package com.gmmapowell.quickbuild.build.android;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
-import com.gmmapowell.quickbuild.config.AndroidContext;
+import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.SolidResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
-import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 
@@ -23,26 +24,22 @@ import com.gmmapowell.system.RunProcess;
 
 public class AdbCommand implements Tactic {
 	private final AndroidContext acxt;
-	private final Strategem parent;
-	private List<String[]> commands = new ArrayList<String[]>();
-	private List<BuildResource> requires = new ArrayList<BuildResource>();
-	private final StructureHelper files;
+	private List<Object[]> commands = new ArrayList<Object[]>();
 	private final SolidResource apk;
+	private final Strategem parent;
 
 	public AdbCommand(AndroidContext acxt, Strategem parent, StructureHelper files, SolidResource apk) {
 		this.acxt = acxt;
 		this.parent = parent;
-		this.files = files;
 		this.apk = apk;
 	}
 
 	public void reinstall()
 	{
-		command("install", "-r", apk.getPath().getPath());
-		requires.add(apk);
+		command("install", "-r", apk);
 	}
 	
-	private void command(String... args) {
+	private void command(Object... args) {
 		commands.add(args);
 	}
 
@@ -53,18 +50,19 @@ public class AdbCommand implements Tactic {
 		if (commands.size() != 1)
 			throw new QuickBuildException("Undecided about this - allowing multiple commands seems reasonable, but how would it be specified?  Either you have an idea, or something is wrong");
 
-		/* TODO: not my problem
-		for (BuildResource br : requires)
-			if (!cxt.requiresBuiltResource(this, br))
-				return BuildStatus.RETRY;
-		*/
-		
 		RunProcess proc = new RunProcess(acxt.getADB().getPath());
 		proc.captureStdout();
 		proc.captureStderr();
 		
-		for (String s : commands.get(0))
-			proc.arg(s);
+		for (Object s : commands.get(0))
+		{
+			if (s instanceof String)
+				proc.arg((String) s);
+			else if (s instanceof PendingResource)
+				proc.arg(cxt.getPendingResource((PendingResource) s).getPath().getPath());
+			else
+				throw new UtilException("Cannot handle argument of type " + s.getClass());
+		}
 		
 		proc.execute();
 		if (proc.getExitCode() == 0)
@@ -78,12 +76,12 @@ public class AdbCommand implements Tactic {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		for (String[] cmd : commands)
+		for (Object[] cmd : commands)
 		{
 			if (sb.length() > 0)
 				sb.append("\n");
 			sb.append("adb");
-			for (String s : cmd)
+			for (Object s : cmd)
 				sb.append(" " + s);
 		}
 		return sb.toString();
@@ -91,7 +89,6 @@ public class AdbCommand implements Tactic {
 
 	@Override
 	public Strategem belongsTo() {
-		// TODO Auto-generated method stub
-		return null;
+		return parent;
 	}
 }

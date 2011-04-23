@@ -55,7 +55,7 @@ public class JarBuildCommand implements Tactic {
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
-			cxt.addBuiltResource(jar);
+			cxt.resourceAvailable(jar);
 			return BuildStatus.SUCCESS;
 		}
 		return BuildStatus.BROKEN;

@@ -13,11 +13,11 @@ public class ApkResource extends SolidResource {
 
 	@Override
 	public String compareAs() {
-		return "Apk[" + file + "]";
+		return "Apk[" + relative + "]";
 	}
 
 	@Override
 	public String toString() {
-		return "apk: " + file;
+		return "apk: " + relative;
 	}
 }

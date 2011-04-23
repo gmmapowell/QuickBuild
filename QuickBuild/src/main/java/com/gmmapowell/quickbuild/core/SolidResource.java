@@ -2,6 +2,7 @@ package com.gmmapowell.quickbuild.core;
 
 import java.io.File;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.FileUtils;
 
 public abstract class SolidResource implements BuildResource {
@@ -18,7 +19,7 @@ public abstract class SolidResource implements BuildResource {
 	}
 	
 	public abstract String compareAs();
-
+	
 	@Override
 	public Strategem getBuiltBy() {
 		return parent;
@@ -29,6 +30,11 @@ public abstract class SolidResource implements BuildResource {
 		return file;
 	}
 
+	@Override
+	public BuildResource cloneInto(CloningResource to) {
+		throw new UtilException("Cannot clone into " + this + " - implement it");
+	}
+	
 	@Override
 	public int hashCode() {
 		return compareAs().hashCode();

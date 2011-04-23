@@ -1,4 +1,4 @@
-package com.gmmapowell.quickbuild.config;
+package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -7,7 +7,9 @@ import java.util.List;
 
 import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.TokenizedLine;
-import com.gmmapowell.quickbuild.build.android.AdbCommand;
+import com.gmmapowell.quickbuild.config.Config;
+import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
+import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
@@ -17,22 +19,26 @@ import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 
 public class AdbInstallCommand extends NoChildCommand implements ConfigBuildCommand, Strategem {
-	private String projectName;
+	private String root;
+	private String resource;
 	private String emulator;
-	private final File projectDir;
 	private AndroidContext acxt;
 	private StructureHelper files;
+	private PendingResource apk;
+	private File rootDir;
 
 	public AdbInstallCommand(TokenizedLine toks) {
-		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"),
+		toks.process(this,
+				new ArgumentDefinition("*", Cardinality.REQUIRED, "root", "root dir"),
+				new ArgumentDefinition("*", Cardinality.REQUIRED, "resource", "apk resource"),
 				new ArgumentDefinition("-emulator", Cardinality.OPTION, "emulator", "use emulator"));
-		projectDir = FileUtils.findDirectoryNamed(projectName);
+		rootDir = FileUtils.relativePath(new File(root));
 	}
 
 	@Override
 	public Strategem applyConfig(Config config) {
 		acxt = config.getAndroidContext();
-		files = new StructureHelper(projectDir, config.getOutput());
+		apk = new PendingResource(resource);
 		return this;
 	}
 	
@@ -40,7 +46,7 @@ public class AdbInstallCommand extends NoChildCommand implements ConfigBuildComm
 	@Override
 	public Collection<? extends Tactic> tactics() {
 		List<Tactic> ret = new ArrayList<Tactic>();
-		AdbCommand cmd = new AdbCommand(acxt, this, files, null);
+		AdbCommand cmd = new AdbCommand(acxt, this, files, apk);
 		cmd.reinstall();
 		ret.add(cmd);
 		return ret;
@@ -48,29 +54,28 @@ public class AdbInstallCommand extends NoChildCommand implements ConfigBuildComm
 
 	@Override
 	public String toString() {
-		return "adbinstall " + projectName;
+		return "adbinstall " + resource;
 	}
 
 	@Override
 	public ResourcePacket needsResources() {
-		// TODO Auto-generated method stub
-		return null;
+		ResourcePacket ret = new ResourcePacket();
+		ret.add(apk);
+		return ret;
 	}
 
 	@Override
 	public ResourcePacket providesResources() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ResourcePacket();
 	}
 
 	@Override
 	public ResourcePacket buildsResources() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ResourcePacket();
 	}
 
 	@Override
 	public File rootDirectory() {
-		return projectDir;
+		return rootDir;
 	}
 }

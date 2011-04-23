@@ -1,40 +1,50 @@
-package com.gmmapowell.quickbuild.config;
+package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
 import java.util.Collection;
 
 import com.gmmapowell.collections.CollectionUtils;
 import com.gmmapowell.parser.TokenizedLine;
-import com.gmmapowell.quickbuild.build.BuildContext;
-import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.config.Config;
+import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
+import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
+import com.gmmapowell.quickbuild.config.SpecificChildrenParent;
 import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.CloningResource;
+import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 
 public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem, Tactic {
+	private String rootDirectoryName;
 	private String fromResourceName;
 	private String toResourceName;
-	private BuildResource fromResource;
-	private BuildResource toResource;
+	private PendingResource fromResource;
+	private CloningResource toResource;
+	private final File rootDirectory;
+	private StructureHelper files;
 
 	@SuppressWarnings("unchecked")
 	public CopyDirectoryCommand(TokenizedLine toks) {
 		// TODO: want 4 args
 		toks.process(this,
+			new ArgumentDefinition("*", Cardinality.REQUIRED, "rootDirectoryName", "root"),
 			new ArgumentDefinition("*", Cardinality.REQUIRED, "fromResourceName", "from resource"),
 			new ArgumentDefinition("*", Cardinality.REQUIRED, "toResourceName", "destination")
 		);
+		rootDirectory = FileUtils.relativePath(rootDirectoryName);
 	}
 
 	@Override
 	public Strategem applyConfig(Config config) {
-		fromResource = config.getResourceByName(fromResourceName);
-		// TODO: should we create this?
-		toResource = config.getResourceByName(toResourceName);
+		files = new StructureHelper(rootDirectory, "");
+		fromResource = new PendingResource(fromResourceName);
+		toResource = new CloningResource(this, files.getRelative(toResourceName));
 		return this;
 	}
 
@@ -51,13 +61,12 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 
 	@Override
 	public BuildStatus execute(BuildContext cxt) {
-		/* TODO: not my problem
-		if (!cxt.requiresBuiltResource(this, fromResource))
-			return BuildStatus.RETRY;
-			*/
-		FileUtils.assertDirectory(toResource.getPath());
-		FileUtils.copyRecursive(fromResource.getPath(), toResource.getPath());
-		cxt.addBuiltResource(toResource);
+		BuildResource from = cxt.getPendingResource(fromResource);
+		System.out.println(from.getPath());
+		FileUtils.assertDirectory(from.getPath());
+		BuildResource to = from.cloneInto(toResource);
+		FileUtils.copyRecursive(from.getPath(), to.getPath());
+		cxt.resourceAvailable(to);
 		return BuildStatus.SUCCESS;
 	}
 
@@ -68,32 +77,31 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 
 	@Override
 	public Strategem belongsTo() {
-		// TODO Auto-generated method stub
-		return null;
+		return this;
 	}
 
 	@Override
 	public ResourcePacket needsResources() {
-		// TODO Auto-generated method stub
-		return null;
+		ResourcePacket ret = new ResourcePacket();
+		ret.add(fromResource);
+		return ret;
 	}
 
 	@Override
 	public ResourcePacket providesResources() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ResourcePacket();
 	}
 
 	@Override
 	public ResourcePacket buildsResources() {
-		// TODO Auto-generated method stub
-		return null;
+		ResourcePacket ret = new ResourcePacket();
+		return ret;
 	}
 
 	@Override
 	public File rootDirectory() {
-		// TODO Auto-generated method stub
-		return null;
+		return rootDirectory;
 	}
 
 }
+

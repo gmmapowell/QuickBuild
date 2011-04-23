@@ -6,7 +6,6 @@ import java.util.List;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
-import com.gmmapowell.quickbuild.config.AndroidContext;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -20,10 +19,10 @@ public class DexBuildCommand implements Tactic {
 	private final List<File> jars = new ArrayList<File>();
 	private final File libdir;
 
-	public DexBuildCommand(AndroidContext acxt, Strategem parent, StructureHelper files, File bindir, File dexFile) {
+	public DexBuildCommand(AndroidContext acxt, Strategem parent, StructureHelper files, File bindir, File libdir, File dexFile) {
 		this.acxt = acxt;
 		this.bindir = bindir;
-		this.libdir = files.getRelative("lib");
+		this.libdir = libdir;
 		this.dexFile = dexFile;
 	}
 
