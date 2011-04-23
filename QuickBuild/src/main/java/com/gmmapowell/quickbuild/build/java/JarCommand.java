@@ -18,6 +18,7 @@ import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
+import com.gmmapowell.utils.OrderedFileList;
 
 public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
@@ -129,6 +130,12 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	@Override
 	public File rootDirectory() {
 		return rootdir;
+	}
+
+	@Override
+	public OrderedFileList sourceFiles() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

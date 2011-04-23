@@ -17,6 +17,7 @@ import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
+import com.gmmapowell.utils.OrderedFileList;
 
 public class AdbInstallCommand extends NoChildCommand implements ConfigBuildCommand, Strategem {
 	private String root;
@@ -77,5 +78,11 @@ public class AdbInstallCommand extends NoChildCommand implements ConfigBuildComm
 	@Override
 	public File rootDirectory() {
 		return rootDir;
+	}
+
+	@Override
+	public OrderedFileList sourceFiles() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

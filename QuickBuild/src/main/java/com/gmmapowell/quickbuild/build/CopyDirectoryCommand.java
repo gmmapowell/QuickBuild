@@ -19,6 +19,7 @@ import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
+import com.gmmapowell.utils.OrderedFileList;
 
 public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem, Tactic {
 	private String rootDirectoryName;
@@ -101,6 +102,12 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 	@Override
 	public File rootDirectory() {
 		return rootDirectory;
+	}
+
+	@Override
+	public OrderedFileList sourceFiles() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

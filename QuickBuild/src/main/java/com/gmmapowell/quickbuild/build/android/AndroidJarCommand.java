@@ -20,6 +20,7 @@ import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
+import com.gmmapowell.utils.OrderedFileList;
 
 
 public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem {
@@ -110,5 +111,11 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 	@Override
 	public File rootDirectory() {
 		return projectDir;
+	}
+
+	@Override
+	public OrderedFileList sourceFiles() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

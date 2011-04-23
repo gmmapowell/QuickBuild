@@ -8,6 +8,8 @@ import com.gmmapowell.quickbuild.core.Strategem;
 
 public class StrategemResource extends SolidResource {
 
+	private boolean clean = true;
+
 	public StrategemResource(Strategem builtBy) {
 		super(builtBy, getRoot(builtBy));
 	}
@@ -25,4 +27,11 @@ public class StrategemResource extends SolidResource {
 		return "Strategem["+relative+"]";
 	}
 
+	public boolean isClean() {
+		return clean;
+	}
+
+	public void markDirty() {
+		clean = false;
+	}
 }

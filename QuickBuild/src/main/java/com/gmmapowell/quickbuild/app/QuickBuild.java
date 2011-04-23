@@ -59,7 +59,6 @@ public class QuickBuild {
 		System.out.println("---- Dependencies");
 		System.out.print(cxt.printableDependencyGraph());
 		System.out.println("----");
-		System.out.println(cxt.strats);
 		if (arguments.configOnly)
 			return;
 
@@ -72,18 +71,7 @@ public class QuickBuild {
 		*/
 			
 		// determine what we need to build from git ...
-		/*
-		if (!arguments.buildAll)
-		{
-			Set<Project> changedProjects = conf.projectsFor(GitHelper.dirtyProjects(conf.projectRoots()));
-			System.out.println("");
-			System.out.println("The following projects have changed in git:");
-			for (Project p : changedProjects)
-				System.out.println(p);
-
-			// TODO: cxt.limitBuildTo(changedProjects);
-		}
-		*/
+		cxt.figureDirtyProjects(arguments.buildAll);
 		
 		// now we try and build stuff ...
 		System.out.println("");

@@ -4,12 +4,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.graphs.DependencyGraph;
 import com.gmmapowell.graphs.Link;
 import com.gmmapowell.graphs.Node;
@@ -27,6 +29,7 @@ import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.utils.DateUtils;
 import com.gmmapowell.utils.FileUtils;
+import com.gmmapowell.utils.OrderedFileList;
 import com.gmmapowell.xml.XML;
 import com.gmmapowell.xml.XMLElement;
 
@@ -85,8 +88,8 @@ public class BuildContext implements ResourceListener {
 	private int totalErrors;
 	private boolean buildBroken;
 	private int projectsWithTestFailures;
-	public List<Strategem> strats;
-	private Strategem currentStrat;
+	private List<StrategemResource> strats = new ArrayList<StrategemResource>();
+	private StrategemResource currentStrat;
 	private Iterator<? extends Tactic> currentCommands;
 	private int currentStrategemCommandNo;
 	private boolean moveOn = true;
@@ -98,16 +101,17 @@ public class BuildContext implements ResourceListener {
 		this.conf = conf;
 		dependencyFile = new File(conf.getCacheDir(), "dependencies.xml");
 		buildOrderFile = new File(conf.getCacheDir(), "buildOrder.xml");
-		strats = conf.getStrategems();
+		for (Strategem s : conf.getStrategems())
+			strats.add(new StrategemResource(s));
 	}
 	
 	public void configure()
 	{
 		conf.tellMeAboutInitialResources(this);
-		for (Strategem s : strats)
+		for (StrategemResource node : strats)
 		{
+			Strategem s = node.getBuiltBy();
 			System.out.println("Configuring " + s);
-			StrategemResource node = new StrategemResource(s);
 			dependencies.ensure(node);
 			
 			// TODO: understand how this should work for these different cases
@@ -136,10 +140,10 @@ public class BuildContext implements ResourceListener {
 	private void moveUp(Strategem current, Strategem required) {
 		for (int idx=commandToExecute+1;idx<strats.size();idx++)
 		{
-			if (strats.get(idx) == required)
+			if (strats.get(idx).getBuiltBy() == required)
 			{
-				strats.remove(idx);
-				strats.add(commandToExecute, required);
+				StrategemResource sr = strats.remove(idx);
+				strats.add(commandToExecute, sr);
 				currentCommands = null;
 				moveOn = false;
 				repeat = null;
@@ -164,13 +168,13 @@ public class BuildContext implements ResourceListener {
 			String from = e.get("strategem");
 			for (int i=moveTo;i<strats.size();i++)
 			{
-				Strategem s = strats.get(i);
-				if (new StrategemResource(s).compareAs().equals(from))
+				StrategemResource node = strats.get(i);
+				if (node.compareAs().equals(from))
 				{
 					if (i != moveTo)
 					{
 						strats.remove(i);
-						strats.add(moveTo, s);
+						strats.add(moveTo, node);
 					}
 					moveTo++;
 					continue loop;
@@ -229,23 +233,19 @@ public class BuildContext implements ResourceListener {
 
 	public void saveBuildOrder() {
 		final XML output = XML.create("1.0", "BuildOrder");
-		for (Strategem s : strats)
+		for (StrategemResource s : strats)
 		{
 			XMLElement item = output.addElement("BuildItem");
-			item.setAttribute("strategem", new StrategemResource(s).compareAs());
+			item.setAttribute("strategem", s.compareAs());
 		}
 		FileUtils.assertDirectory(buildOrderFile.getParentFile());
 		output.write(buildOrderFile);
 	}
 
 	public BuildStatus execute(Tactic bc) {
-		// Record when first build started
-		if (buildStarted == null)
-			buildStarted = new Date();
-		
 		// figure out if we need to build this
 		boolean doit = true;
-		if (needed != null && !needed.contains(bc))
+		if (currentStrat.isClean())
 		{
 			doit = false;
 			System.out.print("  ");
@@ -255,6 +255,10 @@ public class BuildContext implements ResourceListener {
 		System.out.println((commandToExecute+1)+"."+currentStrategemCommandNo + ": " + bc);
 		if (!doit)
 			return BuildStatus.IGNORED;
+
+		// Record when first build started
+		if (buildStarted == null)
+			buildStarted = new Date();
 		return bc.execute(this);
 	}
 
@@ -271,7 +275,9 @@ public class BuildContext implements ResourceListener {
 		{
 			System.out.println("!!!! BUILD FAILED !!!!");
 		}
-		else
+		else if (buildStarted == null) {
+			System.out.println("Nothing done.");
+		} else
 		{
 			System.out.print(">> Build completed in ");
 			System.out.print(DateUtils.elapsedTime(buildStarted, new Date(), DateUtils.Format.hhmmss3));
@@ -303,7 +309,7 @@ public class BuildContext implements ResourceListener {
 				return null;
 	
 			currentStrat = strats.get(commandToExecute);
-			currentCommands = currentStrat.tactics().iterator();
+			currentCommands = currentStrat.getBuiltBy().tactics().iterator();
 			currentStrategemCommandNo = 0;
 		}
 	}
@@ -388,6 +394,41 @@ public class BuildContext implements ResourceListener {
 			throw new UtilException("There is no resource called " + resourceName);
 		}
 		return availableResources.get(resourceName);
+	}
+
+	public void figureDirtyProjects(boolean buildAll) {
+		for (StrategemResource node : strats)
+		{
+			Strategem s = node.getBuiltBy();
+			OrderedFileList files = s.sourceFiles();
+			boolean isDirty = GitHelper.checkFiles(node.isClean() && !buildAll, files, new File(conf.getCacheDir(), node.compareAs()));
+			if (isDirty || buildAll)
+			{
+				node.markDirty();
+				for (StrategemResource d : figureDependentsOf(node))
+					d.markDirty();
+			}
+		}
+	}
+
+	private Iterable<StrategemResource> figureDependentsOf(BuildResource node) {
+		Set<StrategemResource> ret = new HashSet<StrategemResource>();
+		figureDependentsOf(ret, node);
+		return ret;
+	}
+
+	private void figureDependentsOf(Set<StrategemResource> ret,	BuildResource node) {
+		Node<BuildResource> find = dependencies.find(node);
+		for (Link<BuildResource> l : find.linksTo())
+		{
+			Node<BuildResource> n = l.getFromNode();
+			BuildResource entry = n.getEntry();
+			if (entry instanceof StrategemResource && !ret.contains(entry))
+			{
+				ret.add((StrategemResource) entry);
+			}
+			figureDependentsOf(ret, entry);
+		}
 	}
 
 }
