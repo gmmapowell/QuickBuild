@@ -134,8 +134,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 
 	@Override
 	public OrderedFileList sourceFiles() {
-		// TODO Auto-generated method stub
-		return null;
+		return new OrderedFileList(rootdir, "*.java");
 	}
 
 }

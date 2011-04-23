@@ -397,10 +397,16 @@ public class BuildContext implements ResourceListener {
 	}
 
 	public void figureDirtyProjects(boolean buildAll) {
+		Date start = new Date();
 		for (StrategemResource node : strats)
 		{
 			Strategem s = node.getBuiltBy();
 			OrderedFileList files = s.sourceFiles();
+			if (files == null)
+			{
+				System.out.println("   **** NULL FILE LIST IN " + node +  " ***");
+				continue;
+			}
 			boolean isDirty = GitHelper.checkFiles(node.isClean() && !buildAll, files, new File(conf.getCacheDir(), node.compareAs()));
 			if (isDirty || buildAll)
 			{
@@ -409,6 +415,7 @@ public class BuildContext implements ResourceListener {
 					d.markDirty();
 			}
 		}
+		System.out.println("Spent " + DateUtils.elapsedTime(start, new Date(), DateUtils.Format.hhmmss3) + " checking out the git status");
 	}
 
 	private Iterable<StrategemResource> figureDependentsOf(BuildResource node) {

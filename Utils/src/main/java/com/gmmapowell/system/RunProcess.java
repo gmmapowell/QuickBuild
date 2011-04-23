@@ -95,14 +95,14 @@ public class RunProcess {
 	{
 		assertFinished();
 		if (outCapture == null)
-			throw new UtilException("Can only call this is output was captured during setup");
+			throw new UtilException("Can only call this if output was captured during setup");
 		return outCapture.toString();
 	}
 	
 	public String getStderr() {
 		assertFinished();
 		if (errCapture == null)
-			throw new UtilException("Can only call this is errors were captured during setup");
+			throw new UtilException("Can only call this if errors were captured during setup");
 		return errCapture.toString();
 	}
 	
