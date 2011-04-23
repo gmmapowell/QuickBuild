@@ -25,6 +25,7 @@ import com.gmmapowell.utils.OrderedFileList;
 
 public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem {
 	private String projectName;
+	private String targetName;
 	private final File projectDir;
 	private AndroidContext acxt;
 	private StructureHelper files;
@@ -40,6 +41,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 	public AndroidJarCommand applyConfig(Config config) {
 		acxt = config.getAndroidContext();
 		files = new StructureHelper(projectDir, config.getOutput());
+		targetName = projectName + ".jar";
 		srcdir = files.getRelative("src/main/java");
 		return this;
 	}
@@ -115,7 +117,11 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 
 	@Override
 	public OrderedFileList sourceFiles() {
-		// TODO Auto-generated method stub
-		return null;
+		return new OrderedFileList(projectDir, "*.java");
+	}
+
+	@Override
+	public String identifier() {
+		return "AndroidJar[" + targetName + "]";
 	}
 }

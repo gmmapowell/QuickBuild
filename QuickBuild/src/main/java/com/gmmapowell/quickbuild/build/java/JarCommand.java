@@ -137,4 +137,9 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		return new OrderedFileList(rootdir, "*.java");
 	}
 
+	@Override
+	public String identifier() {
+		return "Jar[" + targetName + "]";
+	}
+
 }

@@ -119,7 +119,9 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 
 	@Override
 	public ResourcePacket buildsResources() {
-		return new ResourcePacket();
+		ResourcePacket ret = new ResourcePacket();
+		ret.add(apkResource);
+		return ret;
 	}
 
 	@Override
@@ -129,7 +131,11 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 
 	@Override
 	public OrderedFileList sourceFiles() {
-		// TODO Auto-generated method stub
-		return null;
+		return new OrderedFileList(new File(rootDir, "src"), "*");
+	}
+
+	@Override
+	public String identifier() {
+		return "BuildApk[" + apkResource.compareAs() +"]";
 	}
 }

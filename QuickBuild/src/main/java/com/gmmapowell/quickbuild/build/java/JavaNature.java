@@ -89,26 +89,23 @@ public class JavaNature implements Nature {
 		}
 	}
 
-	// TODO: this is more general than just a java build command, but what?
-	public void addDependency(Strategem dependent, String needsJavaPackage) {
+	public boolean addDependency(Strategem dependent, String needsJavaPackage) {
 		// First, try and resolve it with a base jar, or a built jar
 		if (availablePackages.containsKey(needsJavaPackage))
 		{
 			JarResource resource = availablePackages.get(needsJavaPackage);
-			// TODO: this should be JBC's job based on dependencies .... javaBuildCommand.addToClasspath(resource.getFile());
-			// TODO: this is grouping all commands to the same project, which is losing some info.  I think Eclipse does the same though.
-			cxt.addDependency(dependent, resource);
-			return; // do something
+			return cxt.addDependency(dependent, resource);
 		}
 		
 		// OK, try and move the projects around a bit
 		if (projectPackages.contains(needsJavaPackage))
 		{
+			boolean didSomething = false;
 			for (Strategem p : projectPackages.get(needsJavaPackage))
 			{
-				cxt.addDependency(dependent, new StrategemResource(p));
+				didSomething |= cxt.addDependency(dependent, new StrategemResource(p));
 			}
-			return;
+			return didSomething;
 		}
 
 		throw new JavaBuildFailure("cannot find any code that defines package " + needsJavaPackage);

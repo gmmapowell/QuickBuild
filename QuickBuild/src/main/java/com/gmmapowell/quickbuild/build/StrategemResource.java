@@ -24,7 +24,7 @@ public class StrategemResource extends SolidResource {
 
 	@Override
 	public String compareAs() {
-		return "Strategem["+relative+"]";
+		return parent.identifier();
 	}
 
 	public boolean isClean() {

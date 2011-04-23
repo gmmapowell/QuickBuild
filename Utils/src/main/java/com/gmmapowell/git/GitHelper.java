@@ -16,6 +16,7 @@ public class GitHelper {
 
 	public static boolean checkFiles(boolean doComparison, OrderedFileList files, File file) {
 		RunProcess proc = new RunProcess("git");
+//		proc.debug(); 
 		proc.executeInDir(FileUtils.getCurrentDir());
 		proc.captureStdout();
 		proc.arg("hash-object");
@@ -24,7 +25,7 @@ public class GitHelper {
 			proc.arg(FileUtils.makeRelative(f).getPath());
 		}
 		proc.execute();
-		boolean dirty = false;
+		boolean dirty = !file.exists();
 		File newFile = null;
 		try
 		{
@@ -47,6 +48,7 @@ public class GitHelper {
 				String s = r.readLine();
 				if (s == null)
 				{
+					System.out.println("Inconsistent number of files and hashes");
 					dirty = true;
 					break;
 				}
@@ -55,7 +57,7 @@ public class GitHelper {
 				if (old != null)
 				{
 					String o = old.readLine();
-					if (!o.equals(nextLine))
+					if (o == null || !o.equals(nextLine))
 					{
 						System.out.println("Files differ at file " + old.getLineNumber() +":");
 						System.out.println("  " + o);
@@ -81,9 +83,12 @@ public class GitHelper {
 		}
 		catch (IOException ex)
 		{
+			System.out.println("Exception encountered in git checking: " + ex.getMessage());
+			System.out.println("Returning dirty status");
 			dirty = true; // just call it dirty
 			file.delete();
-			newFile.delete();
+			if (newFile != null)
+				newFile.delete();
 		}
 		return dirty;
 	}

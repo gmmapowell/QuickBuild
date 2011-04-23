@@ -61,13 +61,24 @@ public class DirectedAcyclicGraph<N> {
 		addLink(new Link<N>(f,t));
 	}
 
-	public void ensureLink(N from, N to) {
+	public boolean hasLink(N from, N to) {
+		return hasLinkInternal(from, to) == null;
+	}
+
+	private Link<N> hasLinkInternal(N from, N to) {
 		Node<N> f = find(from);
 		Node<N> t = find(to);
 		Link<N> l = new Link<N>(f, t);
 		if (links.contains(l))
-			return;
-		addLink(l);
+			return null;
+		return l;
+	}
+
+
+	public void ensureLink(N from, N to) {
+		Link<N> l = hasLinkInternal(from, to);
+		if (l != null)
+			addLink(l);
 	}
 
 	private void addLink(Link<N> link) {

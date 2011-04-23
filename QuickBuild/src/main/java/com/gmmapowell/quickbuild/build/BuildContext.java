@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.graphs.DependencyGraph;
@@ -81,7 +82,6 @@ public class BuildContext implements ResourceListener {
 	private final List<JUnitFailure> failures = new ArrayList<JUnitFailure>();
 	private final File dependencyFile;
 	private final File buildOrderFile;
-	private Set<Tactic> needed = null; // is null to indicate build all
 	private int commandToExecute = -1;
 	private int targetFailures;
 	private Date buildStarted;
@@ -96,9 +96,11 @@ public class BuildContext implements ResourceListener {
 	private Map<Class<?>, Object> natures = new HashMap<Class<?>, Object>();
 	private final List<Notification> notifications = new ArrayList<BuildContext.Notification>();
 	private Tactic repeat;
+	private final boolean buildAll;
 
-	public BuildContext(Config conf) {
+	public BuildContext(Config conf, boolean buildAll) {
 		this.conf = conf;
+		this.buildAll = buildAll;
 		dependencyFile = new File(conf.getCacheDir(), "dependencies.xml");
 		buildOrderFile = new File(conf.getCacheDir(), "buildOrder.xml");
 		for (Strategem s : conf.getStrategems())
@@ -111,7 +113,7 @@ public class BuildContext implements ResourceListener {
 		for (StrategemResource node : strats)
 		{
 			Strategem s = node.getBuiltBy();
-			System.out.println("Configuring " + s);
+//			System.out.println("Configuring " + s);
 			dependencies.ensure(node);
 			
 			// TODO: understand how this should work for these different cases
@@ -135,8 +137,6 @@ public class BuildContext implements ResourceListener {
 		}
 	}
 	
-	// TODO: should reference strategems, not build commands
-	// but the build commands should go to
 	private void moveUp(Strategem current, Strategem required) {
 		for (int idx=commandToExecute+1;idx<strats.size();idx++)
 		{
@@ -199,7 +199,7 @@ public class BuildContext implements ResourceListener {
 				{
 					String resource = r.get("resource");
 					Node<BuildResource> source = dependencies.find(new ComparisonResource(resource));
-					System.out.println(target + " <= " + source);
+//					System.out.println(target + " <= " + source);
 					dependencies.ensureLink(target.getEntry(), source.getEntry());
 				}
 			}
@@ -247,6 +247,10 @@ public class BuildContext implements ResourceListener {
 		boolean doit = true;
 		if (currentStrat.isClean())
 		{
+			for (BuildResource br : currentStrat.getBuiltBy().buildsResources())
+			{
+				resourceAvailable(br);
+			}
 			doit = false;
 			System.out.print("  ");
 		}
@@ -309,6 +313,7 @@ public class BuildContext implements ResourceListener {
 				return null;
 	
 			currentStrat = strats.get(commandToExecute);
+			figureDirtyness(currentStrat, buildAll);
 			currentCommands = currentStrat.getBuiltBy().tactics().iterator();
 			currentStrategemCommandNo = 0;
 		}
@@ -372,11 +377,14 @@ public class BuildContext implements ResourceListener {
 		notifications.add(new Notification(cls, nature));
 	}
 
-	public void addDependency(Strategem dependent, BuildResource resource) {
+	public boolean addDependency(Strategem dependent, BuildResource resource) {
 		StrategemResource node = new StrategemResource(dependent);
+		if (dependencies.hasLink(node, resource))
+			return false;
 		dependencies.ensureLink(node, resource);
 		if (resource.getBuiltBy() != null)
 			moveUp(dependent, resource.getBuiltBy());
+		return true;
 	}
 
 	public Iterable<BuildResource> getDependencies(Strategem dependent) {
@@ -396,26 +404,30 @@ public class BuildContext implements ResourceListener {
 		return availableResources.get(resourceName);
 	}
 
-	public void figureDirtyProjects(boolean buildAll) {
-		Date start = new Date();
-		for (StrategemResource node : strats)
+	public void figureDirtyness(StrategemResource node, boolean buildAll) {
+		Strategem s = node.getBuiltBy();
+		OrderedFileList files = s.sourceFiles();
+		boolean isDirty;
+		if (files == null)
 		{
-			Strategem s = node.getBuiltBy();
-			OrderedFileList files = s.sourceFiles();
-			if (files == null)
+			System.out.println("   **** NULL FILE LIST IN " + node +  " ***");
+			isDirty = true;
+		}
+		else
+			isDirty = GitHelper.checkFiles(node.isClean() && !buildAll, files, new File(conf.getCacheDir(), FileUtils.clean(node.compareAs())));
+		if (isDirty || buildAll)
+		{
+			if (buildAll)
+				System.out.println("Marking " + node + " dirty due to --build-all");
+			else
+				System.out.println("Marking " + node + " dirty due to git hash-object");
+			node.markDirty();
+			for (StrategemResource d : figureDependentsOf(node))
 			{
-				System.out.println("   **** NULL FILE LIST IN " + node +  " ***");
-				continue;
-			}
-			boolean isDirty = GitHelper.checkFiles(node.isClean() && !buildAll, files, new File(conf.getCacheDir(), node.compareAs()));
-			if (isDirty || buildAll)
-			{
-				node.markDirty();
-				for (StrategemResource d : figureDependentsOf(node))
-					d.markDirty();
+				System.out.println("  Marking " + d + " dirty as a dependent");
+				d.markDirty();
 			}
 		}
-		System.out.println("Spent " + DateUtils.elapsedTime(start, new Date(), DateUtils.Format.hhmmss3) + " checking out the git status");
 	}
 
 	private Iterable<StrategemResource> figureDependentsOf(BuildResource node) {

@@ -82,7 +82,11 @@ public class AdbInstallCommand extends NoChildCommand implements ConfigBuildComm
 
 	@Override
 	public OrderedFileList sourceFiles() {
-		// TODO Auto-generated method stub
-		return null;
+		return OrderedFileList.empty();
+	}
+
+	@Override
+	public String identifier() {
+		return "AdbInstall[" + apk.compareAs() + "]";
 	}
 }

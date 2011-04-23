@@ -43,7 +43,7 @@ public class QuickBuild {
 		System.out.print(conf);
 			
 		// now we need to read back anything we've cached ...
-		BuildContext cxt = new BuildContext(conf);
+		BuildContext cxt = new BuildContext(conf, arguments.buildAll);
 		try
 		{
 			cxt.registerNature(JavaNature.class);
@@ -56,11 +56,14 @@ public class QuickBuild {
 			System.out.println("Cache was out of date; ignoring");
 		}
 
-		System.out.println("---- Dependencies");
-		System.out.print(cxt.printableDependencyGraph());
-		System.out.println("----");
 		if (arguments.configOnly)
+		{
+			System.out.println("---- Dependencies");
+			System.out.print(cxt.printableDependencyGraph());
+			System.out.println("----");
+
 			return;
+		}
 
 		/* TODO: I like this, but it needs to be more general
 		for (String s : arguments.dirResources)
@@ -70,9 +73,6 @@ public class QuickBuild {
 		}
 		*/
 			
-		// determine what we need to build from git ...
-		cxt.figureDirtyProjects(arguments.buildAll);
-		
 		// now we try and build stuff ...
 		System.out.println("");
 		System.out.println("Building ...");

@@ -106,8 +106,12 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 
 	@Override
 	public OrderedFileList sourceFiles() {
-		// TODO Auto-generated method stub
-		return null;
+		return OrderedFileList.empty();
+	}
+
+	@Override
+	public String identifier() {
+		return "CopyTo[" + FileUtils.makeRelative(toResource.getClonedPath()) + "]";
 	}
 
 }

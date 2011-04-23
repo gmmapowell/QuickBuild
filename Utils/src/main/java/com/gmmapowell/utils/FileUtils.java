@@ -356,4 +356,17 @@ public class FileUtils {
 		fis.close();
 		fos.close();
 	}
+
+	public static String clean(String name) {
+		StringBuilder ret = new StringBuilder(name);
+		for (int i=0;i<ret.length();i++)
+		{
+			char c = ret.charAt(i);
+			if (!Character.isLetterOrDigit(c) && c != '.' && c != '_')
+				ret.setCharAt(i, '.');
+		}
+		for (int i=ret.length()-1;i>=0 && ret.charAt(i ) == '.';i--)
+			ret.deleteCharAt(i);
+		return ret.toString();
+	}
 }
