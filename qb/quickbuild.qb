@@ -1,3 +1,5 @@
+nature maven com.gmmapowell.quickbuild.build.maven.MavenNature
+
 # Specify a proxy connection from a particular location
 proxy 172.21.141/8
   host squid

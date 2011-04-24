@@ -1,3 +1,6 @@
+nature android com.gmmapowell.quickbuild.build.android.AndroidNature
+nature java com.gmmapowell.quickbuild.build.java.JavaNature
+
 var os macosx
 
 # The android SDK to use and the platform version

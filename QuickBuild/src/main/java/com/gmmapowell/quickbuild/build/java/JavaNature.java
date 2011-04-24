@@ -10,6 +10,7 @@ import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.StrategemResource;
+import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.Strategem;
@@ -28,6 +29,11 @@ public class JavaNature implements Nature {
 		this.cxt = cxt;
 		cxt.tellMeAbout(this, JarResource.class);
 		cxt.tellMeAbout(this, JavaSourceDirResource.class);
+	}
+	
+	public static void init(ConfigFactory config)
+	{
+		config.addCommandExtension("jar", JarCommand.class);
 	}
 
 	@Override
