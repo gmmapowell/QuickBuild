@@ -12,16 +12,16 @@ import com.gmmapowell.utils.FileUtils;
 
 public class ByteCodeCreator {
 	private ByteCodeFile bcf = new ByteCodeFile();
-	private String name;
-	private String pkg;
+//	private String name;
+//	private String pkg;
 	private final File file;
 	private String superclass;
 
 	public ByteCodeCreator(String qualifiedName) {
 		File tmp = FileUtils.convertDottedToPath(qualifiedName);
 		this.file = new File(tmp.getParentFile(), tmp.getName() + ".class");
-		pkg = FileUtils.getPackage(file);
-		name = FileUtils.getUnextendedName(file);
+//		pkg = FileUtils.getPackage(file);
+//		name = FileUtils.getUnextendedName(file);
 		bcf.thisClass(FileUtils.convertToDottedNameDroppingExtension(file));
 	}
 

@@ -249,10 +249,10 @@ public class ByteCodeInspector extends ByteCodeFile {
 				hexdump.print(excLength + " exceptions");
 				for (int j=0;j<excLength;j++)
 				{
-					int start_pc = dis.readUnsignedShort();
-					int end_pc = dis.readUnsignedShort();
-					int handler_pc = dis.readUnsignedShort();
-					int catch_type = dis.readUnsignedShort();
+					/* int start_pc = */ dis.readUnsignedShort();
+					/* int end_pc = */ dis.readUnsignedShort();
+					/* int handler_pc = */ dis.readUnsignedShort();
+					/* int catch_type = */ dis.readUnsignedShort();
 					hexdump.print("");
 				}
 				readAttributes(dis);

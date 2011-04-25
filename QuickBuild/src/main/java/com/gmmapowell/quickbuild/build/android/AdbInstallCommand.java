@@ -22,7 +22,7 @@ import com.gmmapowell.utils.OrderedFileList;
 public class AdbInstallCommand extends NoChildCommand implements ConfigBuildCommand, Strategem {
 	private String root;
 	private String resource;
-	private String emulator;
+//	private String emulator;
 	private AndroidContext acxt;
 	private StructureHelper files;
 	private PendingResource apk;
