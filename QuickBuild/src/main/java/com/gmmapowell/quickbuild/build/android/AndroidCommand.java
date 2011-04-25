@@ -57,10 +57,10 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		
 		AaptGenBuildCommand gen = new AaptGenBuildCommand(acxt, manifest, gendir, resdir);
 		ret.add(gen);
-		JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes");
+		JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", FileUtils.findFilesMatching(gendir, "*.java"));
 		genRes.addToBootClasspath(acxt.getPlatformJar());
 		ret.add(genRes);
-		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes");
+		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", FileUtils.findFilesMatching(files.getRelative("src/main/java"), "*.java"));
 		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
 		ret.add(buildSrc);
@@ -68,7 +68,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		// TODO: I feel it should be possible to compile and run unit tests, but what about that bootclasspath?
 		if (files.getRelative("src/test/java").exists())
 		{
-			JavaBuildCommand buildTests = new JavaBuildCommand(this, files, "src/test/java", "test-classes");
+			JavaBuildCommand buildTests = new JavaBuildCommand(this, files, "src/test/java", "test-classes", FileUtils.findFilesMatching(files.getRelative("src/test/java"), "*.java"));
 			buildTests.addToClasspath(new File(files.getOutputDir(), "classes"));
 			buildTests.addToBootClasspath(acxt.getPlatformJar());
 			ret.add(buildTests);

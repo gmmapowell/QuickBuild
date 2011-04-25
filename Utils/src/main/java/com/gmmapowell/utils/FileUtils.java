@@ -12,6 +12,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -22,14 +23,23 @@ public class FileUtils {
 
 	public static class GlobFilter implements FileFilter {
 		private final String pattern;
+		private final Collection<File> includeOnlyDirs;
+		private final Collection<File> excludeOnlyDirs;
+		private final File rootdir;
 
-		public GlobFilter(String pattern) {
+		public GlobFilter(File file, String pattern, Collection<File> includeOnlyDirs, Collection<File> excludeOnlyDirs) {
+			this.rootdir = file;
 			this.pattern = pattern;
+			this.includeOnlyDirs = includeOnlyDirs;
+			this.excludeOnlyDirs = excludeOnlyDirs;
 		}
 
 		@Override
 		public boolean accept(File f) {
-			return StringUtil.globMatch(pattern, f.getName());
+			File relativeParent = makeRelativeTo(f.getParentFile(), rootdir);
+			return StringUtil.globMatch(pattern, f.getName()) &&
+			(includeOnlyDirs == null || includeOnlyDirs.contains(relativeParent)) &&
+			(excludeOnlyDirs == null || !excludeOnlyDirs.contains(relativeParent));
 		}
 	}
 
@@ -103,8 +113,11 @@ public class FileUtils {
 	public static File makeRelativeTo(File f, File under) {
 		if (under == null)
 			return f;
-		String uf = under.getPath()+File.separator;
+		String uf = under.getPath();
 		String tf = f.getPath();
+		if (uf.equals(tf))
+			return new File("");
+		uf += File.separator;
 		if (!tf.startsWith(uf))
 			throw new RuntimeException("This case is not handled: " + tf + " is not a subdir of " + uf);
 		return new File(tf.substring(uf.length()));
@@ -143,19 +156,28 @@ public class FileUtils {
 		return null;
 	}
 
+	// TODO: this feels very functional in its combinations of things
+	public static List<File> findFilesMatchingIncluding(File dir, String string, List<File> includePackages) {
+		return findFiles(dir, null, string, includePackages, null);
+	}
+
+	public static List<File> findFilesMatchingExcluding(File dir, String string, List<File> excludePackages) {
+		return findFiles(dir, null, string, null, excludePackages);
+	}
+
 	public static List<File> findFilesMatching(File file, String string) {
-		return findFiles(file, null, string);
+		return findFiles(file, null, string, null, null);
 	}
 
 	public static List<File> findFilesUnderMatching(File file, String string) {
-		return findFiles(file, file, string);
+		return findFiles(file, file, string, null, null);
 	}
 
-	private static List<File> findFiles(File file, File under, String string) {
+	private static List<File> findFiles(File file, File under, String string, Collection<File> includeOnlyDirs, Collection<File> excludeOnlyDirs) {
 		List<File> ret = new ArrayList<File>();
 		if (!file.exists())
 			throw new UtilException("There is no file " + file);
-		FileFilter filter = new GlobFilter(string);
+		FileFilter filter = new GlobFilter(file, string, includeOnlyDirs, excludeOnlyDirs);
 		findRecursive(ret, filter, under, file);
 		return ret;
 	}

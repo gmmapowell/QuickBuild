@@ -24,4 +24,7 @@ maven junit:junit:jar:4.8.2
 
 # build java code, junit tests, run junit tests and jar up the results
 jar QuickBuild
+# jar QuickBuild
+  # package com.gmmapowell.quickbuild.config
+  # target config.jar
 jar Utils

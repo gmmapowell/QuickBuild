@@ -263,7 +263,10 @@ public class BuildContext implements ResourceListener {
 		// Record when first build started
 		if (buildStarted == null)
 			buildStarted = new Date();
-		return bc.execute(this);
+		BuildStatus ret = bc.execute(this);
+		if (ret.isBroken())
+			getGitCacheFile(currentStrat).delete();
+		return ret;
 	}
 
 	public void junitFailure(JUnitRunCommand cmd, String stdout, String stderr) {
@@ -414,7 +417,7 @@ public class BuildContext implements ResourceListener {
 			isDirty = true;
 		}
 		else
-			isDirty = GitHelper.checkFiles(node.isClean() && !buildAll, files, new File(conf.getCacheDir(), FileUtils.clean(node.compareAs())));
+			isDirty = GitHelper.checkFiles(node.isClean() && !buildAll, files, getGitCacheFile(node));
 		if (isDirty || buildAll)
 		{
 			if (buildAll)
@@ -428,6 +431,10 @@ public class BuildContext implements ResourceListener {
 				d.markDirty();
 			}
 		}
+	}
+
+	private File getGitCacheFile(StrategemResource node) {
+		return new File(conf.getCacheDir(), FileUtils.clean(node.compareAs()));
 	}
 
 	private Iterable<StrategemResource> figureDependentsOf(BuildResource node) {

@@ -2,6 +2,8 @@ package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
 import java.io.StringReader;
+import java.util.List;
+
 import com.gmmapowell.parser.LinePatternMatch;
 import com.gmmapowell.parser.LinePatternParser;
 import com.gmmapowell.quickbuild.build.BuildContext;
@@ -22,9 +24,11 @@ public class JavaBuildCommand implements Tactic {
 	private boolean showArgs;
 	private boolean doClean = true;
 	private final Strategem parent;
+	private List<File> sources;
 
-	public JavaBuildCommand(Strategem parent, StructureHelper files, String src, String bin) {
+	public JavaBuildCommand(Strategem parent, StructureHelper files, String src, String bin, List<File> sources) {
 		this.parent = parent;
+		this.sources = sources;
 		this.srcdir = new File(files.getBaseDir(), src);
 		this.bindir = new File(files.getOutputDir(), bin);
 		if (!bindir.exists())
@@ -85,7 +89,7 @@ public class JavaBuildCommand implements Tactic {
 			proc.arg(classpath.toString());
 		}
 		boolean any = false;
-		for (File f : FileUtils.findFilesMatching(srcdir, "*.java"))
+		for (File f : sources)
 		{
 			proc.arg(f.getPath());
 			any = true;

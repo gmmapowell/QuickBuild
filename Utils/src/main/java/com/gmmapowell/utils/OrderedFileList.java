@@ -2,6 +2,7 @@ package com.gmmapowell.utils;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.List;
 import java.util.TreeSet;
 
 public class OrderedFileList implements Iterable<File> {
@@ -13,6 +14,10 @@ public class OrderedFileList implements Iterable<File> {
 
 	public OrderedFileList(File... files) {
 		add(files);
+	}
+
+	public OrderedFileList(List<File> files) {
+		list.addAll(files); 
 	}
 
 	public void add(File rootdir, String string) {

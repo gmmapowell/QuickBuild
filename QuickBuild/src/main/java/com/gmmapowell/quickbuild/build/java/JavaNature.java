@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Map;
 
 import com.gmmapowell.collections.ListMap;
+import com.gmmapowell.collections.SetMap;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.StrategemResource;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
+import com.gmmapowell.quickbuild.config.SpecifyTargetCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.Strategem;
@@ -20,7 +22,7 @@ import com.gmmapowell.utils.GPJarFile;
 
 public class JavaNature implements Nature {
 	private final Map<String, JarResource> availablePackages = new HashMap<String, JarResource>();
-	private final ListMap<String, BuildResource> duplicates = new ListMap<String, BuildResource>();
+	private final SetMap<String, BuildResource> duplicates = new SetMap<String, BuildResource>();
 	private final ListMap<String, Strategem> projectPackages = new ListMap<String, Strategem>();
 	private final BuildContext cxt;
 
@@ -34,6 +36,8 @@ public class JavaNature implements Nature {
 	public static void init(ConfigFactory config)
 	{
 		config.addCommandExtension("jar", JarCommand.class);
+		config.addCommandExtension("package", IncludePackageCommand.class);
+		config.addCommandExtension("target", SpecifyTargetCommand.class);
 	}
 
 	@Override
@@ -41,14 +45,23 @@ public class JavaNature implements Nature {
 		if (br instanceof JarResource)
 			scanJar((JarResource)br);
 		else if (br instanceof JavaSourceDirResource)
-			rememberSources(br);
+			rememberSources((JavaSourceDirResource) br);
 		else
 			throw new UtilException("Can't handle " + br);
 	}
 
 	
 	private void scanJar(JarResource br) {
-		GPJarFile jar = new GPJarFile(br.getPath());
+		GPJarFile jar;
+		try
+		{
+			jar = new GPJarFile(br.getPath());
+		}
+		catch (UtilException ex)
+		{
+			ex.printStackTrace();
+			return;
+		}
 		boolean addedDuplicates = false;
 		for (GPJarEntry e : jar)
 		{
@@ -73,10 +86,10 @@ public class JavaNature implements Nature {
 			showDuplicates();
 	}
 
-	private void rememberSources(BuildResource br) {
+	private void rememberSources(JavaSourceDirResource br) {
 		if (br.getBuiltBy() == null)
 			throw new UtilException("Cannot handle JavaSourceDir with no builder");
-		List<File> sources = FileUtils.findFilesUnderMatching(br.getPath(), "*.java");
+		List<File> sources = br.getSources();
 		HashSet<String> packages = new HashSet<String>();
 		for (File f : sources)
 		{

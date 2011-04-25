@@ -4,7 +4,6 @@ import java.io.File;
 import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
-import com.gmmapowell.quickbuild.build.java.JavaNature;
 import com.gmmapowell.quickbuild.config.Arguments;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
@@ -34,9 +33,21 @@ public class QuickBuild {
 		
 		File file = new File(arguments.file);
 		Config conf = new Config(file.getParentFile(), FileUtils.dropExtension(file.getName()));
-		File hostfile = FileUtils.relativePath(new File(FileUtils.getHostName() + ".host.qb"));
-		if (hostfile.exists())
-			SignificantWhiteSpaceFileReader.read(conf, configFactory, hostfile);
+		{
+			File hostfile = FileUtils.relativePath(new File(FileUtils.getHostName() + ".host.qb"));
+			if (hostfile.exists())
+				SignificantWhiteSpaceFileReader.read(conf, configFactory, hostfile);
+		}
+		{
+			File roothostfile = new File(new File(System.getProperty("user.home")), ".qbinit." + FileUtils.getHostName());
+			if (roothostfile.exists())
+				SignificantWhiteSpaceFileReader.read(conf, configFactory, roothostfile);
+		}
+		{
+			File rootfile = new File(new File(System.getProperty("user.home")), ".qbinit");
+			if (rootfile.exists())
+				SignificantWhiteSpaceFileReader.read(conf, configFactory, rootfile);
+		}
 		SignificantWhiteSpaceFileReader.read(conf, configFactory, file);
 		conf.done();
 		System.out.println("Configuration:");
@@ -46,8 +57,7 @@ public class QuickBuild {
 		BuildContext cxt = new BuildContext(conf, arguments.buildAll);
 		try
 		{
-			cxt.registerNature(JavaNature.class);
-			cxt.configure();
+    			cxt.configure();
 			cxt.loadCache();
 		}
 		catch (QuickBuildCacheException ex) {

@@ -16,7 +16,6 @@ public class ProxyCommand extends SpecificChildrenParent<ConfigApplyCommand> imp
 	@SuppressWarnings("unchecked")
 	public ProxyCommand(TokenizedLine toks) {
 		super(ProxySettingCommand.class);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override

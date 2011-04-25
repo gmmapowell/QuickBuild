@@ -56,7 +56,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 		List<Tactic> ret = new ArrayList<Tactic>();
 
 		// Hasten, hasten ... cutten and pasten from AndroidCommand
-		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes");
+		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", FileUtils.findFilesMatching(files.getRelative("src/main/java"), "*.java"));
 		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
 		ret.add(buildSrc);
@@ -101,7 +101,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 	@Override
 	public ResourcePacket providesResources() {
 		ResourcePacket ret = new ResourcePacket();
-		ret.add(new JavaSourceDirResource(this, srcdir));
+		ret.add(new JavaSourceDirResource(this, srcdir, FileUtils.findFilesMatching(files.getRelative("src/main/java"), "*.java")));
 		return ret;
 	}
 
