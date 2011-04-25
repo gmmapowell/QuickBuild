@@ -219,5 +219,4 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	public List<Strategem> getStrategems() {
 		return strategems;
 	}
-
 }

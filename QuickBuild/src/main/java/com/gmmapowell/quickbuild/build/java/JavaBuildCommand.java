@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.StringReader;
 import java.util.List;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.LinePatternMatch;
 import com.gmmapowell.parser.LinePatternParser;
 import com.gmmapowell.quickbuild.build.BuildContext;
@@ -59,6 +60,9 @@ public class JavaBuildCommand implements Tactic {
 	
 	@Override
 	public BuildStatus execute(BuildContext cxt) {
+		JavaNature nature = cxt.getNature(JavaNature.class);
+		if (nature == null)
+			throw new UtilException("There is no JavaNature installed (huh?)");
 		if (!srcdir.isDirectory())
 			return BuildStatus.SKIPPED;
 		if (doClean)
@@ -112,7 +116,7 @@ public class JavaBuildCommand implements Tactic {
 			{
 				if (lpm.is("nopackage"))
 				{
-					if (cxt.getNature(JavaNature.class).addDependency(parent, lpm.get("pkgname")))
+					if (nature.addDependency(parent, lpm.get("pkgname")))
 						cnt++;
 				}
 				else

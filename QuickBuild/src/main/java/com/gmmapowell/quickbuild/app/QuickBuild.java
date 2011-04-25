@@ -54,10 +54,10 @@ public class QuickBuild {
 		System.out.print(conf);
 			
 		// now we need to read back anything we've cached ...
-		BuildContext cxt = new BuildContext(conf, arguments.buildAll);
+		BuildContext cxt = new BuildContext(conf, configFactory, arguments.buildAll);
 		try
 		{
-    			cxt.configure();
+    		cxt.configure();
 			cxt.loadCache();
 		}
 		catch (QuickBuildCacheException ex) {

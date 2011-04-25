@@ -20,6 +20,7 @@ import com.gmmapowell.graphs.NodeWalker;
 import com.gmmapowell.quickbuild.build.java.JUnitFailure;
 import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
 import com.gmmapowell.quickbuild.config.Config;
+import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.PendingResource;
@@ -98,9 +99,11 @@ public class BuildContext implements ResourceListener {
 	private Tactic repeat;
 	private final boolean buildAll;
 
-	public BuildContext(Config conf, boolean buildAll) {
+	public BuildContext(Config conf, ConfigFactory configFactory, boolean buildAll) {
 		this.conf = conf;
 		this.buildAll = buildAll;
+		for (Class<?> n : configFactory.registeredNatures())
+			registerNature(n);
 		dependencyFile = new File(conf.getCacheDir(), "dependencies.xml");
 		buildOrderFile = new File(conf.getCacheDir(), "buildOrder.xml");
 		for (Strategem s : conf.getStrategems())
