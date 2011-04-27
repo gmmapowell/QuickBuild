@@ -14,7 +14,6 @@ import java.util.regex.Pattern;
 import com.gmmapowell.collections.CollectionUtils;
 import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.parser.LLGrammar.TokenMatcher;
 import com.gmmapowell.parser.LLParser.InputState;
 import com.gmmapowell.utils.PrettyPrinter;
 
@@ -320,7 +319,7 @@ public class LLGrammar {
 			System.out.println(this);
 			throw new UtilException(sb.toString());
 		}
-		System.out.println(this);
+//		System.out.println(this);
 	}
 
 	private void completePhase1() {

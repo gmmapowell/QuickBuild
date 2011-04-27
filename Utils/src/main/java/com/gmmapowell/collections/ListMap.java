@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.gmmapowell.exceptions.UtilException;
@@ -51,5 +52,9 @@ public class ListMap<K, V> implements Iterable<K> {
 		for (List<V> vs : map.values())
 			ret.addAll(vs);
 		return ret;
+	}
+
+	public Set<Entry<K, List<V>>> entrySet() {
+		return map.entrySet();
 	}
 }
