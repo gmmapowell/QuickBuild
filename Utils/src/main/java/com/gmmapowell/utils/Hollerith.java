@@ -3,8 +3,6 @@ package com.gmmapowell.utils;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.gmmapowell.exceptions.UtilException;
-
 public class Hollerith {
 
 	private final HollerithFormat fmt;
@@ -19,9 +17,8 @@ public class Hollerith {
 	}
 
 	public void set(String field, String value) {
-		if (!fmt.hasField(field))
-			throw new UtilException("Cannot bind to hollerith field " + field + " because it is not in " + fmt);
-		fields.put(field, value);
+		if (fmt.hasField(field))
+			fields.put(field, value);
 	}
 
 }
