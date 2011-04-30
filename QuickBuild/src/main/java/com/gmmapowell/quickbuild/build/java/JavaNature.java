@@ -8,6 +8,7 @@ import java.util.Map;
 
 import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.collections.SetMap;
+import com.gmmapowell.exceptions.GPJarException;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.StrategemResource;
@@ -57,9 +58,9 @@ public class JavaNature implements Nature {
 		{
 			jar = new GPJarFile(br.getPath());
 		}
-		catch (UtilException ex)
+		catch (GPJarException ex)
 		{
-			ex.printStackTrace();
+			System.out.println("Could not open jar " + br.getPath());
 			return;
 		}
 		boolean addedDuplicates = false;

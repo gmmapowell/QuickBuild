@@ -52,7 +52,8 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 			else
 			{
 				this.qbdir = qbdir.getCanonicalFile();
-				FileUtils.chdir(qbdir);
+				System.out.println(this.qbdir);
+				FileUtils.chdirAbs(this.qbdir.getParentFile());
 			}
 			mvnrepos.add("http://repo1.maven.org/maven2");
 		}

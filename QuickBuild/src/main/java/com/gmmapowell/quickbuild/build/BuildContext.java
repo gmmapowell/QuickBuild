@@ -250,10 +250,6 @@ public class BuildContext implements ResourceListener {
 		boolean doit = true;
 		if (currentStrat.isClean())
 		{
-			for (BuildResource br : currentStrat.getBuiltBy().buildsResources())
-			{
-				resourceAvailable(br);
-			}
 			doit = false;
 			System.out.print("  ");
 		}
@@ -313,7 +309,16 @@ public class BuildContext implements ResourceListener {
 			}
 			
 			if (moveOn)
+			{
+				if (currentStrat != null && currentStrat.isClean())
+				{
+					for (BuildResource br : currentStrat.getBuiltBy().buildsResources())
+					{
+						resourceAvailable(br);
+					}
+				}
 				commandToExecute++; 
+			}
 
 			if (commandToExecute >= strats.size())
 				return null;

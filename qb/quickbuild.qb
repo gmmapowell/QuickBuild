@@ -1,20 +1,13 @@
 nature maven com.gmmapowell.quickbuild.build.maven.MavenNature
 
-# Specify a proxy connection from a particular location
-proxy 172.21.141/8
-  host squid
-  port 8080
-  user gareth
-  password powell
-
 # where the root is relative to this file (optional, default = .)
-root ..
+# root ..
 
 # where to put output files
-output qbout
+# output qbout
 
 # where to find libraries
-libs lib
+# libs lib
 
 # specify a maven repository
 # repo http://repo1.maven.org/maven2

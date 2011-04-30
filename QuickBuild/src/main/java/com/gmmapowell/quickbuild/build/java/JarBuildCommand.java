@@ -43,6 +43,7 @@ public class JarBuildCommand implements Tactic {
 		proc.redirectStderr(System.out);
 		proc.arg("cvf");
 		proc.arg(jarfile.getPath());
+		boolean hasFiles = false;
 		for (File dir : dirsToJar)
 		{
 			for (File f : FileUtils.findFilesUnderMatching(dir, "*.class"))
@@ -50,8 +51,11 @@ public class JarBuildCommand implements Tactic {
 				proc.arg("-C");
 				proc.arg(dir.getPath());
 				proc.arg(f.getPath());
+				hasFiles = true;
 			}
 		}
+		if (!hasFiles)
+			return BuildStatus.SKIPPED;
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
