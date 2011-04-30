@@ -19,4 +19,8 @@ public class Instruction {
 			dos.writeByte(b);
 	}
 
+	@Override
+	public String toString() {
+		return Integer.toHexString(bytes[0]&0xff);
+	}
 }

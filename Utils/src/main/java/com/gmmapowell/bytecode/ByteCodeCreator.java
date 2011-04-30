@@ -11,13 +11,16 @@ import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.FileUtils;
 
 public class ByteCodeCreator {
-	private ByteCodeFile bcf = new ByteCodeFile();
+	private ByteCodeFile bcf;
 //	private String name;
 //	private String pkg;
 	private final File file;
 	private String superclass;
+	private final String qualifiedName;
 
 	public ByteCodeCreator(String qualifiedName) {
+		this.qualifiedName = qualifiedName;
+		bcf = new ByteCodeFile(qualifiedName);
 		File tmp = FileUtils.convertDottedToPath(qualifiedName);
 		this.file = new File(tmp.getParentFile(), tmp.getName() + ".class");
 //		pkg = FileUtils.getPackage(file);
@@ -46,18 +49,30 @@ public class ByteCodeCreator {
 		dos.flush();
 	}
 
-	private MethodCreator createAnyMethod(boolean isStatic, String string) {
-		MethodCreator ret = new MethodCreator(this, bcf, isStatic, string);
+	private MethodCreator createAnyMethod(boolean isStatic, String returnType, String string) {
+		MethodCreator ret = new MethodCreator(this, bcf, isStatic, returnType, string);
 		bcf.addMethod(ret);
 		return ret;
 	}
 
 	public MethodCreator ctor() {
-		return createAnyMethod(false, "<init>");
+		return createAnyMethod(false, "void", "<init>");
 	}
 
+	public MethodCreator method(String returns, String name)
+	{
+		return createAnyMethod(false, returns, name);
+	}
 	public String getSuperClass() {
 		return superclass;
 	}
 
+	@Override
+	public String toString() {
+		return "Creating " + qualifiedName;
+	}
+
+	public void field(boolean isFinal, String type, String var) {
+		bcf.addField(new FieldInfo(bcf, isFinal, type, var));
+	}
 }

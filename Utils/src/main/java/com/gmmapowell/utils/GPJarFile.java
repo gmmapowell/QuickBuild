@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import com.gmmapowell.exceptions.GPJarException;
 import com.gmmapowell.exceptions.UtilException;
 
 public class GPJarFile implements Iterable<GPJarEntry> {
@@ -37,7 +38,7 @@ public class GPJarFile implements Iterable<GPJarEntry> {
 		try {
 			jf = new JarFile(FileUtils.relativePath(f));
 		} catch (IOException e) {
-			throw UtilException.wrap(e);
+			throw new GPJarException(e);
 		}
 	}
 

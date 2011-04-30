@@ -72,13 +72,27 @@ public class FileUtils {
 	
 	private static File root = new File(System.getProperty("user.dir"));
 
+	public static void chdirAbs(File absFile) {
+		try
+		{
+			if (!absFile.isDirectory())
+				throw new UtilException("Cannot have " + root + " be the root directory, because it does not exist");
+			root = absFile;
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
+	}
+
 
 	public static void chdir(File parentFile) {
 		try
 		{
-			root = new File(root, parentFile.getPath()).getCanonicalFile();
-			if (!root.isDirectory())
+			File changeTo = new File(root, parentFile.getPath()).getCanonicalFile();
+			if (!changeTo.isDirectory())
 				throw new UtilException("Cannot have " + root + " be the root directory, because it does not exist");
+			root = changeTo;
 		}
 		catch (Exception ex)
 		{

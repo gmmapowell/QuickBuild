@@ -58,6 +58,7 @@ public class ByteCodeFile {
 	private List<FieldInfo> fields = new ArrayList<FieldInfo>();
 	private List<MethodInfo> methods = new ArrayList<MethodInfo>();
 	private List<AttributeInfo> attributes = new ArrayList<AttributeInfo>();
+	private final String qualifiedName;
 	
 	public ByteCodeFile(InputStream fis)
 	{
@@ -79,6 +80,7 @@ public class ByteCodeFile {
 			readAttributes(dis);
 			if (dis.available() != 0)
 				throw new UtilException("There are still " + dis.available() + " bytes available on the stream");
+			qualifiedName = null;
 		}
 		catch (Exception ex)
 		{
@@ -86,8 +88,14 @@ public class ByteCodeFile {
 		}
 	}
 
+	protected ByteCodeFile(String qualifiedName)
+	{
+		this.qualifiedName = qualifiedName;
+	}
+
 	protected ByteCodeFile()
 	{
+		qualifiedName = null;
 	}
 
 	public void write(DataOutputStream dos) throws IOException {
@@ -190,10 +198,6 @@ public class ByteCodeFile {
 			dos.writeShort(ci.idx);
 	}
 
-	private void writeFields(DataOutputStream dos) throws IOException {
-		dos.writeShort(fields.size());
-	}
-
 	private void readFields(DataInputStream dis) throws IOException {
 		int cnt = dis.readUnsignedShort();
 		// System.out.println("# of fields = " + cnt);
@@ -207,6 +211,14 @@ public class ByteCodeFile {
 			readAttributes(dis);
 		}
 		
+	}
+
+	private void writeFields(DataOutputStream dos) throws IOException {
+		dos.writeShort(fields.size());
+		for (FieldInfo fi : fields)
+		{
+			fi.write(dos);
+		}
 	}
 
 	private void readMethods(DataInputStream dis) throws IOException {
@@ -366,6 +378,10 @@ public class ByteCodeFile {
 		super_idx = requireClass(name);
 	}
 
+	public void addField(FieldInfo field) {
+		fields.add(field);
+	}
+
 	public void addMethod(MethodCreator ret) {
 		methods.add(ret);
 	}
@@ -399,5 +415,12 @@ public class ByteCodeFile {
 					return i;
 			}
 		return addPoolEntry(new CPInfo.RefInfo(pool, clzIdx, ntIdx, refType));
+	}
+	
+	@Override
+	public String toString() {
+		if (qualifiedName != null)
+			return "BCF[" + qualifiedName + "]";
+		return super.toString();
 	}
 }

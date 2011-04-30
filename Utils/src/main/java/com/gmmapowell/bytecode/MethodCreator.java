@@ -9,11 +9,10 @@ import com.gmmapowell.collections.CollectionUtils;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.lambda.FuncR1;
 import com.gmmapowell.lambda.Lambda;
-import com.gmmapowell.utils.FileUtils;
 
 public class MethodCreator extends MethodInfo {
 	private final List<String> arguments = new ArrayList<String>();
-	private String returnType = "V";
+	private String returnType;
 	protected final List<Instruction> instructions = new ArrayList<Instruction>();
 	private int opdepth = 0;
 	protected int locals = 0;
@@ -27,13 +26,16 @@ public class MethodCreator extends MethodInfo {
 	private final ByteCodeCreator byteCodeCreator;
 	private final String name;
 
-	public MethodCreator(ByteCodeCreator byteCodeCreator, ByteCodeFile bcf, boolean isStatic, String name) {
+	public MethodCreator(ByteCodeCreator byteCodeCreator, ByteCodeFile bcf, boolean isStatic, String returnType, String name) {
 		super(bcf);
-		this.byteCodeCreator = byteCodeCreator;
 		this.name = name;
+		this.returnType = map(returnType);
+		this.byteCodeCreator = byteCodeCreator;
 		nameIdx = bcf.requireUtf8(name);
 		if (!isStatic)
+		{
 			locals++;
+		}
 	}
 
 	public int argument(String type) {
@@ -50,7 +52,8 @@ public class MethodCreator extends MethodInfo {
 		else
 		{
 			if (opdepth != 0)
-				throw new UtilException("Stack was left with depth non-zero");
+				System.err.println("Stack was left with depth " + opdepth + " after processing " + name + " for " + bcf);
+//			throw new UtilException("Stack was left with depth " + opdepth + " after processing " + name + " for " + bcf);
 			if (instructions.size() > 0)
 			{
 				int hdrlen = 2 + 2 + 4 /* + len */ + 2 /* + exc */ + 2 /* + attrs */;
@@ -94,68 +97,110 @@ public class MethodCreator extends MethodInfo {
 		return sb.toString();
 	}
 
-	private String map(String type) {
-		if (type.startsWith("@")) // this is my own annotation to allow pre-mapped types to be passed around
-			return type.substring(1);
-		int dims = 0;
-		while (type.charAt(dims) == '[')
-			dims++;
-		return type.substring(0, dims) + mapScalar(type.substring(dims));
+	private int hi(int idx) {
+		return (idx>>8)&0xff;
 	}
-	
-	private String mapScalar(String type)
-	{
-		if (type.equals("void"))
-			return "V";
-		else if (type.equals("int"))
-			return "I";
-		else if (type.equals("byte"))
-			return "B";
-		else if (type.equals("char"))
-			return "C";
-		else if (type.equals("double"))
-			return "D";
-		else if (type.equals("float"))
-			return "F";
-		else if (type.equals("long"))
-			return "J";
-		else if (type.equals("short"))
-			return "S";
-		else if (type.equals("boolean"))
-			return "Z";
-		return "L"+FileUtils.convertDottedToSlashPath(type) +";";
+
+	private int lo(int idx) {
+		return (idx&0xff);
+	}
+
+	private void add(int stackChange, Instruction instruction) {
+		instructions.add(instruction);
+		opstack(stackChange);
+		System.out.println(instruction + " stack = " + opdepth);
 	}
 
 	private void opstack(int i) {
 		opdepth += i;
-		if (i > maxStack)
+//		if (opdepth < 0)
+//			throw new UtilException("Stack underflow generating " + name + " in " + bcf);
+		if (opdepth > maxStack)
 			maxStack = opdepth;
 //		System.out.println("Opdepth = " + opdepth);
 	}
 	
 	public void aload(int i) {
 		if (i < 4)
-			instructions.add(new Instruction(0x2a+i));
+			add(1, new Instruction(0x2a+i));
 		else
-			instructions.add(new Instruction(0x19, i));
-		opstack(1);
+			add(1, new Instruction(0x19, i));
 	}
 	
-	public void invokeparent(String... args) {
-		invokespecial(byteCodeCreator.getSuperClass(), "@" + returnType, name, args);
+	public void areturn() {
+		add(-1, new Instruction(0xb0));
 	}
 
-	private void invokespecial(String clz, String ret, String meth, String... args) {
+	public void astore(int i) {
+		if (i < 4)
+			add(-1, new Instruction(0x4b+i));
+		else
+			add(-1, new Instruction(0x3a, i));
+	}
+	
+	public void checkCast(String clz)
+	{
+		int idx = bcf.requireClass(clz);
+		add(0, new Instruction(0xc0, idx>>8, idx &0xff));
+	}
+
+	public void dup() {
+		add(1, new Instruction(0x59));
+	}
+
+	public void getField(String clz, String type, String var) {
+		int clzIdx = bcf.requireClass(clz);
+		int fieldIdx = bcf.requireUtf8(var);
+		int sigIdx = bcf.requireUtf8(map(type));
+		int ntIdx = bcf.requireNT(fieldIdx, sigIdx);
+		int idx = bcf.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
+		add(0, new Instruction(0xb4, hi(idx), lo(idx)));
+	}
+	
+	public void invokeParentConstructor(String... args) {
+		invoke(0xb7, byteCodeCreator.getSuperClass(), "void", "<init>", args);
+	}
+
+	public void invokeParentMethod(String typeReturn, String method, String... args) {
+		invoke(0xb7, byteCodeCreator.getSuperClass(), typeReturn, method, args);
+	}
+
+	private void invoke(int opcode, String clz, String ret, String meth, String... args) {
 		int clzIdx = bcf.requireClass(clz);
 		int methIdx = bcf.requireUtf8(meth);
 		int sigIdx = bcf.requireUtf8(signature(map(ret), Lambda.map(mapType, CollectionUtils.listOf(args))));
 		int ntIdx = bcf.requireNT(methIdx, sigIdx);
 		int idx = bcf.requireRef(ByteCodeFile.CONSTANT_Methodref, clzIdx, ntIdx);
-		instructions.add(new Instruction(0xb7, (idx>>8)&0xff, (idx&0xff)));
-		opstack(-args.length-1);
+		int pop = args.length;
+		if (ret.equals("void"))
+			++pop;
+		add(-pop, new Instruction(opcode, hi(idx), lo(idx)));
+	}
+
+	public void invokeVirtualMethod(String clz, String ret, String method, String... args) {
+		invoke(0xb6, clz, ret, method, args);
+	}
+
+	public void ldcClass(String clz)
+	{
+		add(1, new Instruction(0x12, bcf.requireClass(clz)));
+	}
+	
+	public void newObject(String clz) {
+		int idx = bcf.requireClass(clz);
+		add(1, new Instruction(0xbb, idx>>8,idx&0xff));
+	}
+
+	public void putField(String clz, String type, String var) {
+		int clzIdx = bcf.requireClass(clz);
+		int fieldIdx = bcf.requireUtf8(var);
+		int sigIdx = bcf.requireUtf8(map(type));
+		int ntIdx = bcf.requireNT(fieldIdx, sigIdx);
+		int idx = bcf.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
+		add(-2, new Instruction(0xb5, idx>>8, idx&0xff));
 	}
 
 	public void returnVoid() {
-		instructions.add(new Instruction(0xb1));
+		add(0, new Instruction(0xb1));
 	}
 }

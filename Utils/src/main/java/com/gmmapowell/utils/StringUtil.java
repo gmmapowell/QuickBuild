@@ -50,4 +50,9 @@ public class StringUtil {
 			sb.insert(0, "0");
 		return sb.toString();
 	}
+	
+	public static String capitalize(String s)
+	{
+		return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+	}
 }

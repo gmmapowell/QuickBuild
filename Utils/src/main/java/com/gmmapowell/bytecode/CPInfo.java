@@ -3,12 +3,14 @@ package com.gmmapowell.bytecode;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import com.gmmapowell.exceptions.UtilException;
+
 public abstract class CPInfo {
 	public interface DoubleEntry {
 
 	}
 
-	private final CPInfo[] pool;
+	protected final CPInfo[] pool;
 	protected final int idx;
 
 	public CPInfo()
@@ -138,7 +140,7 @@ public abstract class CPInfo {
 		
 		@Override
 		public String toString() {
-			return "ClassInfo[" + idx + "]";
+			return "ClassInfo[" + idx + "{" + pool[idx] + "}]";
 		}
 		
 		@Override
@@ -194,11 +196,23 @@ public abstract class CPInfo {
 
 		@Override
 		public String toString() {
-			String s = getClass().getSimpleName() + "[" + super.hex(clz) + "," + super.hex(nt) + "," + tag + "] > ";
+			String s = tagAsString() + getClass().getSimpleName() + "[" + super.hex(clz) + "," + super.hex(nt) + "] {" + pool[clz] + " " + pool[nt] + "}";
 //			s += "{" +super.pool[clz] + "} [" + super.pool[nt] + "]";
 //			if (super.pool != null && super.pool[super.idx] != null)
 //				return + idx + "/" + Integer.toHexString(idx) + "]> " + pool[idx].toString();
 			return s;
+		}
+
+
+		private String tagAsString() {
+			if (tag == 9)
+				return "Field";
+			else if (tag == 10)
+				return "Method";
+			else if (tag == 11)
+				return "Interface";
+			else
+				throw new UtilException("Unspecified tag " + tag); 
 		}
 
 
@@ -228,7 +242,7 @@ public abstract class CPInfo {
 
 		@Override
 		public String toString() {
-			String s = getClass().getSimpleName() + "[" + super.hex(name) + "," + super.hex(descriptor) + "]"; 
+			String s = getClass().getSimpleName() + "[" + super.hex(name) + "," + super.hex(descriptor) + "] {" + pool[name] + " " + pool[descriptor] + "}"; 
 //			if (super.pool != null && super.pool[super.idx] != null)
 //				return + idx + "/" + Integer.toHexString(idx) + "]> " + pool[idx].toString();
 			return s;
@@ -255,7 +269,7 @@ public abstract class CPInfo {
 	@Override
 	public String toString() {
 		if (pool != null && pool[idx] != null)
-			return getClass().getSimpleName() + "[" + hex(idx) + "]> " + pool[idx].toString();
+			return getClass().getSimpleName() + "[" + hex(idx) + "] " + pool[idx].toString();
 		return super.toString();
 	}
 

@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MethodInfo {
+public class MethodInfo extends JavaInfo {
 	protected short access_flags = -1;
 	protected short nameIdx = -1;
 	protected short descriptorIdx = -1;

@@ -217,7 +217,7 @@ public class ByteCodeInspector extends ByteCodeFile {
 			int idx = dis.readUnsignedShort(); // name_index
 			int len = dis.readInt(); // length
 			if (len > 5000)
-				throw new RuntimeException("What?");
+				throw new RuntimeException("What? Attribute Len > 5000");
 			hexdump.print("idx = " + idx + ": " + pool[idx] + " len=" + len);
 			byte[] bytes = new byte[len];
 			if (pool[idx] != null && pool[idx] instanceof CPInfo.Utf8Info && ((CPInfo.Utf8Info)pool[idx]).asString().equals("Code"))
@@ -267,11 +267,6 @@ public class ByteCodeInspector extends ByteCodeFile {
 
 	private int disassemble(DataInputStream dis) throws IOException {
 		int opcode = dis.readUnsignedByte();
-		if (opcode >= 0x2a && opcode <= 0x2d)
-		{
-			hexdump.print("aload_"+(opcode-0x2a));
-			return 1;
-		}
 		switch (opcode)
 		{
 		case 0x12:
@@ -280,9 +275,43 @@ public class ByteCodeInspector extends ByteCodeFile {
 			hexdump.print("ldc " + pool[idx]);
 			return 2;
 		}
+		case 0x2a: case 0x2b: case 0x2c: case 0x2d:
+		{
+			hexdump.print("aload_"+(opcode-0x2a));
+			return 1;
+		}
+		case 0x4b: case 0x4c: case 0x4d: case 0x4e:
+		{
+			hexdump.print("astore_"+(opcode-0x4b));
+			return 1;
+		}
+		case 0x59:
+		{
+			hexdump.print("dup");
+			return 1;
+		}
+		case 0xb0:
+		{
+			hexdump.print("areturn");
+			return 1;
+		}
 		case 0xb1:
+		{
 			hexdump.print("return");
 			return 1;
+		}
+		case 0xb4:
+		{
+			int idx = dis.readUnsignedShort();
+			hexdump.print("getfield " + pool[idx]);
+			return 3;
+		}
+		case 0xb5:
+		{
+			int idx = dis.readUnsignedShort();
+			hexdump.print("putfield " + pool[idx]);
+			return 3;
+		}
 		case 0xb6:
 		{
 			int idx = dis.readUnsignedShort();
@@ -297,9 +326,23 @@ public class ByteCodeInspector extends ByteCodeFile {
 			hexdump.print("invokespecial " + info);
 			return 3;
 		}
+		case 0xbb:
+		{
+			int idx = dis.readUnsignedShort();
+			CPInfo info = pool[idx];
+			hexdump.print("new " + info);
+			return 3;
+		}
+		case 0xc0:
+		{
+			int idx = dis.readUnsignedShort();
+			CPInfo info = pool[idx];
+			hexdump.print("checkcast " + info);
+			return 3;
+		}
 		default:
-			// throw new UtilException("Invalid opcode " + StringUtil.hex(opcode, 2));
-			return 1;
+			throw new UtilException("Invalid opcode " + StringUtil.hex(opcode, 2));
+//			return 1;
 		}
 	}
 
