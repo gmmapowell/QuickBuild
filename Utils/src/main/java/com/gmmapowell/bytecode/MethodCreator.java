@@ -136,6 +136,8 @@ public class MethodCreator extends MethodInfo {
 			add(-1, new Instruction(0x4b+i));
 		else
 			add(-1, new Instruction(0x3a, i));
+		if (i >= locals)
+			locals = i+1;
 	}
 	
 	public void checkCast(String clz)
@@ -155,6 +157,10 @@ public class MethodCreator extends MethodInfo {
 		int ntIdx = bcf.requireNT(fieldIdx, sigIdx);
 		int idx = bcf.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
 		add(0, new Instruction(0xb4, hi(idx), lo(idx)));
+	}
+
+	public void invokeOtherConstructor(String clz,	String[] args) {
+		invoke(0xb7, clz, "void", "<init>", args);
 	}
 	
 	public void invokeParentConstructor(String... args) {

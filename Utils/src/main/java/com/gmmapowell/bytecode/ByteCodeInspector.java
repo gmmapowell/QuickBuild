@@ -175,8 +175,9 @@ public class ByteCodeInspector extends ByteCodeFile {
 		hexdump.print(cnt + " interfaces");
 		for (int i=0;i<cnt;i++)
 		{
-			ClassInfo intf = (ClassInfo) pool[dis.readUnsignedShort()];
-			interfaces.add(intf);
+			int idx = dis.readUnsignedShort();
+			interfaces.add(idx);
+			ClassInfo intf = (ClassInfo) pool[idx];
 			hexdump.print(intf);
 		}
 	}

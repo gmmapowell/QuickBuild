@@ -50,7 +50,7 @@ public class ByteCodeFile {
 	public final static byte CONSTANT_NameAndType  = 12;
 	
 	protected CPInfo[] pool;
-	protected List<ClassInfo> interfaces = new ArrayList<ClassInfo>();
+	protected List<Integer> interfaces = new ArrayList<Integer>();
 	private int nextPoolEntry = 1;
 	private int access_flags = -1;
 	private int this_idx = -1;
@@ -96,6 +96,11 @@ public class ByteCodeFile {
 	protected ByteCodeFile()
 	{
 		qualifiedName = null;
+	}
+	
+	public void makeInterface()
+	{
+		access_flags = ACC_PUBLIC | ACC_INTERFACE | ACC_ABSTRACT;
 	}
 
 	public void write(DataOutputStream dos) throws IOException {
@@ -189,13 +194,13 @@ public class ByteCodeFile {
 	private void readInterfaces(DataInputStream dis) throws IOException {
 		int cnt = dis.readUnsignedShort();
 		for (int i=0;i<cnt;i++)
-			interfaces.add((ClassInfo) pool[dis.readUnsignedShort()]); // the pool id of the interface
+			interfaces.add(dis.readUnsignedShort()); // the pool id of the interface
 	}
 
 	private void writeInterfaces(DataOutputStream dos) throws IOException {
 		dos.writeShort(interfaces.size());
-		for (ClassInfo ci : interfaces)
-			dos.writeShort(ci.idx);
+		for (int ci : interfaces)
+			dos.writeShort(ci);
 	}
 
 	private void readFields(DataInputStream dis) throws IOException {
@@ -349,11 +354,19 @@ public class ByteCodeFile {
 		return new NTInfo(pool, name, descriptor);
 	}
 
+	public void addInterface(String intf) {
+		int idx = requireClass(intf);
+		interfaces.add(idx);
+	}
+
 	public boolean implementsInterface(Class<?> class1) {
 		String name = FileUtils.convertDottedToSlashPath(class1.getCanonicalName());
-		for (ClassInfo c : interfaces)
+		for (int idx : interfaces)
+		{
+			ClassInfo c = (ClassInfo)pool[idx];
 			if (c.equals(name))
 				return true;
+		}
 		return false;
 	}
 

@@ -75,4 +75,12 @@ public class ByteCodeCreator {
 	public void field(boolean isFinal, String type, String var) {
 		bcf.addField(new FieldInfo(bcf, isFinal, type, var));
 	}
+
+	public void makeInterface() {
+		bcf.makeInterface();
+	}
+
+	public void implementsInterface(String intf) {
+		bcf.addInterface(intf);
+	}
 }
