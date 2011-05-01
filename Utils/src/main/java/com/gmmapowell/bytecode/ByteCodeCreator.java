@@ -28,6 +28,10 @@ public class ByteCodeCreator {
 		bcf.thisClass(FileUtils.convertToDottedNameDroppingExtension(file));
 	}
 
+	public String getCreatedName() {
+		return qualifiedName;
+	}
+
 	public void superclass(String string) {
 		this.superclass = string;
 		bcf.superClass(string);
@@ -83,4 +87,4 @@ public class ByteCodeCreator {
 	public void implementsInterface(String intf) {
 		bcf.addInterface(intf);
 	}
-}
+	}

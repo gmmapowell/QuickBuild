@@ -17,6 +17,7 @@ public class MethodCreator extends MethodInfo {
 	private int opdepth = 0;
 	protected int locals = 0;
 	protected int maxStack = 0;
+	protected boolean lenientMode = false;
 	private FuncR1<String, String> mapType = new FuncR1<String, String>() {
 		@Override
 		public String apply(String arg1) {
@@ -38,6 +39,11 @@ public class MethodCreator extends MethodInfo {
 		}
 	}
 
+	public void lenientMode(boolean mode)
+	{
+		this.lenientMode = mode;
+	}
+	
 	public int argument(String type) {
 		int ret = locals++;
 		arguments.add(map(type));
@@ -52,8 +58,12 @@ public class MethodCreator extends MethodInfo {
 		else
 		{
 			if (opdepth != 0)
-				System.err.println("Stack was left with depth " + opdepth + " after processing " + name + " for " + bcf);
-//			throw new UtilException("Stack was left with depth " + opdepth + " after processing " + name + " for " + bcf);
+			{
+				if (lenientMode)
+					System.err.println("Stack was left with depth " + opdepth + " after processing " + name + " for " + bcf);
+				else
+					throw new UtilException("Stack was left with depth " + opdepth + " after processing " + name + " for " + bcf);
+			}
 			if (instructions.size() > 0)
 			{
 				int hdrlen = 2 + 2 + 4 /* + len */ + 2 /* + exc */ + 2 /* + attrs */;
@@ -108,16 +118,16 @@ public class MethodCreator extends MethodInfo {
 	private void add(int stackChange, Instruction instruction) {
 		instructions.add(instruction);
 		opstack(stackChange);
-		System.out.println(instruction + " stack = " + opdepth);
+		if (lenientMode)
+			System.out.println(instruction + " stack = " + opdepth);
 	}
 
 	private void opstack(int i) {
 		opdepth += i;
-//		if (opdepth < 0)
-//			throw new UtilException("Stack underflow generating " + name + " in " + bcf);
+		if (opdepth < 0)
+			throw new UtilException("Stack underflow generating " + name + " in " + bcf);
 		if (opdepth > maxStack)
 			maxStack = opdepth;
-//		System.out.println("Opdepth = " + opdepth);
 	}
 	
 	public void aload(int i) {
@@ -164,10 +174,14 @@ public class MethodCreator extends MethodInfo {
 	}
 	
 	public void invokeParentConstructor(String... args) {
+		if (byteCodeCreator.getSuperClass() == null)
+			throw new UtilException("Cannot use parent methods without defining superclass");
 		invoke(0xb7, byteCodeCreator.getSuperClass(), "void", "<init>", args);
 	}
 
 	public void invokeParentMethod(String typeReturn, String method, String... args) {
+		if (byteCodeCreator.getSuperClass() == null)
+			throw new UtilException("Cannot use parent methods without defining superclass");
 		invoke(0xb7, byteCodeCreator.getSuperClass(), typeReturn, method, args);
 	}
 
