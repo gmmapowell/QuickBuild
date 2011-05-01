@@ -205,6 +205,10 @@ public class MethodCreator extends MethodInfo {
 	{
 		add(1, new Instruction(0x12, bcf.requireClass(clz)));
 	}
+
+	public void ldcString(String string) {
+		add(1, new Instruction(0x12, bcf.requireString(string)));
+	}
 	
 	public void newObject(String clz) {
 		int idx = bcf.requireClass(clz);

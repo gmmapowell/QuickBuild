@@ -127,29 +127,6 @@ public class ByteCodeFile {
 		writeAttributes(dos, attributes);
 	}
 
-	int requireClass(String string) {
-		String s = FileUtils.convertDottedToSlashPath(string);
-		int utf8Idx = 0;
-		for (int i=1;i<nextPoolEntry;i++)
-			if (pool[i] != null && pool[i] instanceof CPInfo.Utf8Info && ((CPInfo.Utf8Info)pool[i]).asString().equals(s))
-			{
-				utf8Idx = i;
-				break;
-			}
-		if (utf8Idx > 0)
-		{
-			for (int i=1;i<nextPoolEntry;i++)
-				if (pool[i] != null && pool[i] instanceof CPInfo.ClassInfo && ((CPInfo.ClassInfo)pool[i]).idx == utf8Idx)
-					return i;
-		}
-		else
-			utf8Idx = nextPoolEntry+1;
-		int clzIdx = nextPoolEntry;
-		addPoolEntry(new CPInfo.ClassInfo(pool, utf8Idx));
-		addPoolEntry(new CPInfo.Utf8Info(s));
-		return clzIdx;
-	}
-
 	private void readConstantPool(DataInputStream dis) throws IOException {
 		int poolCount = dis.readUnsignedShort();
 		pool = new CPInfo[poolCount];
@@ -399,6 +376,29 @@ public class ByteCodeFile {
 		methods.add(ret);
 	}
 
+	int requireClass(String string) {
+		String s = FileUtils.convertDottedToSlashPath(string);
+		int utf8Idx = 0;
+		for (int i=1;i<nextPoolEntry;i++)
+			if (pool[i] != null && pool[i] instanceof CPInfo.Utf8Info && ((CPInfo.Utf8Info)pool[i]).asString().equals(s))
+			{
+				utf8Idx = i;
+				break;
+			}
+		if (utf8Idx > 0)
+		{
+			for (int i=1;i<nextPoolEntry;i++)
+				if (pool[i] != null && pool[i] instanceof CPInfo.ClassInfo && ((CPInfo.ClassInfo)pool[i]).idx == utf8Idx)
+					return i;
+		}
+		else
+			utf8Idx = nextPoolEntry+1;
+		int clzIdx = nextPoolEntry;
+		addPoolEntry(new CPInfo.ClassInfo(pool, utf8Idx));
+		addPoolEntry(new CPInfo.Utf8Info(s));
+		return clzIdx;
+	}
+
 	public short requireUtf8(String name) {
 		for (short i=1;i<nextPoolEntry;i++)
 			if (pool[i] != null && pool[i] instanceof CPInfo.Utf8Info && ((CPInfo.Utf8Info)pool[i]).asString().equals(name))
@@ -428,6 +428,28 @@ public class ByteCodeFile {
 					return i;
 			}
 		return addPoolEntry(new CPInfo.RefInfo(pool, clzIdx, ntIdx, refType));
+	}
+
+	public int requireString(String s) {
+		int utf8Idx = 0;
+		for (int i=1;i<nextPoolEntry;i++)
+			if (pool[i] != null && pool[i] instanceof CPInfo.Utf8Info && ((CPInfo.Utf8Info)pool[i]).asString().equals(s))
+			{
+				utf8Idx = i;
+				break;
+			}
+		if (utf8Idx > 0)
+		{
+			for (int i=1;i<nextPoolEntry;i++)
+				if (pool[i] != null && pool[i] instanceof CPInfo.StringInfo && ((CPInfo.StringInfo)pool[i]).idx == utf8Idx)
+					return i;
+		}
+		else
+			utf8Idx = nextPoolEntry+1;
+		int strIdx = nextPoolEntry;
+		addPoolEntry(new CPInfo.StringInfo(pool, utf8Idx));
+		addPoolEntry(new CPInfo.Utf8Info(s));
+		return strIdx;
 	}
 	
 	@Override
