@@ -61,7 +61,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		if (tactics.size() == 0)
 			throw new QuickBuildException("None of the required source directories exist");
 		tactics.add(jar);
-		
+
 		return this;
 	}
 
@@ -122,9 +122,6 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		File dir = new File(rootdir, src);
 		if (dir.isDirectory())
 		{
-			if (jar != null)
-				jar.add(new File(files.getOutputDir(), bin));
-			
 			List<File> sourceFiles;
 			if (includePackages != null)
 				sourceFiles = FileUtils.findFilesMatchingIncluding(dir, "*.java", includePackages);
@@ -132,10 +129,17 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 				sourceFiles = FileUtils.findFilesMatchingExcluding(dir, "*.java", excludePackages);
 			else
 				sourceFiles = FileUtils.findFilesMatching(dir, "*.java");
-			sources.add(new JavaSourceDirResource(this, dir, sourceFiles));
 
 			JavaBuildCommand ret = new JavaBuildCommand(this, files, src, bin, sourceFiles);
 			accum.add(ret);
+			
+			if (jar != null)
+			{
+				// This is the case for main, but not test ...
+				sources.add(new JavaSourceDirResource(this, dir, sourceFiles));
+				jar.add(new File(files.getOutputDir(), bin));
+			}
+			
 			return ret;
 		}
 		return null;
@@ -199,6 +203,11 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	@Override
 	public String identifier() {
 		return "Jar[" + targetName + "]";
+	}
+
+	@Override
+	public boolean onCascade() {
+		return false;
 	}
 
 }

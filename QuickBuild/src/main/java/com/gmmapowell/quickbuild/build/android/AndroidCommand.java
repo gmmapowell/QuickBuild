@@ -138,4 +138,10 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 	public String identifier() {
 		return "BuildApk[" + apkResource.compareAs() +"]";
 	}
+
+	@Override
+	public boolean onCascade() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

@@ -124,4 +124,10 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 	public String identifier() {
 		return "AndroidJar[" + targetName + "]";
 	}
+
+	@Override
+	public boolean onCascade() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

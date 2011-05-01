@@ -41,6 +41,8 @@ public class MethodCreator extends MethodInfo {
 
 	public void lenientMode(boolean mode)
 	{
+		if (mode)
+			System.err.println("Turning on lenient mode for " + bcf + " method " + name);
 		this.lenientMode = mode;
 	}
 	
@@ -119,7 +121,7 @@ public class MethodCreator extends MethodInfo {
 		instructions.add(instruction);
 		opstack(stackChange);
 		if (lenientMode)
-			System.out.println(instruction + " stack = " + opdepth);
+			System.err.println(instruction + " stack = " + opdepth);
 	}
 
 	private void opstack(int i) {
@@ -128,6 +130,10 @@ public class MethodCreator extends MethodInfo {
 			throw new UtilException("Stack underflow generating " + name + " in " + bcf);
 		if (opdepth > maxStack)
 			maxStack = opdepth;
+	}
+	
+	public void aconst_null() {
+		add(1, new Instruction(0x1));
 	}
 	
 	public void aload(int i) {

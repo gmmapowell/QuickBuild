@@ -1,18 +1,3 @@
-nature maven com.gmmapowell.quickbuild.build.maven.MavenNature
-
-# where the root is relative to this file (optional, default = .)
-# root ..
-
-# where to put output files
-# output qbout
-
-# where to find libraries
-# libs lib
-
-# specify a maven repository
-# repo http://repo1.maven.org/maven2
-
-# Load maven files from the repo using the "Apache Buildr" format
 maven junit:junit:jar:4.8.2
 
 # build java code, junit tests, run junit tests and jar up the results
@@ -21,3 +6,6 @@ jar QuickBuild
   # package com.gmmapowell.quickbuild.config
   # target config.jar
 jar Utils
+
+# Generate javadoc for all source dirs found
+# javadoc

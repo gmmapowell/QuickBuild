@@ -114,5 +114,11 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 		return "CopyTo[" + FileUtils.makeRelative(toResource.getClonedPath()) + "]";
 	}
 
+	@Override
+	public boolean onCascade() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }
 

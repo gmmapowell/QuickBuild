@@ -1,7 +1,8 @@
 .project
 bin/
-testbin/
-qbout/
-mvncache/
 cache/
 dumpClass.txt
+javadoc/
+mvncache/
+qbout/
+testbin/

@@ -140,6 +140,15 @@ public class BuildContext implements ResourceListener {
 		}
 	}
 	
+	public Iterable<BuildResource> getResources(Class<? extends BuildResource> ofType)
+	{
+		List<BuildResource> ret = new ArrayList<BuildResource>();
+		for (BuildResource br : availableResources.values())
+			if (ofType.isInstance(br))
+				ret.add(br);
+		return ret;
+	}
+	 
 	private void moveUp(Strategem current, Strategem required) {
 		for (int idx=commandToExecute+1;idx<strats.size();idx++)
 		{
@@ -448,6 +457,9 @@ public class BuildContext implements ResourceListener {
 	private Iterable<StrategemResource> figureDependentsOf(BuildResource node) {
 		Set<StrategemResource> ret = new HashSet<StrategemResource>();
 		figureDependentsOf(ret, node);
+		for (int i=commandToExecute+1;i<strats.size();i++)
+			if (strats.get(i).getBuiltBy().onCascade())
+				ret.add(strats.get(i));
 		return ret;
 	}
 

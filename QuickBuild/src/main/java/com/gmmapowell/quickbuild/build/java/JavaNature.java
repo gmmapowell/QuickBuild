@@ -37,6 +37,7 @@ public class JavaNature implements Nature {
 	public static void init(ConfigFactory config)
 	{
 		config.addCommandExtension("jar", JarCommand.class);
+		config.addCommandExtension("javadoc", JavaDocCommand.class);
 		config.addCommandExtension("package", IncludePackageCommand.class);
 		config.addCommandExtension("target", SpecifyTargetCommand.class);
 	}

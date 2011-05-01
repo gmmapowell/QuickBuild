@@ -13,4 +13,5 @@ public interface Strategem {
 	File rootDirectory();
 	Collection<? extends Tactic> tactics();
 	OrderedFileList sourceFiles();
+	boolean onCascade();
 }

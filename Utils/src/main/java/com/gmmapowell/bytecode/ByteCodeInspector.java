@@ -270,6 +270,11 @@ public class ByteCodeInspector extends ByteCodeFile {
 		int opcode = dis.readUnsignedByte();
 		switch (opcode)
 		{
+		case 0x01:
+		{
+			hexdump.print("aconst_null");
+			return 1;
+		}
 		case 0x12:
 		{
 			int idx = dis.readUnsignedByte();

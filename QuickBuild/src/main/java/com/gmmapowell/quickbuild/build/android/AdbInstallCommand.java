@@ -89,4 +89,10 @@ public class AdbInstallCommand extends NoChildCommand implements ConfigBuildComm
 	public String identifier() {
 		return "AdbInstall[" + apk.compareAs() + "]";
 	}
+
+	@Override
+	public boolean onCascade() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

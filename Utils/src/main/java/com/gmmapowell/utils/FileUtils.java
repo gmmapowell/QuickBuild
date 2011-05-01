@@ -15,7 +15,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.gmmapowell.exceptions.UtilException;
 
@@ -404,5 +406,12 @@ public class FileUtils {
 		for (int i=ret.length()-1;i>=0 && ret.charAt(i ) == '.';i--)
 			ret.deleteCharAt(i);
 		return ret.toString();
+	}
+
+	public static Set<File> directorySet(Iterable<File> sourceFiles) {
+		HashSet<File> ret = new HashSet<File>();
+		for (File f : sourceFiles)
+			ret.add(f.getParentFile());
+		return ret;
 	}
 }

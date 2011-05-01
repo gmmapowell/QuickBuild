@@ -15,6 +15,7 @@ import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.http.ProxyInfo;
 import com.gmmapowell.http.ProxyableConnection;
 import com.gmmapowell.quickbuild.build.android.AndroidContext;
+import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.build.java.MavenResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.ResourceListener;
@@ -55,6 +56,15 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 				System.out.println(this.qbdir);
 				FileUtils.chdirAbs(this.qbdir.getParentFile());
 			}
+			// TODO: none of this should really be here, but I'm not sure where exactly to move it to
+			// It seems that natures could be responsible ... but "init" is static for some reason
+			
+			File libdir = qbdir;
+			if (libdir == null)
+				libdir = FileUtils.getCurrentDir();
+			libdir = new File(libdir, "libs").getCanonicalFile();
+			for (File f : FileUtils.findFilesMatching(libdir, "*.jar"))
+				availableResources.add(new JarResource(null, f));
 			mvnrepos.add("http://repo1.maven.org/maven2");
 		}
 		catch (IOException ex)
