@@ -14,11 +14,13 @@ import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
 public class JarBuildCommand implements Tactic {
+	private final Strategem parent;
 	private final File jarfile;
 	private final JarResource jar;
 	private final List<File> dirsToJar = new ArrayList<File>();
 
 	public JarBuildCommand(Strategem parent, StructureHelper files, String targetName) {
+		this.parent = parent;
 		this.jarfile = new File(files.getOutputDir(), targetName);
 		jar = new JarResource(parent, this.jarfile);
 	}
@@ -45,8 +47,10 @@ public class JarBuildCommand implements Tactic {
 		boolean hasFiles = false;
 		for (File dir : dirsToJar)
 		{
-			for (File f : FileUtils.findFilesUnderMatching(dir, "*.class"))
+			for (File f : FileUtils.findFilesUnderMatching(dir, "*"))
 			{
+				if (f.isDirectory())
+					continue;
 				proc.arg("-C");
 				proc.arg(dir.getPath());
 				proc.arg(f.getPath());
@@ -71,7 +75,6 @@ public class JarBuildCommand implements Tactic {
 
 	@Override
 	public Strategem belongsTo() {
-		// TODO Auto-generated method stub
-		return null;
+		return parent;
 	}
 }

@@ -365,6 +365,18 @@ public class FileUtils {
 		return convertToDottedName(file.getParentFile());
 	}
 
+	public static void copyAssertingDirs(File from, File to) {
+		try
+		{
+			assertDirectory(to.getParentFile());
+			copy(from, to);
+		}
+		catch (IOException ex)
+		{
+			throw UtilException.wrap(ex);
+		}
+	}
+
 	public static void copyRecursive(File from, File to) {
 		if (from == null)
 			return;
@@ -387,7 +399,7 @@ public class FileUtils {
 			throw new UtilException("Encountered " + nerrors + " copying " + from + " to " + to);
 	}
 
-	private static void copy(File f, File f2) throws IOException {
+	public static void copy(File f, File f2) throws IOException {
 		FileInputStream fis = new FileInputStream(f);
 		FileOutputStream fos = new FileOutputStream(f2);
 		copyStream(fis, fos);
@@ -414,4 +426,39 @@ public class FileUtils {
 			ret.add(f.getParentFile());
 		return ret;
 	}
+
+	public static File ensureExtension(File f, String ext) {
+		return new File(f.getParentFile(), ensureExtension(f.getName(), ext));
+	}
+
+	public static String ensureExtension(String name, String ext) {
+		if (name.endsWith(ext))
+			return name;
+		
+		int idx = name.lastIndexOf(".");
+		if (idx == -1)
+			return name + ext;
+		return name.substring(0, idx) + ext;
+	}
+
+
+	public static boolean isUnder(File file, File under) {
+		try {
+			String s = file.getCanonicalPath();
+			String u = under.getCanonicalPath();
+			return s.startsWith(u);
+		} catch (IOException e) {
+			return false;
+		}
+	}
+
+
+	public static File moveRelativeRoot(File tmp, File from, File to) {
+		if (!isUnder(tmp, from))
+			throw new UtilException(tmp + " is not under " + from);
+		File ret = makeRelativeTo(tmp, from);
+		return new File(to, ret.getPath());
+	}
+
 }
+	

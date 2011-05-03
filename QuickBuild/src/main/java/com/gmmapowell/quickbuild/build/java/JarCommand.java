@@ -29,14 +29,15 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	private final ResourcePacket needsResources = new ResourcePacket();
 	private String projectName;
 	private final File rootdir;
-	private StructureHelper files;
-	private String targetName;
-	private JarResource jarResource;
-	private List<Tactic> tactics;
+	protected StructureHelper files;
+	protected String targetName;
+	protected JarResource jarResource;
+	protected List<Tactic> tactics;
 	private List<File> includePackages;
 	private List<File> excludePackages;
 	private final List<PendingResource> junitLibs = new ArrayList<PendingResource>();
 	private boolean runJunit = true;
+	protected ResourcePacket willProvide = new ResourcePacket();
 
 	@SuppressWarnings("unchecked")
 	public JarCommand(TokenizedLine toks) {
@@ -52,7 +53,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		processOptions();
 		jarResource = new JarResource(this, files.getOutput(targetName));
 
-		JarBuildCommand jar = new JarBuildCommand(this, files, targetName);
+		JarBuildCommand jar = new JarBuildCommand(this, files, FileUtils.ensureExtension(targetName, ".jar"));
 		tactics = new ArrayList<Tactic>();
 		addJavaBuild(tactics, jar, "src/main/java", "classes");
 		JavaBuildCommand junit = addJavaBuild(tactics, null, "src/test/java", "test-classes");
@@ -64,8 +65,17 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		if (tactics.size() == 0)
 			throw new QuickBuildException("None of the required source directories exist");
 		tactics.add(jar);
+		
+		additionalCommands(config);
+
+		if (jarResource != null)
+			willProvide.add(jarResource);
 
 		return this;
+	}
+
+	protected void additionalCommands(Config config) {
+		// strategy pattern
 	}
 
 	private void processOptions() {
@@ -73,7 +83,6 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			if (opt instanceof SpecifyTargetCommand)
 			{
 				targetName = ((SpecifyTargetCommand) opt).getName();
-				return;
 			}
 			else if (opt instanceof IncludePackageCommand)
 			{
@@ -88,9 +97,16 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			{
 				runJunit  = false;
 			}
+			else if (processOption(opt))
+				;
 			else
 				throw new UtilException("The option " + opt + " is not valid for JarCommand");
-		targetName = projectName + ".jar";
+		if (targetName == null)
+			targetName = projectName + ".jar";
+	}
+
+	protected boolean processOption(ConfigApplyCommand opt) {
+		return false;
 	}
 
 	private void addJUnitLib(JUnitLibCommand opt) {
@@ -200,9 +216,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 
 	@Override
 	public ResourcePacket buildsResources() {
-		ResourcePacket ret = new ResourcePacket();
-		ret.add(jarResource);
-		return ret;
+		return willProvide;
 	}
 
 	@Override

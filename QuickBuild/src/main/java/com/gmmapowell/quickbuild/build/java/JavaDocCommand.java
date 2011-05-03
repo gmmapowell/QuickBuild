@@ -1,12 +1,15 @@
 package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
+import java.io.StringReader;
 import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
 
 import com.gmmapowell.collections.CollectionUtils;
 import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.parser.LinePatternMatch;
+import com.gmmapowell.parser.LinePatternParser;
 import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
@@ -17,17 +20,22 @@ import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
+import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
 public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand, Strategem, Tactic {
 
+	private String overview;
 	private final File rootdir;
 	private File outputdir;
 
 	public JavaDocCommand(TokenizedLine toks) {
-		toks.process(this);
+		toks.process(this,
+				new ArgumentDefinition("*.html", Cardinality.OPTION, "overview", "overview"));
 		this.rootdir = FileUtils.getCurrentDir();
 	}
 
@@ -85,6 +93,11 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 		proc.arg(sourcepath.toString());
 		proc.arg("-classpath");
 		proc.arg(classpath.toString());
+		if (overview != null)
+		{
+			proc.arg("-overview");
+			proc.arg(overview);
+		}
 		boolean any = false;
 		for (String f : packages)
 		{
@@ -94,11 +107,40 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 		if (!any)
 			return BuildStatus.SKIPPED;
 		proc.execute();
+		
+		LinePatternParser lppOut = new LinePatternParser();
+		lppOut.match("([0-9]+) warning", "warnings", "count");
+		int cnt = 0;
+		for (LinePatternMatch lpm : lppOut.applyTo(new StringReader(proc.getStdout())))
+		{
+			if (lpm.is("warnings"))
+			{
+				System.out.println("JavaDoc encountered " + lpm.get("count") + " warnings:");
+				cnt++;
+			}
+			else
+				throw new QuickBuildException("Do not know how to handle match " + lpm);
+		}
+
+		LinePatternParser lppErr = new LinePatternParser();
+		lppErr.match("warning - (.*)", "message", "text");
+		for (LinePatternMatch lpm : lppErr.applyTo(new StringReader(proc.getStderr())))
+		{
+			if (lpm.is("message"))
+			{
+				System.out.println("  " + lpm.get("text"));
+				cnt++;
+			}
+			else
+				throw new QuickBuildException("Do not know how to handle match " + lpm);
+		}
+		
 		if (proc.getExitCode() == 0)
 		{
-			return BuildStatus.SUCCESS;
+			if (cnt == 0)
+				return BuildStatus.SUCCESS;
+			return BuildStatus.TEST_FAILURES;
 		}
-		System.out.println(proc.getStderr());
 		return BuildStatus.BROKEN;
 	}
 
