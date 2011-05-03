@@ -15,5 +15,10 @@ public class ResourcePacket implements Iterable<BuildResource> {
 	public void add(BuildResource resource) {
 		resources.add(resource);
 	}
+	
+	@Override
+	public String toString() {
+		return resources.toString();
+	}
 
 }

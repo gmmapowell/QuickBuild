@@ -11,8 +11,8 @@ import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
 import com.gmmapowell.quickbuild.config.SpecificChildrenParent;
-import com.gmmapowell.quickbuild.config.SpecifyTargetCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
@@ -26,6 +26,7 @@ import com.gmmapowell.utils.OrderedFileList;
 public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private final ResourcePacket sources = new ResourcePacket();
+	private final ResourcePacket needsResources = new ResourcePacket();
 	private String projectName;
 	private final File rootdir;
 	private StructureHelper files;
@@ -34,6 +35,8 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	private List<Tactic> tactics;
 	private List<File> includePackages;
 	private List<File> excludePackages;
+	private final List<PendingResource> junitLibs = new ArrayList<PendingResource>();
+	private boolean runJunit = true;
 
 	@SuppressWarnings("unchecked")
 	public JarCommand(TokenizedLine toks) {
@@ -66,19 +69,36 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	}
 
 	private void processOptions() {
-		for (ConfigApplyCommand i : options)
-			if (i instanceof SpecifyTargetCommand)
+		for (ConfigApplyCommand opt : options)
+			if (opt instanceof SpecifyTargetCommand)
 			{
-				targetName = ((SpecifyTargetCommand) i).getName();
+				targetName = ((SpecifyTargetCommand) opt).getName();
 				return;
 			}
-			else if (i instanceof IncludePackageCommand)
+			else if (opt instanceof IncludePackageCommand)
 			{
-				includePackage((IncludePackageCommand)i);
+				includePackage((IncludePackageCommand)opt);
+			}
+			else if (opt instanceof JUnitLibCommand)
+			{
+				addJUnitLib((JUnitLibCommand)opt);
+				addInvisibleDependency((JUnitLibCommand)opt);
+			}
+			else if (opt instanceof NoJUnitCommand)
+			{
+				runJunit  = false;
 			}
 			else
-				throw new UtilException("The option " + i + " is not valid for JarCommand");
+				throw new UtilException("The option " + opt + " is not valid for JarCommand");
 		targetName = projectName + ".jar";
+	}
+
+	private void addJUnitLib(JUnitLibCommand opt) {
+		junitLibs.add(opt.getResource());
+	}
+
+	private void addInvisibleDependency(JUnitLibCommand i) {
+		needsResources.add(i.getResource());
 	}
 
 	private void includePackage(IncludePackageCommand ipc) {
@@ -135,7 +155,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			
 			if (jar != null)
 			{
-				// This is the case for main, but not test ...
+				// Do this for main, but not test ...
 				sources.add(new JavaSourceDirResource(this, dir, sourceFiles));
 				jar.add(new File(files.getOutputDir(), bin));
 			}
@@ -157,9 +177,12 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	}
 
 	private void addJUnitRun(List<Tactic> ret, JavaBuildCommand jbc) {
-		if (jbc != null)
+		if (runJunit && jbc != null)
 		{
-			ret.add(new JUnitRunCommand(this, files, jbc));
+			JUnitRunCommand cmd = new JUnitRunCommand(this, files, jbc);
+			for (PendingResource r : junitLibs)
+				cmd.addToClasspath(r);
+			ret.add(cmd);
 		}
 	}
 
@@ -167,7 +190,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	// Dynamic resources come in some other way
 	@Override
 	public ResourcePacket needsResources() {
-		return new ResourcePacket();
+		return needsResources;
 	}
 
 	@Override

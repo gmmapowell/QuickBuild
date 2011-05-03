@@ -30,6 +30,7 @@ import com.gmmapowell.quickbuild.core.SolidResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
+import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.DateUtils;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
@@ -37,7 +38,7 @@ import com.gmmapowell.xml.XML;
 import com.gmmapowell.xml.XMLElement;
 
 public class BuildContext implements ResourceListener {
-	private static class ComparisonResource extends SolidResource {
+	public static class ComparisonResource extends SolidResource {
 		private final String comparison;
 
 		public ComparisonResource(String from) {
@@ -77,6 +78,18 @@ public class BuildContext implements ResourceListener {
 				nature.resourceAvailable(br);
 		}
 	}
+
+	public static class NeedsResource {
+		final StrategemResource node;
+		final BuildResource br;
+
+		public NeedsResource(StrategemResource node, BuildResource br) {
+			this.node = node;
+			this.br = br;
+		}
+
+	}
+
 
 	private final Config conf;
 	private final Map<String, BuildResource> availableResources = new TreeMap<String, BuildResource>();
@@ -120,6 +133,9 @@ public class BuildContext implements ResourceListener {
 	public void configure()
 	{
 		conf.tellMeAboutInitialResources(this);
+		List<NeedsResource> needs = new ArrayList<NeedsResource>();
+		Set<BuildResource> offered = new HashSet<BuildResource>();
+		offered.addAll(availableResources.values());
 		for (StrategemResource node : strats)
 		{
 			Strategem s = node.getBuiltBy();
@@ -129,21 +145,48 @@ public class BuildContext implements ResourceListener {
 			// TODO: understand how this should work for these different cases
 			for (BuildResource br : s.needsResources())
 			{
-				dependencies.ensure(br);
+				needs.add(new NeedsResource(node, br));
 			}			
 
 			for (BuildResource br : s.providesResources())
 			{
 				// conf.willBuild(br);
 				dependencies.ensure(br);
+				offered.add(br);
 				resourceAvailable(br);
 			}
 			
 			for (BuildResource br : s.buildsResources())
 			{
 				conf.willBuild(br);
+				offered.add(br);
 				dependencies.ensure(br);
 			}
+		}
+		
+		for (NeedsResource nr : needs)
+		{
+			if (offered.contains(nr.br))
+				dependencies.ensureLink(nr.node, nr.br);
+			else if (nr.br instanceof PendingResource)
+			{
+				BuildResource uniq = null;
+				Pattern p = Pattern.compile(".*"+nr.br.compareAs().toLowerCase()+".*");
+				for (BuildResource br : offered)
+				{
+					if (p.matcher(br.compareAs().toLowerCase()).matches())
+					{
+						if (uniq != null)
+							throw new QuickBuildException("Cannot resolve comparison: " + nr.br.compareAs() + " matches at least " + uniq.compareAs() + " and" + br.compareAs());
+						uniq = br;
+					}
+				}
+				if (uniq == null)
+					throw new QuickBuildException("Could not find any dependency that matched " + nr.br.compareAs() +": have " + offered);
+				dependencies.ensureLink(nr.node, uniq);
+			}
+			else
+				throw new QuickBuildException("Could not resolve need " + nr.br);
 		}
 	}
 	
@@ -381,7 +424,7 @@ public class BuildContext implements ResourceListener {
 	}
 
 	public void tryAgain() {
-		if (++targetFailures >= 3)
+		if (++targetFailures >= 5)
 			throw new UtilException("The strategy " + currentStrat + " failed 3 times in a row");
 	}
 

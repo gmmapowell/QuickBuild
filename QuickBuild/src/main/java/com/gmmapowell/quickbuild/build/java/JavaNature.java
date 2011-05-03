@@ -13,7 +13,6 @@ import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.StrategemResource;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
-import com.gmmapowell.quickbuild.config.SpecifyTargetCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.Strategem;
@@ -38,6 +37,8 @@ public class JavaNature implements Nature {
 	{
 		config.addCommandExtension("jar", JarCommand.class);
 		config.addCommandExtension("javadoc", JavaDocCommand.class);
+		config.addCommandExtension("junitlib", JUnitLibCommand.class);
+		config.addCommandExtension("nojunit", NoJUnitCommand.class);
 		config.addCommandExtension("package", IncludePackageCommand.class);
 		config.addCommandExtension("target", SpecifyTargetCommand.class);
 	}
