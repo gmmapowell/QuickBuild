@@ -1,6 +1,8 @@
 package com.gmmapowell.quickbuild.app;
 
 import java.io.File;
+
+import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
@@ -12,6 +14,7 @@ import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
+import com.gmmapowell.utils.OrderedFileList;
 import com.gmmapowell.utils.ProcessArgs;
 
 public class QuickBuild {
@@ -33,29 +36,43 @@ public class QuickBuild {
 		ProcessArgs.process(arguments, argumentDefinitions, args);
 		
 		File file = new File(arguments.file);
+		OrderedFileList ofl = new OrderedFileList(FileUtils.relativePath(file));
 		Config conf = new Config(file.getParentFile(), FileUtils.dropExtension(file.getName()));
 		{
 			File hostfile = FileUtils.relativePath(new File(FileUtils.getHostName() + ".host.qb"));
 			if (hostfile.exists())
+			{
 				SignificantWhiteSpaceFileReader.read(conf, configFactory, hostfile);
+				ofl.add(hostfile);
+			}
 		}
 		{
 			File roothostfile = new File(new File(System.getProperty("user.home")), ".qbinit." + FileUtils.getHostName());
 			if (roothostfile.exists())
+			{
 				SignificantWhiteSpaceFileReader.read(conf, configFactory, roothostfile);
+				ofl.add(roothostfile);
+			}
 		}
 		{
 			File rootfile = new File(new File(System.getProperty("user.home")), ".qbinit");
 			if (rootfile.exists())
+			{
 				SignificantWhiteSpaceFileReader.read(conf, configFactory, rootfile);
+				ofl.add(rootfile);
+			}
+
 		}
 		SignificantWhiteSpaceFileReader.read(conf, configFactory, file);
 		conf.done();
 		System.out.println("Configuration:");
 		System.out.print(conf);
 			
+		boolean buildAll = arguments.buildAll;
+		buildAll |= GitHelper.checkFiles(true, ofl, new File(conf.getCacheDir(), file.getName()));
+		
 		// now we need to read back anything we've cached ...
-		BuildContext cxt = new BuildContext(conf, configFactory, arguments.buildAll, arguments.showArgsFor, arguments.showDebugFor);
+		BuildContext cxt = new BuildContext(conf, configFactory, buildAll, arguments.showArgsFor, arguments.showDebugFor);
 		try
 		{
     		cxt.configure();

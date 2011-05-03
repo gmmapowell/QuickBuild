@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
@@ -20,9 +22,16 @@ public class GitHelper {
 		proc.executeInDir(FileUtils.getCurrentDir());
 		proc.captureStdout();
 		proc.arg("hash-object");
+		List<String> paths = new ArrayList<String>();
 		for (File f : files)
 		{
-			proc.arg(FileUtils.makeRelative(f).getPath());
+			String path;
+			if (FileUtils.isUnder(f, FileUtils.getCurrentDir()))
+				path = FileUtils.makeRelative(f).getPath();
+			else
+				path = f.getPath();
+			proc.arg(path);
+			paths.add(path);
 		}
 		proc.execute();
 		boolean dirty = !file.exists();
@@ -43,7 +52,7 @@ public class GitHelper {
 				fos = new FileOutputStream(file);
 			
 			PrintWriter pw = new PrintWriter(fos);
-			for (File f : files)
+			for (String f : paths)
 			{
 				String s = r.readLine();
 				if (s == null)
@@ -52,7 +61,7 @@ public class GitHelper {
 					dirty = true;
 					break;
 				}
-				String nextLine = s + " " + FileUtils.makeRelative(f).getPath();
+				String nextLine = s + " " + f;
 				pw.println(nextLine);
 				if (old != null)
 				{
