@@ -487,14 +487,19 @@ public class BuildContext implements ResourceListener {
 
 	public BuildResource getPendingResource(PendingResource pending) {
 		String resourceName = pending.compareAs();
-		if (!availableResources.containsKey(resourceName))
-		{
-			System.out.println("Resource " + resourceName + " not found.  Available Resources are:");
-			for (String s : availableResources.keySet())
-				System.out.println("  " + s);
-			throw new UtilException("There is no resource called " + resourceName);
-		}
-		return availableResources.get(resourceName);
+		if (availableResources.containsKey(resourceName))
+			return availableResources.get(resourceName);
+		
+		// This time I'm not going to worry about uniqueness
+		Pattern p = Pattern.compile(".*" + pending.compareAs().toLowerCase()+".*");
+		for (BuildResource br : availableResources.values())
+			if (p.matcher(br.compareAs().toLowerCase()).matches())
+				return br;
+		
+		System.out.println("Resource " + resourceName + " not found.  Available Resources are:");
+		for (String s : availableResources.keySet())
+			System.out.println("  " + s);
+		throw new UtilException("There is no resource called " + resourceName);
 	}
 
 	public void figureDirtyness(StrategemResource node, boolean buildAll) {
