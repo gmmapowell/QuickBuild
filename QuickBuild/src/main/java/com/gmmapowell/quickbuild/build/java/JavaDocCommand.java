@@ -25,7 +25,6 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 
 	private final File rootdir;
 	private File outputdir;
-	private boolean showArgs;
 
 	public JavaDocCommand(TokenizedLine toks) {
 		toks.process(this);
@@ -49,12 +48,8 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 		return "Javadoc";
 	}
 
-	public void showArgs(boolean b) {
-		showArgs  = b;
-	}
-
 	@Override
-	public BuildStatus execute(BuildContext cxt) {
+	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		JavaNature nature = cxt.getNature(JavaNature.class);
 		if (nature == null)
 			throw new UtilException("There is no JavaNature installed (huh?)");
@@ -80,6 +75,7 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 
 		RunProcess proc = new RunProcess("javadoc");
 		proc.showArgs(showArgs);
+		proc.debug(showDebug);
 		proc.captureStdout();
 		proc.captureStderr();
 	

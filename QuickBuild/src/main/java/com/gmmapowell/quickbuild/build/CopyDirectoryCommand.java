@@ -61,7 +61,7 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 	}
 
 	@Override
-	public BuildStatus execute(BuildContext cxt) {
+	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		BuildResource from = cxt.getPendingResource(fromResource);
 		System.out.println(from.getPath());
 		FileUtils.assertDirectory(from.getPath());

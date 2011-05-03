@@ -95,7 +95,7 @@ public class JavaNature implements Nature {
 		HashSet<String> packages = new HashSet<String>();
 		for (File f : sources)
 		{
-			packages.add(FileUtils.convertToDottedName(f.getParentFile()));
+			packages.add(FileUtils.convertToDottedName(FileUtils.makeRelativeTo(f.getParentFile(), br.getPath())));
 		}
 		for (String s : packages)
 			projectPackages.add(s, br.getBuiltBy());

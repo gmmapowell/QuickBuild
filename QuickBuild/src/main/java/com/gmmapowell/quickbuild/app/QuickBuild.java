@@ -19,7 +19,8 @@ public class QuickBuild {
 		new ArgumentDefinition("*.qb", Cardinality.REQUIRED, "file", "configuration file"),
 		new ArgumentDefinition("--config-only", Cardinality.OPTION, "configOnly", null),
 		new ArgumentDefinition("--build-all", Cardinality.OPTION, "buildAll", null),
-		new ArgumentDefinition("-D*", Cardinality.ZERO_OR_MORE, "dirResources", "provide directory resource")
+		new ArgumentDefinition("--args", Cardinality.LIST, "showArgsFor", null),
+		new ArgumentDefinition("--debug", Cardinality.LIST, "showDebugFor", null)
 	};
 
 	private static Arguments arguments;
@@ -54,7 +55,7 @@ public class QuickBuild {
 		System.out.print(conf);
 			
 		// now we need to read back anything we've cached ...
-		BuildContext cxt = new BuildContext(conf, configFactory, arguments.buildAll);
+		BuildContext cxt = new BuildContext(conf, configFactory, arguments.buildAll, arguments.showArgsFor, arguments.showDebugFor);
 		try
 		{
     		cxt.configure();

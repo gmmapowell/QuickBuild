@@ -43,7 +43,7 @@ public class AdbCommand implements Tactic {
 	}
 
 	@Override
-	public BuildStatus execute(BuildContext cxt) {
+	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		if (commands.size() == 0)
 			throw new QuickBuildException("No adb command specified");
 		if (commands.size() != 1)

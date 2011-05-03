@@ -22,7 +22,6 @@ public class JavaBuildCommand implements Tactic {
 	private final File bindir;
 	private final BuildClassPath classpath;
 	private final BuildClassPath bootclasspath;
-	private boolean showArgs;
 	private boolean doClean = true;
 	private final Strategem parent;
 	private List<File> sources;
@@ -59,7 +58,7 @@ public class JavaBuildCommand implements Tactic {
 	}
 	
 	@Override
-	public BuildStatus execute(BuildContext cxt) {
+	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		JavaNature nature = cxt.getNature(JavaNature.class);
 		if (nature == null)
 			throw new UtilException("There is no JavaNature installed (huh?)");
@@ -75,6 +74,7 @@ public class JavaBuildCommand implements Tactic {
 		}
 		RunProcess proc = new RunProcess("javac");
 		proc.showArgs(showArgs);
+		proc.debug(showDebug);
 		proc.captureStdout();
 		proc.captureStderr();
 	
@@ -111,6 +111,7 @@ public class JavaBuildCommand implements Tactic {
 			// compilation errors, usually
 			LinePatternParser lpp = new LinePatternParser();
 			lpp.match("package ([a-zA-Z0-9_.]*) does not exist", "nopackage", "pkgname");
+			lpp.match("cannot access ([a-zA-Z0-9_.]*)\\.[a-zA-Z0-9_]*", "nopackage", "pkgname");
 			int cnt = 0;
 			for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStderr())))
 			{
@@ -132,10 +133,6 @@ public class JavaBuildCommand implements Tactic {
 	@Override
 	public String toString() {
 		return "Java Compile: " + srcdir;
-	}
-
-	public void showArgs(boolean b) {
-		showArgs = b;
 	}
 
 	@Override

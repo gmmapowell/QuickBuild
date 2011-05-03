@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.git.GitHelper;
@@ -98,10 +99,16 @@ public class BuildContext implements ResourceListener {
 	private final List<Notification> notifications = new ArrayList<BuildContext.Notification>();
 	private Tactic repeat;
 	private final boolean buildAll;
+	private final List<Pattern> showArgsFor = new ArrayList<Pattern>();
+	private final List<Pattern> showDebugFor = new ArrayList<Pattern>();
 
-	public BuildContext(Config conf, ConfigFactory configFactory, boolean buildAll) {
+	public BuildContext(Config conf, ConfigFactory configFactory, boolean buildAll, List<String> showArgsFor, List<String> showDebugFor) {
 		this.conf = conf;
 		this.buildAll = buildAll;
+		for (String s : showArgsFor)
+			this.showArgsFor.add(Pattern.compile(".*"+s.toLowerCase()+".*"));
+		for (String s : showDebugFor)
+			this.showDebugFor.add(Pattern.compile(".*"+s.toLowerCase()+".*"));
 		for (Class<?> n : configFactory.registeredNatures())
 			registerNature(n);
 		dependencyFile = new File(conf.getCacheDir(), "dependencies.xml");
@@ -271,10 +278,32 @@ public class BuildContext implements ResourceListener {
 		// Record when first build started
 		if (buildStarted == null)
 			buildStarted = new Date();
-		BuildStatus ret = bc.execute(this);
-		if (ret.isBroken())
+		BuildStatus ret = BuildStatus.BROKEN;
+		try
+		{
+			ret = bc.execute(this, showArgs(bc), showDebug(bc));
+		}
+		catch (RuntimeException ex)
+		{
+			ex.printStackTrace(System.out);
+		}
+		if (ret.needsRebuild())
 			getGitCacheFile(currentStrat).delete();
 		return ret;
+	}
+
+	private boolean showArgs(Tactic bc) {
+		for (Pattern p : showArgsFor)
+			if (p.matcher(bc.toString().toLowerCase()).matches())
+				return true;
+		return false;
+	}
+
+	private boolean showDebug(Tactic bc) {
+		for (Pattern p : showDebugFor)
+			if (p.matcher(bc.toString().toLowerCase()).matches())
+				return true;
+		return false;
 	}
 
 	public void junitFailure(JUnitRunCommand cmd, String stdout, String stderr) {
@@ -401,6 +430,7 @@ public class BuildContext implements ResourceListener {
 		StrategemResource node = new StrategemResource(dependent);
 		if (dependencies.hasLink(node, resource))
 			return false;
+		System.out.println("Added dependency from " + dependent + " on " + resource);
 		dependencies.ensureLink(node, resource);
 		if (resource.getBuiltBy() != null)
 			moveUp(dependent, resource.getBuiltBy());

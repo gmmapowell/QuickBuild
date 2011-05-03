@@ -1,7 +1,7 @@
 package com.gmmapowell.utils;
 
 public enum Cardinality {
-	OPTION, REQUIRED, ZERO_OR_MORE, ONE_OR_MORE;
+	OPTION, REQUIRED, ZERO_OR_MORE, ONE_OR_MORE, LIST;
 
 	public boolean maxOfOne() {
 		return this == OPTION || this == REQUIRED;

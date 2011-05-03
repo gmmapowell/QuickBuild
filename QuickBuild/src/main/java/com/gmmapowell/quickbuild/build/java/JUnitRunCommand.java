@@ -14,15 +14,19 @@ public class JUnitRunCommand implements Tactic {
 	private final File srcdir;
 	private final RunClassPath classpath;
 	private final BuildClassPath bootclasspath = new BuildClassPath();
+	private final Strategem parent;
 
 	public JUnitRunCommand(Strategem parent, StructureHelper files, JavaBuildCommand jbc) {
+		this.parent = parent;
 		this.srcdir = new File(files.getBaseDir(), "src/test/java");
 		classpath = new RunClassPath(jbc);
 	}
 
 	@Override
-	public BuildStatus execute(BuildContext cxt) {
+	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		RunProcess proc = new RunProcess("java");
+		proc.showArgs(showArgs);
+		proc.debug(showDebug);
 		proc.captureStdout();
 		proc.captureStderr();
 
@@ -44,7 +48,7 @@ public class JUnitRunCommand implements Tactic {
 		{
 			return BuildStatus.SUCCESS;
 		}
-		System.out.println("FAIL!!! JUnit Errors will be presented at end");
+		System.out.println(" !! JUnit Test Errors will be presented at end");
 		cxt.junitFailure(this, proc.getStdout(), proc.getStderr());
 		return BuildStatus.TEST_FAILURES;
 	}
@@ -60,8 +64,7 @@ public class JUnitRunCommand implements Tactic {
 
 	@Override
 	public Strategem belongsTo() {
-		// TODO Auto-generated method stub
-		return null;
+		return parent;
 	}
 
 

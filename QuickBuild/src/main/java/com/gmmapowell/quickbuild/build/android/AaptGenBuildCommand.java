@@ -24,7 +24,7 @@ public class AaptGenBuildCommand implements Tactic {
 	}
 	
 	@Override
-	public BuildStatus execute(BuildContext cxt) {
+	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		/* TODO: someone else should handle this
 		if (!cxt.requiresBuiltResource(this, resResource))
 		{

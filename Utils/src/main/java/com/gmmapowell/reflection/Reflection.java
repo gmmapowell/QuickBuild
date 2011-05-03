@@ -8,6 +8,28 @@ import com.gmmapowell.exceptions.UtilException;
 public class Reflection {
 
 	@SuppressWarnings("unchecked")
+	public static <T> T getField(Object target, String fieldName) {
+		try
+		{
+			if (target == null)
+				throw new UtilException("Cannot use reflection on null object");
+			if (fieldName == null)
+				throw new UtilException("Must specify a valid field name");
+			Class<?> clz = target.getClass();
+			Field f = findField(clz, fieldName);
+			if (f == null)
+				throw new UtilException("The field '" + fieldName +"' was not defined in " + target.getClass());
+			f.setAccessible(true);
+
+			return (T) f.get(target);
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
 	public static void setField(Object target, String fieldName, Object value) {
 		try
 		{
@@ -47,5 +69,4 @@ public class Reflection {
 			return null;
 		}
 	}
-
 }

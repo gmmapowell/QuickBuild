@@ -17,7 +17,6 @@ public class JarBuildCommand implements Tactic {
 	private final File jarfile;
 	private final JarResource jar;
 	private final List<File> dirsToJar = new ArrayList<File>();
-	private boolean showArgs;
 
 	public JarBuildCommand(Strategem parent, StructureHelper files, String targetName) {
 		this.jarfile = new File(files.getOutputDir(), targetName);
@@ -33,7 +32,7 @@ public class JarBuildCommand implements Tactic {
 	}
 
 	@Override
-	public BuildStatus execute(BuildContext cxt) {
+	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		if (jarfile.exists() && !jarfile.delete())
 			throw new QuickBuildException("Could not delete " + jarfile);
 		RunProcess proc = new RunProcess("jar");
@@ -68,11 +67,6 @@ public class JarBuildCommand implements Tactic {
 	@Override
 	public String toString() {
 		return "Jar Up: " + jar;
-	}
-
-	public void showArgs(boolean b) {
-		this.showArgs = b;
-		
 	}
 
 	@Override

@@ -19,4 +19,8 @@ public enum BuildStatus {
 	public boolean isBroken() {
 		return this == BROKEN;
 	}
+
+	public boolean needsRebuild() {
+		return isBroken() || this == TEST_FAILURES;
+	}
 }

@@ -7,5 +7,5 @@ public interface Tactic {
 
 	public Strategem belongsTo();
 
-	public BuildStatus execute(BuildContext cxt);
+	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug);
 }

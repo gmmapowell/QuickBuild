@@ -21,6 +21,7 @@ public class RunProcess {
 	private ByteArrayOutputStream errCapture;
 	private boolean finished;
 	private boolean showArgs;
+	private boolean debug;
 
 	public RunProcess(String cmd) {
 		cmdarray.add(cmd);
@@ -82,6 +83,13 @@ public class RunProcess {
 		} catch (Exception e) {
 			throw UtilException.wrap(e);
 		}
+		if (debug)
+		{
+			if (outCapture != null)
+				System.out.println(outCapture);
+			if (errCapture != null)
+				System.out.println(errCapture);
+		}
 		finished = true;
 	}
 	
@@ -119,10 +127,14 @@ public class RunProcess {
 			throw new UtilException("Can only call this method after successful completion");
 	}
 
-	public void debug() {
-		showArgs(true);
-		redirectStderr(System.out);
-		redirectStdout(System.out);
+	public void debug(boolean showDebug) {
+		if (showDebug)
+		{
+			debug = true;
+			showArgs(true);
+			redirectStderr(System.out);
+			redirectStdout(System.out);
+		}
 	}
 }
 

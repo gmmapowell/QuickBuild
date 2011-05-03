@@ -32,7 +32,7 @@ public class DexBuildCommand implements Tactic {
 	}
 
 	@Override
-	public BuildStatus execute(BuildContext cxt) {
+	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		RunProcess proc = new RunProcess(acxt.getDX().getPath());
 		proc.captureStdout();
 		proc.captureStderr();

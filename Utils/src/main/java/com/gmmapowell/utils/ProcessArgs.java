@@ -28,6 +28,20 @@ public class ProcessArgs {
 						Reflection.setField(config, ad.toVar, true);
 						continue loop;
 					}
+				int idx = args[i].indexOf("="); 
+				if (idx > -1)
+				{
+					String key = args[i].substring(0, idx);
+					String val = args[i].substring(idx+1);
+					for (ArgumentDefinition ad : argumentDefinitions)
+						if (ad.text.equals(key))
+						{
+							for (String s : val.split(","))
+								if (s != null && s.length() > 0)
+									Reflection.setField(config, ad.toVar, s); // append to collection
+							continue loop;
+						}
+				}
 				throw new UtilException("There is no option definition for " + args[i]);
 			}
 			else if (args[i].startsWith("-"))
