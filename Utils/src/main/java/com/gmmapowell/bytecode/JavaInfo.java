@@ -3,7 +3,7 @@ package com.gmmapowell.bytecode;
 import com.gmmapowell.utils.FileUtils;
 
 public class JavaInfo {
-	protected String map(String type) {
+	public static String map(String type) {
 		if (type.startsWith("@")) // this is my own annotation to allow pre-mapped types to be passed around
 			return type.substring(1);
 		int dims = 0;
@@ -12,7 +12,7 @@ public class JavaInfo {
 		return type.substring(0, dims) + mapScalar(type.substring(dims));
 	}
 
-	private String mapScalar(String type)
+	private static String mapScalar(String type)
 	{
 		if (type.equals("void"))
 			return "V";

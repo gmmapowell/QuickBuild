@@ -7,10 +7,10 @@ import java.util.List;
 
 public class FieldInfo extends JavaInfo {
 	private final ByteCodeFile bcf;
-	private final int access_flags;
-	private final short name_idx;
-	private final short descriptor_idx;
-	private final List<AttributeInfo> attributes = new ArrayList<AttributeInfo>();
+	private int access_flags;
+	private short name_idx;
+	private short descriptor_idx;
+	final List<AttributeInfo> attributes = new ArrayList<AttributeInfo>();
 
 	public FieldInfo(ByteCodeFile bcf, boolean isFinal, String type, String var) {
 		this.bcf = bcf;
@@ -20,6 +20,10 @@ public class FieldInfo extends JavaInfo {
 		access_flags = flags;
 		this.name_idx = bcf.requireUtf8(var);
 		this.descriptor_idx = bcf.requireUtf8(map(type));
+	}
+
+	public FieldInfo(ByteCodeFile bcf) {
+		this.bcf = bcf;
 	}
 
 	public void write(DataOutputStream dos) throws IOException {

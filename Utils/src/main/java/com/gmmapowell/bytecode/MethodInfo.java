@@ -24,4 +24,8 @@ public class MethodInfo extends JavaInfo {
 		bcf.writeAttributes(dos, attributes);
 	}
 
+	@Override
+	public String toString() {
+		return "Method[" + bcf.pool[nameIdx] +"]";
+	}
 }

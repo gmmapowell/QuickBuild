@@ -2,6 +2,8 @@ package com.gmmapowell.bytecode;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -60,8 +62,31 @@ public class ByteCodeFile {
 	private List<AttributeInfo> attributes = new ArrayList<AttributeInfo>();
 	private final String qualifiedName;
 	
+	public ByteCodeFile(File from, String qualifiedName)
+	{
+		this.qualifiedName = qualifiedName;
+		FileInputStream fis = null;
+		try
+		{
+			fis = new FileInputStream(from);
+			read(fis);
+			fis.close();
+		}
+		catch (IOException ex)
+		{
+			if (fis != null)
+				try { fis.close(); } catch (IOException e2) { }
+			throw UtilException.wrap(ex);
+		}
+	}
+	
 	public ByteCodeFile(InputStream fis)
 	{
+		read(fis);
+		qualifiedName = null;
+	}
+
+	private void read(InputStream fis) {
 		try
 		{
 			DataInputStream dis = new DataInputStream(fis);
@@ -77,10 +102,9 @@ public class ByteCodeFile {
 			readInterfaces(dis);
 			readFields(dis);
 			readMethods(dis);
-			readAttributes(dis);
+			readAttributes(dis, attributes);
 			if (dis.available() != 0)
 				throw new UtilException("There are still " + dis.available() + " bytes available on the stream");
-			qualifiedName = null;
 		}
 		catch (Exception ex)
 		{
@@ -185,12 +209,13 @@ public class ByteCodeFile {
 		// System.out.println("# of fields = " + cnt);
 		for (int i=0;i<cnt;i++)
 		{
+			FieldInfo fi = new FieldInfo(this);
 			dis.readUnsignedShort(); // access_flags
 			@SuppressWarnings("unused")
 			int name = dis.readUnsignedShort(); // name idx
 //			System.out.println("Reading field " + pool[name]);
 			dis.readUnsignedShort(); // descriptor idx
-			readAttributes(dis);
+			readAttributes(dis, fi.attributes);
 		}
 		
 	}
@@ -208,12 +233,12 @@ public class ByteCodeFile {
 		// System.out.println("# of methods = " + cnt);
 		for (int i=0;i<cnt;i++)
 		{
-			dis.readUnsignedShort(); // access_flags
-			@SuppressWarnings("unused")
-			int name = dis.readUnsignedShort(); // name idx
-//			System.out.println("Reading field " + pool[name]);
-			dis.readUnsignedShort(); // descriptor idx
-			readAttributes(dis);
+			MethodInfo mi = new MethodInfo(this);
+			mi.access_flags = (short) dis.readUnsignedShort();
+			mi.nameIdx = (short) dis.readUnsignedShort();
+			mi.descriptorIdx = (short) dis.readUnsignedShort();
+			readAttributes(dis, mi.attributes);
+			methods.add(mi);
 		}
 		
 	}
@@ -226,20 +251,17 @@ public class ByteCodeFile {
 		}
 	}
 
-	private void readAttributes(DataInputStream dis) throws IOException {
+	private void readAttributes(DataInputStream dis, List<AttributeInfo> attrs) throws IOException {
 		int cnt = dis.readUnsignedShort();
-//		if (cnt > 0)
-//			System.out.println("cnt = " + cnt);
 		for (int i=0;i<cnt;i++)
 		{
-			@SuppressWarnings("unused")
-			int idx = dis.readUnsignedShort(); // name_index
-//			System.out.println("  idx = " + idx + ": " + pool[idx]);
-			int len = dis.readInt(); // length
-//			System.out.println("  len = " + len);
+			int idx = dis.readUnsignedShort();
+			int len = dis.readInt();
 			byte[] bytes = new byte[len];
 			readBytes(dis, bytes);
-		}		
+			attrs.add(new AttributeInfo(pool, idx, bytes));
+		}
+		return;
 	}
 
 	void writeAttributes(DataOutputStream dos, List<AttributeInfo> attrs) throws IOException {
@@ -457,5 +479,22 @@ public class ByteCodeFile {
 		if (qualifiedName != null)
 			return "BCF[" + qualifiedName + "]";
 		return super.toString();
+	}
+
+	public boolean hasMethodsWithAnnotation(String string) {
+		String mapped = JavaInfo.map(string);
+		for (MethodInfo mi : methods)
+		{
+			for (AttributeInfo ai : mi.attributes)
+			{
+				if (ai.hasName("RuntimeVisibleAnnotations"))
+				{
+					RuntimeVisibleAnnotations rva = new RuntimeVisibleAnnotations(this, ai);
+					if (rva.has(mapped))
+						return true;
+				}
+			}
+		}
+		return false;
 	}
 }

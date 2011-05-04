@@ -3,6 +3,7 @@ package com.gmmapowell.quickbuild.build.java;
 import java.io.File;
 import java.util.List;
 
+import com.gmmapowell.bytecode.ByteCodeFile;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.BuildResource;
@@ -17,18 +18,20 @@ import com.gmmapowell.utils.FileUtils;
 
 public class JUnitRunCommand implements Tactic, DependencyFloat {
 	private final File srcdir;
+	private File bindir;
 	
 	// TODO: this is currently unused ... it should be, I think, for Android
 	private final BuildClassPath bootclasspath = new BuildClassPath();
 	private final Strategem parent;
 	private final JavaBuildCommand jbc;
-
 	private ResourcePacket addlResources;
+
 
 	public JUnitRunCommand(Strategem parent, StructureHelper files, JavaBuildCommand jbc) {
 		this.parent = parent;
 		this.jbc = jbc;
 		this.srcdir = new File(files.getBaseDir(), "src/test/java");
+		this.bindir = files.getOutput("test-classes");
 	}
 
 	@Override
@@ -52,9 +55,15 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 		boolean any = false;
 		for (File f : FileUtils.findFilesUnderMatching(srcdir, "*.java"))
 		{
-			// TODO: check whether it has any @Test annotations
-			any = true;
-			proc.arg(FileUtils.convertToDottedNameDroppingExtension(f));
+			String qualifiedName = FileUtils.convertToDottedNameDroppingExtension(f);
+			File clsFile = new File(bindir, FileUtils.ensureExtension(f, ".class").getPath());
+			System.out.println(clsFile);
+			ByteCodeFile bcf = new ByteCodeFile(clsFile, qualifiedName);
+			if (bcf.hasMethodsWithAnnotation("org.junit.Test"))
+			{
+				any = true;
+				proc.arg(qualifiedName);
+			}
 		}
 		if (!any)
 			return BuildStatus.SKIPPED;

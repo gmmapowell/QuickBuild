@@ -76,7 +76,8 @@ public class MethodCreator extends MethodInfo {
 				{
 					ByteArrayOutputStream baos = new ByteArrayOutputStream();
 					DataOutputStream dos = new DataOutputStream(baos);
-					dos.writeShort(bcf.requireUtf8("Code"));
+					short idx = bcf.requireUtf8("Code");
+					dos.writeShort(idx);
 					dos.writeInt(hdrlen + len);
 					dos.writeShort(maxStack);
 					dos.writeShort(locals);
@@ -85,7 +86,7 @@ public class MethodCreator extends MethodInfo {
 						i.write(dos);
 					dos.writeShort(0); // exceptions
 					dos.writeShort(0); // code attributes
-					attributes.add(new AttributeInfo(baos.toByteArray()));
+					attributes.add(new AttributeInfo(bcf.pool, idx, baos.toByteArray()));
 				}
 				catch (Exception ex)
 				{
