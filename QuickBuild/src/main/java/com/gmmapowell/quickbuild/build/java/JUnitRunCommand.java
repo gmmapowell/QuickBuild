@@ -1,26 +1,29 @@
 package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.DependencyFloat;
 import com.gmmapowell.quickbuild.core.PendingResource;
+import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
-public class JUnitRunCommand implements Tactic {
+public class JUnitRunCommand implements Tactic, DependencyFloat {
 	private final File srcdir;
 	
 	// TODO: this is currently unused ... it should be, I think, for Android
 	private final BuildClassPath bootclasspath = new BuildClassPath();
 	private final Strategem parent;
-	private final List<PendingResource> deferred = new ArrayList<PendingResource>();
 	private final JavaBuildCommand jbc;
+
+	private ResourcePacket addlResources;
 
 	public JUnitRunCommand(Strategem parent, StructureHelper files, JavaBuildCommand jbc) {
 		this.parent = parent;
@@ -31,10 +34,11 @@ public class JUnitRunCommand implements Tactic {
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		RunClassPath classpath = new RunClassPath(jbc);
-		for (PendingResource r : deferred)
-		{
-			classpath.add(cxt.getPendingResource(r).getPath());
-		}
+		if (addlResources != null)
+			for (BuildResource r : addlResources)
+			{
+				classpath.add(cxt.getPendingResource((PendingResource) r).getPath());
+			}
 		RunProcess proc = new RunProcess("java");
 		proc.showArgs(showArgs);
 		proc.debug(showDebug);
@@ -69,10 +73,6 @@ public class JUnitRunCommand implements Tactic {
 		return "JUnit Runner: " + srcdir;
 	}
 	
-	public void addToClasspath(PendingResource r) {
-		deferred.add(r);
-	}
-
 	public void addToBootClasspath(File resource) {
 		bootclasspath.add(resource);
 	}
@@ -82,5 +82,17 @@ public class JUnitRunCommand implements Tactic {
 		return parent;
 	}
 
+	public void addLibs(List<PendingResource> junitLibs) {
+		if (junitLibs.isEmpty())
+			return;
+		
+		addlResources = new ResourcePacket();
+		for (PendingResource r : junitLibs)
+			addlResources.add(r);
+	}
 
+	@Override
+	public ResourcePacket needsAdditionalBuiltResources() {
+		return addlResources;
+	}
 }

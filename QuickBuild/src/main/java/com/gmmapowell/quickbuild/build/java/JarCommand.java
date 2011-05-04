@@ -47,7 +47,6 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 
 	@Override
 	public Strategem applyConfig(Config config) {
-		System.out.println("Applying config to " + this);
 		files = new StructureHelper(rootdir, config.getOutput());
 		
 		processOptions();
@@ -58,7 +57,9 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		addJavaBuild(tactics, jar, "src/main/java", "classes");
 		JavaBuildCommand junit = addJavaBuild(tactics, null, "src/test/java", "test-classes");
 		if (junit != null)
+		{
 			junit.addToClasspath(new File(files.getOutputDir(), "classes"));
+		}
 		addResources(jar, junit, "src/main/resources");
 		addResources(null, junit, "src/test/resources");
 		addJUnitRun(tactics, junit);
@@ -138,7 +139,6 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 
 	@Override
 	public void addChild(ConfigApplyCommand obj) {
-		System.out.println("Adding child " + obj);
 		options.add(obj);
 	}
 
@@ -196,8 +196,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		if (runJunit && jbc != null)
 		{
 			JUnitRunCommand cmd = new JUnitRunCommand(this, files, jbc);
-			for (PendingResource r : junitLibs)
-				cmd.addToClasspath(r);
+			cmd.addLibs(junitLibs);
 			ret.add(cmd);
 		}
 	}

@@ -114,7 +114,6 @@ public class ConfigFactory implements CommandObjectFactory {
 	}
 
 	private void addNature(String cmd, Class<? extends Nature> clz) {
-		System.out.println("Adding nature " + clz);
 		natures.put(cmd, clz);
 		try {
 			Method method = clz.getMethod("init", ConfigFactory.class);

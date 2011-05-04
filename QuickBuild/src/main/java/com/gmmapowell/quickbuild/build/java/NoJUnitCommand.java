@@ -6,8 +6,6 @@ import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 
 public class NoJUnitCommand extends NoChildCommand implements ConfigApplyCommand {
-	private String target;
-	
 	public NoJUnitCommand(TokenizedLine toks)
 	{
 	}

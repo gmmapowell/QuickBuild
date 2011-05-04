@@ -58,7 +58,6 @@ public class SignificantWhiteSpaceFileReader {
 		}
 	}
 
-	// TODO: this requires thought and work
 	private Parent<?> createObject(String cmd, TokenizedLine toks) {
 		return factory.create(cmd, toks);
 	}
@@ -82,7 +81,6 @@ public class SignificantWhiteSpaceFileReader {
 	}
 
 	public static <U, T extends Parent<U>> void read(T parent, CommandObjectFactory factory, File f) {
-		System.out.println("Reading configuration " + f);
 		if (!f.exists())
 			throw new UtilException("The file '" + f.getPath() + "' does not exist");
 		

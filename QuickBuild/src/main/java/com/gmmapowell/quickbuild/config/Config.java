@@ -53,7 +53,6 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 			else
 			{
 				this.qbdir = qbdir.getCanonicalFile();
-				System.out.println(this.qbdir);
 				FileUtils.chdirAbs(this.qbdir.getParentFile());
 			}
 			// TODO: none of this should really be here, but I'm not sure where exactly to move it to

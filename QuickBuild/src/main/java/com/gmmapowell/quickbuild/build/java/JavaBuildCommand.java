@@ -10,6 +10,7 @@ import com.gmmapowell.parser.LinePatternParser;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;

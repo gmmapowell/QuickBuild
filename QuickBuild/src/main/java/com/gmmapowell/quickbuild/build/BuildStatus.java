@@ -1,11 +1,11 @@
 package com.gmmapowell.quickbuild.build;
 
 public enum BuildStatus {
-	SUCCESS, IGNORED, SKIPPED,
+	SUCCESS, IGNORED, SKIPPED, DEFERRED,
 	RETRY, TEST_FAILURES, BROKEN;
 	
 	public boolean isGood() { 
-		return this == SUCCESS || this == IGNORED || this == SKIPPED;
+		return this == SUCCESS || this == IGNORED || this == SKIPPED || this == DEFERRED;
 	}
 	
 	public boolean tryAgain() {

@@ -23,9 +23,11 @@ import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.DependencyFloat;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourceListener;
+import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.SolidResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -37,7 +39,27 @@ import com.gmmapowell.utils.OrderedFileList;
 import com.gmmapowell.xml.XML;
 import com.gmmapowell.xml.XMLElement;
 
+/* Somewhere deep inside here, there is structure waiting to break out.
+ * I think there are really 4 separate functions for this class:
+ * 
+ *   * Managing the build state (config, resources, etc)
+ *   * Managing the build order (strats, tactics, floating etc)
+ *   * Managing the build dependencies
+ *   * Actually handling all the dirtyness of execution
+ *   
+ * But I can't see how to disentangle them.
+ */
 public class BuildContext implements ResourceListener {
+	public class DeferredTactic {
+		final String id;
+		final Tactic bc;
+
+		public DeferredTactic(String id, Tactic bc) {
+			this.id = id;
+			this.bc = bc;
+		}
+	}
+
 	public static class ComparisonResource extends SolidResource {
 		private final String comparison;
 
@@ -97,7 +119,7 @@ public class BuildContext implements ResourceListener {
 	private final List<JUnitFailure> failures = new ArrayList<JUnitFailure>();
 	private final File dependencyFile;
 	private final File buildOrderFile;
-	private int commandToExecute = -1;
+	private int strategemToExecute = -1;
 	private int targetFailures;
 	private Date buildStarted;
 	private int totalErrors;
@@ -114,6 +136,8 @@ public class BuildContext implements ResourceListener {
 	private final boolean buildAll;
 	private final List<Pattern> showArgsFor = new ArrayList<Pattern>();
 	private final List<Pattern> showDebugFor = new ArrayList<Pattern>();
+	private final List<DeferredTactic> deferred = new ArrayList<DeferredTactic>();
+	private String currentId;
 
 	public BuildContext(Config conf, ConfigFactory configFactory, boolean buildAll, List<String> showArgsFor, List<String> showDebugFor) {
 		this.conf = conf;
@@ -200,12 +224,12 @@ public class BuildContext implements ResourceListener {
 	}
 	 
 	private void moveUp(Strategem current, Strategem required) {
-		for (int idx=commandToExecute+1;idx<strats.size();idx++)
+		for (int idx=strategemToExecute+1;idx<strats.size();idx++)
 		{
 			if (strats.get(idx).getBuiltBy() == required)
 			{
 				StrategemResource sr = strats.remove(idx);
-				strats.add(commandToExecute, sr);
+				strats.add(strategemToExecute, sr);
 				currentCommands = null;
 				moveOn = false;
 				repeat = null;
@@ -307,14 +331,28 @@ public class BuildContext implements ResourceListener {
 	public BuildStatus execute(Tactic bc) {
 		// figure out if we need to build this
 		boolean doit = true;
-		if (currentStrat.isClean())
+		boolean floatMe = dependencyFloat(bc);
+		String id = (strategemToExecute+1)+"."+currentStrategemCommandNo;
+		if (currentId != null)
+		{
+			id = currentId;
+			System.out.print("+ ");
+		}
+		else if (currentStrat.isClean())
 		{
 			doit = false;
 			System.out.print("  ");
 		}
+		else if (floatMe)
+		{
+			System.out.print("- ");
+			deferred.add(new DeferredTactic(id, bc));
+		}
 		else
 			System.out.print("* ");
-		System.out.println((commandToExecute+1)+"."+currentStrategemCommandNo + ": " + bc);
+		System.out.println(id + ": " + bc);
+		if (floatMe)
+			return BuildStatus.DEFERRED;
 		if (!doit)
 			return BuildStatus.IGNORED;
 
@@ -331,8 +369,24 @@ public class BuildContext implements ResourceListener {
 			ex.printStackTrace(System.out);
 		}
 		if (ret.needsRebuild())
-			getGitCacheFile(currentStrat).delete();
+			getGitCacheFile(stratFor(bc)).delete();
 		return ret;
+	}
+
+	private StrategemResource stratFor(Tactic bc) {
+		return new StrategemResource(bc.belongsTo());
+	}
+
+	private boolean dependencyFloat(Tactic bc) {
+		if (!(bc instanceof DependencyFloat))
+			return false;
+		ResourcePacket needsAdditionalBuiltResources = ((DependencyFloat)bc).needsAdditionalBuiltResources();
+		if (needsAdditionalBuiltResources == null)
+			return false;
+		for (BuildResource br : needsAdditionalBuiltResources)
+			if (getPendingResourceIfAvailable((PendingResource) br) == null)
+				return true;
+		return false;
 	}
 
 	private boolean showArgs(Tactic bc) {
@@ -381,6 +435,7 @@ public class BuildContext implements ResourceListener {
 		{
 			if (repeat != null)
 				return repeat;
+			currentId = null;
 			
 			if (currentCommands != null && currentCommands.hasNext())
 			{
@@ -388,7 +443,7 @@ public class BuildContext implements ResourceListener {
 				repeat = currentCommands.next();
 				return repeat;
 			}
-			
+		
 			if (moveOn)
 			{
 				if (currentStrat != null && currentStrat.isClean())
@@ -398,13 +453,33 @@ public class BuildContext implements ResourceListener {
 						resourceAvailable(br);
 					}
 				}
-				commandToExecute++; 
+				strategemToExecute++; 
 			}
 
-			if (commandToExecute >= strats.size())
+			for (DeferredTactic d : deferred)
+				if (!dependencyFloat(d.bc))
+				{
+					currentId = d.id;
+					repeat = d.bc;
+					deferred.remove(d);
+					return repeat;
+				}
+			
+			if (strategemToExecute >= strats.size())
+			{
+				if (deferred.size() > 0)
+				{
+					for (DeferredTactic dt : deferred)
+					{
+						System.out.println("! " + dt.bc.toString());
+						getGitCacheFile(stratFor(dt.bc)).delete();
+					}
+					throw new QuickBuildException("At end of processing, some targets were not built");
+				}
 				return null;
+			}
 	
-			currentStrat = strats.get(commandToExecute);
+			currentStrat = strats.get(strategemToExecute);
 			figureDirtyness(currentStrat, buildAll);
 			currentCommands = currentStrat.getBuiltBy().tactics().iterator();
 			currentStrategemCommandNo = 0;
@@ -486,20 +561,30 @@ public class BuildContext implements ResourceListener {
 	}
 
 	public BuildResource getPendingResource(PendingResource pending) {
+		BuildResource ret = getPendingResourceIfAvailable(pending);
+		if (ret != null)
+			return ret;
+		
+		String resourceName = pending.compareAs();
+		System.out.println("Resource " + resourceName + " not found.  Available Resources are:");
+		for (String s : availableResources.keySet())
+			System.out.println("  " + s);
+
+		throw new UtilException("There is no resource called " + resourceName);
+	}
+
+	private BuildResource getPendingResourceIfAvailable(PendingResource pending) {
 		String resourceName = pending.compareAs();
 		if (availableResources.containsKey(resourceName))
 			return availableResources.get(resourceName);
 		
 		// This time I'm not going to worry about uniqueness
-		Pattern p = Pattern.compile(".*" + pending.compareAs().toLowerCase()+".*");
+		Pattern p = Pattern.compile(".*" + resourceName.toLowerCase()+".*");
 		for (BuildResource br : availableResources.values())
 			if (p.matcher(br.compareAs().toLowerCase()).matches())
 				return br;
 		
-		System.out.println("Resource " + resourceName + " not found.  Available Resources are:");
-		for (String s : availableResources.keySet())
-			System.out.println("  " + s);
-		throw new UtilException("There is no resource called " + resourceName);
+		return null;
 	}
 
 	public void figureDirtyness(StrategemResource node, boolean buildAll) {
@@ -535,7 +620,7 @@ public class BuildContext implements ResourceListener {
 	private Iterable<StrategemResource> figureDependentsOf(BuildResource node) {
 		Set<StrategemResource> ret = new HashSet<StrategemResource>();
 		figureDependentsOf(ret, node);
-		for (int i=commandToExecute+1;i<strats.size();i++)
+		for (int i=strategemToExecute+1;i<strats.size();i++)
 			if (strats.get(i).getBuiltBy().onCascade())
 				ret.add(strats.get(i));
 		return ret;
