@@ -24,6 +24,7 @@ import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.DependencyFloat;
+import com.gmmapowell.quickbuild.core.FloatToEnd;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourceListener;
@@ -480,10 +481,40 @@ public class BuildContext implements ResourceListener {
 			}
 	
 			currentStrat = strats.get(strategemToExecute);
+			if (currentStrat.getBuiltBy() instanceof FloatToEnd)
+				currentStrat = tryToFloatDownwards();
 			figureDirtyness(currentStrat, buildAll);
 			currentCommands = currentStrat.getBuiltBy().tactics().iterator();
 			currentStrategemCommandNo = 0;
 		}
+	}
+
+	private StrategemResource tryToFloatDownwards() {
+		// So, we've found that this one would like to float down.
+		// It can't go below anyone who wants to go down more, or
+		// anyone that it's dependent on (transitively), but it should be able to move
+		// them down too.
+		// I'm leaving that later case for when it arises.
+		
+		Strategem me = currentStrat.getBuiltBy();
+		int pri = ((FloatToEnd)me).priority();
+		int curpos;
+		for (curpos = strategemToExecute+1;curpos < strats.size();curpos++)
+		{
+			if (dependencies.hasLink(strats.get(curpos), currentStrat))
+				break;
+			Strategem compareTo = strats.get(curpos).getBuiltBy();
+			if (!(compareTo instanceof FloatToEnd))
+				continue;
+			if (pri <= ((FloatToEnd)compareTo).priority())
+				break;
+		}
+		if (curpos != strategemToExecute+1)
+		{
+			strats.add(curpos, currentStrat);
+			strats.remove(strategemToExecute);
+		}
+		return strats.get(strategemToExecute);
 	}
 
 	public void advance() {

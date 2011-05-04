@@ -17,6 +17,7 @@ import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.FloatToEnd;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -27,7 +28,7 @@ import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
-public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand, Strategem, Tactic {
+public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand, Strategem, Tactic, FloatToEnd {
 
 	private String overview;
 	private final File rootdir;
@@ -184,5 +185,11 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 	public boolean onCascade()
 	{
 		return true;
+	}
+
+
+	@Override
+	public int priority() {
+		return 5;
 	}
 }
