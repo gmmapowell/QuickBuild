@@ -5,6 +5,13 @@ if [ $# -lt 1 ] ; then
   exit 1
 fi
 
+SEP=':'
+case `uname -s` in
+   CYGWIN*)
+     SEP=';'
+     ;;
+esac
+
 ROOTDIR="`dirname $0`"
 
-java -cp $ROOTDIR/dp.jar:$ROOTDIR/spritzerc.jar:$ROOTDIR/quickbuild.jar:$ROOTDIR/utils.jar com.gmmapowell.quickbuild.app.QuickBuild "$@"
+java -cp "$ROOTDIR/dp.jar$SEP$ROOTDIR/spritzerc.jar$SEP$ROOTDIR/QuickBuild.jar$SEP$ROOTDIR/Utils.jar" com.gmmapowell.quickbuild.app.QuickBuild "$@"
