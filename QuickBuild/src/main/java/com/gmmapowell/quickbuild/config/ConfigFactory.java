@@ -59,7 +59,7 @@ public class ConfigFactory implements CommandObjectFactory {
 			}
 		}
 		else
-			throw new QuickBuildException("Cannot understand command " + cmd);
+			throw new QuickBuildException("Cannot understand command '" + cmd + "'");
 	}
 
 	static class Args
@@ -114,6 +114,8 @@ public class ConfigFactory implements CommandObjectFactory {
 	}
 
 	private void addNature(String cmd, Class<? extends Nature> clz) {
+		if (natures.containsKey(cmd))
+			throw new QuickBuildException("Cannot add duplicate nature name " + cmd);
 		natures.put(cmd, clz);
 		try {
 			Method method = clz.getMethod("init", ConfigFactory.class);

@@ -4,4 +4,6 @@ public interface Nature {
 
 	void resourceAvailable(BuildResource br);
 
+	public abstract boolean isAvailable();
+
 }

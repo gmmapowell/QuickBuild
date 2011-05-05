@@ -12,6 +12,7 @@ import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
@@ -19,20 +20,21 @@ public class WarBuildCommand implements Tactic {
 
 	private final WarCommand parent;
 	private final File warfile;
-	// TODO: should this be a WAR resource?
-	private final JarResource warFile;
 	private final StructureHelper files;
 	private final List<File> dirsToJar = new ArrayList<File>();
 	private final List<PendingResource> warlibs;
 	private final List<Pattern> warexcl;
+	private final WarResource warResource;
+	private final List<WarRandomFileCommand> warfiles;
 
-	public WarBuildCommand(WarCommand parent, StructureHelper files, String targetName, List<PendingResource> warlibs, List<Pattern> warexcl) {
+	public WarBuildCommand(WarCommand parent, StructureHelper files, WarResource warResource, String targetName, List<PendingResource> warlibs, List<WarRandomFileCommand> warfiles, List<Pattern> warexcl) {
 		this.parent = parent;
 		this.files = files;
+		this.warResource = warResource;
 		this.warlibs = warlibs;
+		this.warfiles = warfiles;
 		this.warexcl = warexcl;
 		this.warfile = new File(files.getOutputDir(), targetName);
-		warFile = new JarResource(parent, this.warfile);
 	}
 
 	public void add(File file) {
@@ -61,6 +63,14 @@ public class WarBuildCommand implements Tactic {
 			copyLib(tmpLib, br);
 			if (br.getBuiltBy() != null)
 				str.add(br.getBuiltBy());
+		}
+		for (WarRandomFileCommand wrf : warfiles)
+		{
+			File from = wrf.getFrom(cxt);
+			File to = wrf.getTo(cxt, tmp);
+			if (!from.isFile())
+				throw new QuickBuildException("The file " + from + " has not been created; needed by war command");
+			FileUtils.copyAssertingDirs(from, to);
 		}
 		for (Strategem s : str)
 		{
@@ -113,7 +123,10 @@ public class WarBuildCommand implements Tactic {
 
 		proc.execute();
 		if (proc.getExitCode() == 0)
+		{
+			cxt.resourceAvailable(warResource);
 			return BuildStatus.SUCCESS;
+		}
 		return BuildStatus.BROKEN;
 	}
 
@@ -129,7 +142,7 @@ public class WarBuildCommand implements Tactic {
 
 	@Override
 	public String toString() {
-		return "Create WAR: " + warFile;
+		return "Create WAR: " + warResource;
 	}
 }
 

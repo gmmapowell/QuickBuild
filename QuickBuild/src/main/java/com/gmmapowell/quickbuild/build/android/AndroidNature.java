@@ -23,4 +23,8 @@ public class AndroidNature implements Nature {
 	public void resourceAvailable(BuildResource br) {
 		throw new UtilException("Can't handle " + br);
 	}
+
+	public boolean isAvailable() {
+		return true;
+	}
 }

@@ -26,7 +26,7 @@ import com.gmmapowell.utils.OrderedFileList;
 public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private final ResourcePacket sources = new ResourcePacket();
-	private final ResourcePacket needsResources = new ResourcePacket();
+	protected final ResourcePacket needsResources = new ResourcePacket();
 	private String projectName;
 	private final File rootdir;
 	protected StructureHelper files;
@@ -92,7 +92,6 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			else if (opt instanceof JUnitLibCommand)
 			{
 				addJUnitLib((JUnitLibCommand)opt);
-				addInvisibleDependency((JUnitLibCommand)opt);
 			}
 			else if (opt instanceof NoJUnitCommand)
 			{

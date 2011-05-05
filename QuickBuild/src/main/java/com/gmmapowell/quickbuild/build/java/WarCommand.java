@@ -15,6 +15,8 @@ import com.gmmapowell.utils.FileUtils;
 public class WarCommand extends JarCommand {
 	private List<PendingResource> warlibs = new ArrayList<PendingResource>();
 	private List<Pattern> warexcl = new ArrayList<Pattern>();
+	private List<WarRandomFileCommand> warfiles = new ArrayList<WarRandomFileCommand>();
+	private WarResource warResource;
 
 	public WarCommand(TokenizedLine toks) {
 		super(toks);
@@ -32,6 +34,12 @@ public class WarCommand extends JarCommand {
 			warexcl.add(((ExcludeCommand)cmd).getPattern());
 			return true;
 		}
+		else if (cmd instanceof WarRandomFileCommand)
+		{
+			warfiles.add((WarRandomFileCommand)cmd);
+			return true;
+		}
+
 		return false;
 	}
 	
@@ -46,12 +54,16 @@ public class WarCommand extends JarCommand {
 				tactics.remove(t);
 				break;
 			}
-		WarBuildCommand cmd = new WarBuildCommand(this, files, targetName, warlibs, warexcl);
+		warResource = new WarResource(this, files.getOutput(targetName));
+		WarBuildCommand cmd = new WarBuildCommand(this, files, warResource, targetName, warlibs, warfiles, warexcl);
 		cmd.add(new File(files.getOutputDir(), "classes"));
 		cmd.add(files.getRelative("src/main/resources"));
 		tactics.add(cmd);
 		jarResource = null;
-		willProvide.add(new WarResource(this, files.getOutput(targetName)));
+		willProvide.add(warResource);
+		
+		for (WarRandomFileCommand wrf : warfiles)
+			needsResources.add(wrf.getPendingResource());
 	}
 
 	@Override

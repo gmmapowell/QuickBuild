@@ -36,6 +36,7 @@ public class JavaNature implements Nature {
 	public static void init(ConfigFactory config)
 	{
 		config.addCommandExtension("exclude", ExcludeCommand.class);
+		config.addCommandExtension("file", WarRandomFileCommand.class);
 		config.addCommandExtension("jar", JarCommand.class);
 		config.addCommandExtension("javadoc", JavaDocCommand.class);
 		config.addCommandExtension("junitlib", JUnitLibCommand.class);
@@ -133,6 +134,15 @@ public class JavaNature implements Nature {
 			return didSomething;
 		}
 
+		// It's possible the first reference we come to is a nested class.  Try this hack:
+		int idx = needsJavaPackage.lastIndexOf(".");
+		if (idx != -1 && Character.isUpperCase(needsJavaPackage.charAt(idx+1)))
+			return addDependency(dependent, needsJavaPackage.substring(0,idx));
+
 		throw new JavaBuildFailure("cannot find any code that defines package " + needsJavaPackage);
+	}
+
+	public boolean isAvailable() {
+		return true;
 	}
 }

@@ -1,6 +1,7 @@
 package com.gmmapowell.quickbuild.app;
 
 import java.io.File;
+import java.io.IOException;
 
 import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
@@ -65,6 +66,20 @@ public class QuickBuild {
 		}
 		SignificantWhiteSpaceFileReader.read(conf, configFactory, file);
 		conf.done();
+		System.out.println("Files read (in order):");
+		for (File f : ofl)
+		{
+			String path = f.getPath();
+			try
+			{
+				path = f.getCanonicalPath();
+			}
+			catch (IOException ex)
+			{
+			}
+			System.out.println("  " + path);
+		}
+		System.out.println();
 		System.out.println("Configuration:");
 		System.out.print(conf);
 			
@@ -81,7 +96,9 @@ public class QuickBuild {
 		catch (QuickBuildCacheException ex) {
 			// the cache failed to load because of inconsistencies or whatever
 			// ignore it and try again
+			ex.printStackTrace();
 			System.out.println("Cache was out of date; ignoring");
+			cxt.buildAll();
 		}
 
 		if (arguments.configOnly)

@@ -5,13 +5,14 @@ if [ $# -lt 1 ] ; then
   exit 1
 fi
 
+ROOTDIR="`dirname $0`"
+
 SEP=':'
 case `uname -s` in
    CYGWIN*)
      SEP=';'
+     ROOTDIR=`echo $ROOTDIR | sed 's%/cygdrive/\(.\)%\1:%'`
      ;;
 esac
-
-ROOTDIR="`dirname $0`"
 
 java -cp "$ROOTDIR/dp.jar$SEP$ROOTDIR/spritzerc.jar$SEP$ROOTDIR/QuickBuild.jar$SEP$ROOTDIR/Utils.jar" com.gmmapowell.quickbuild.app.QuickBuild "$@"

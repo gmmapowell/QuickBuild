@@ -134,7 +134,7 @@ public class BuildContext implements ResourceListener {
 	private Map<Class<?>, Object> natures = new HashMap<Class<?>, Object>();
 	private final List<Notification> notifications = new ArrayList<BuildContext.Notification>();
 	private Tactic repeat;
-	private final boolean buildAll;
+	private boolean buildAll;
 	private final List<Pattern> showArgsFor = new ArrayList<Pattern>();
 	private final List<Pattern> showDebugFor = new ArrayList<Pattern>();
 	private final List<DeferredTactic> deferred = new ArrayList<DeferredTactic>();
@@ -246,7 +246,10 @@ public class BuildContext implements ResourceListener {
 	
 	private void loadBuildOrderCache() {
 		if (!buildOrderFile.canRead())
+		{
+			buildAll = true;
 			return;
+		}
 		final XML input = XML.fromFile(buildOrderFile);
 		int moveTo = 0;
 		loop:
@@ -267,6 +270,7 @@ public class BuildContext implements ResourceListener {
 					continue loop;
 				}
 			}
+			buildOrderFile.delete();
 			throw new QuickBuildCacheException("Did not find any build commands for " + from);
 		}
 	}
@@ -274,7 +278,10 @@ public class BuildContext implements ResourceListener {
 	public void loadDependencyCache()
 	{
 		if (!dependencyFile.canRead())
+		{
+			buildAll = true;
 			return;
+		}
 		try
 		{
 			final XML input = XML.fromFile(dependencyFile);
@@ -293,6 +300,9 @@ public class BuildContext implements ResourceListener {
 		}
 		catch (Exception ex)
 		{
+			ex.printStackTrace();
+			// TODO: we should clear all the links out, but we need to keep the nodes
+			dependencyFile.delete();
 			throw new QuickBuildCacheException("Could not decipher the dependency cache");
 		}
 	}
@@ -330,6 +340,64 @@ public class BuildContext implements ResourceListener {
 	}
 
 	public BuildStatus execute(Tactic bc) {
+		// Check all the declared dependencies for the Strategem are there
+		for (BuildResource br : bc.belongsTo().needsResources())
+			if (!isResourceAvailable(br))
+			{
+				System.out.println(bc.belongsTo() + " needs resource " + br + " which is not yet available in " + availableResources);
+				if (strategemToExecute == strats.size()-1)
+				{
+					System.out.println(bc.belongsTo() + " depends on resource " + br + " but nobody left to build it");
+					return BuildStatus.BROKEN;
+				}
+				else if (br.getBuiltBy() != null)
+				{
+					moveUp(bc.belongsTo(), br.getBuiltBy());
+					if (bc.belongsTo() == strats.get(strategemToExecute))
+					{
+						System.out.println(bc.belongsTo() + " depends on resource " + br + " but its owner " + br.getBuiltBy() + " could not be moved up ... circular dependency?");
+						return BuildStatus.BROKEN;
+					}
+				}
+				else
+				{
+					// This is in fact a valid broken case, but it's complicated.
+					// Basically, it involves depending on a pending resource, so you need to figure out (from willBuild) who will build that
+					// and then move them up here.
+					
+					// For now, I'm going to let Java broken builds do the work ...
+					
+					if (br instanceof PendingResource)
+					{
+						Strategem builder = findBuilderFor((PendingResource) br);
+						if (builder != null)
+							moveUp(bc.belongsTo(), builder);
+						else
+						{
+							System.out.println("Depending on " + br + " but could not find a builder");
+							return BuildStatus.BROKEN;
+						}
+					}
+					/*
+					System.out.println("Moving " + bc.belongsTo() + " after " + strats.get(strategemToExecute+1).getBuiltBy());
+					strats.add(strategemToExecute+2, currentStrat);
+					strats.remove(strategemToExecute);
+
+					// TODO: this logic should be in the "processing" of RETRY.
+					// We absolutely need a separate "BuildOrder and Dependencies" module, which can handle all this stuff
+					// (i.e. this whole big 50-line if clause should be in it).
+					currentCommands = null;
+					moveOn = false;
+					repeat = null;
+
+					// It's complicated, but we sort-of-want to add the constraint that we sort-of-depend on this (i.e. want to be after it)
+					// but we don't really depend on it.  But I think that coming through here is kind of broken anyway (basically we're looking 
+					// for a pending resource and we're trying to drift downwards
+					return BuildStatus.RETRY;
+					*/
+				}
+			}
+
 		// figure out if we need to build this
 		boolean doit = true;
 		boolean floatMe = dependencyFloat(bc);
@@ -355,7 +423,7 @@ public class BuildContext implements ResourceListener {
 		if (floatMe)
 			return BuildStatus.DEFERRED;
 		if (!doit)
-			return BuildStatus.IGNORED;
+			return BuildStatus.CLEAN;
 
 		// Record when first build started
 		if (buildStarted == null)
@@ -371,7 +439,33 @@ public class BuildContext implements ResourceListener {
 		}
 		if (ret.needsRebuild())
 			getGitCacheFile(stratFor(bc)).delete();
+		
+		// Test the contract when the strategem comes to an end
+		if (ret.builtResources() && currentCommands != null && !currentCommands.hasNext())
+		{
+			List<BuildResource> fails = new ArrayList<BuildResource>();
+			for (BuildResource br : bc.belongsTo().buildsResources())
+				if (!isResourceAvailable(br))
+					fails.add(br);
+			if (!fails.isEmpty())
+			{
+				System.out.println("The strategem " + bc.belongsTo() + " failed in its contract to build " + fails);
+				// This code should be abstracted out too ... I think we need another wrapper layer.
+				getGitCacheFile(stratFor(bc)).delete();
+				return BuildStatus.BROKEN;
+			}
+		}
 		return ret;
+	}
+
+	private Strategem findBuilderFor(PendingResource wanted) {
+		// I think this code is now duplicated three times!
+		Pattern p = Pattern.compile(".*" + wanted.compareAs().toLowerCase()+".*");
+		for (int i=strategemToExecute+1;i<strats.size();i++)
+			for (BuildResource br : strats.get(i).getBuiltBy().buildsResources())
+				if (p.matcher(br.compareAs().toLowerCase()).matches())
+					return strats.get(i).getBuiltBy();
+		return null;
 	}
 
 	private StrategemResource stratFor(Tactic bc) {
@@ -555,10 +649,10 @@ public class BuildContext implements ResourceListener {
 			n.dispatch(r);
 	}
 
-	public void registerNature(Class<?> class1) {
+	public void registerNature(Class<?> cls) {
 		try
 		{
-			natures.put(class1, class1.getConstructor(BuildContext.class).newInstance(this));
+			natures.put(cls, cls.getConstructor(BuildContext.class).newInstance(this));
 		}
 		catch (Exception ex)
 		{
@@ -604,6 +698,13 @@ public class BuildContext implements ResourceListener {
 		throw new UtilException("There is no resource called " + resourceName);
 	}
 
+	private boolean isResourceAvailable(BuildResource br)
+	{
+		if (br instanceof PendingResource)
+			return getPendingResourceIfAvailable((PendingResource) br) != null;
+		return availableResources.containsKey(br.compareAs());
+	}
+	
 	private BuildResource getPendingResourceIfAvailable(PendingResource pending) {
 		String resourceName = pending.compareAs();
 		if (availableResources.containsKey(resourceName))
@@ -669,6 +770,14 @@ public class BuildContext implements ResourceListener {
 			}
 			figureDependentsOf(ret, entry);
 		}
+	}
+
+	public Config getConfig() {
+		return conf;
+	}
+
+	public void buildAll() {
+		buildAll = true;
 	}
 
 }

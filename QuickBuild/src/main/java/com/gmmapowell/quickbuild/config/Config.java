@@ -115,6 +115,8 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		for (ConfigBuildCommand c : commands)
 		{
 			Strategem s = c.applyConfig(this);
+			if (s == null)
+				throw new UtilException("Applying command " + c + " did not produce a strategem");
 			strategems.add(s);
 
 			// TODO: provide all initial resources
@@ -212,6 +214,10 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 
 	public void setVarProperty(String name, String var) {
 		varProps.put(name, var);
+	}
+
+	public boolean hasPath(String name) {
+		return fileProps.containsKey(name);
 	}
 
 	public File getPath(String name) {
