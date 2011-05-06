@@ -510,6 +510,7 @@ public class BuildContext implements ResourceListener {
 		if (buildBroken)
 		{
 			System.out.println("!!!! BUILD FAILED !!!!");
+			System.exit(1);
 		}
 		else if (buildStarted == null) {
 			System.out.println("Nothing done.");

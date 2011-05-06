@@ -76,6 +76,8 @@ public class DevenvCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 		}
 		RunProcess proc = new RunProcess(nature.getDevenv());
 		proc.debug(showDebug);
+		proc.captureStderr();
+		proc.captureStdout();
 		proc.arg(files.getRelative(projectName+".sln").getPath());
 		proc.arg("/rebuild");
 		proc.execute();

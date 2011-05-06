@@ -49,7 +49,7 @@ public class JarBuildCommand implements Tactic {
 		{
 			for (File f : FileUtils.findFilesUnderMatching(dir, "*"))
 			{
-				if (f.isDirectory())
+				if (new File(dir, f.getPath()).isDirectory())
 					continue;
 				proc.arg("-C");
 				proc.arg(dir.getPath());

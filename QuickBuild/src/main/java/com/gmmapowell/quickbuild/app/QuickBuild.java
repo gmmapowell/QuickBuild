@@ -36,6 +36,7 @@ public class QuickBuild {
 		arguments = new Arguments();
 		ProcessArgs.process(arguments, argumentDefinitions, args);
 		
+		System.out.println("user.home = " + System.getProperty("user.home"));
 		File file = new File(arguments.file);
 		OrderedFileList ofl = new OrderedFileList(FileUtils.relativePath(file));
 		Config conf = new Config(file.getParentFile(), FileUtils.dropExtension(file.getName()));

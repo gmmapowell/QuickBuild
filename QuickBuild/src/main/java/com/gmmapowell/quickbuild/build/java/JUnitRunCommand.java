@@ -57,7 +57,6 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 		{
 			String qualifiedName = FileUtils.convertToDottedNameDroppingExtension(f);
 			File clsFile = new File(bindir, FileUtils.ensureExtension(f, ".class").getPath());
-			System.out.println(clsFile);
 			ByteCodeFile bcf = new ByteCodeFile(clsFile, qualifiedName);
 			if (bcf.hasMethodsWithAnnotation("org.junit.Test"))
 			{
