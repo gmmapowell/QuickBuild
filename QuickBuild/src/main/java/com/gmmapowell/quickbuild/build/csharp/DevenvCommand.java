@@ -13,7 +13,6 @@ import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
 import com.gmmapowell.quickbuild.config.SpecificChildrenParent;
 import com.gmmapowell.quickbuild.core.BuildResource;
-import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;

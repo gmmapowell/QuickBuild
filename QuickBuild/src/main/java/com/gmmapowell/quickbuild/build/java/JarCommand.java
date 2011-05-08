@@ -113,10 +113,6 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		junitLibs.add(opt.getResource());
 	}
 
-	private void addInvisibleDependency(JUnitLibCommand i) {
-		needsResources.add(i.getResource());
-	}
-
 	private void includePackage(IncludePackageCommand ipc) {
 		if (ipc.exclude)
 		{

@@ -1,6 +1,7 @@
 .project
 bin/
 cache/
+currentActions.txt
 dumpClass.txt
 javadoc/
 mvncache/
