@@ -18,11 +18,15 @@ public class JarBuildCommand implements Tactic {
 	private final File jarfile;
 	private final JarResource jar;
 	private final List<File> dirsToJar = new ArrayList<File>();
+	private final List<File> includePackages;
+	private final List<File> excludePackages;
 
-	public JarBuildCommand(Strategem parent, StructureHelper files, String targetName) {
+	public JarBuildCommand(Strategem parent, StructureHelper files, JarResource jar, List<File> includePackages, List<File> excludePackages) {
 		this.parent = parent;
-		this.jarfile = new File(files.getOutputDir(), targetName);
-		jar = new JarResource(parent, this.jarfile);
+		this.jar = jar;
+		this.includePackages = includePackages;
+		this.excludePackages = excludePackages;
+		this.jarfile = jar.getPath();
 	}
 	
 	public void add(File file) {
@@ -51,6 +55,8 @@ public class JarBuildCommand implements Tactic {
 			{
 				if (new File(dir, f.getPath()).isDirectory())
 					continue;
+				if (blockedByFilters(f))
+					continue;
 				proc.arg("-C");
 				proc.arg(dir.getPath());
 				proc.arg(f.getPath());
@@ -66,6 +72,24 @@ public class JarBuildCommand implements Tactic {
 			return BuildStatus.SUCCESS;
 		}
 		return BuildStatus.BROKEN;
+	}
+
+	private boolean blockedByFilters(File f) {
+		if (includePackages != null)
+		{
+			for (File u : includePackages)
+				if (FileUtils.isUnder(f, u))
+					return false;
+			return true;
+		}
+		if (excludePackages != null)
+		{
+			for (File u : excludePackages)
+				if (FileUtils.isUnder(f, u))
+					return true;
+			return false;
+		}
+		return false;
 	}
 
 	@Override

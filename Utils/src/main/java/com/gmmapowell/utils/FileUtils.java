@@ -110,7 +110,15 @@ public class FileUtils {
 		if (f.isAbsolute())
 			return f;
 		else
-			return new File(root, f.getPath());
+		{
+			try {
+				return new File(root, f.getPath()).getCanonicalFile();
+			}
+			catch (Exception ex)
+			{
+				throw UtilException.wrap(ex);
+			}
+		}
 	}
 	
 	public static File relativePath(File qbdir, String string) {

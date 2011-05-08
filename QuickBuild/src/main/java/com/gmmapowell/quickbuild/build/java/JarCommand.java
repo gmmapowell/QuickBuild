@@ -51,9 +51,9 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		files = new StructureHelper(rootdir, config.getOutput());
 		
 		processOptions();
-		jarResource = new JarResource(this, files.getOutput(targetName));
+		jarResource = new JarResource(this, files.getOutput(FileUtils.ensureExtension(targetName, ".jar")));
 
-		JarBuildCommand jar = new JarBuildCommand(this, files, FileUtils.ensureExtension(targetName, ".jar"));
+		JarBuildCommand jar = new JarBuildCommand(this, files, jarResource, includePackages, excludePackages);
 		tactics = new ArrayList<Tactic>();
 		addJavaBuild(tactics, jar, "src/main/java", "classes");
 		JavaBuildCommand junit = addJavaBuild(tactics, null, "src/test/java", "test-classes");
@@ -154,15 +154,16 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		File dir = new File(rootdir, src);
 		if (dir.isDirectory())
 		{
+			List<File> allFiles = FileUtils.findFilesMatching(dir, "*.java");
 			List<File> sourceFiles;
 			if (includePackages != null)
 				sourceFiles = FileUtils.findFilesMatchingIncluding(dir, "*.java", includePackages);
 			else if (excludePackages != null)
 				sourceFiles = FileUtils.findFilesMatchingExcluding(dir, "*.java", excludePackages);
 			else
-				sourceFiles = FileUtils.findFilesMatching(dir, "*.java");
+				sourceFiles = allFiles;
 
-			JavaBuildCommand ret = new JavaBuildCommand(this, files, src, bin, sourceFiles);
+			JavaBuildCommand ret = new JavaBuildCommand(this, files, src, bin, allFiles);
 			accum.add(ret);
 			
 			if (jar != null)

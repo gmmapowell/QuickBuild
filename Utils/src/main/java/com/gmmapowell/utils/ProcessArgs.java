@@ -52,7 +52,7 @@ public class ProcessArgs {
 						continue;
 					if (StringUtil.globMatch(ad.text, args[i]))
 					{
-						Reflection.setField(config, ad.toVar, args[i]);
+						Reflection.setField(config, ad.toVar, true);
 						continue loop;
 					}
 				}

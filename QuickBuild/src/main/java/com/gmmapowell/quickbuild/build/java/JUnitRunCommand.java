@@ -25,10 +25,12 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 	private final Strategem parent;
 	private final JavaBuildCommand jbc;
 	private ResourcePacket addlResources;
+	private final StructureHelper files;
 
 
 	public JUnitRunCommand(Strategem parent, StructureHelper files, JavaBuildCommand jbc) {
 		this.parent = parent;
+		this.files = files;
 		this.jbc = jbc;
 		this.srcdir = new File(files.getBaseDir(), "src/test/java");
 		this.bindir = files.getOutput("test-classes");
@@ -43,6 +45,7 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 				classpath.add(cxt.getPendingResource((PendingResource) r).getPath());
 			}
 		RunProcess proc = new RunProcess("java");
+		proc.executeInDir(files.getBaseDir());
 		proc.showArgs(showArgs);
 		proc.debug(showDebug);
 		proc.captureStdout();

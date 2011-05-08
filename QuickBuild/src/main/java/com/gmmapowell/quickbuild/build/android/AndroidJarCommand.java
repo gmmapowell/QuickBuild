@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.java.JarBuildCommand;
+import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.build.java.JavaBuildCommand;
 import com.gmmapowell.quickbuild.build.java.JavaSourceDirResource;
 import com.gmmapowell.quickbuild.config.Config;
@@ -30,6 +31,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 	private AndroidContext acxt;
 	private StructureHelper files;
 	private File srcdir;
+	private JarResource androidJar;
 
 	@SuppressWarnings("unchecked")
 	public AndroidJarCommand(TokenizedLine toks) {
@@ -43,6 +45,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 		files = new StructureHelper(projectDir, config.getOutput());
 		targetName = projectName + ".jar";
 		srcdir = files.getRelative("src/main/java");
+		androidJar = new JarResource(this, new File(files.getOutputDir(), targetName));
 		return this;
 	}
 
@@ -63,6 +66,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 		
 		File resdir = files.getRelative("src/main/resources");
 		/* I think this is a bad idea ...
+		 * It's not so much a bad idea, as by definition this isn't using the JDK ...
 		if (project.getRelative("src/test/java").exists())
 		{
 			JavaBuildCommand buildTests = new JavaBuildCommand(project, "src/test/java", "test-classes");
@@ -79,7 +83,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 			ret.add(junitRun);
 		}
 		*/
-		JarBuildCommand jar = new JarBuildCommand(this, files, projectName + ".jar");
+		JarBuildCommand jar = new JarBuildCommand(this, files, androidJar, null, null);
 		jar.add(files.getOutput("classes"));
 		if (resdir.exists())
 			jar.add(resdir);
@@ -107,7 +111,9 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 
 	@Override
 	public ResourcePacket buildsResources() {
-		return new ResourcePacket();
+		ResourcePacket ret = new ResourcePacket();
+		ret.add(androidJar);
+		return ret;
 	}
 
 	@Override
