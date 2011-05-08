@@ -55,12 +55,23 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		File dexFile = files.getOutput("classes.dex");
 		File zipfile = files.getOutput(projectName+".ap_");
 		
-		AaptGenBuildCommand gen = new AaptGenBuildCommand(acxt, manifest, gendir, resdir);
+		AaptGenBuildCommand gen = new AaptGenBuildCommand(this, acxt, manifest, gendir, resdir);
 		ret.add(gen);
-		JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", FileUtils.findFilesMatching(gendir, "*.java"));
+		List<File> genFiles;
+		if (gendir.isDirectory())
+			genFiles = FileUtils.findFilesMatching(gendir, "*.java");
+		else
+			genFiles = new ArrayList<File>();
+		JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", genFiles);
 		genRes.addToBootClasspath(acxt.getPlatformJar());
 		ret.add(genRes);
-		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", FileUtils.findFilesMatching(files.getRelative("src/main/java"), "*.java"));
+		List<File> srcFiles;
+		File srcdir = files.getRelative("src/main/java");
+		if (srcdir.isDirectory()) {
+			srcFiles = FileUtils.findFilesMatching(srcdir, "*.java");
+		} else
+			srcFiles = new ArrayList<File>();
+		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", srcFiles);
 		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
 		ret.add(buildSrc);
@@ -88,9 +99,9 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 				((AndroidUseLibraryCommand)cmd).provideTo(dex);
 		}
 		ret.add(dex);
-		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(acxt, manifest, zipfile, resdir, assetsDir);
+		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(this, acxt, manifest, zipfile, resdir, assetsDir);
 		ret.add(pkg);
-		ApkBuildCommand apk = new ApkBuildCommand(acxt, zipfile, dexFile, apkFile, apkResource);
+		ApkBuildCommand apk = new ApkBuildCommand(this, acxt, zipfile, dexFile, apkFile, apkResource);
 		ret.add(apk);
 		return ret;
 	}

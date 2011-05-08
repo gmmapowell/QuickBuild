@@ -3,7 +3,6 @@ package com.gmmapowell.quickbuild.build;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -23,6 +22,7 @@ import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.CloningResource;
 import com.gmmapowell.quickbuild.core.DependencyFloat;
 import com.gmmapowell.quickbuild.core.FloatToEnd;
 import com.gmmapowell.quickbuild.core.Nature;
@@ -131,7 +131,6 @@ public class BuildContext implements ResourceListener {
 	private Iterator<? extends Tactic> currentCommands;
 	private int currentStrategemCommandNo;
 	private boolean moveOn = true;
-	private Map<Class<?>, Object> natures = new HashMap<Class<?>, Object>();
 	private final List<Notification> notifications = new ArrayList<BuildContext.Notification>();
 	private Tactic repeat;
 	private boolean buildAll;
@@ -147,8 +146,8 @@ public class BuildContext implements ResourceListener {
 			this.showArgsFor.add(Pattern.compile(".*"+s.toLowerCase()+".*"));
 		for (String s : showDebugFor)
 			this.showDebugFor.add(Pattern.compile(".*"+s.toLowerCase()+".*"));
-		for (Class<?> n : configFactory.registeredNatures())
-			registerNature(n);
+		for (Nature n : configFactory.installedNatures())
+			registerNature(n.getClass(), n);
 		dependencyFile = new File(conf.getCacheDir(), "dependencies.xml");
 		buildOrderFile = new File(conf.getCacheDir(), "buildOrder.xml");
 		for (Strategem s : conf.getStrategems())
@@ -185,6 +184,7 @@ public class BuildContext implements ResourceListener {
 			{
 				conf.willBuild(br);
 				offered.add(br);
+				if (!(br instanceof CloningResource))
 				dependencies.ensure(br);
 			}
 		}
@@ -361,12 +361,6 @@ public class BuildContext implements ResourceListener {
 				}
 				else
 				{
-					// This is in fact a valid broken case, but it's complicated.
-					// Basically, it involves depending on a pending resource, so you need to figure out (from willBuild) who will build that
-					// and then move them up here.
-					
-					// For now, I'm going to let Java broken builds do the work ...
-					
 					if (br instanceof PendingResource)
 					{
 						Strategem builder = findBuilderFor((PendingResource) br);
@@ -378,23 +372,6 @@ public class BuildContext implements ResourceListener {
 							return BuildStatus.BROKEN;
 						}
 					}
-					/*
-					System.out.println("Moving " + bc.belongsTo() + " after " + strats.get(strategemToExecute+1).getBuiltBy());
-					strats.add(strategemToExecute+2, currentStrat);
-					strats.remove(strategemToExecute);
-
-					// TODO: this logic should be in the "processing" of RETRY.
-					// We absolutely need a separate "BuildOrder and Dependencies" module, which can handle all this stuff
-					// (i.e. this whole big 50-line if clause should be in it).
-					currentCommands = null;
-					moveOn = false;
-					repeat = null;
-
-					// It's complicated, but we sort-of-want to add the constraint that we sort-of-depend on this (i.e. want to be after it)
-					// but we don't really depend on it.  But I think that coming through here is kind of broken anyway (basically we're looking 
-					// for a pending resource and we're trying to drift downwards
-					return BuildStatus.RETRY;
-					*/
 				}
 			}
 
@@ -650,20 +627,13 @@ public class BuildContext implements ResourceListener {
 			n.dispatch(r);
 	}
 
-	public void registerNature(Class<?> cls) {
-		try
-		{
-			natures.put(cls, cls.getConstructor(BuildContext.class).newInstance(this));
-		}
-		catch (Exception ex)
-		{
-			throw UtilException.wrap(ex);
-		}
+	public void registerNature(Class<?> cls, Nature n) {
+		if (n instanceof BuildContextAware)
+			((BuildContextAware)n).provideBuildContext(this);
 	}
 
-	@SuppressWarnings("unchecked")
-	public <T> T getNature(Class<T> cls) {
-		return (T) natures.get(cls);
+	public <T extends Nature> T getNature(Class<T> cls) {
+		return conf.getNature(cls);
 	}
 
 	public void tellMeAbout(Nature nature, Class<? extends BuildResource> cls) {
@@ -703,6 +673,8 @@ public class BuildContext implements ResourceListener {
 	{
 		if (br instanceof PendingResource)
 			return getPendingResourceIfAvailable((PendingResource) br) != null;
+		else if (br instanceof CloningResource)
+			br = ((CloningResource)br).clonedAs();
 		return availableResources.containsKey(br.compareAs());
 	}
 	

@@ -18,9 +18,11 @@ public class DexBuildCommand implements Tactic {
 	private final File dexFile;
 	private final List<File> jars = new ArrayList<File>();
 	private final File libdir;
+	private final Strategem parent;
 
 	public DexBuildCommand(AndroidContext acxt, Strategem parent, StructureHelper files, File bindir, File libdir, File dexFile) {
 		this.acxt = acxt;
+		this.parent = parent;
 		this.bindir = bindir;
 		this.libdir = libdir;
 		this.dexFile = dexFile;
@@ -69,8 +71,7 @@ public class DexBuildCommand implements Tactic {
 
 	@Override
 	public Strategem belongsTo() {
-		// TODO Auto-generated method stub
-		return null;
+		return parent;
 	}
 
 

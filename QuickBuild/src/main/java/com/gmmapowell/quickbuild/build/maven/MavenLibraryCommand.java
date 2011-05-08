@@ -16,8 +16,8 @@ public class MavenLibraryCommand extends NoChildCommand implements ConfigApplyCo
 
 	@Override
 	public void applyTo(Config config) {
-		config.requireMaven(pkg);
-		
+		MavenNature n = config.getNature(MavenNature.class);
+		n.loadPackage(pkg);
 	}
 
 }

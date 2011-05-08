@@ -1,6 +1,8 @@
 package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,7 +13,9 @@ import com.gmmapowell.collections.SetMap;
 import com.gmmapowell.exceptions.GPJarException;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildContextAware;
 import com.gmmapowell.quickbuild.build.StrategemResource;
+import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
@@ -20,19 +24,15 @@ import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.GPJarEntry;
 import com.gmmapowell.utils.GPJarFile;
 
-public class JavaNature implements Nature {
+public class JavaNature implements Nature, BuildContextAware {
+	private final List<String> loadedLibs = new ArrayList<String>();
 	private final Map<String, JarResource> availablePackages = new HashMap<String, JarResource>();
 	private final SetMap<String, BuildResource> duplicates = new SetMap<String, BuildResource>();
 	private final ListMap<String, Strategem> projectPackages = new ListMap<String, Strategem>();
-	private final BuildContext cxt;
+	private BuildContext cxt;
+	private List<File> libdirs = new ArrayList<File>();
+	private final Config conf;
 
-	public JavaNature(BuildContext cxt)
-	{
-		this.cxt = cxt;
-		cxt.tellMeAbout(this, JarResource.class);
-		cxt.tellMeAbout(this, JavaSourceDirResource.class);
-	}
-	
 	public static void init(ConfigFactory config)
 	{
 		config.addCommandExtension("exclude", ExcludeCommand.class);
@@ -47,6 +47,15 @@ public class JavaNature implements Nature {
 		config.addCommandExtension("war", WarCommand.class);
 	}
 
+	public JavaNature(Config conf)
+	{
+		this.conf = conf;
+		File libdir = conf.getQuickBuildDir();
+		if (libdir == null)
+			libdir = FileUtils.getCurrentDir();
+		libdirs.add(new File(libdir, "libs"));
+	}
+	
 	@Override
 	public void resourceAvailable(BuildResource br) {
 		if (br instanceof JarResource)
@@ -144,5 +153,44 @@ public class JavaNature implements Nature {
 
 	public boolean isAvailable() {
 		return true;
+	}
+
+	@Override
+	public void done() {
+		for (File libdir : libdirs)
+			try {
+				libdir = libdir.getCanonicalFile();
+				if (libdir.isDirectory())
+				{
+					for (File f : FileUtils.findFilesMatching(libdir, "*.jar"))
+					{
+						loadedLibs.add(f.getName());
+						conf.resourceAvailable(new JarResource(null, f));
+					}
+				}
+			} catch (IOException e) {
+			}
+	}
+
+	@Override
+	public void info(StringBuilder sb) {
+		sb.append("    libdirs: " + libdirs + "\n");
+		sb.append("    loaded: " + loadedLibs + "\n");
+	}
+
+	@Override
+	public void provideBuildContext(BuildContext cxt) {
+		this.cxt = cxt;
+		cxt.tellMeAbout(this, JarResource.class);
+		cxt.tellMeAbout(this, JavaSourceDirResource.class);
+	}
+
+	public void addLib(File libsDir) {
+		libdirs.add(libsDir);
+	}
+	
+	public void cleanLibDirs()
+	{
+		libdirs.clear();
 	}
 }

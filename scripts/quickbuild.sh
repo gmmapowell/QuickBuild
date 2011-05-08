@@ -15,4 +15,4 @@ case `uname -s` in
      ;;
 esac
 
-java -cp "$ROOTDIR/dp.jar$SEP$ROOTDIR/spritzerc.jar$SEP$ROOTDIR/QuickBuild.jar$SEP$ROOTDIR/Utils.jar" com.gmmapowell.quickbuild.app.QuickBuild "$@"
+java -cp "$CLASSPATH$SEP$ROOTDIR/QuickBuild.jar$SEP$ROOTDIR/Utils.jar" com.gmmapowell.quickbuild.app.QuickBuild "$@"

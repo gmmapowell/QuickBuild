@@ -29,6 +29,7 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 	private CloningResource toResource;
 	private final File rootDirectory;
 	private StructureHelper files;
+	private BuildResource actualTo;
 
 	@SuppressWarnings("unchecked")
 	public CopyDirectoryCommand(TokenizedLine toks) {
@@ -65,9 +66,10 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 		BuildResource from = cxt.getPendingResource(fromResource);
 		System.out.println(from.getPath());
 		FileUtils.assertDirectory(from.getPath());
-		BuildResource to = from.cloneInto(toResource);
-		FileUtils.copyRecursive(from.getPath(), to.getPath());
-		cxt.resourceAvailable(to);
+		actualTo = from.cloneInto(toResource);
+		FileUtils.copyRecursive(from.getPath(), actualTo.getPath());
+		toResource.wasClonedAs(actualTo);
+		cxt.resourceAvailable(actualTo);
 		return BuildStatus.SUCCESS;
 	}
 
@@ -96,6 +98,7 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 	@Override
 	public ResourcePacket buildsResources() {
 		ResourcePacket ret = new ResourcePacket();
+		ret.add(toResource);
 		return ret;
 	}
 

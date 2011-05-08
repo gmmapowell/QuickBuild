@@ -16,10 +16,11 @@ public class RepoCommand extends NoChildCommand implements ConfigApplyCommand {
 
 	@Override
 	public void applyTo(Config config) {
+		MavenNature n = config.getNature(MavenNature.class);
 		if (repo.equals("-"))
-			config.clearMavenRepos();
+			n.clearMavenRepos();
 		else
-			config.addMavenRepo(repo);
+			n.addMavenRepo(repo);
 		
 	}
 

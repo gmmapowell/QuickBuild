@@ -16,8 +16,10 @@ public class AaptPackageBuildCommand implements Tactic {
 	private final File manifestFile;
 	private final File resdir;
 	private final File assetsDir;
+	private final AndroidCommand parent;
 
-	public AaptPackageBuildCommand(AndroidContext acxt, File manifest, File zipfile, File resdir, File assetsDir) {
+	public AaptPackageBuildCommand(AndroidCommand parent, AndroidContext acxt, File manifest, File zipfile, File resdir, File assetsDir) {
+		this.parent = parent;
 		this.acxt = acxt;
 		this.zipfile = zipfile;
 		this.manifestFile = manifest;
@@ -62,7 +64,6 @@ public class AaptPackageBuildCommand implements Tactic {
 
 	@Override
 	public Strategem belongsTo() {
-		// TODO Auto-generated method stub
-		return null;
+		return parent;
 	}
 }

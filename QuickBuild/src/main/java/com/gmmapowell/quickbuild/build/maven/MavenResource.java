@@ -1,6 +1,8 @@
-package com.gmmapowell.quickbuild.build.java;
+package com.gmmapowell.quickbuild.build.maven;
 
 import java.io.File;
+
+import com.gmmapowell.quickbuild.build.java.JarResource;
 
 public class MavenResource extends JarResource {
 

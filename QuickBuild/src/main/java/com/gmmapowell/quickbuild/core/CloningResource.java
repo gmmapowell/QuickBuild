@@ -7,6 +7,7 @@ import com.gmmapowell.exceptions.UtilException;
 public class CloningResource implements BuildResource {
 	private final File clonedPath;
 	private final Strategem builtBy;
+	private BuildResource clonedAs;
 
 	public CloningResource(Strategem builtBy, File clonedPath) {
 		this.builtBy = builtBy;
@@ -40,5 +41,13 @@ public class CloningResource implements BuildResource {
 	@Override
 	public BuildResource cloneInto(CloningResource to) {
 		throw new UtilException("Cannot clone a cloning resource");
+	}
+
+	public BuildResource clonedAs() {
+		return clonedAs;
+	}
+
+	public void wasClonedAs(BuildResource actualTo) {
+		clonedAs = actualTo;
 	}
 }

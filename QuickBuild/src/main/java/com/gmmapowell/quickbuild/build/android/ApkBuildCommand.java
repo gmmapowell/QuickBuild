@@ -16,8 +16,10 @@ public class ApkBuildCommand implements Tactic {
 	private final File dexFile;
 	private final File apkFile;
 	private final ApkResource apkResource;
+	private final AndroidCommand parent;
 
-	public ApkBuildCommand(AndroidContext acxt, File zipfile, File dexFile, File apkFile, ApkResource apkResource) {
+	public ApkBuildCommand(AndroidCommand parent, AndroidContext acxt, File zipfile, File dexFile, File apkFile, ApkResource apkResource) {
+		this.parent = parent;
 		this.acxt = acxt;
 		this.zipfile = zipfile;
 		this.dexFile = dexFile;
@@ -54,7 +56,6 @@ public class ApkBuildCommand implements Tactic {
 
 	@Override
 	public Strategem belongsTo() {
-		// TODO Auto-generated method stub
-		return null;
+		return parent;
 	}
 }

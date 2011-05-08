@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.CommandObjectFactory;
@@ -19,7 +20,8 @@ import com.gmmapowell.utils.Cardinality;
 
 public class ConfigFactory implements CommandObjectFactory {
 	private Map<String, Constructor<? extends Parent<?>>> handlers = new HashMap<String, Constructor<? extends Parent<?>>>();
-	private Map<String, Class<? extends Nature>> natures = new HashMap<String, Class<? extends Nature>>();
+	private Map<String, Class<? extends Nature>> natureClasses = new HashMap<String, Class<? extends Nature>>();
+	private Map<Class<? extends Nature>, Nature> natures = new HashMap<Class<? extends Nature>, Nature>();
 
 	public ConfigFactory() {
 		// These are all the config ones
@@ -114,9 +116,9 @@ public class ConfigFactory implements CommandObjectFactory {
 	}
 
 	private void addNature(String cmd, Class<? extends Nature> clz) {
-		if (natures.containsKey(cmd))
+		if (natureClasses.containsKey(cmd))
 			throw new QuickBuildException("Cannot add duplicate nature name " + cmd);
-		natures.put(cmd, clz);
+		natureClasses.put(cmd, clz);
 		try {
 			Method method = clz.getMethod("init", ConfigFactory.class);
 			if (method != null)
@@ -126,8 +128,42 @@ public class ConfigFactory implements CommandObjectFactory {
 		}
 	}
 
-	public Collection<Class<? extends Nature>> registeredNatures() {
+	@SuppressWarnings("unchecked")
+	public <T extends Nature> T getNature(Config config, Class<T> cls)
+	{
+		if (natures.containsKey(cls))
+			return (T)natures.get(cls);
+		try
+		{
+			T n = cls.getConstructor(Config.class).newInstance(config);
+			natures.put(cls, n);
+			return n;
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
+	}
+
+	public Collection<Nature> installedNatures() {
 		return natures.values();
+	}
+
+	public void done() {
+		for (Nature n : natures.values())
+			n.done();
+	}
+
+	public Set<String> availableNatures() {
+		return natureClasses.keySet();
+	}
+
+	public Class<? extends Nature> natureClass(String s) {
+		return natureClasses.get(s);
+	}
+
+	public boolean usesNature(Class<? extends Nature> cls) {
+		return natures.containsKey(cls);
 	}
 }
 

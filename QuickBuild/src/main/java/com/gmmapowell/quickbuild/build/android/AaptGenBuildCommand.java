@@ -15,8 +15,10 @@ public class AaptGenBuildCommand implements Tactic {
 	private final File gendir;
 	private final File manifestFile;
 	private final File resdir;
+	private final AndroidCommand parent;
 
-	public AaptGenBuildCommand(AndroidContext acxt, File manifest, File gendir, File resdir) {
+	public AaptGenBuildCommand(AndroidCommand parent, AndroidContext acxt, File manifest, File gendir, File resdir) {
+		this.parent = parent;
 		this.acxt = acxt;
 		this.gendir = gendir;
 		this.manifestFile = manifest;
@@ -65,7 +67,6 @@ public class AaptGenBuildCommand implements Tactic {
 
 	@Override
 	public Strategem belongsTo() {
-		// TODO Auto-generated method stub
-		return null;
+		return parent;
 	}
 }

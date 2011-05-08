@@ -47,6 +47,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 
 	@Override
 	public Strategem applyConfig(Config config) {
+		config.getNature(JavaNature.class);
 		files = new StructureHelper(rootdir, config.getOutput());
 		
 		processOptions();

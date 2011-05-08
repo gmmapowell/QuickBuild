@@ -30,7 +30,7 @@ public class FileUtils {
 		private final File rootdir;
 
 		public GlobFilter(File file, String pattern, Collection<File> includeOnlyDirs, Collection<File> excludeOnlyDirs) {
-			this.rootdir = file;
+			this.rootdir = relativePath(file);
 			this.pattern = pattern;
 			this.includeOnlyDirs = includeOnlyDirs;
 			this.excludeOnlyDirs = excludeOnlyDirs;
@@ -130,7 +130,12 @@ public class FileUtils {
 		if (under == null)
 			return f;
 		String uf = under.getPath();
-		String tf = f.getPath();
+		String tf;
+		try {
+			tf = f.getCanonicalPath();
+		} catch (IOException e) {
+			throw new UtilException("The path " + f + " does not exist");
+		}
 		if (uf.equals(tf))
 			return new File("");
 		uf += File.separator;

@@ -39,7 +39,7 @@ public class QuickBuild {
 		System.out.println("user.home = " + System.getProperty("user.home"));
 		File file = new File(arguments.file);
 		OrderedFileList ofl = new OrderedFileList(FileUtils.relativePath(file));
-		Config conf = new Config(file.getParentFile(), FileUtils.dropExtension(file.getName()));
+		Config conf = new Config(configFactory, file.getParentFile(), FileUtils.dropExtension(file.getName()));
 		{
 			File hostfile = FileUtils.relativePath(new File(FileUtils.getHostName() + ".host.qb"));
 			if (hostfile.exists())
@@ -67,6 +67,7 @@ public class QuickBuild {
 		}
 		SignificantWhiteSpaceFileReader.read(conf, configFactory, file);
 		conf.done();
+		configFactory.done();
 		System.out.println("Files read (in order):");
 		for (File f : ofl)
 		{

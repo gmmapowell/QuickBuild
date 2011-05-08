@@ -6,4 +6,7 @@ public interface Nature {
 
 	public abstract boolean isAvailable();
 
+	void done();
+
+	void info(StringBuilder sb);
 }
