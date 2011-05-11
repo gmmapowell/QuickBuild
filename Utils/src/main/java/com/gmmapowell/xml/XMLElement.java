@@ -40,7 +40,7 @@ public class XMLElement {
 	// Linear Access to attributes
 	public String required(String attr) {
 		if (!elt.hasAttribute(attr))
-			throw new UtilException("The required attribute " + attr + " was not found on " + this);
+			throw new UtilException("The required attribute '" + attr + "' was not found on " + this);
 		attrsProcessed.add(attr);
 		return elt.getAttribute(attr);
 	}
@@ -77,7 +77,7 @@ public class XMLElement {
 	// Random Access
 	public String get(String attr) {
 		if (!elt.hasAttribute(attr))
-			throw new UtilException("The required attribute " + attr + " was not found on " + this);
+			throw new UtilException("The required attribute '" + attr + "' was not found on " + this);
 		return elt.getAttribute(attr);
 	}
 	

@@ -66,25 +66,29 @@ class CallbackTable {
 	private Map<String, MethodMetaInfo> callbackTable = new HashMap<String, MethodMetaInfo>();
 
 	public CallbackTable(Class<?> clz) {
-		for (Method m : clz.getDeclaredMethods())
+		while (clz != Object.class)
 		{
-			// System.out.println(m);
-			Class<?>[] ptypes = m.getParameterTypes();
-			Method method1 = null;
-			Method method2 = null;
-			String name = m.getName().toLowerCase();
-			if (callbackTable.containsKey(name))
+			for (Method m : clz.getDeclaredMethods())
 			{
-				MethodMetaInfo minfo = callbackTable.get(name);
-				method1 = minfo.method1;
-				method2 = minfo.method2;
+				// System.out.println(m);
+				Class<?>[] ptypes = m.getParameterTypes();
+				Method method1 = null;
+				Method method2 = null;
+				String name = m.getName().toLowerCase();
+				if (callbackTable.containsKey(name))
+				{
+					MethodMetaInfo minfo = callbackTable.get(name);
+					method1 = minfo.method1;
+					method2 = minfo.method2;
+				}
+				if (m.getReturnType().equals(Object.class) && ptypes.length == 1 && ptypes[0].equals(XMLElement.class))
+					method1 = m;
+				if (m.getReturnType().equals(Object.class) && ptypes.length == 2 && ptypes[1].equals(XMLElement.class))
+					method2 = m;
+				
+				callbackTable.put(name, new MethodMetaInfo(method1, method2));
 			}
-			if (m.getReturnType().equals(Object.class) && ptypes.length == 1 && ptypes[0].equals(XMLElement.class))
-				method1 = m;
-			if (m.getReturnType().equals(Object.class) && ptypes.length == 2 && ptypes[1].equals(XMLElement.class))
-				method2 = m;
-			
-			callbackTable.put(name, new MethodMetaInfo(method1, method2));
+			clz = clz.getSuperclass();
 		}
 	}
 

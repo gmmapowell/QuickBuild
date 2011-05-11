@@ -32,8 +32,24 @@ public class FileUtils {
 		public GlobFilter(File file, String pattern, Collection<File> includeOnlyDirs, Collection<File> excludeOnlyDirs) {
 			this.rootdir = relativePath(file);
 			this.pattern = pattern;
-			this.includeOnlyDirs = includeOnlyDirs;
-			this.excludeOnlyDirs = excludeOnlyDirs;
+			this.includeOnlyDirs = roundUp(includeOnlyDirs);
+			this.excludeOnlyDirs = roundUp(excludeOnlyDirs);
+		}
+
+		private Collection<File> roundUp(Collection<File> dirs) {
+			if (dirs == null)
+				return null;
+			List<File> ret = new ArrayList<File>();
+			for (File f : dirs)
+			{
+				File from = relativePath(rootdir, f.getPath());
+				if (!from.isDirectory())
+					continue;
+				ret.add(from);
+				for (File d : findDirectoriesUnder(from))
+					ret.add(makeRelativeTo(relativePath(from, d.getPath()), rootdir));
+			}
+			return ret;
 		}
 
 		@Override
