@@ -154,7 +154,16 @@ public class FileUtils {
 		if (under == null)
 			return f;
 		String uf = under.getPath();
-		String tf;
+		String ufSlash = uf + File.separator;
+		
+		// Try the "text" path ...
+		String tf = f.getPath();
+		if (uf.equals(tf))
+			return new File("");
+		if (tf.startsWith(ufSlash))
+			return new File(tf.substring(ufSlash.length()));
+		
+		// Try the "canonical" path
 		try {
 			tf = f.getCanonicalPath();
 		} catch (IOException e) {
@@ -162,10 +171,10 @@ public class FileUtils {
 		}
 		if (uf.equals(tf))
 			return new File("");
-		uf += File.separator;
-		if (!tf.startsWith(uf))
-			throw new RuntimeException("This case is not handled: " + tf + " is not a subdir of " + uf);
-		return new File(tf.substring(uf.length()));
+		if (tf.startsWith(ufSlash))
+			return new File(tf.substring(ufSlash.length()));
+		
+		throw new RuntimeException("This case is not handled: " + tf + " is not a subdir of " + uf);
 	}
 
 	// TODO: this should consider all possible breakups based on -
@@ -487,6 +496,11 @@ public class FileUtils {
 			throw new UtilException(tmp + " is not under " + from);
 		File ret = makeRelativeTo(tmp, from);
 		return new File(to, ret.getPath());
+	}
+
+
+	public static boolean isUpToDate(File copy, File orig) {
+		return (copy.lastModified() >= orig.lastModified());
 	}
 
 }

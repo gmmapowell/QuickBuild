@@ -32,6 +32,8 @@ public class DevenvCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 	private ResourcePacket builds = new ResourcePacket();
 	private StructureHelper files;
 	private MsResource resource;
+	private File cachedResource;
+	private File actualResource;
 
 	@SuppressWarnings("unchecked")
 	public DevenvCommand(TokenizedLine toks) {
@@ -55,6 +57,16 @@ public class DevenvCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 		sources.add(rootdir, "*.sln");
 		resource = new MsResource(this, rootdir, projectName);
 		builds.add(resource);
+		
+		// Detect dirty builds on non-MS platforms by tracking the resource
+		
+		// How much of a hack is this?  How much should we encode?
+		// In the end, I think we should read the csproj files to find .exe and .xap deliverables
+		// Each of those should be a resource
+		
+		actualResource = files.getRelative(projectName + "/Bin/Debug/" + projectName + ".xap");
+		cachedResource = new File(config.getCacheDir(), projectName + ".xap");
+		
 		return this;
 	}
 
@@ -71,7 +83,13 @@ public class DevenvCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 			System.out.println("CsNature not available ... skipping build");
 			for (BuildResource br : builds)
 				cxt.resourceAvailable(br);
-			return BuildStatus.SKIPPED;
+			BuildStatus ret = BuildStatus.SKIPPED;
+			if (!cachedResource.exists() || !FileUtils.isUpToDate(cachedResource, actualResource))
+			{
+				FileUtils.copyAssertingDirs(actualResource, cachedResource);
+				ret = BuildStatus.SUCCESS;
+			}
+			return ret;
 		}
 		RunProcess proc = new RunProcess(nature.getDevenv());
 		proc.debug(showDebug);
