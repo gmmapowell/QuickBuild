@@ -148,7 +148,8 @@ public class JavaNature implements Nature, BuildContextAware {
 		if (idx != -1 && Character.isUpperCase(needsJavaPackage.charAt(idx+1)))
 			return addDependency(dependent, needsJavaPackage.substring(0,idx));
 
-		throw new JavaBuildFailure("cannot find any code that defines package " + needsJavaPackage);
+		return false;
+//		throw new JavaBuildFailure("cannot find any code that defines package " + needsJavaPackage);
 	}
 
 	public boolean isAvailable() {
