@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.gmmapowell.utils.PrettyPrinter;
+
 public class ExecutionBand implements Iterable<BandElement> {
 	private final int drift;
 	private List<BandElement> elements = new ArrayList<BandElement>();
@@ -41,5 +43,12 @@ public class ExecutionBand implements Iterable<BandElement> {
 	@Override
 	public String toString() {
 		return elements.toString();
+	}
+
+	public void print(PrettyPrinter pp) {
+		for (BandElement be : elements)
+		{
+			be.print(pp);
+		}
 	}
 }

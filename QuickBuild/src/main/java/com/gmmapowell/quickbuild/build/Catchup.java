@@ -1,6 +1,7 @@
 package com.gmmapowell.quickbuild.build;
 
 import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.utils.PrettyPrinter;
 
 public class Catchup extends BandElement {
 
@@ -17,6 +18,14 @@ public class Catchup extends BandElement {
 	@Override
 	public boolean isDeferred(Tactic tactic) {
 		return false;
+	}
+
+	@Override
+	public void print(PrettyPrinter pp) {
+		pp.append("Catchup");
+		pp.indentMore();
+		for (DeferredTactic dt : deferred)
+			dt.print(pp);
 	}
 
 }

@@ -1,6 +1,7 @@
 package com.gmmapowell.quickbuild.build;
 
 import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.utils.PrettyPrinter;
 
 public class DeferredTactic {
 	private final String id;
@@ -28,5 +29,10 @@ public class DeferredTactic {
 		if (this.tactic != null)
 			throw new RuntimeException("Cannot bind tactic twice");
 		this.tactic = tactic;
+	}
+
+	public void print(PrettyPrinter pp) {
+		pp.append(id);
+		pp.requireNewline();
 	}
 }

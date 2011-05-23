@@ -7,6 +7,7 @@ import java.util.Set;
 
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.utils.PrettyPrinter;
 
 
 public class ExecuteStrategem extends BandElement {
@@ -14,21 +15,9 @@ public class ExecuteStrategem extends BandElement {
 	private boolean clean = true;
 	private Set<String> dependsOn = new HashSet<String>();
 	private List<Tactic> tactics = new ArrayList<Tactic>();
-	private ExecutionBand band;
 
 	public ExecuteStrategem(String which) {
 		this.which = which;
-	}
-	
-	public ExecutionBand inBand() {
-		return band;
-	}
-	
-	public void bind(ExecutionBand band, Strategem strat)
-	{
-		this.band = band;
-		if (this.tactics.size() == 0)
-			this.tactics.addAll(strat.tactics());
 	}
 	
 	public boolean isClean() {
@@ -42,6 +31,11 @@ public class ExecuteStrategem extends BandElement {
 	public String name() {
 		return which;
 	}
+	
+	public void bind(Strategem strat)
+	{
+		this.tactics.addAll(strat.tactics());
+	}
 
 	@Override
 	public int size() {
@@ -53,6 +47,11 @@ public class ExecuteStrategem extends BandElement {
 		return tactics.get(currentTactic);
 	}
 
+	@Override
+	public boolean is(String identifier) {
+		return which.equals(identifier);
+	}
+	
 	@Override
 	public boolean isDeferred(Tactic tactic) {
 		String id = tactic.identifier();
@@ -68,5 +67,28 @@ public class ExecuteStrategem extends BandElement {
 	@Override
 	public String toString() {
 		return which;
+	}
+
+	@Override
+	public void print(PrettyPrinter pp) {
+		pp.append("Strategem " + which);
+		pp.indentMore();
+		pp.append("Tactics");
+		pp.indentMore();
+		for (Tactic t : tactics)
+		{
+			pp.append(t);
+			pp.requireNewline();
+		}
+		pp.indentLess();
+		pp.append("Deferred");
+		pp.indentMore();
+		for (DeferredTactic dt : deferred)
+		{
+			dt.print(pp);
+			pp.requireNewline();
+		}
+		pp.indentLess();
+		pp.indentLess();
 	}
 }

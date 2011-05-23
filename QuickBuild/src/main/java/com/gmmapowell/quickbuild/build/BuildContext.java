@@ -9,7 +9,6 @@ import java.util.regex.Pattern;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.java.JUnitFailure;
 import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
-import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
@@ -95,6 +94,8 @@ public class BuildContext {
 		{
 			buildOrder.loadBuildOrderCache();
 			manager.loadDependencyCache();
+			buildOrder.attachStrats(strats);
+			manager.attachStrats(strats);
 		}
 		catch (QuickBuildCacheException ex) {
 			// the cache failed to load because of inconsistencies or whatever
@@ -393,5 +394,9 @@ public class BuildContext {
 			if (ofCls.isInstance(br))
 				return (T)br;
 		throw new QuickBuildException("There is no resource of type " + ofCls + " produced by " + p.identifier());
+	}
+
+	public String printableBuildOrder() {
+		return buildOrder.printOut();
 	}
 }

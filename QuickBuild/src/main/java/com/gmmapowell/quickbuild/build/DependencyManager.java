@@ -21,6 +21,7 @@ import com.gmmapowell.quickbuild.core.CloningResource;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourceListener;
+import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
@@ -69,6 +70,11 @@ public class DependencyManager implements ResourceListener {
 	
 	public void figureOutDependencies(List<Strategem> strats)
 	{
+		// Clear out any erroneous info from loading cache
+		dependencies.clear();
+		availableResources.clear();
+		buildOrder.clear();
+		
 		// First off, build up a picture of what exists without prompting ...
 
 		// Initial resources are things like pre-built libraries, that
@@ -299,22 +305,6 @@ public class DependencyManager implements ResourceListener {
 		return true;
 	}
 	
-	/* OOD
-	private void moveUp(Strategem current, Strategem required) {
-		for (int idx=strategemToExecute+1;idx<strats.size();idx++)
-		{
-			if (strats.get(idx).getBuiltBy() == required)
-			{
-				StrategemResource sr = strats.remove(idx);
-				strats.add(strategemToExecute, sr);
-				currentCommands = null;
-				moveOn = false;
-				repeat = null;
-				return;
-			}
-		}
-	}
-*/
 	Iterable<Strategem> figureDependentsOf(BuildResource node) {
 		/* TODO: this implementation is bogus ... 
 		Set<StrategemResource> ret = new HashSet<StrategemResource>();
@@ -371,5 +361,37 @@ public class DependencyManager implements ResourceListener {
 
 	File getGitCacheFile(ExecuteStrategem node) {
 		return new File(conf.getCacheDir(), FileUtils.clean(node.name()));
+	}
+
+	public void attachStrats(List<Strategem> strats) {
+		conf.tellMeAboutInitialResources(this);
+		for (BuildResource br : availableResources.values())
+		{
+			Node<BuildResource> n = dependencies.find(br);
+			if (n.getEntry() instanceof ComparisonResource)
+				n.setEntry(br);
+		}
+		for (Strategem s : strats)
+		{
+			for (BuildResource br : allResources(s))
+			{
+				Node<BuildResource> n = dependencies.find(br);
+				if (n.getEntry() instanceof ComparisonResource)
+					n.setEntry(br);
+			}
+		}
+	}
+
+	private Iterable<BuildResource> allResources(Strategem s) {
+		Set<BuildResource> ret = new HashSet<BuildResource>();
+		addAll(ret, s.needsResources());
+		addAll(ret, s.buildsResources());
+		addAll(ret, s.providesResources());
+		return ret;
+	}
+
+	private void addAll(Set<BuildResource> ret, ResourcePacket<? extends BuildResource> resources) {
+		for (BuildResource br : resources)
+			ret.add(br);
 	}
 }

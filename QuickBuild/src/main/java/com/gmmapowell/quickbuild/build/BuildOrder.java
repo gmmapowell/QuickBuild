@@ -6,12 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.utils.FileUtils;
+import com.gmmapowell.utils.PrettyPrinter;
 import com.gmmapowell.xml.XML;
 import com.gmmapowell.xml.XMLElement;
 
@@ -46,12 +46,16 @@ public class BuildOrder {
 	private final List<ExecutionBand> bands = new ArrayList<ExecutionBand>();
 	private final File buildOrderFile;
 	private boolean buildAll;
-	private int targetFailures;
 
 	public BuildOrder(Config conf, boolean buildAll)
 	{
 		this.buildAll = buildAll;
 		buildOrderFile = new File(conf.getCacheDir(), "buildOrder.xml");
+	}	
+
+	public void clear() {
+		mapping.clear();
+		bands.clear();
 	}
 	
 	public void buildAll() {
@@ -89,11 +93,9 @@ public class BuildOrder {
 				bands.get(inBand).remove(es);
 			ExecutionBand addToBand = require(toBand, drift);
 			addToBand.add(es);
-			es.bind(addToBand, toBuild);
+			es.bind(addToBand);
+			es.bind(toBuild);
 		}
-		// TODO Auto-generated method stub
-		// TODO: the key is to use names, and then at the last minute tie the names to the actual objects ...
-		toBuild.identifier();
 	}
 	
 	private ExecutionBand require(int toBand, int drift) {
@@ -164,6 +166,7 @@ public class BuildOrder {
 						String name = strat.get("name");
 						ExecuteStrategem es = new ExecuteStrategem(name);
 						band.add(es);
+						es.bind(band);
 						for (XMLElement defer : strat.elementChildren())
 						{
 							DeferredTactic dt = new DeferredTactic(defer.get("name"));
@@ -175,6 +178,7 @@ public class BuildOrder {
 					{
 						Catchup c = new Catchup();
 						band.add(c);
+						c.bind(band);
 						for (XMLElement defer : strat.elementChildren())
 						{
 							String name = defer.get("name");
@@ -186,7 +190,6 @@ public class BuildOrder {
 									break;
 								}
 						}
-						
 					}
 					else
 						throw new RuntimeException("The tag " + strat.tag() + " was not valid");
@@ -198,6 +201,28 @@ public class BuildOrder {
 		{
 			buildOrderFile.delete();
 			throw new QuickBuildCacheException("Could not parse build order cache", ex);
+		}
+	}
+
+	public void attachStrats(List<Strategem> strats) {
+		loop:
+		for (Strategem s : strats)
+		{
+			for (ExecutionBand b : bands)
+			{
+				for (BandElement be : b)
+				{
+					if (be instanceof ExecuteStrategem && be.is(s.identifier()))
+					{
+						ExecuteStrategem es = (ExecuteStrategem)be;
+						mapping.put(s.identifier(), es);
+						es.bind(b);
+						es.bind(s);
+						continue loop;
+					}
+				}
+			}
+			throw new QuickBuildCacheException("There was no mapping for " + s.identifier(), null);
 		}
 	}
 
@@ -318,7 +343,7 @@ public class BuildOrder {
 			{
 				bs = BuildStatus.DEFERRED;
 			}
-			return new ItemToBuild(bs, be, tactic, currentBand + "." + currentStrat+"."+currentTactic, tactic.toString());
+			return new ItemToBuild(bs, be, tactic, (currentBand+1) + "." + (currentStrat+1)+"."+(currentTactic+1), tactic.toString());
 		}
 	}
 
@@ -351,6 +376,20 @@ public class BuildOrder {
 		if (!ret.endsWith("]"))
 			throw new RuntimeException("Identifiers should end with ]: " + ret);
 		return ret.substring(0, ret.length()-1) + suffix + "]";
+	}
+
+	public String printOut() {
+		PrettyPrinter pp = new PrettyPrinter();
+		int i=0;
+		for (ExecutionBand b : bands)
+		{
+			pp.append("Band " + i);
+			pp.indentMore();
+			b.print(pp);
+			pp.indentLess();
+			i++;
+		}
+		return pp.toString();
 	}
 
 }

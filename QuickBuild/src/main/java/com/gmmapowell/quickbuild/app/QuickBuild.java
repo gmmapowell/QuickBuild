@@ -94,6 +94,9 @@ public class QuickBuild {
 			System.out.println("---- Dependencies");
 			System.out.print(cxt.printableDependencyGraph());
 			System.out.println("----");
+			System.out.println("---- BuildOrder");
+			System.out.print(cxt.printableBuildOrder());
+			System.out.println("----");
 
 			return;
 		}
