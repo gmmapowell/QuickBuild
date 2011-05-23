@@ -23,7 +23,7 @@ import com.gmmapowell.utils.DateUtils;
 import com.gmmapowell.utils.FileUtils;
 
 /* Somewhere deep inside here, there is structure waiting to break out.
- * I think there are really 4 separate functions for this class:
+ * I think there are really 5 separate functions for this class:
  * 
  *   * Managing the build state (config, resources, etc)
  *   * Managing the build order (strats, tactics, floating etc)
@@ -71,7 +71,6 @@ public class BuildContext {
 	private boolean buildBroken;
 	private int projectsWithTestFailures;
 	private List<Strategem> strats = new ArrayList<Strategem>();
-	private ExecuteStrategem currentStrat;
 	private final List<Pattern> showArgsFor = new ArrayList<Pattern>();
 	private final List<Pattern> showDebugFor = new ArrayList<Pattern>();
 
@@ -109,6 +108,7 @@ public class BuildContext {
 			buildOrder.buildAll();
 		}
 
+		buildOrder.figureDirtyness(manager);
 	}
 	
 	public BuildStatus execute(ItemToBuild itb) {

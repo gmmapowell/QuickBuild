@@ -2,7 +2,6 @@ package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import com.gmmapowell.exceptions.UtilException;
@@ -146,7 +145,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	}
 
 	@Override
-	public Collection<? extends Tactic> tactics() {
+	public List<? extends Tactic> tactics() {
 		return tactics;
 	}
 

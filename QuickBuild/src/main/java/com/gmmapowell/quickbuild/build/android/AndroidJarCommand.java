@@ -2,7 +2,6 @@ package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import com.gmmapowell.parser.TokenizedLine;
@@ -57,7 +56,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 	}
 
 	@Override
-	public Collection<? extends Tactic> tactics() {
+	public List<? extends Tactic> tactics() {
 		List<Tactic> ret = new ArrayList<Tactic>();
 
 		// Hasten, hasten ... cutten and pasten from AndroidCommand

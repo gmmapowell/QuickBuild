@@ -1,12 +1,11 @@
 package com.gmmapowell.quickbuild.build;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.utils.OrderedFileList;
 import com.gmmapowell.utils.PrettyPrinter;
 
 
@@ -14,7 +13,7 @@ public class ExecuteStrategem extends BandElement {
 	private final String which;
 	private boolean clean = true;
 	private Set<String> dependsOn = new HashSet<String>();
-	private List<Tactic> tactics = new ArrayList<Tactic>();
+	private Strategem strat;
 
 	public ExecuteStrategem(String which) {
 		this.which = which;
@@ -34,17 +33,17 @@ public class ExecuteStrategem extends BandElement {
 	
 	public void bind(Strategem strat)
 	{
-		this.tactics.addAll(strat.tactics());
+		this.strat = strat;
 	}
 
 	@Override
 	public int size() {
-		return tactics.size();
+		return strat.tactics().size();
 	}
 
 	@Override
 	public Tactic tactic(int currentTactic) {
-		return tactics.get(currentTactic);
+		return strat.tactics().get(currentTactic);
 	}
 
 	@Override
@@ -75,7 +74,7 @@ public class ExecuteStrategem extends BandElement {
 		pp.indentMore();
 		pp.append("Tactics");
 		pp.indentMore();
-		for (Tactic t : tactics)
+		for (Tactic t : strat.tactics())
 		{
 			pp.append(t);
 			pp.requireNewline();
@@ -90,5 +89,13 @@ public class ExecuteStrategem extends BandElement {
 		}
 		pp.indentLess();
 		pp.indentLess();
+	}
+
+	public OrderedFileList sourceFiles() {
+		return strat.sourceFiles();
+	}
+
+	public Strategem getStrat() {
+		return strat;
 	}
 }

@@ -305,64 +305,6 @@ public class DependencyManager implements ResourceListener {
 		return true;
 	}
 	
-	Iterable<Strategem> figureDependentsOf(BuildResource node) {
-		/* TODO: this implementation is bogus ... 
-		Set<StrategemResource> ret = new HashSet<StrategemResource>();
-		figureDependentsOf(ret, node);
-		for (int i=strategemToExecute+1;i<strats.size();i++)
-			if (strats.get(i).getBuiltBy().onCascade())
-				ret.add(strats.get(i));
-		return ret;
-		*/
-		return null;
-	}
-
-	private void figureDependentsOf(Set<ExecuteStrategem> ret,	BuildResource node) {
-		Node<BuildResource> find = dependencies.find(node);
-		for (Link<BuildResource> l : find.linksTo())
-		{
-			Node<BuildResource> n = l.getFromNode();
-			BuildResource entry = n.getEntry();
-			if (entry instanceof ExecuteStrategem && !ret.contains(entry))
-			{
-				ret.add((ExecuteStrategem) entry);
-			}
-			figureDependentsOf(ret, entry);
-		}
-	}
-
-	/* TODO: reintegrate this - I still want it
-	public void figureDirtyness(ExecuteStrategem node, boolean buildAll) {
-		Strategem s = node.getBuiltBy();
-		OrderedFileList files = s.sourceFiles();
-		boolean isDirty;
-		if (files == null)
-		{
-			System.out.println("   **** NULL FILE LIST IN " + node +  " ***");
-			isDirty = true;
-		}
-		else
-			isDirty = GitHelper.checkFiles(node.isClean() && !buildAll, files, getGitCacheFile(node));
-		if (isDirty || buildAll)
-		{
-			if (buildAll)
-				System.out.println("Marking " + node + " dirty due to --build-all");
-			else
-				System.out.println("Marking " + node + " dirty due to git hash-object");
-			node.markDirty();
-			for (Strategem d : figureDependentsOf(node))
-			{
-				System.out.println("  Marking " + d + " dirty as a dependent");
-				buildOrder.markDirty(d);
-			}
-		}
-	}
-	*/
-
-	File getGitCacheFile(ExecuteStrategem node) {
-		return new File(conf.getCacheDir(), FileUtils.clean(node.name()));
-	}
-
 	public void attachStrats(List<Strategem> strats) {
 		conf.tellMeAboutInitialResources(this);
 		for (BuildResource br : availableResources.values())

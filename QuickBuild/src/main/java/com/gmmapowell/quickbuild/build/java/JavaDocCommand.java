@@ -2,7 +2,7 @@ package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
 import java.io.StringReader;
-import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -173,7 +173,7 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 	}
 
 	@Override
-	public Collection<? extends Tactic> tactics() {
+	public List<? extends Tactic> tactics() {
 		return CollectionUtils.listOf(this);
 	}
 

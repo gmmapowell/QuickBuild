@@ -2,7 +2,6 @@ package com.gmmapowell.quickbuild.build.deployment;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import com.gmmapowell.parser.TokenizedLine;
@@ -113,7 +112,7 @@ public class DeployCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 	}
 
 	@Override
-	public Collection<? extends Tactic> tactics() {
+	public List<? extends Tactic> tactics() {
 		return tactics;
 	}
 

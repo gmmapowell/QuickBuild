@@ -6,12 +6,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.quickbuild.config.Config;
+import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.FloatToEnd;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.utils.FileUtils;
+import com.gmmapowell.utils.OrderedFileList;
 import com.gmmapowell.utils.PrettyPrinter;
 import com.gmmapowell.xml.XML;
 import com.gmmapowell.xml.XMLElement;
@@ -55,8 +58,11 @@ public class BuildOrder {
 	private int currentStrat;
 	private int currentTactic;
 
+	private final Config conf;
+
 	public BuildOrder(Config conf, boolean buildAll)
 	{
+		this.conf = conf;
 		this.buildAll = buildAll;
 		buildOrderFile = new File(conf.getCacheDir(), "buildOrder.xml");
 	}	
@@ -318,6 +324,8 @@ public class BuildOrder {
 			{
 				bs = BuildStatus.DEFERRED;
 			}
+			else if (be.isClean())
+				bs = BuildStatus.CLEAN;
 			return new ItemToBuild(bs, be, tactic, (currentBand+1) + "." + (currentStrat+1)+"."+(currentTactic+1), tactic.toString());
 		}
 	}
@@ -326,24 +334,8 @@ public class BuildOrder {
 		status = Status.MOVE_ON;
 	}
 
-
 	public void tryAgain() {
-		// I just think this is a basically broken test ...
-		/*
-		if (++targetFailures >= 10)
-			throw new UtilException("The strategy " + currentStrat + " failed 5 times in a row");
-			*/
 		status = Status.RETRY;
-	}
-
-	public void markDirty(Strategem d) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void forceRebuild() {
-//		manager.getGitCacheFile(stratFor(bc)).delete();
-		
 	}
 
 	public static String tacticIdentifier(Strategem parent, String suffix) {
@@ -367,4 +359,65 @@ public class BuildOrder {
 		return pp.toString();
 	}
 
+	public void figureDirtyness(DependencyManager manager) {
+		for (ExecutionBand b : bands)
+		{
+			for (BandElement be : b)
+			{
+				if (be instanceof ExecuteStrategem)
+				{
+					ExecuteStrategem es = (ExecuteStrategem)be;
+					figureDirtyness(manager, es);
+				}
+			}
+		}
+	}
+
+	public void figureDirtyness(DependencyManager manager, ExecuteStrategem strat) {
+		OrderedFileList files = strat.sourceFiles();
+		boolean isDirty;
+		if (buildAll)
+			System.out.println("Marking " + strat + " dirty due to --build-all");
+		if (files == null)
+		{
+			isDirty = true;
+			System.out.println("Marking " + strat + " dirty due to NULL file list");
+		}
+		else
+		{
+			isDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, files, getGitCacheFile(strat));
+			if (isDirty)
+				System.out.println("Marking " + strat + " dirty due to git hash-object");
+		}			
+		if (!isDirty)
+		{
+			for (BuildResource d : manager.getDependencies(strat.getStrat()))
+			{
+				if (d.getBuiltBy() == null)
+					continue;
+				if (!mapping.get(d.getBuiltBy().identifier()).isClean())
+				{
+					isDirty = true;
+					System.out.println("Marking " + strat + " dirty due to " + d + " is dirty");
+				}
+			}
+		}
+		if (isDirty || buildAll)
+		{
+			strat.markDirty();
+		}
+	}
+
+	private File getGitCacheFile(ExecuteStrategem node) {
+		return new File(conf.getCacheDir(), FileUtils.clean(node.name()));
+	}
+
+	public void forceRebuild() {
+		getGitCacheFile(currentStrat()).delete();
+	}
+
+	private ExecuteStrategem currentStrat() {
+		ExecutionBand band = bands.get(currentBand);
+		return (ExecuteStrategem) band.get(currentStrat);
+	}
 }

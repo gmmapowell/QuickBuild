@@ -28,4 +28,12 @@ public class Catchup extends BandElement {
 			dt.print(pp);
 	}
 
+	@Override
+	public boolean isClean() {
+		/* TODO: need reflective pointer back from strat to executeStrat
+		for (DeferredTactic dt : deferred)
+			if (dt.getTactic().belongsTo())
+			*/
+		return false;
+	}
 }
