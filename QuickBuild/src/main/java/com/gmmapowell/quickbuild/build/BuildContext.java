@@ -29,6 +29,7 @@ import com.gmmapowell.utils.FileUtils;
  *   * Managing the build order (strats, tactics, floating etc)
  *   * Managing the build dependencies
  *   * Actually handling all the dirtyness of execution
+ *   * Handling failures
  *   
  * But I can't see how to disentangle them.
  */
@@ -111,66 +112,6 @@ public class BuildContext {
 	}
 	
 	public BuildStatus execute(ItemToBuild itb) {
-		// Check all the declared dependencies for the Strategem are there
-		/*
-		for (BuildResource br : bc.belongsTo().needsResources())
-			// TODO: this just shouldn't happen at this point ...
-			if (!manager.isResourceAvailable(br))
-			{
-				System.out.println(bc.belongsTo() + " needs resource " + br + " which is not yet available in " + manager.availableResources);
-				if (strategemToExecute == strats.size()-1)
-				{
-					System.out.println(bc.belongsTo() + " depends on resource " + br + " but nobody left to build it");
-					return BuildStatus.BROKEN;
-				}
-				else if (br.getBuiltBy() != null)
-				{
-					moveUp(bc.belongsTo(), br.getBuiltBy());
-					if (bc.belongsTo() == strats.get(strategemToExecute))
-					{
-						System.out.println(bc.belongsTo() + " depends on resource " + br + " but its owner " + br.getBuiltBy() + " could not be moved up ... circular dependency?");
-						return BuildStatus.BROKEN;
-					}
-				}
-				else
-				{
-					if (br instanceof PendingResource)
-					{
-						Strategem builder = findBuilderFor((PendingResource) br);
-						if (builder != null)
-							moveUp(bc.belongsTo(), builder);
-						else
-						{
-							System.out.println("Depending on " + br + " but could not find a builder");
-							return BuildStatus.BROKEN;
-						}
-					}
-				}
-			}
-*/
-		/*
-		// figure out if we need to build this
-		boolean doit = true;
-		boolean floatMe = dependencyFloat(itb);
-		String id = (strategemToExecute+1)+"."+currentStrategemCommandNo;
-		if (currentId != null)
-		{
-			id = currentId;
-			System.out.print("+ ");
-		}
-		else if (currentStrat.isClean())
-		{
-			doit = false;
-			System.out.print("  ");
-		}
-		else if (floatMe)
-		{
-			System.out.print("- ");
-			deferred.add(new DeferredTactic(id, itb));
-		}
-		else
-			System.out.print("* ");
-			*/
 		if (itb.needsBuild == BuildStatus.SKIPPED)  // defer now, do later ...
 			System.out.print("-");
 		else if (itb.needsBuild == BuildStatus.SUCCESS) // normal build
@@ -185,8 +126,6 @@ public class BuildContext {
 			throw new RuntimeException("Cannot handle status " + itb.needsBuild);
 		
 		System.out.println(" " + itb.id + ": " + itb.label);
-//		if (floatMe)
-//			return BuildStatus.DEFERRED;
 		if (!itb.needsBuild.needsBuild())
 			return itb.needsBuild;
 
@@ -225,35 +164,9 @@ public class BuildContext {
 		return ret;
 	}
 
-	/* OOD?
-	private Strategem findBuilderFor(PendingResource wanted) {
-		// I think this code is now duplicated three times!
-		Pattern p = Pattern.compile(".*" + wanted.compareAs().toLowerCase()+".*");
-		for (int i=strategemToExecute+1;i<strats.size();i++)
-			for (BuildResource br : strats.get(i).getBuiltBy().buildsResources())
-				if (p.matcher(br.compareAs().toLowerCase()).matches())
-					return strats.get(i).getBuiltBy();
-		return null;
-	}
-	*/
-
 	public void tellMeAbout(Nature nature, Class<? extends BuildResource> cls) {
 		manager.tellMeAbout(nature, cls);
 	}
-
-	/* OOD
-	private boolean dependencyFloat(Tactic bc) {
-		if (!(bc instanceof DependencyFloat))
-			return false;
-		ResourcePacket<PendingResource> needsAdditionalBuiltResources = ((DependencyFloat)bc).needsAdditionalBuiltResources();
-		if (needsAdditionalBuiltResources == null)
-			return false;
-		for (PendingResource pr : needsAdditionalBuiltResources)
-			if (manager.getPendingResourceIfAvailable(pr) == null)
-				return true;
-		return false;
-	}
-	*/
 
 	private boolean showArgs(Tactic bc) {
 		for (Pattern p : showArgsFor)

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.gmmapowell.quickbuild.config.Config;
+import com.gmmapowell.quickbuild.core.FloatToEnd;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
@@ -47,6 +48,13 @@ public class BuildOrder {
 	private final File buildOrderFile;
 	private boolean buildAll;
 
+	enum Status { BEGIN, BUILD_THIS, MOVE_ON, RETRY };
+	Status status = Status.BEGIN;
+
+	private int currentBand;
+	private int currentStrat;
+	private int currentTactic;
+
 	public BuildOrder(Config conf, boolean buildAll)
 	{
 		this.buildAll = buildAll;
@@ -67,7 +75,9 @@ public class BuildOrder {
 		String name = toBuild.identifier();
 		int inBand = -1;
 		int toBand = 0;
-		int drift = 0; // TODO: figure out drift for e.g. javadoc 
+		int drift = 0; // TODO: figure out drift for e.g. javadoc
+		if (toBuild instanceof FloatToEnd)
+			drift = ((FloatToEnd)toBuild).priority();
 		if (!mapping.containsKey(name))
 		{
 			es = new ExecuteStrategem(name);
@@ -102,8 +112,11 @@ public class BuildOrder {
 		if (toBand < bands.size())
 			if (bands.get(toBand).drift() == drift)
 				return bands.get(toBand);
-		// More drift stuff here?
 		ExecutionBand ret = new ExecutionBand(drift);
+		// Is it possible there are things that depend on this that are now going
+		// to be de-prioritized?
+		while (toBand < bands.size() && bands.get(toBand).drift() < drift)
+			toBand++;
 		bands.add(toBand, ret);
 		return ret;
 	}
@@ -262,44 +275,6 @@ public class BuildOrder {
 		FileUtils.assertDirectory(buildOrderFile.getParentFile());
 		output.write(buildOrderFile);
 	}
-
-
-	/*
-	ExecuteStrategem tryToFloatDownwards() {
-		// So, we've found that this one would like to float down.
-		// It can't go below anyone who wants to go down more, or
-		// anyone that it's dependent on (transitively), but it should be able to move
-		// them down too.
-		// I'm leaving that later case for when it arises.
-		
-		Strategem me = currentStrat.getBuiltBy();
-		int pri = ((FloatToEnd)me).priority();
-		int curpos;
-		for (curpos = strategemToExecute+1;curpos < strats.size();curpos++)
-		{
-			if (dependencies.hasLink(strats.get(curpos), currentStrat))
-				break;
-			Strategem compareTo = strats.get(curpos).getBuiltBy();
-			if (!(compareTo instanceof FloatToEnd))
-				continue;
-			if (pri <= ((FloatToEnd)compareTo).priority())
-				break;
-		}
-		if (curpos != strategemToExecute+1)
-		{
-			strats.add(curpos, currentStrat);
-			strats.remove(strategemToExecute);
-		}
-		return strats.get(strategemToExecute);
-	}
-*/
-	
-	enum Status { BEGIN, BUILD_THIS, MOVE_ON, RETRY };
-	Status status = Status.BEGIN;
-
-	private int currentBand;
-	private int currentStrat;
-	private int currentTactic;
 
 	public ItemToBuild next() {
 		for (;;)
