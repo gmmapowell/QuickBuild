@@ -3,6 +3,7 @@ package com.gmmapowell.quickbuild.build.android;
 import java.io.File;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -27,13 +28,6 @@ public class AaptGenBuildCommand implements Tactic {
 	
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
-		/* TODO: someone else should handle this
-		if (!cxt.requiresBuiltResource(this, resResource))
-		{
-			System.out.println("Need resource '" + resResource + "' ... failing");
-			return BuildStatus.RETRY;
-		}
-		*/
 		FileUtils.assertDirectory(gendir);
 		FileUtils.cleanDirectory(gendir);
 		RunProcess proc = new RunProcess(acxt.getAAPT().getPath());
@@ -68,5 +62,10 @@ public class AaptGenBuildCommand implements Tactic {
 	@Override
 	public Strategem belongsTo() {
 		return parent;
+	}
+
+	@Override
+	public String identifier() {
+		return BuildOrder.tacticIdentifier(parent, "aaptgen");
 	}
 }

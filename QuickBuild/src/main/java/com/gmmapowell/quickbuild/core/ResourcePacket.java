@@ -4,15 +4,15 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-public class ResourcePacket implements Iterable<BuildResource> {
-	private Set<BuildResource> resources = new HashSet<BuildResource>();
+public class ResourcePacket<T extends BuildResource> implements Iterable<T> {
+	private Set<T> resources = new HashSet<T>();
 	
 	@Override
-	public Iterator<BuildResource> iterator() {
+	public Iterator<T> iterator() {
 		return resources.iterator();
 	}
 
-	public void add(BuildResource resource) {
+	public void add(T resource) {
 		resources.add(resource);
 	}
 	

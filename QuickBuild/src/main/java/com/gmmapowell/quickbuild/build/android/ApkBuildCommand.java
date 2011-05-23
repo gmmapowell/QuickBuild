@@ -3,6 +3,7 @@ package com.gmmapowell.quickbuild.build.android;
 import java.io.File;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -57,5 +58,10 @@ public class ApkBuildCommand implements Tactic {
 	@Override
 	public Strategem belongsTo() {
 		return parent;
+	}
+
+	@Override
+	public String identifier() {
+		return BuildOrder.tacticIdentifier(parent, "apk");
 	}
 }

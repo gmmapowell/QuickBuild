@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
@@ -143,6 +144,11 @@ public class WarBuildCommand implements Tactic {
 	@Override
 	public String toString() {
 		return "Create WAR: " + warResource;
+	}
+	
+	@Override
+	public String identifier() {
+		return BuildOrder.tacticIdentifier(parent, "war");
 	}
 }
 

@@ -12,6 +12,8 @@ import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
 import com.gmmapowell.quickbuild.config.SpecificChildrenParent;
+import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
@@ -62,7 +64,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 			genFiles = FileUtils.findFilesMatching(gendir, "*.java");
 		else
 			genFiles = new ArrayList<File>();
-		JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", genFiles);
+		JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", "gen", genFiles);
 		genRes.addToBootClasspath(acxt.getPlatformJar());
 		ret.add(genRes);
 		List<File> srcFiles;
@@ -71,7 +73,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 			srcFiles = FileUtils.findFilesMatching(srcdir, "*.java");
 		} else
 			srcFiles = new ArrayList<File>();
-		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", srcFiles);
+		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", srcFiles);
 		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
 		ret.add(buildSrc);
@@ -79,7 +81,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		// TODO: I feel it should be possible to compile and run unit tests, but what about that bootclasspath?
 		if (files.getRelative("src/test/java").exists())
 		{
-			JavaBuildCommand buildTests = new JavaBuildCommand(this, files, "src/test/java", "test-classes", FileUtils.findFilesMatching(files.getRelative("src/test/java"), "*.java"));
+			JavaBuildCommand buildTests = new JavaBuildCommand(this, files, "src/test/java", "test-classes", "test", FileUtils.findFilesMatching(files.getRelative("src/test/java"), "*.java"));
 			buildTests.addToClasspath(new File(files.getOutputDir(), "classes"));
 			buildTests.addToBootClasspath(acxt.getPlatformJar());
 			ret.add(buildTests);
@@ -119,18 +121,18 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 	}
 
 	@Override
-	public ResourcePacket needsResources() {
-		return new ResourcePacket();
+	public ResourcePacket<PendingResource> needsResources() {
+		return new ResourcePacket<PendingResource>();
 	}
 
 	@Override
-	public ResourcePacket providesResources() {
-		return new ResourcePacket();
+	public ResourcePacket<BuildResource> providesResources() {
+		return new ResourcePacket<BuildResource>();
 	}
 
 	@Override
-	public ResourcePacket buildsResources() {
-		ResourcePacket ret = new ResourcePacket();
+	public ResourcePacket<BuildResource> buildsResources() {
+		ResourcePacket<BuildResource> ret = new ResourcePacket<BuildResource>();
 		ret.add(apkResource);
 		return ret;
 	}

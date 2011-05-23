@@ -8,6 +8,7 @@ import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.LinePatternMatch;
 import com.gmmapowell.parser.LinePatternParser;
 import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Strategem;
@@ -25,9 +26,11 @@ public class JavaBuildCommand implements Tactic {
 	private boolean doClean = true;
 	private final Strategem parent;
 	private List<File> sources;
+	private final String label;
 
-	public JavaBuildCommand(Strategem parent, StructureHelper files, String src, String bin, List<File> sources) {
+	public JavaBuildCommand(Strategem parent, StructureHelper files, String src, String bin, String label, List<File> sources) {
 		this.parent = parent;
+		this.label = label;
 		this.sources = sources;
 		this.srcdir = new File(files.getBaseDir(), src);
 		this.bindir = new File(files.getOutputDir(), bin);
@@ -138,5 +141,10 @@ public class JavaBuildCommand implements Tactic {
 	@Override
 	public Strategem belongsTo() {
 		return parent;
+	}
+
+	@Override
+	public String identifier() {
+		return BuildOrder.tacticIdentifier(parent, label);
 	}
 }

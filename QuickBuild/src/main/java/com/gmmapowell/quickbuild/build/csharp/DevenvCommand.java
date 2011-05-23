@@ -13,6 +13,7 @@ import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
 import com.gmmapowell.quickbuild.config.SpecificChildrenParent;
 import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
@@ -29,7 +30,7 @@ public class DevenvCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 	private File rootdir;
 	private List<Tactic> tactics = new ArrayList<Tactic>();
 	private OrderedFileList sources;
-	private ResourcePacket builds = new ResourcePacket();
+	private ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 	private StructureHelper files;
 	private MsResource resource;
 	private File cachedResource;
@@ -114,17 +115,17 @@ public class DevenvCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 	}
 
 	@Override
-	public ResourcePacket needsResources() {
-		return new ResourcePacket();
+	public ResourcePacket<PendingResource> needsResources() {
+		return new ResourcePacket<PendingResource>();
 	}
 
 	@Override
-	public ResourcePacket providesResources() {
-		return new ResourcePacket();
+	public ResourcePacket<BuildResource> providesResources() {
+		return new ResourcePacket<BuildResource>();
 	}
 
 	@Override
-	public ResourcePacket buildsResources() {
+	public ResourcePacket<BuildResource> buildsResources() {
 		return builds;
 	}
 

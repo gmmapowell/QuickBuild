@@ -6,12 +6,9 @@ import java.io.IOException;
 import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
 import com.gmmapowell.quickbuild.build.BuildContext;
-import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.config.Arguments;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
-import com.gmmapowell.quickbuild.core.Tactic;
-import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
@@ -90,18 +87,7 @@ public class QuickBuild {
 		
 		// now we need to read back anything we've cached ...
 		BuildContext cxt = new BuildContext(conf, configFactory, buildAll, arguments.showArgsFor, arguments.showDebugFor);
-		try
-		{
-    		cxt.configure();
-			cxt.loadCache();
-		}
-		catch (QuickBuildCacheException ex) {
-			// the cache failed to load because of inconsistencies or whatever
-			// ignore it and try again
-			ex.printStackTrace();
-			System.out.println("Cache was out of date; ignoring");
-			cxt.buildAll();
-		}
+		cxt.configure();
 
 		if (arguments.configOnly)
 		{
@@ -119,34 +105,8 @@ public class QuickBuild {
 			cxt.addBuiltResource(new DirectoryResource(null, new File(s.substring(2))));
 		}
 		*/
-			
+		
+		cxt.doBuild();
 		// now we try and build stuff ...
-		System.out.println("");
-		System.out.println("Building ...");
-		Tactic bc;
-		while ((bc = cxt.next())!= null)
-		{
-			BuildStatus outcome = cxt.execute(bc);
-			if (!outcome.isGood())
-			{
-				cxt.buildFail(outcome);
-				if (outcome.isBroken())
-				{
-					System.out.println("Aborting build due to failure");
-					break;
-				}
-				else if (outcome.tryAgain())
-				{
-					System.out.println("  Failed ... retrying");
-					cxt.tryAgain();
-					continue;
-				}
-				// else move on ...
-			}
-			cxt.advance();
-		}
-		cxt.saveDependencies();
-		cxt.saveBuildOrder();
-		cxt.showAnyErrors();
 	}
 }

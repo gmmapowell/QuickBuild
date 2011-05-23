@@ -7,4 +7,8 @@ public class QuickBuildException extends RuntimeException {
 		super(string);
 	}
 
+	public QuickBuildException(String string, Exception ex) {
+		super(string, ex);
+	}
+
 }

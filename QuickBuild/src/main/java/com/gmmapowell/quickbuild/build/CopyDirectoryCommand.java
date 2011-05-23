@@ -84,20 +84,22 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 	}
 
 	@Override
-	public ResourcePacket needsResources() {
-		ResourcePacket ret = new ResourcePacket();
+	public ResourcePacket<PendingResource> needsResources() {
+		// TODO: this should all be resolved in construcotr
+		ResourcePacket<PendingResource> ret = new ResourcePacket<PendingResource>();
 		ret.add(fromResource);
 		return ret;
 	}
 
 	@Override
-	public ResourcePacket providesResources() {
-		return new ResourcePacket();
+	public ResourcePacket<BuildResource> providesResources() {
+		return new ResourcePacket<BuildResource>();
 	}
 
 	@Override
-	public ResourcePacket buildsResources() {
-		ResourcePacket ret = new ResourcePacket();
+	public ResourcePacket<BuildResource> buildsResources() {
+		// TODO: this should all be resolved in construcotr
+		ResourcePacket<BuildResource> ret = new ResourcePacket<BuildResource>();
 		ret.add(toResource);
 		return ret;
 	}

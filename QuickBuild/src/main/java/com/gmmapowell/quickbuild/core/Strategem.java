@@ -7,9 +7,9 @@ import com.gmmapowell.utils.OrderedFileList;
 
 public interface Strategem {
 	String identifier();
-	ResourcePacket needsResources();
-	ResourcePacket providesResources();
-	ResourcePacket buildsResources();
+	ResourcePacket<PendingResource> needsResources();
+	ResourcePacket<BuildResource> providesResources();
+	ResourcePacket<BuildResource> buildsResources();
 	File rootDirectory();
 	Collection<? extends Tactic> tactics();
 	OrderedFileList sourceFiles();

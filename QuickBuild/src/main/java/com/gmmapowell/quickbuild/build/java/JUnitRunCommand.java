@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.gmmapowell.bytecode.ByteCodeFile;
 import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.DependencyFloat;
@@ -24,7 +25,7 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 	private final BuildClassPath bootclasspath = new BuildClassPath();
 	private final Strategem parent;
 	private final JavaBuildCommand jbc;
-	private ResourcePacket addlResources;
+	private ResourcePacket<PendingResource> addlResources;
 	private final StructureHelper files;
 
 
@@ -97,13 +98,19 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 		if (junitLibs.isEmpty())
 			return;
 		
-		addlResources = new ResourcePacket();
+		addlResources = new ResourcePacket<PendingResource>();
 		for (PendingResource r : junitLibs)
 			addlResources.add(r);
 	}
 
 	@Override
-	public ResourcePacket needsAdditionalBuiltResources() {
+	public ResourcePacket<PendingResource> needsAdditionalBuiltResources() {
 		return addlResources;
 	}
+
+	@Override
+	public String identifier() {
+		return BuildOrder.tacticIdentifier(parent, "junit");
+	}
+
 }

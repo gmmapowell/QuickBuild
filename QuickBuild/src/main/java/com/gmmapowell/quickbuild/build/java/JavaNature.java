@@ -14,7 +14,6 @@ import com.gmmapowell.exceptions.GPJarException;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildContextAware;
-import com.gmmapowell.quickbuild.build.StrategemResource;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
@@ -138,7 +137,8 @@ public class JavaNature implements Nature, BuildContextAware {
 			boolean didSomething = false;
 			for (Strategem p : projectPackages.get(needsJavaPackage))
 			{
-				didSomething |= cxt.addDependency(dependent, new StrategemResource(p));
+				BuildResource br = cxt.getBuiltResource(p, JarResource.class);
+				didSomething |= cxt.addDependency(dependent, br);
 			}
 			return didSomething;
 		}
