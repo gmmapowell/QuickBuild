@@ -4,12 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.regex.Pattern;
 
-import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.graphs.DependencyGraph;
 import com.gmmapowell.graphs.Link;
 import com.gmmapowell.graphs.Node;
@@ -20,7 +17,6 @@ import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.CloningResource;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.PendingResource;
-import com.gmmapowell.quickbuild.core.ResourceListener;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
@@ -53,17 +49,16 @@ import com.gmmapowell.xml.XMLElement;
 // for now, it's better here than there.
 
 // Build order (& strats) is probably also better as a relation
-public class DependencyManager implements ResourceListener {
-	private final Config conf;
+public class DependencyManager {
 	private final List<Notification> notifications = new ArrayList<Notification>();
 	private final DependencyGraph<BuildResource> dependencies = new DependencyGraph<BuildResource>();
-	final Map<String, BuildResource> availableResources = new TreeMap<String, BuildResource>();
 	private final File dependencyFile;
 	private final BuildOrder buildOrder;
+	private final ResourceManager rm;
 
-	public DependencyManager(Config conf, BuildOrder buildOrder)
+	public DependencyManager(Config conf, ResourceManager rm, BuildOrder buildOrder)
 	{
-		this.conf = conf;
+		this.rm = rm;
 		this.buildOrder = buildOrder;
 		dependencyFile = new File(conf.getCacheDir(), "dependencies.xml");
 	}
@@ -72,29 +67,13 @@ public class DependencyManager implements ResourceListener {
 	{
 		// Clear out any erroneous info from loading cache
 		dependencies.clear();
-		availableResources.clear();
 		buildOrder.clear();
 		
 		// First off, build up a picture of what exists without prompting ...
 
-		// Initial resources are things like pre-built libraries, that
-		// we never touch.  They just are.
-		conf.tellMeAboutInitialResources(this);
-
-		// Find all the pre-existing items that strategems "produce" without effort ...
-		// (e.g. source code artifacts, resources, etc.)
-		for (Strategem s : strats)
-		{			
-			for (BuildResource br : s.providesResources())
-			{
-				// put it in the graph and note its existence for users ...
-				resourceAvailable(br);
-			}
-		}
-
 		// OK, everything we've seen so far is built at the beginning of time ...
 		Set<BuildResource> preBuilt = new HashSet<BuildResource>();
-		preBuilt.addAll(availableResources.values());
+		preBuilt.addAll(rm.current());
 		
 		// Now, separately, let's look at what we could build, if we tried ...
 		Set<BuildResource> willBuild = new HashSet<BuildResource>();
@@ -104,8 +83,6 @@ public class DependencyManager implements ResourceListener {
 			buildOrder.depends(s, null);
 			for (BuildResource br : s.buildsResources())
 			{
-				// I'm commenting this out because I don't think that's a good path for something I should do right here, right now.
-//				conf.willBuild(br);
 				willBuild.add(br);
 				
 				// TODO: sort this out properly.  We should be able to figure *something* out
@@ -156,15 +133,6 @@ public class DependencyManager implements ResourceListener {
 		notifications.add(new Notification(cls, nature));
 	}
 
-	@Override
-	public void resourceAvailable(BuildResource r) {
-		availableResources.put(r.compareAs(), r);
-		dependencies.ensure(r);
-		
-		for (Notification n : notifications)
-			n.dispatch(r);
-	}
-	
 	public void loadDependencyCache()
 	{
 		if (!dependencyFile.canRead())
@@ -216,38 +184,6 @@ public class DependencyManager implements ResourceListener {
 		output.write(dependencyFile);
 	}
 
-	boolean isResourceAvailable(BuildResource br)
-	{
-		if (br instanceof PendingResource)
-			return getPendingResourceIfAvailable((PendingResource) br) != null;
-		else if (br instanceof CloningResource)
-			br = ((CloningResource)br).clonedAs();
-		return availableResources.containsKey(br.compareAs());
-	}
-	
-	BuildResource getPendingResourceIfAvailable(PendingResource pending) {
-		String resourceName = pending.compareAs();
-		if (availableResources.containsKey(resourceName))
-			return availableResources.get(resourceName);
-		
-		// This time I'm not going to worry about uniqueness
-		Pattern p = Pattern.compile(".*" + resourceName.toLowerCase()+".*");
-		for (BuildResource br : availableResources.values())
-			if (p.matcher(br.compareAs().toLowerCase()).matches())
-				return br;
-		
-		return null;
-	}
-
-	public Iterable<BuildResource> getResources(Class<? extends BuildResource> ofType)
-	{
-		List<BuildResource> ret = new ArrayList<BuildResource>();
-		for (BuildResource br : availableResources.values())
-			if (ofType.isInstance(br))
-				ret.add(br);
-		return ret;
-	}
-	 
 	public Iterable<BuildResource> getDependencies(Strategem dependent) {
 		Set<BuildResource> ret = new HashSet<BuildResource>();
 		for (BuildResource br : dependent.buildsResources())
@@ -264,19 +200,6 @@ public class DependencyManager implements ResourceListener {
 			ret.add(a);
 			findDependencies(ret, a);
 		}
-	}
-
-	public BuildResource getPendingResource(PendingResource pending) {
-		BuildResource ret = getPendingResourceIfAvailable(pending);
-		if (ret != null)
-			return ret;
-		
-		String resourceName = pending.compareAs();
-		System.out.println("Resource " + resourceName + " not found.  Available Resources are:");
-		for (String s : availableResources.keySet())
-			System.out.println("  " + s);
-
-		throw new UtilException("There is no resource called " + resourceName);
 	}
 
 	public void clearCache() {
@@ -306,8 +229,7 @@ public class DependencyManager implements ResourceListener {
 	}
 	
 	public void attachStrats(List<Strategem> strats) {
-		conf.tellMeAboutInitialResources(this);
-		for (BuildResource br : availableResources.values())
+		for (BuildResource br : rm.current())
 		{
 			Node<BuildResource> n = dependencies.find(br);
 			if (n.getEntry() instanceof ComparisonResource)

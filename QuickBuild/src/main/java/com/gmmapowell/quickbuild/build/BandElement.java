@@ -40,4 +40,6 @@ public abstract class BandElement {
 	public abstract void print(PrettyPrinter pp);
 
 	public abstract boolean isClean();
+
+	public abstract boolean isLastTactic(Tactic tactic);
 }

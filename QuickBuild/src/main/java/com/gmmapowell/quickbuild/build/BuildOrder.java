@@ -51,7 +51,7 @@ public class BuildOrder {
 	private final File buildOrderFile;
 	private boolean buildAll;
 
-	enum Status { BEGIN, BUILD_THIS, MOVE_ON, RETRY };
+	enum Status { BEGIN, BUILD_THIS, MOVE_ON, RETRY, SKIP_TO_NEXT };
 	Status status = Status.BEGIN;
 
 	private int currentBand;
@@ -60,9 +60,14 @@ public class BuildOrder {
 
 	private final Config conf;
 
-	public BuildOrder(Config conf, boolean buildAll)
+	private final ResourceManager rm;
+
+	private boolean isBroken = false;
+
+	public BuildOrder(Config conf, ResourceManager rm, boolean buildAll)
 	{
 		this.conf = conf;
+		this.rm = rm;
 		this.buildAll = buildAll;
 		buildOrderFile = new File(conf.getCacheDir(), "buildOrder.xml");
 	}	
@@ -282,6 +287,8 @@ public class BuildOrder {
 		output.write(buildOrderFile);
 	}
 
+	// TODO: I would like to move all of this off into its own file as well ...
+	// It can treat this as a "service"
 	public ItemToBuild next() {
 		for (;;)
 		{
@@ -302,6 +309,8 @@ public class BuildOrder {
 			}
 			if (currentStrat >= band.size())
 			{
+				if (isBroken)
+					return null;
 				currentBand++;
 				currentStrat = 0;
 				currentTactic = -1;
@@ -310,7 +319,7 @@ public class BuildOrder {
 			BandElement be = band.get(currentStrat);
 			if (status == Status.MOVE_ON || currentTactic == -1)
 				currentTactic++;
-			if (currentTactic >= be.size())
+			if (currentTactic >= be.size() || status == Status.SKIP_TO_NEXT)
 			{
 				currentStrat++;
 				if (currentStrat < band.size())
@@ -388,7 +397,16 @@ public class BuildOrder {
 			isDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, files, getGitCacheFile(strat));
 			if (isDirty)
 				System.out.println("Marking " + strat + " dirty due to git hash-object");
-		}			
+		}
+		if (!isDirty)
+		{
+			for (BuildResource wb : strat.getStrat().buildsResources())
+				if (!wb.getPath().exists())
+				{
+					System.out.println("Marking " + strat + " dirty because " + wb.compareAs() + " does not exist");
+					isDirty = true;
+				}
+		}
 		if (!isDirty)
 		{
 			for (BuildResource d : manager.getDependencies(strat.getStrat()))
@@ -419,5 +437,11 @@ public class BuildOrder {
 	private ExecuteStrategem currentStrat() {
 		ExecutionBand band = bands.get(currentBand);
 		return (ExecuteStrategem) band.get(currentStrat);
+	}
+
+	public void fatal() {
+		isBroken  = true;
+		status = Status.SKIP_TO_NEXT;
+		
 	}
 }

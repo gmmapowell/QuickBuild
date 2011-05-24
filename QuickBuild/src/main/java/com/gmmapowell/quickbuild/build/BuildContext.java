@@ -73,11 +73,13 @@ public class BuildContext {
 	private List<Strategem> strats = new ArrayList<Strategem>();
 	private final List<Pattern> showArgsFor = new ArrayList<Pattern>();
 	private final List<Pattern> showDebugFor = new ArrayList<Pattern>();
+	private final ResourceManager rm;
 
 	public BuildContext(Config conf, ConfigFactory configFactory, boolean buildAll, List<String> showArgsFor, List<String> showDebugFor) {
 		this.conf = conf;
-		buildOrder = new BuildOrder(conf, buildAll);
-		manager = new DependencyManager(conf, buildOrder);
+		rm = new ResourceManager(conf);
+		buildOrder = new BuildOrder(conf, rm, buildAll);
+		manager = new DependencyManager(conf, rm, buildOrder);
 		for (String s : showArgsFor)
 			this.showArgsFor.add(Pattern.compile(".*"+s.toLowerCase()+".*"));
 		for (String s : showDebugFor)
@@ -90,6 +92,7 @@ public class BuildContext {
 	
 	public void configure()
 	{
+		rm.configure(strats);
 		try
 		{
 			buildOrder.loadBuildOrderCache();
@@ -127,7 +130,13 @@ public class BuildContext {
 		
 		System.out.println(" " + itb.id + ": " + itb.label);
 		if (!itb.needsBuild.needsBuild())
+		{
+			if (itb.lastTactic() && itb.strat instanceof ExecuteStrategem)
+			{
+				rm.exportAll((ExecuteStrategem) itb.strat);
+			}
 			return itb.needsBuild;
+		}
 
 		// Record when first build started
 		if (buildStarted == null)
@@ -141,26 +150,11 @@ public class BuildContext {
 		{
 			ex.printStackTrace(System.out);
 		}
+		if (itb.lastTactic() && itb.strat instanceof ExecuteStrategem)
+			rm.stratComplete(ret, ((ExecuteStrategem)itb.strat).getStrat());
 		if (ret.needsRebuild())
 			buildOrder.forceRebuild();
 		
-		/* TODO: Somebody should do this ...
-		// Test the contract when the strategem comes to an end
-		else if (ret.builtResources() && currentCommands != null && !currentCommands.hasNext())
-		{
-			List<BuildResource> fails = new ArrayList<BuildResource>();
-			for (BuildResource br : itb.belongsTo().buildsResources())
-				if (!manager.isResourceAvailable(br))
-					fails.add(br);
-			if (!fails.isEmpty())
-			{
-				System.out.println("The strategem " + itb.belongsTo() + " failed in its contract to build " + fails);
-				// This code should be abstracted out too ... I think we need another wrapper layer.
-				buildOrder.forceRebuild();
-				return BuildStatus.BROKEN;
-			}
-		}
-		*/
 		return ret;
 	}
 
@@ -242,8 +236,9 @@ public class BuildContext {
 				buildFail(outcome);
 				if (outcome.isBroken())
 				{
-					System.out.println("Aborting build due to failure");
-					break;
+					System.out.println("  Failed ... skipping to next in band");
+					buildOrder.fatal();
+					continue;
 				}
 				else if (outcome.tryAgain())
 				{
@@ -266,11 +261,11 @@ public class BuildContext {
 	}
 
 	public BuildResource getPendingResource(PendingResource s) {
-		return manager.getPendingResource(s);
+		return rm.getPendingResource(s);
 	}
 
 	public void resourceAvailable(BuildResource r) {
-		manager.resourceAvailable(r);
+		rm.resourceAvailable(r);
 	}
 
 	public Iterable<BuildResource> getDependencies(Strategem parent) {
@@ -278,7 +273,7 @@ public class BuildContext {
 	}
 
 	public <T extends BuildResource> Iterable<BuildResource> getResources(Class<T> cls) {
-		return manager.getResources(cls);
+		return rm.getResources(cls);
 	}
 
 	public boolean addDependency(Strategem dependent, BuildResource resource) {
@@ -301,12 +296,9 @@ public class BuildContext {
 		return manager.printableDependencyGraph();
 	}
 
-	@SuppressWarnings("unchecked")
-	public <T extends BuildResource> T getBuiltResource(Strategem p, Class<T> ofCls) {
-		for (BuildResource br : p.buildsResources())
-			if (ofCls.isInstance(br))
-				return (T)br;
-		throw new QuickBuildException("There is no resource of type " + ofCls + " produced by " + p.identifier());
+	public <T extends BuildResource> T getBuiltResource(Strategem p,
+			Class<T> ofCls) {
+		return rm.getBuiltResource(p, ofCls);
 	}
 
 	public String printableBuildOrder() {

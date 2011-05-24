@@ -1,8 +1,5 @@
 package com.gmmapowell.quickbuild.build;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.OrderedFileList;
@@ -12,7 +9,6 @@ import com.gmmapowell.utils.PrettyPrinter;
 public class ExecuteStrategem extends BandElement {
 	private final String which;
 	private boolean clean = true;
-	private Set<String> dependsOn = new HashSet<String>();
 	private Strategem strat;
 
 	public ExecuteStrategem(String which) {
@@ -97,5 +93,10 @@ public class ExecuteStrategem extends BandElement {
 
 	public Strategem getStrat() {
 		return strat;
+	}
+
+	@Override
+	public boolean isLastTactic(Tactic tactic) {
+		return strat.tactics().get(strat.tactics().size()-1) == tactic;
 	}
 }

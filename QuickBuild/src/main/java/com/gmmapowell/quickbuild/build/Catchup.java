@@ -36,4 +36,9 @@ public class Catchup extends BandElement {
 			*/
 		return false;
 	}
+
+	@Override
+	public boolean isLastTactic(Tactic tactic) {
+		return deferred.get(deferred.size()-1).getTactic() == tactic;
+	}
 }

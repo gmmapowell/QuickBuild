@@ -27,4 +27,8 @@ public class ItemToBuild {
 		this.id = id;
 		this.label = label;
 	}
+
+	public boolean lastTactic() {
+		return strat.isLastTactic(tactic);
+	}
 }
