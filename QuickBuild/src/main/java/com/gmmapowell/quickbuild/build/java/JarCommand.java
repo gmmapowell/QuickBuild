@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
+import com.gmmapowell.quickbuild.build.HasAncillaryFiles;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
@@ -22,7 +23,7 @@ import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
-public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem {
+public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem, HasAncillaryFiles {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private final ResourcePacket<BuildResource> sources = new ResourcePacket<BuildResource>();
 	protected final ResourcePacket<PendingResource> needsResources = new ResourcePacket<PendingResource>();
@@ -37,6 +38,8 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	private final List<PendingResource> junitLibs = new ArrayList<PendingResource>();
 	private boolean runJunit = true;
 	protected ResourcePacket<BuildResource> willProvide = new ResourcePacket<BuildResource>();
+	private JavaSourceDirResource mainSources;
+	private JavaSourceDirResource testSources;
 
 	@SuppressWarnings("unchecked")
 	public JarCommand(TokenizedLine toks) {
@@ -165,12 +168,17 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			JavaBuildCommand ret = new JavaBuildCommand(this, files, src, bin, label, allFiles);
 			accum.add(ret);
 			
+			JavaSourceDirResource sourcesResource = new JavaSourceDirResource(this, dir, sourceFiles);
+			sources.add(sourcesResource);
+			
 			if (jar != null)
 			{
 				// Do this for main, but not test ...
-				sources.add(new JavaSourceDirResource(this, dir, sourceFiles));
+				mainSources = sourcesResource;
 				jar.add(new File(files.getOutputDir(), bin));
 			}
+			else
+				testSources = sourcesResource;
 			
 			return ret;
 		}
@@ -221,14 +229,19 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 
 	@Override
 	public OrderedFileList sourceFiles() {
+		return mapOFL(mainSources);
+	}
+	
+	@Override
+	public OrderedFileList getAncillaryFiles() {
+		return mapOFL(testSources);
+	}
+	
+	public OrderedFileList mapOFL(JavaSourceDirResource jsd)
+	{
 		List<File> files = new ArrayList<File>();
-		for (BuildResource br : sources)
-		{
-			JavaSourceDirResource jsd = (JavaSourceDirResource) br;
+		if (jsd != null)
 			files.addAll(jsd.getSources());
-		}
-		// TODO: this is a list of JavaSourceDirResource objects.
-		// Unpack each of them and then convert that to a list we can use
 		return new OrderedFileList(files);
 	}
 

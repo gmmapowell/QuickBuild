@@ -42,4 +42,8 @@ public abstract class BandElement {
 	public abstract boolean isClean();
 
 	public abstract boolean isLastTactic(Tactic tactic);
+
+	public boolean isCompletelyClean() {
+		return isClean();
+	}
 }

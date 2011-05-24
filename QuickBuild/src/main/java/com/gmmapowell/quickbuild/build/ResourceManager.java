@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourceListener;
 import com.gmmapowell.quickbuild.core.Strategem;
@@ -18,9 +19,14 @@ import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 public class ResourceManager implements ResourceListener {
 	private final Config conf;
 	private final Set<BuildResource> availableResources = new HashSet<BuildResource>();
+	private final List<Notification> notifications = new ArrayList<Notification>();
 
 	public ResourceManager(Config conf) {
 		this.conf = conf;
+	}
+
+	public void tellMeAbout(Nature nature, Class<? extends BuildResource> cls) {
+		notifications.add(new Notification(cls, nature));
 	}
 
 	public void configure(List<Strategem> strats) {
@@ -43,6 +49,8 @@ public class ResourceManager implements ResourceListener {
 		availableResources.add(r);
 		if (!r.getPath().exists())
 			throw new QuickBuildException("The resource " + r.compareAs() + " has been made available but does not exist");
+		for (Notification n : notifications)
+			n.dispatch(r);
 	}
 	
 	public Collection<BuildResource> current() {

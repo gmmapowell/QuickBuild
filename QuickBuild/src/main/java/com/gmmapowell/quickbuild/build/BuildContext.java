@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.quickbuild.build.java.JUnitFailure;
-import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
@@ -64,8 +62,7 @@ public class BuildContext {
 	private DependencyManager manager;
 	private final Config conf;
 	
-	// TODO: this should be more general "deferred failure"
-	private final List<JUnitFailure> failures = new ArrayList<JUnitFailure>();
+	private final ErrorHandler ehandler;
 	private Date buildStarted;
 	private int totalErrors;
 	private boolean buildBroken;
@@ -80,6 +77,7 @@ public class BuildContext {
 		rm = new ResourceManager(conf);
 		buildOrder = new BuildOrder(conf, rm, buildAll);
 		manager = new DependencyManager(conf, rm, buildOrder);
+		ehandler = new ErrorHandler(conf.getLogDir());
 		for (String s : showArgsFor)
 			this.showArgsFor.add(Pattern.compile(".*"+s.toLowerCase()+".*"));
 		for (String s : showDebugFor)
@@ -159,7 +157,7 @@ public class BuildContext {
 	}
 
 	public void tellMeAbout(Nature nature, Class<? extends BuildResource> cls) {
-		manager.tellMeAbout(nature, cls);
+		rm.tellMeAbout(nature, cls);
 	}
 
 	private boolean showArgs(Tactic bc) {
@@ -176,15 +174,8 @@ public class BuildContext {
 		return false;
 	}
 
-	public void junitFailure(JUnitRunCommand cmd, String stdout, String stderr) {
-		JUnitFailure failure = new JUnitFailure(cmd, stdout, stderr);
-		failures.add(failure);
-		projectsWithTestFailures++;
-	}
-
 	public void showAnyErrors() {
-		for (JUnitFailure failure : failures)
-			failure.show();
+		ehandler.showLog();
 		if (buildBroken)
 		{
 			System.out.println("!!!! BUILD FAILED !!!!");
@@ -204,13 +195,6 @@ public class BuildContext {
 		}
 	}
 
-	public void buildFail(BuildStatus outcome) {
-		totalErrors++;
-		System.out.println("Counting this as a failure - total so far: " + totalErrors);
-		if (outcome.isBroken())
-			buildBroken = true;
-	}
-
 	public File getPath(String name) {
 		return conf.getPath(name);
 	}
@@ -227,13 +211,14 @@ public class BuildContext {
 	public void doBuild() {
 		System.out.println("");
 		System.out.println("Building ...");
-		ItemToBuild bc;
-		while ((bc = buildOrder.next())!= null)
+		ItemToBuild itb;
+		while ((itb = buildOrder.next())!= null)
 		{
-			BuildStatus outcome = execute(bc);
+			ehandler.currentCmd(itb);
+			BuildStatus outcome = execute(itb);
 			if (!outcome.isGood())
 			{
-				buildFail(outcome);
+				ehandler.buildFail(outcome);
 				if (outcome.isBroken())
 				{
 					System.out.println("  Failed ... skipping to next in band");
@@ -303,5 +288,9 @@ public class BuildContext {
 
 	public String printableBuildOrder() {
 		return buildOrder.printOut();
+	}
+
+	public ErrorCase failure(List<String> args, String stdout, String stderr) {
+		return ehandler.failure(args, stdout, stderr);
 	}
 }

@@ -136,5 +136,9 @@ public class RunProcess {
 			redirectStdout(System.out);
 		}
 	}
+
+	public List<String> getArgs() {
+		return cmdarray;
+	}
 }
 

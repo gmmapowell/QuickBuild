@@ -154,6 +154,10 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		return new File(getWorkingDir(), "cache");
 	}
 
+	public File getLogDir() {
+		return new File(getWorkingDir(), "logs");
+	}
+
 	private File getWorkingDir() {
 		return new File(qbdir, quickBuildName);
 	}

@@ -325,6 +325,7 @@ public class BuildOrder {
 				if (currentStrat < band.size())
 					System.out.println("Advancing to " + band.get(currentStrat));
 				currentTactic = -1;
+				status = Status.BUILD_THIS;
 				continue;
 			}
 			BuildStatus bs = BuildStatus.SUCCESS;
@@ -333,7 +334,7 @@ public class BuildOrder {
 			{
 				bs = BuildStatus.DEFERRED;
 			}
-			else if (be.isClean())
+			else if (be.isCompletelyClean())
 				bs = BuildStatus.CLEAN;
 			return new ItemToBuild(bs, be, tactic, (currentBand+1) + "." + (currentStrat+1)+"."+(currentTactic+1), tactic.toString());
 		}
@@ -394,7 +395,7 @@ public class BuildOrder {
 		}
 		else
 		{
-			isDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, files, getGitCacheFile(strat));
+			isDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, files, getGitCacheFile(strat, ""));
 			if (isDirty)
 				System.out.println("Marking " + strat + " dirty due to git hash-object");
 		}
@@ -424,14 +425,27 @@ public class BuildOrder {
 		{
 			strat.markDirty();
 		}
+		else
+		{
+			OrderedFileList ancillaries = strat.ancillaryFiles();
+			if (ancillaries != null)
+			{
+				isDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, ancillaries, getGitCacheFile(strat, ".anc"));
+				if (isDirty)
+				{
+					System.out.println("Marking " + strat + " dirty due to git hash-object");
+					strat.markDirtyLocally();
+				}
+			}
+		}
 	}
 
-	private File getGitCacheFile(ExecuteStrategem node) {
-		return new File(conf.getCacheDir(), FileUtils.clean(node.name()));
+	private File getGitCacheFile(ExecuteStrategem node, String ext) {
+		return new File(conf.getCacheDir(), FileUtils.clean(node.name()) + ext);
 	}
 
 	public void forceRebuild() {
-		getGitCacheFile(currentStrat()).delete();
+		getGitCacheFile(currentStrat(), "").delete();
 	}
 
 	private ExecuteStrategem currentStrat() {

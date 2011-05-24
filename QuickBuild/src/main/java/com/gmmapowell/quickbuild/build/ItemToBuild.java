@@ -31,4 +31,8 @@ public class ItemToBuild {
 	public boolean lastTactic() {
 		return strat.isLastTactic(tactic);
 	}
+
+	public int compareTo(ItemToBuild other) {
+		return id.compareTo(other.id);
+	}
 }

@@ -1,7 +1,6 @@
 package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,7 +14,6 @@ import com.gmmapowell.quickbuild.build.BuildContext.ComparisonResource;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.CloningResource;
-import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
@@ -50,7 +48,6 @@ import com.gmmapowell.xml.XMLElement;
 
 // Build order (& strats) is probably also better as a relation
 public class DependencyManager {
-	private final List<Notification> notifications = new ArrayList<Notification>();
 	private final DependencyGraph<BuildResource> dependencies = new DependencyGraph<BuildResource>();
 	private final File dependencyFile;
 	private final BuildOrder buildOrder;
@@ -73,7 +70,11 @@ public class DependencyManager {
 
 		// OK, everything we've seen so far is built at the beginning of time ...
 		Set<BuildResource> preBuilt = new HashSet<BuildResource>();
-		preBuilt.addAll(rm.current());
+		for (BuildResource br : rm.current())
+		{
+			preBuilt.add(br);
+			dependencies.ensure(br);
+		}
 		
 		// Now, separately, let's look at what we could build, if we tried ...
 		Set<BuildResource> willBuild = new HashSet<BuildResource>();
@@ -126,11 +127,6 @@ public class DependencyManager {
 					buildOrder.depends(s, uniq.getBuiltBy());
 			}
 		}
-	}
-
-
-	public void tellMeAbout(Nature nature, Class<? extends BuildResource> cls) {
-		notifications.add(new Notification(cls, nature));
 	}
 
 	public void loadDependencyCache()
@@ -229,20 +225,27 @@ public class DependencyManager {
 	}
 	
 	public void attachStrats(List<Strategem> strats) {
-		for (BuildResource br : rm.current())
+		try
 		{
-			Node<BuildResource> n = dependencies.find(br);
-			if (n.getEntry() instanceof ComparisonResource)
-				n.setEntry(br);
-		}
-		for (Strategem s : strats)
-		{
-			for (BuildResource br : allResources(s))
+			for (BuildResource br : rm.current())
 			{
 				Node<BuildResource> n = dependencies.find(br);
 				if (n.getEntry() instanceof ComparisonResource)
 					n.setEntry(br);
 			}
+			for (Strategem s : strats)
+			{
+				for (BuildResource br : allResources(s))
+				{
+					Node<BuildResource> n = dependencies.find(br);
+					if (n.getEntry() instanceof ComparisonResource)
+						n.setEntry(br);
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			throw new QuickBuildCacheException("Failed to attach real strats to cache", ex);
 		}
 	}
 

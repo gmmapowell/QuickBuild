@@ -1,12 +1,16 @@
 package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
+import java.io.StringReader;
 import java.util.List;
 
 import com.gmmapowell.bytecode.ByteCodeFile;
+import com.gmmapowell.parser.LinePatternMatch;
+import com.gmmapowell.parser.LinePatternParser;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.ErrorCase;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.DependencyFloat;
 import com.gmmapowell.quickbuild.core.PendingResource;
@@ -14,6 +18,7 @@ import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
@@ -75,8 +80,39 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 		{
 			return BuildStatus.SUCCESS;
 		}
-		System.out.println(" !! JUnit Test Errors will be presented at end");
-		cxt.junitFailure(this, proc.getStdout(), proc.getStderr());
+//		System.out.println(" !! JUnit Test Errors will be presented at end");
+		
+		return handleFailure(cxt, proc);
+	}
+
+	private BuildStatus handleFailure(BuildContext cxt, RunProcess proc) {
+		ErrorCase failure = cxt.failure(proc.getArgs(), proc.getStdout(), proc.getStderr());
+		LinePatternParser lpp = new LinePatternParser();
+		lpp.matchAll("([.E]*)", "summary", "details");
+		lpp.matchAll("([0-9]+\\) [a-zA-Z0-9_.()]+)", "case", "name");
+		
+		int cnt = 0;
+		for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStdout())))
+		{
+			String s;
+			if (lpm.is("summary"))
+			{
+				s = lpm.get("details");
+			}
+			else if (lpm.is("case"))
+			{
+				s = lpm.get("name");
+			}
+			else
+				throw new QuickBuildException("Do not know how to handle match " + lpm);
+			if (s != null && s.trim().length() > 0)
+			{
+				System.out.println("    " + s);
+				failure.addMessage(s);
+			}
+		}
+		if (cnt > 0)
+			return BuildStatus.RETRY;
 		return BuildStatus.TEST_FAILURES;
 	}
 

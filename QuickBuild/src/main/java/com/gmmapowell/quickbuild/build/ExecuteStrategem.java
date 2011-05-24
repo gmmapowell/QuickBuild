@@ -10,6 +10,7 @@ public class ExecuteStrategem extends BandElement {
 	private final String which;
 	private boolean clean = true;
 	private Strategem strat;
+	private boolean needsLocalBuild = false;
 
 	public ExecuteStrategem(String which) {
 		this.which = which;
@@ -19,8 +20,17 @@ public class ExecuteStrategem extends BandElement {
 		return clean;
 	}
 
+	@Override
+	public boolean isCompletelyClean() {
+		return clean && !needsLocalBuild;
+	}
+
 	public void markDirty() {
 		clean = false;
+	}
+	
+	public void markDirtyLocally() {
+		needsLocalBuild  = true;
 	}
 
 	public String name() {
@@ -98,5 +108,11 @@ public class ExecuteStrategem extends BandElement {
 	@Override
 	public boolean isLastTactic(Tactic tactic) {
 		return strat.tactics().get(strat.tactics().size()-1) == tactic;
+	}
+
+	public OrderedFileList ancillaryFiles() {
+		if (strat instanceof HasAncillaryFiles)
+			return ((HasAncillaryFiles)strat).getAncillaryFiles();
+		return null;
 	}
 }
