@@ -14,6 +14,7 @@ import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.ErrorCase;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
@@ -110,6 +111,7 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 			return BuildStatus.SKIPPED;
 		proc.execute();
 		
+		ErrorCase failure = null;
 		LinePatternParser lppOut = new LinePatternParser();
 		lppOut.match("([0-9]+) warning", "warnings", "count");
 		int cnt = 0;
@@ -117,7 +119,9 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 		{
 			if (lpm.is("warnings"))
 			{
-				System.out.println("JavaDoc encountered " + lpm.get("count") + " warnings:");
+				if (failure == null)
+					failure = cxt.failure(proc.getArgs(), proc.getStdout(), proc.getStderr());
+				failure.addMessage("JavaDoc encountered " + lpm.get("count") + " warnings:");
 				cnt++;
 			}
 			else
@@ -125,12 +129,14 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 		}
 
 		LinePatternParser lppErr = new LinePatternParser();
-		lppErr.match("warning - (.*)", "message", "text");
+		lppErr.match("src/[^/]+/java/(.+): warning - (.*)", "message", "location", "text");
 		for (LinePatternMatch lpm : lppErr.applyTo(new StringReader(proc.getStderr())))
 		{
 			if (lpm.is("message"))
 			{
-				System.out.println("  " + lpm.get("text"));
+				if (failure == null)
+					failure = cxt.failure(proc.getArgs(), proc.getStdout(), proc.getStderr());
+				failure.addMessage("  " + lpm.get("location") + ": " + lpm.get("text"));
 				cnt++;
 			}
 			else
@@ -143,6 +149,8 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 				return BuildStatus.SUCCESS;
 			return BuildStatus.TEST_FAILURES;
 		}
+		if (failure == null)
+			failure = cxt.failure(proc.getArgs(), proc.getStdout(), proc.getStderr());
 		return BuildStatus.BROKEN;
 	}
 
