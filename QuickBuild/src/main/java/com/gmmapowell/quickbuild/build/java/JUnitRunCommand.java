@@ -30,7 +30,7 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 	private final BuildClassPath bootclasspath = new BuildClassPath();
 	private final Strategem parent;
 	private final JavaBuildCommand jbc;
-	private ResourcePacket<PendingResource> addlResources;
+	private ResourcePacket<PendingResource> addlResources = new ResourcePacket<PendingResource>();
 	private final StructureHelper files;
 
 
@@ -48,7 +48,7 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 		if (addlResources != null)
 			for (BuildResource r : addlResources)
 			{
-				classpath.add(cxt.getPendingResource((PendingResource) r).getPath());
+				classpath.add(((PendingResource) r).getPath());
 			}
 		RunProcess proc = new RunProcess("java");
 		proc.executeInDir(files.getBaseDir());
@@ -134,7 +134,6 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 		if (junitLibs.isEmpty())
 			return;
 		
-		addlResources = new ResourcePacket<PendingResource>();
 		for (PendingResource r : junitLibs)
 			addlResources.add(r);
 	}

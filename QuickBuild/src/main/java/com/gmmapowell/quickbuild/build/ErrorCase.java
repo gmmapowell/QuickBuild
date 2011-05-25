@@ -89,7 +89,7 @@ public class ErrorCase {
 	}
 
 	private File getLogFile() {
-		return new File(logDir, FileUtils.clean(((ExecuteStrategem)itb.strat).name()));
+		return new File(logDir, FileUtils.clean(itb.name()));
 	}
 
 }

@@ -35,4 +35,8 @@ public class ItemToBuild {
 	public int compareTo(ItemToBuild other) {
 		return id.compareTo(other.id);
 	}
+
+	public String name() {
+		return tactic.belongsTo().identifier();
+	}
 }

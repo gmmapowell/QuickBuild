@@ -84,6 +84,10 @@ public class BuildContext {
 		buildOrder.figureDirtyness(manager);
 	}
 
+	public boolean hasPath(String name) {
+		return conf.hasPath(name);
+	}
+
 	public File getPath(String name) {
 		return conf.getPath(name);
 	}
@@ -92,8 +96,8 @@ public class BuildContext {
 		return new File(conf.getCacheDir(), file);
 	}
 	
-	public File getGitCacheFile(ExecuteStrategem node, String ext) {
-		return new File(conf.getCacheDir(), FileUtils.clean(node.name()) + ext);
+	public File getGitCacheFile(String name, String ext) {
+		return new File(conf.getCacheDir(), FileUtils.clean(name) + ext);
 	}
 
 	public void tellMeAbout(Nature nature, Class<? extends BuildResource> cls) {
@@ -138,6 +142,10 @@ public class BuildContext {
 	public Iterable<BuildResource> getDependencies(Strategem parent) {
 		return manager.getDependencies(parent);
 	}
+	
+	public void builtResource(BuildResource r) {
+		rm.resourceAvailable(r);
+	}
 
 	public <T extends BuildResource> Iterable<BuildResource> getResources(Class<T> cls) {
 		return rm.getResources(cls);
@@ -152,18 +160,12 @@ public class BuildContext {
 	}
 
 	public String printableBuildOrder() {
-		return buildOrder.printOut();
+		return buildOrder.printOut(true);
 	}
 
 	// People shouldn't be doing this for themselves
 	@Deprecated
 	public BuildResource getPendingResource(PendingResource s) {
 		return rm.getPendingResource(s);
-	}
-
-	// Use the resource manager directly
-	@Deprecated
-	public void resourceAvailable(BuildResource r) {
-		rm.resourceAvailable(r);
 	}
 }

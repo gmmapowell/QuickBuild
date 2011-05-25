@@ -63,7 +63,8 @@ public class ExecuteStrategem extends BandElement {
 		for (DeferredTactic dt : deferred)
 			if (dt.is(id))
 			{
-				dt.bind(tactic);
+				if (!dt.isBound())
+					dt.bind(tactic);
 				return true;
 			}
 		return false;
@@ -75,26 +76,29 @@ public class ExecuteStrategem extends BandElement {
 	}
 
 	@Override
-	public void print(PrettyPrinter pp) {
+	public void print(PrettyPrinter pp, boolean withTactics) {
 		pp.append("Strategem " + which);
-		pp.indentMore();
-		pp.append("Tactics");
-		pp.indentMore();
-		for (Tactic t : strat.tactics())
-		{
-			pp.append(t);
-			pp.requireNewline();
+		pp.requireNewline();
+		if (withTactics) {
+			pp.indentMore();
+			pp.append("Tactics");
+			pp.indentMore();
+			for (Tactic t : strat.tactics())
+			{
+				pp.append(t);
+				pp.requireNewline();
+			}
+			pp.indentLess();
+			pp.append("Deferred");
+			pp.indentMore();
+			for (DeferredTactic dt : deferred)
+			{
+				dt.print(pp);
+				pp.requireNewline();
+			}
+			pp.indentLess();
+			pp.indentLess();
 		}
-		pp.indentLess();
-		pp.append("Deferred");
-		pp.indentMore();
-		for (DeferredTactic dt : deferred)
-		{
-			dt.print(pp);
-			pp.requireNewline();
-		}
-		pp.indentLess();
-		pp.indentLess();
 	}
 
 	public OrderedFileList sourceFiles() {

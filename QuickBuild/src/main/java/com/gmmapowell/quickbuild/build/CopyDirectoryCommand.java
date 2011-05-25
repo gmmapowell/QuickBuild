@@ -63,13 +63,12 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
-		BuildResource from = cxt.getPendingResource(fromResource);
-		System.out.println(from.getPath());
-		FileUtils.assertDirectory(from.getPath());
-		actualTo = from.cloneInto(toResource);
-		FileUtils.copyRecursive(from.getPath(), actualTo.getPath());
+		System.out.println(fromResource.getPath());
+		FileUtils.assertDirectory(fromResource.getPath());
+		actualTo = fromResource.cloneInto(toResource);
+		FileUtils.copyRecursive(fromResource.getPath(), actualTo.getPath());
 		toResource.wasClonedAs(actualTo);
-		cxt.resourceAvailable(actualTo);
+		cxt.builtResource(actualTo);
 		return BuildStatus.SUCCESS;
 	}
 

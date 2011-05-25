@@ -8,12 +8,12 @@ import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 
-public class WarLibCommand extends NoChildCommand implements ConfigApplyCommand {
-	private String lib;
+public class WarResourceCommand extends NoChildCommand implements ConfigApplyCommand {
+	private String resource;
 	
-	public WarLibCommand(TokenizedLine toks)
+	public WarResourceCommand(TokenizedLine toks)
 	{
-		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "lib", "library"));
+		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "resource", "resource"));
 	}
 
 	@Override
@@ -23,7 +23,12 @@ public class WarLibCommand extends NoChildCommand implements ConfigApplyCommand 
 	}
 
 	public PendingResource getPendingResource() {
-		return new PendingResource(lib);
+		return new PendingResource(resource);
+	}
+	
+	@Override
+	public String toString() {
+		return "WarResource["+resource+"]";
 	}
 
 }

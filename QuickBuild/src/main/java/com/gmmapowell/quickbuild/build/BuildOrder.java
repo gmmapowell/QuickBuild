@@ -8,10 +8,14 @@ import java.util.Map;
 
 import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.DependencyFloat;
 import com.gmmapowell.quickbuild.core.FloatToEnd;
+import com.gmmapowell.quickbuild.core.PendingResource;
+import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
+import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 import com.gmmapowell.utils.PrettyPrinter;
@@ -68,12 +72,16 @@ public class BuildOrder {
 		buildAll = true;
 	}
 
-	public void depends(Strategem toBuild, Strategem mustHaveBuilt) {
+	public void depends(DependencyManager manager, Strategem toBuild, Strategem mustHaveBuilt) {
+		if (mustHaveBuilt == null)
+			System.out.println("Must build " + toBuild);
+		else
+			System.out.println("Must have " + mustHaveBuilt +  " before " + toBuild);
 		ExecuteStrategem es;
 		String name = toBuild.identifier();
 		int inBand = -1;
 		int toBand = 0;
-		int drift = 0; // TODO: figure out drift for e.g. javadoc
+		int drift = 0;
 		if (toBuild instanceof FloatToEnd)
 			drift = ((FloatToEnd)toBuild).priority();
 		if (!mapping.containsKey(name))
@@ -99,22 +107,107 @@ public class BuildOrder {
 		{
 			if (inBand != -1)
 				bands.get(inBand).remove(es);
-			ExecutionBand addToBand = require(toBand, drift);
+			ExecutionBand addToBand = require(es.getStrat(), toBand, drift);
 			addToBand.add(es);
-			es.bind(addToBand);
 			es.bind(toBuild);
+		}
+		es.dependsOn(mustHaveBuilt);
+		
+		if (mustHaveBuilt != null)
+			System.out.print(printOut(false));
+	}
+
+	public void handleFloatingDependencies(DependencyManager manager)
+	{
+		for (int i=0;i<bands.size();i++)
+		{
+			ExecutionBand band = bands.get(i);
+			for (BandElement es : band)
+			{
+				if (es instanceof ExecuteStrategem)
+					handleFloatingDependencies(manager, i, (ExecuteStrategem) es);
+			}
+		}
+	}
+	private void handleFloatingDependencies(DependencyManager manager, int inBand, ExecuteStrategem es) {
+		int drift = 0;
+		
+		for (Tactic tt : es.getStrat().tactics())
+		{
+			if (es.isDeferred(tt))
+				continue;
+			if (tt instanceof DependencyFloat)
+			{
+				int minBand = inBand;
+				ResourcePacket<PendingResource> addl = ((DependencyFloat)tt).needsAdditionalBuiltResources();
+				for (PendingResource pr : addl)
+				{
+					BuildResource br = manager.resolve(pr);
+					if (br.getBuiltBy() == null)
+						continue;
+					// We need to find the minimum band that has this, but is at least minBand
+					for (int i=bands.size()-1;i>=minBand;i--)
+					{
+						if (bands.get(i).produces(br))
+						{
+							minBand = i+1;
+							break;
+						}
+					}
+				}
+				if (minBand > inBand)
+				{
+					DeferredTactic dt = new DeferredTactic(tt.identifier());
+					dt.bind(tt);
+					es.defer(dt);
+					Catchup c = require(null, minBand, drift).getCatchup();
+					c.defer(dt);
+					for (PendingResource pr : addl)
+						if (pr.getBuiltBy() != null)
+							c.dependsOn(pr.getBuiltBy());
+				}
+			}
 		}
 	}
 	
-	private ExecutionBand require(int toBand, int drift) {
+	private ExecutionBand require(Strategem building, int toBand, int drift) {
 		if (toBand < bands.size())
+		{
+			for (int i=0;i<toBand;i++)
+				if (bands.get(i).hasPrereq(building))
+					throw new QuickBuildException("I think this is a circular dependency");
+			ExecutionBand band = bands.get(toBand);
 			if (bands.get(toBand).drift() == drift)
-				return bands.get(toBand);
+			{
+				List<BandElement> moves = new ArrayList<BandElement>();
+				for (BandElement be : band)
+					if (be.hasPrereq(building))
+					{
+						moves.add(be);
+					}
+				if (moves.size() > 0)
+				{
+					ExecutionBand n = makeNew(building, toBand+1, drift);
+					for (BandElement be : moves)
+					{
+						band.remove(be);
+						n.add(be);
+					}
+				}
+				return band;
+			}
+		}
+		return makeNew(building, toBand, drift);
+	}
+
+	private ExecutionBand makeNew(Strategem building, int toBand, int drift) {
 		ExecutionBand ret = new ExecutionBand(drift);
-		// Is it possible there are things that depend on this that are now going
-		// to be de-prioritized?
 		while (toBand < bands.size() && bands.get(toBand).drift() < drift)
+		{
+			if (bands.get(toBand).hasPrereq(building))
+				throw new QuickBuildException("I think this is like a circular dependency, but with drifting ...");
 			toBand++;
+		}
 		bands.add(toBand, ret);
 		return ret;
 	}
@@ -152,7 +245,6 @@ public class BuildOrder {
 	    </Band>
 	</BuildOrder>
 		 */
-	// TODO: this needs to change to assume that it is called blank
 	void loadBuildOrderCache() {
 		if (!buildOrderFile.canRead())
 		{
@@ -181,7 +273,7 @@ public class BuildOrder {
 						for (XMLElement defer : strat.elementChildren())
 						{
 							DeferredTactic dt = new DeferredTactic(defer.get("name"));
-							es.add(dt);
+							es.defer(dt);
 							deferred.add(dt);
 						}
 					}
@@ -196,7 +288,7 @@ public class BuildOrder {
 							for (DeferredTactic dt : deferred)
 								if (dt.is(name))
 								{
-									c.add(dt);
+									c.defer(dt);
 									deferred.remove(dt);
 									break;
 								}
@@ -278,17 +370,19 @@ public class BuildOrder {
 		String ret = parent.identifier();
 		if (!ret.endsWith("]"))
 			throw new RuntimeException("Identifiers should end with ]: " + ret);
-		return ret.substring(0, ret.length()-1) + suffix + "]";
+		return ret.substring(0, ret.length()-1) + "-" + suffix + "]";
 	}
 
-	public String printOut() {
+	public String printOut(boolean withTactics) {
 		PrettyPrinter pp = new PrettyPrinter();
 		int i=0;
 		for (ExecutionBand b : bands)
 		{
 			pp.append("Band " + i);
+			if (b.drift() > 0)
+				pp.append(" (drift " + b.drift() +")");
 			pp.indentMore();
-			b.print(pp);
+			b.print(pp, withTactics);
 			pp.indentLess();
 			i++;
 		}
@@ -321,7 +415,7 @@ public class BuildOrder {
 		}
 		else
 		{
-			isDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, files, cxt.getGitCacheFile(strat, ""));
+			isDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, files, cxt.getGitCacheFile(strat.name(), ""));
 			if (isDirty)
 				System.out.println("Marking " + strat + " dirty due to git hash-object");
 		}
@@ -356,7 +450,7 @@ public class BuildOrder {
 			OrderedFileList ancillaries = strat.ancillaryFiles();
 			if (ancillaries != null)
 			{
-				isDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, ancillaries, cxt.getGitCacheFile(strat, ".anc"));
+				isDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, ancillaries, cxt.getGitCacheFile(strat.name(), ".anc"));
 				if (isDirty)
 				{
 					System.out.println("Marking " + strat + " dirty due to git hash-object");
@@ -378,10 +472,10 @@ public class BuildOrder {
 		Tactic tt = be.tactic(tactic);
 		
 		BuildStatus bs = BuildStatus.SUCCESS;
-		if (be.isDeferred(tt))
-		{
+		if (be instanceof Catchup)
 			bs = BuildStatus.DEFERRED;
-		}
+		else if (be.isDeferred(tt))
+			bs = BuildStatus.SKIPPED;
 		else if (be.isCompletelyClean())
 			bs = BuildStatus.CLEAN;
 		return new ItemToBuild(bs, be, tt, (band+1) + "." + (strat+1)+"."+(tactic+1), tt.toString());
@@ -389,6 +483,9 @@ public class BuildOrder {
 
 	public ExecuteStrategem get(int band, int strat) {
 		ExecutionBand exband = bands.get(band);
-		return (ExecuteStrategem) exband.get(strat);
+		BandElement be = exband.get(strat);
+		if (be instanceof ExecuteStrategem)
+			return (ExecuteStrategem) be;
+		return null;
 	}
 }

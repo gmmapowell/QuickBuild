@@ -6,7 +6,7 @@ import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.DateUtils;
 
 public class BuildExecutor {
-	private enum Status { NOT_SET, BUILD_CURRENT, NEXT_TACTIC, NEXT_STRAT, NEXT_BAND };
+	private enum Status { NOT_SET, BUILD_CURRENT, RESTART_BAND, NEXT_TACTIC, NEXT_STRAT, NEXT_BAND };
 
 	private final BuildContext cxt;
 	private BuildOrder buildOrder;
@@ -14,7 +14,6 @@ public class BuildExecutor {
 	private boolean isBroken = false;
 	private DependencyManager manager;
 	private ResourceManager rm;
-
 
 	private Date buildStarted;
 	private int totalErrors;
@@ -75,6 +74,12 @@ public class BuildExecutor {
 			// Do the obvious first: try and move on if required
 			if (status == Status.NEXT_TACTIC)
 				currentTactic++;
+			else if (status == Status.RESTART_BAND)
+			{
+				currentTactic = 0;
+				currentStrat = 0;
+				status = Status.BUILD_CURRENT;
+			}
 			else if (status == Status.NEXT_STRAT)
 			{
 				currentTactic = 0;
@@ -97,7 +102,9 @@ public class BuildExecutor {
 			
 			// OK, we've reached the end of the road ...
 			if (status == Status.BUILD_CURRENT)
-				throw new QuickBuildException("Can't build current when there isn't one!");
+			{
+				throw new QuickBuildException("Can't build current when there isn't one! " + currentBand + " " + currentStrat + " " + currentTactic);
+			}
 			if (status == Status.NEXT_BAND)
 				return null; // we are at the beginning of a band, but none ...
 			else if (status == Status.NEXT_STRAT)
@@ -116,11 +123,7 @@ public class BuildExecutor {
 	}
 
 	public void tryAgain() {
-		status = Status.BUILD_CURRENT;
-	}
-
-	private ExecuteStrategem currentStrat() {
-		return buildOrder.get(currentBand, currentStrat);
+		status = Status.RESTART_BAND;
 	}
 
 	public void fatal() {
@@ -189,12 +192,12 @@ public class BuildExecutor {
 		if (itb.lastTactic() && itb.strat instanceof ExecuteStrategem)
 			rm.stratComplete(ret, ((ExecuteStrategem)itb.strat).getStrat());
 		if (ret.needsRebuild())
-			forceRebuild();
+			forceRebuild(itb);
 		
 		return ret;
 	}
 	
-	public void forceRebuild() {
-		cxt.getGitCacheFile(currentStrat(), "").delete();
+	public void forceRebuild(ItemToBuild itb) {
+		cxt.getGitCacheFile(itb.name(), "").delete();
 	}
 }

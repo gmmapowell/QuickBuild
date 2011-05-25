@@ -21,11 +21,16 @@ public class Catchup extends BandElement {
 	}
 
 	@Override
-	public void print(PrettyPrinter pp) {
+	public void print(PrettyPrinter pp, boolean withTactics) {
 		pp.append("Catchup");
-		pp.indentMore();
-		for (DeferredTactic dt : deferred)
-			dt.print(pp);
+		pp.requireNewline();
+		if (withTactics)
+		{
+			pp.indentMore();
+			for (DeferredTactic dt : deferred)
+				dt.print(pp);
+			pp.indentLess();
+		}
 	}
 
 	@Override
@@ -40,5 +45,10 @@ public class Catchup extends BandElement {
 	@Override
 	public boolean isLastTactic(Tactic tactic) {
 		return deferred.get(deferred.size()-1).getTactic() == tactic;
+	}
+	
+	@Override
+	public String toString() {
+		return "Catchup[" + deferred + "]";
 	}
 }

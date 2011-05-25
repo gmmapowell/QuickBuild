@@ -15,17 +15,14 @@ import com.gmmapowell.quickbuild.core.SolidResource;
  * @author Gareth Powell
  *
  */
-public class MsResource extends SolidResource {
+public class XAPResource extends SolidResource {
 
-	private final String projectName;
-
-	public MsResource(DevenvCommand devenvCommand, File rootdir, String projectName) {
-		super(devenvCommand, rootdir);
-		this.projectName = projectName;
+	public XAPResource(DevenvCommand devenvCommand, File file) {
+		super(devenvCommand, file);
 	}
 
 	@Override
 	public String compareAs() {
-		return "MsResource[" + projectName + "]";
+		return "XAPResource[" + relative + "]";
 	}
 }

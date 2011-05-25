@@ -2,15 +2,19 @@ package com.gmmapowell.quickbuild.build;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
+import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.PrettyPrinter;
 
 public abstract class BandElement {
 	private ExecutionBand band;
 	protected List<DeferredTactic> deferred = new ArrayList<DeferredTactic>();
+	private Set<Strategem> dependsOn = new TreeSet<Strategem>(Strategem.Comparator);
 
-	public void add(DeferredTactic dt) {
+	public void defer(DeferredTactic dt) {
 		deferred.add(dt);
 	}
 
@@ -37,7 +41,7 @@ public abstract class BandElement {
 		return false;
 	}
 
-	public abstract void print(PrettyPrinter pp);
+	public abstract void print(PrettyPrinter pp, boolean withTactics);
 
 	public abstract boolean isClean();
 
@@ -45,5 +49,26 @@ public abstract class BandElement {
 
 	public boolean isCompletelyClean() {
 		return isClean();
+	}
+	
+	public void dependsOn(Strategem mustHaveBuilt) {
+		if (mustHaveBuilt == null)
+			return;
+		dependsOn.add(mustHaveBuilt);
+	}
+	
+	public boolean hasPrereq(Strategem strat)
+	{
+		if (strat == null)
+			return false;
+		return dependsOn.contains(strat);
+	}
+
+	public void showRequires(PrettyPrinter pp) {
+		for (Strategem s : dependsOn)
+		{
+			pp.append(s.identifier());
+			pp.requireNewline();
+		}
 	}
 }

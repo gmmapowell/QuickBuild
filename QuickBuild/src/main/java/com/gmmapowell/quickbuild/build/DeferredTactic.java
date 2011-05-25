@@ -35,4 +35,13 @@ public class DeferredTactic {
 		pp.append(id);
 		pp.requireNewline();
 	}
+
+	public boolean isBound() {
+		return tactic != null;
+	}
+	
+	@Override
+	public String toString() {
+		return "Deferred["+tactic+"]";
+	}
 }

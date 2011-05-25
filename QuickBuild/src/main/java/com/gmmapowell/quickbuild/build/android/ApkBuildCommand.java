@@ -43,7 +43,7 @@ public class ApkBuildCommand implements Tactic {
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
-			cxt.resourceAvailable(apkResource);
+			cxt.builtResource(apkResource);
 			return BuildStatus.SUCCESS;
 		}
 		System.out.println(proc.getStderr());

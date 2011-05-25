@@ -143,7 +143,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("jar " + projectName);
+		sb.append("Jar " + targetName);
 		return sb.toString();
 	}
 
@@ -165,6 +165,9 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			else
 				sourceFiles = allFiles;
 
+			if (sourceFiles.size() == 0)
+				return null;
+			
 			JavaBuildCommand ret = new JavaBuildCommand(this, files, src, bin, label, allFiles);
 			accum.add(ret);
 			

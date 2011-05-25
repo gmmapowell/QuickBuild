@@ -14,10 +14,12 @@ import com.gmmapowell.graphs.NodeWalker;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.CloningResource;
+import com.gmmapowell.quickbuild.core.DependencyFloat;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.SolidResource;
 import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
@@ -71,7 +73,20 @@ public class DependencyManager {
 		public String compareAs() {
 			return comparison;
 		}
-	
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (obj == null)
+				return false;
+			if (!(obj instanceof BuildResource))
+				return false;
+			return compareAs().equals(((BuildResource)obj).compareAs());
+		}
+
+		@Override
+		public int hashCode() {
+			return compareAs().hashCode();
+		}
 	}
 
 	private final DependencyGraph<BuildResource> dependencies = new DependencyGraph<BuildResource>();
@@ -107,7 +122,7 @@ public class DependencyManager {
 		for (Strategem s : strats)
 		{
 			// Get it in the build order (at level 0)
-			buildOrder.depends(s, null);
+			buildOrder.depends(this, s, null);
 			for (BuildResource br : s.buildsResources())
 			{
 				willBuild.add(br);
@@ -118,41 +133,45 @@ public class DependencyManager {
 			}
 		}
 		
+		// Now wire up the guys that depend on it
 		for (Strategem s : strats)
 		{			
 			for (PendingResource pr : s.needsResources())
 			{
-				dependencies.ensure(pr);
+				BuildResource actual = resolve(pr);
+				dependencies.ensure(actual);
 				for (BuildResource br : s.buildsResources())
-					dependencies.ensureLink(br, pr);
-				BuildResource uniq = null;
-				Pattern p = Pattern.compile(".*"+pr.compareAs().toLowerCase()+".*");
-				for (BuildResource br : preBuilt)
-				{
-					if (p.matcher(br.compareAs().toLowerCase()).matches())
-					{
-						if (uniq != null)
-							throw new QuickBuildException("Cannot resolve comparison: " + pr.compareAs() + " matches at least " + uniq.compareAs() + " and" + br.compareAs());
-						uniq = br;
-					}
-				}
-				for (BuildResource br : willBuild)
-				{
-					if (p.matcher(br.compareAs().toLowerCase()).matches())
-					{
-						if (uniq != null)
-							throw new QuickBuildException("Cannot resolve comparison: " + pr.compareAs() + " matches at least " + uniq.compareAs() + " and" + br.compareAs());
-						uniq = br;
-					}
-				}
-				if (uniq == null)
-					throw new QuickBuildException("Could not find any dependency that matched " + pr.compareAs() +": have " + preBuilt);
-				dependencies.ensureLink(pr, uniq);
+					dependencies.ensureLink(br, actual);
 				
-				if (uniq.getBuiltBy() != null)
-					buildOrder.depends(s, uniq.getBuiltBy());
+				if (actual.getBuiltBy() != null)
+					buildOrder.depends(this, s, actual.getBuiltBy());
 			}
 		}
+		
+		// Finally, tell the build order to float things ...
+		buildOrder.handleFloatingDependencies(this);
+	}
+
+	BuildResource resolve(PendingResource pr) {
+		BuildResource uniq = null;
+		Pattern p = Pattern.compile(".*"+pr.compareAs().toLowerCase()+".*");
+		for (BuildResource br : dependencies.nodes())
+		{
+			if (br instanceof PendingResource)
+				continue;
+			if (p.matcher(br.compareAs().toLowerCase()).matches())
+			{
+				if (uniq != null)
+					throw new QuickBuildException("Cannot resolve comparison: " + pr.compareAs() + " matches at least " + uniq.compareAs() + " and " + br.compareAs());
+				uniq = br;
+			}
+		}
+		if (uniq == null)
+			throw new QuickBuildException("Could not find any dependency that matched " + pr.compareAs() +": have " + dependencies.nodes());
+//		dependencies.ensure(pr);
+//		dependencies.ensureLink(pr, uniq);
+		pr.bindTo(uniq);
+		return uniq;
 	}
 
 	public void loadDependencyCache()
@@ -235,6 +254,8 @@ public class DependencyManager {
 	public boolean addDependency(Strategem dependent, BuildResource resource) {
 		// The actual dependency is for the things to be built
 		boolean ret = false;
+		if (resource instanceof PendingResource)
+			throw new QuickBuildException("No Way!");
 		for (BuildResource br : dependent.buildsResources())
 			ret |= addDependency(br, resource);
 		return ret;
@@ -244,29 +265,53 @@ public class DependencyManager {
 		if (dependencies.hasLink(br, resource))
 			return false;
 		
+		if (br instanceof PendingResource)
+			throw new QuickBuildException("No Way!");
+		if (resource instanceof PendingResource)
+			throw new QuickBuildException("No Way!");
 		System.out.println("Added dependency from " + br + " on " + resource);
 		dependencies.ensureLink(br, resource);
-		buildOrder.depends(br.getBuiltBy(), resource.getBuiltBy());
+		buildOrder.depends(this, br.getBuiltBy(), resource.getBuiltBy());
 		return true;
 	}
 	
 	public void attachStrats(List<Strategem> strats) {
 		try
 		{
+			// existing
 			for (BuildResource br : rm.current())
 			{
 				Node<BuildResource> n = dependencies.find(br);
 				if (n.getEntry() instanceof DependencyManager.ComparisonResource)
 					n.setEntry(br);
 			}
+			// will be built
 			for (Strategem s : strats)
 			{
-				for (BuildResource br : allResources(s))
+				for (BuildResource br : s.buildsResources())
 				{
 					Node<BuildResource> n = dependencies.find(br);
 					if (n.getEntry() instanceof DependencyManager.ComparisonResource)
 						n.setEntry(br);
 				}
+			}
+			// needed ones
+			for (Strategem s : strats)
+			{
+				for (PendingResource pr : s.needsResources())
+				{
+					BuildResource br = resolve(pr);
+					Node<BuildResource> n = dependencies.find(br);
+					if (n.getEntry() instanceof DependencyManager.ComparisonResource)
+						n.setEntry(br);
+				}
+				for (Tactic tt : s.tactics())
+					if (tt instanceof DependencyFloat)
+					{
+						ResourcePacket<PendingResource> addl = ((DependencyFloat)tt).needsAdditionalBuiltResources();
+						for (PendingResource pr : addl)
+							resolve(pr);
+					}
 			}
 		}
 		catch (Exception ex)
@@ -275,9 +320,8 @@ public class DependencyManager {
 		}
 	}
 
-	private Iterable<BuildResource> allResources(Strategem s) {
+	private Iterable<BuildResource> builtResources(Strategem s) {
 		Set<BuildResource> ret = new HashSet<BuildResource>();
-		addAll(ret, s.needsResources());
 		addAll(ret, s.buildsResources());
 		addAll(ret, s.providesResources());
 		return ret;

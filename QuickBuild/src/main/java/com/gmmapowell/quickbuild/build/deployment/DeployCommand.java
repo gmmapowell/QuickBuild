@@ -2,7 +2,9 @@ package com.gmmapowell.quickbuild.build.deployment;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
@@ -15,7 +17,6 @@ import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
-import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
@@ -25,20 +26,17 @@ import com.gmmapowell.utils.OrderedFileList;
 public class DeployCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem, Tactic {
 
 	private String target;
-	private String projectName;
 	private List<String> artifacts = new ArrayList<String>();
-	private File rootdir;
 	private List<Tactic> tactics = new ArrayList<Tactic>();
-	private StructureHelper files;
+	private ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
+	private Map<String, PendingResource> pendings = new HashMap<String, PendingResource>();
 
 	@SuppressWarnings("unchecked")
 	public DeployCommand(TokenizedLine toks) {
 		toks.process(this, 
 				new ArgumentDefinition("*", Cardinality.REQUIRED, "target", "deploy target"),
-				new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "from project"),
 				new ArgumentDefinition("*", Cardinality.ONE_OR_MORE, "artifacts", "artifacts")
 		);
-		rootdir = FileUtils.findDirectoryNamed(projectName);
 	}
 
 
@@ -50,7 +48,13 @@ public class DeployCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 
 	@Override
 	public Strategem applyConfig(Config config) {
-		files = new StructureHelper(rootdir, config.getOutput());
+		for (String i : artifacts)
+		{
+			PendingResource pr = new PendingResource(i);
+			pendings.put(i, pr);
+			needs.add(pr);
+		}
+
 		tactics.add(this);
 		return this;
 	}
@@ -75,12 +79,7 @@ public class DeployCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 		}
 		for (String i : artifacts)
 		{
-			File from = files.getOutput(i);
-			if (!from.isFile())
-			{
-				System.out.println("There is no artifact " + from);
-				return BuildStatus.BROKEN;
-			}
+			File from = pendings.get(i).getPath();
 			FileUtils.copyAssertingDirs(from, new File(deployTo, i));
 		}
 		return BuildStatus.SUCCESS;
@@ -93,7 +92,7 @@ public class DeployCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 
 	@Override
 	public ResourcePacket<PendingResource> needsResources() {
-		return new ResourcePacket<PendingResource>();
+		return needs;
 	}
 
 	@Override
@@ -108,7 +107,7 @@ public class DeployCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 
 	@Override
 	public File rootDirectory() {
-		return rootdir;
+		return null;
 	}
 
 	@Override
