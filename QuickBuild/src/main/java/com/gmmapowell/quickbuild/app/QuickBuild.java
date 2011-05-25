@@ -33,12 +33,12 @@ public class QuickBuild {
 		arguments = new Arguments();
 		ProcessArgs.process(arguments, argumentDefinitions, args);
 		
-		System.out.println("user.home = " + System.getProperty("user.home"));
+//		System.out.println("user.home = " + System.getProperty("user.home"));
 		File file = new File(arguments.file);
 		OrderedFileList ofl = new OrderedFileList(FileUtils.relativePath(file));
 		Config conf = new Config(configFactory, file.getParentFile(), FileUtils.dropExtension(file.getName()));
 		{
-			File hostfile = FileUtils.relativePath(new File(FileUtils.getHostName() + ".host.qb"));
+			File hostfile = new File(file.getParentFile(), FileUtils.getHostName() + ".host.qb");
 			if (hostfile.exists())
 			{
 				SignificantWhiteSpaceFileReader.read(conf, configFactory, hostfile);
