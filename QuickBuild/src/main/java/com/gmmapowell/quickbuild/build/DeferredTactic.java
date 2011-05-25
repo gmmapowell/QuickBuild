@@ -6,6 +6,7 @@ import com.gmmapowell.utils.PrettyPrinter;
 public class DeferredTactic {
 	private final String id;
 	private Tactic tactic;
+	private ExecuteStrategem fromES;
 
 	public DeferredTactic(String id) {
 		this.id = id;
@@ -25,9 +26,10 @@ public class DeferredTactic {
 		return tactic;
 	}
 
-	public void bind(Tactic tactic) {
+	public void bind(ExecuteStrategem from, Tactic tactic) {
 		if (this.tactic != null)
 			throw new RuntimeException("Cannot bind tactic twice");
+		this.fromES = from;
 		this.tactic = tactic;
 	}
 
@@ -43,5 +45,9 @@ public class DeferredTactic {
 	@Override
 	public String toString() {
 		return "Deferred["+tactic+"]";
+	}
+
+	public boolean isClean() {
+		return fromES.isClean();
 	}
 }

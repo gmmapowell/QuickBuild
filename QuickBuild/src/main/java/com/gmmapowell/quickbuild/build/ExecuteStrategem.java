@@ -64,7 +64,7 @@ public class ExecuteStrategem extends BandElement {
 			if (dt.is(id))
 			{
 				if (!dt.isBound())
-					dt.bind(tactic);
+					dt.bind(this, tactic);
 				return true;
 			}
 		return false;

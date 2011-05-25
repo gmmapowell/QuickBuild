@@ -158,7 +158,7 @@ public class BuildOrder {
 				if (minBand > inBand)
 				{
 					DeferredTactic dt = new DeferredTactic(tt.identifier());
-					dt.bind(tt);
+					dt.bind(es, tt);
 					es.defer(dt);
 					Catchup c = require(null, minBand, drift).getCatchup();
 					c.defer(dt);
@@ -453,7 +453,7 @@ public class BuildOrder {
 				isDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, ancillaries, cxt.getGitCacheFile(strat.name(), ".anc"));
 				if (isDirty)
 				{
-					System.out.println("Marking " + strat + " dirty due to git hash-object");
+					System.out.println("Marking " + strat + " dirty due to git hash-object on ancillaries");
 					strat.markDirtyLocally();
 				}
 			}
@@ -472,10 +472,13 @@ public class BuildOrder {
 		Tactic tt = be.tactic(tactic);
 		
 		BuildStatus bs = BuildStatus.SUCCESS;
-		if (be instanceof Catchup)
-			bs = BuildStatus.DEFERRED;
-		else if (be.isDeferred(tt))
+		if (be.isDeferred(tt))
 			bs = BuildStatus.SKIPPED;
+		else if (be instanceof Catchup) {
+			bs = BuildStatus.DEFERRED;
+			if (((Catchup)be).deferred.get(tactic).isClean())
+				bs = BuildStatus.CLEAN;
+		}
 		else if (be.isCompletelyClean())
 			bs = BuildStatus.CLEAN;
 		return new ItemToBuild(bs, be, tt, (band+1) + "." + (strat+1)+"."+(tactic+1), tt.toString());
