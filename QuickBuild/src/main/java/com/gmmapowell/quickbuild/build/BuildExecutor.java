@@ -1,30 +1,31 @@
 package com.gmmapowell.quickbuild.build;
 
 import java.util.Date;
-import java.util.regex.Pattern;
 
-import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.DateUtils;
 
 public class BuildExecutor {
+	private enum Status { NOT_SET, BUILD_CURRENT, NEXT_TACTIC, NEXT_STRAT, NEXT_BAND };
+
 	private final BuildContext cxt;
-	enum Status { BEGIN, BUILD_THIS, MOVE_ON, RETRY, SKIP_TO_NEXT };
-	Status status = Status.BEGIN;
+	private BuildOrder buildOrder;
+	private ErrorHandler ehandler;
+	private boolean isBroken = false;
+	private DependencyManager manager;
+	private ResourceManager rm;
+
 
 	private Date buildStarted;
 	private int totalErrors;
 	private boolean buildBroken;
 	private int projectsWithTestFailures;
 
-	private int currentBand;
-	private int currentStrat;
-	private int currentTactic;
+	private Status status = Status.BUILD_CURRENT;
+	private int currentBand = 0;
+	private int currentStrat = 0;
+	private int currentTactic = 0;
 
-	private BuildOrder buildOrder;
-	private ErrorHandler ehandler;
-	private boolean isBroken = false;
-	private DependencyManager manager;
-	private ResourceManager rm;
 
 	public BuildExecutor(BuildContext cxt) {
 		this.cxt = cxt;
@@ -69,73 +70,64 @@ public class BuildExecutor {
 	public ItemToBuild next() {
 		for (;;)
 		{
-			if (status == Status.BEGIN)
+			if (status == Status.NOT_SET)
+				throw new QuickBuildException("Invalid status");
+			// Do the obvious first: try and move on if required
+			if (status == Status.NEXT_TACTIC)
+				currentTactic++;
+			else if (status == Status.NEXT_STRAT)
 			{
-				currentBand = 0;
-				currentStrat = 0;
-				currentTactic = -1;
-				status = Status.BUILD_THIS;
-			}
-			if (currentBand >= bands.size())
-				return null;
-			ExecutionBand band = bands.get(currentBand);
-			if (status == Status.RETRY)
-			{
-				currentStrat = 0;
 				currentTactic = 0;
+				currentStrat++;
 			}
-			if (currentStrat >= band.size())
+			else if (status == Status.NEXT_BAND)
+			{
+				currentTactic = 0;
+				currentStrat = 0;
+				currentBand++;
+			}
+			
+			// If the identified ITB exists, return it
+			ItemToBuild itb = buildOrder.get(currentBand, currentStrat, currentTactic);
+			if (itb != null)
+			{
+				status = Status.NOT_SET;
+				return itb;
+			}
+			
+			// OK, we've reached the end of the road ...
+			if (status == Status.BUILD_CURRENT)
+				throw new QuickBuildException("Can't build current when there isn't one!");
+			if (status == Status.NEXT_BAND)
+				return null; // we are at the beginning of a band, but none ...
+			else if (status == Status.NEXT_STRAT)
 			{
 				if (isBroken)
 					return null;
-				currentBand++;
-				currentStrat = 0;
-				currentTactic = -1;
-				continue;
+				status = Status.NEXT_BAND;
 			}
-			BandElement be = band.get(currentStrat);
-			if (status == Status.MOVE_ON || currentTactic == -1)
-				currentTactic++;
-			if (currentTactic >= be.size() || status == Status.SKIP_TO_NEXT)
-			{
-				currentStrat++;
-				if (currentStrat < band.size())
-					System.out.println("Advancing to " + band.get(currentStrat));
-				currentTactic = -1;
-				status = Status.BUILD_THIS;
-				continue;
-			}
-			BuildStatus bs = BuildStatus.SUCCESS;
-			Tactic tactic = be.tactic(currentTactic);
-			if (be.isDeferred(tactic))
-			{
-				bs = BuildStatus.DEFERRED;
-			}
-			else if (be.isCompletelyClean())
-				bs = BuildStatus.CLEAN;
-			return new ItemToBuild(bs, be, tactic, (currentBand+1) + "." + (currentStrat+1)+"."+(currentTactic+1), tactic.toString());
+			else if (status == Status.NEXT_TACTIC)
+				status = Status.NEXT_STRAT;
 		}
 	}
 
 	public void advance() {
-		status = Status.MOVE_ON;
+		status = Status.NEXT_TACTIC;
 	}
 
 	public void tryAgain() {
-		status = Status.RETRY;
+		status = Status.BUILD_CURRENT;
 	}
 
 	private ExecuteStrategem currentStrat() {
-		ExecutionBand band = bands.get(currentBand);
-		return (ExecuteStrategem) band.get(currentStrat);
+		return buildOrder.get(currentBand, currentStrat);
 	}
 
 	public void fatal() {
 		isBroken  = true;
-		status = Status.SKIP_TO_NEXT;
+		status = Status.NEXT_STRAT;
 	}
 	
-
 	public void showAnyErrors() {
 		ehandler.showLog();
 		if (buildBroken)

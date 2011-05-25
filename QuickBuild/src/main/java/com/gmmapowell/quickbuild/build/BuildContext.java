@@ -16,8 +16,6 @@ import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
 
-/* I've fixed most of the problems here, but I don't see why this is still 250+ lines ...
- */
 public class BuildContext {
 	private BuildOrder buildOrder;
 
@@ -46,6 +44,22 @@ public class BuildContext {
 			strats.add(s);
 	}
 	
+	public BuildOrder getBuildOrder() {
+		return buildOrder;
+	}
+
+	public ErrorHandler getErrorHandler() {
+		return ehandler;
+	}
+
+	public DependencyManager getDependencyManager() {
+		return manager;
+	}
+
+	public ResourceManager getResourceManager() {
+		return rm;
+	}
+
 	public void configure()
 	{
 		rm.configure(strats);
@@ -70,6 +84,18 @@ public class BuildContext {
 		buildOrder.figureDirtyness(manager);
 	}
 
+	public File getPath(String name) {
+		return conf.getPath(name);
+	}
+
+	public File getCacheFile(String file) {
+		return new File(conf.getCacheDir(), file);
+	}
+	
+	public File getGitCacheFile(ExecuteStrategem node, String ext) {
+		return new File(conf.getCacheDir(), FileUtils.clean(node.name()) + ext);
+	}
+
 	public void tellMeAbout(Nature nature, Class<? extends BuildResource> cls) {
 		rm.tellMeAbout(nature, cls);
 	}
@@ -88,10 +114,6 @@ public class BuildContext {
 		return false;
 	}
 
-	public File getPath(String name) {
-		return conf.getPath(name);
-	}
-
 	public void registerNature(Class<?> cls, Nature n) {
 		if (n instanceof BuildContextAware)
 			((BuildContextAware)n).provideBuildContext(this);
@@ -100,28 +122,11 @@ public class BuildContext {
 	public <T extends Nature> T getNature(Class<T> cls) {
 		return conf.getNature(cls);
 	}
+
+	public ErrorCase failure(List<String> args, String stdout, String stderr) {
+		return ehandler.failure(args, stdout, stderr);
+	}
 	
-	// Dumb delegate methods ...
-	public Config getConfig() {
-		return conf;
-	}
-
-	public BuildResource getPendingResource(PendingResource s) {
-		return rm.getPendingResource(s);
-	}
-
-	public void resourceAvailable(BuildResource r) {
-		rm.resourceAvailable(r);
-	}
-
-	public Iterable<BuildResource> getDependencies(Strategem parent) {
-		return manager.getDependencies(parent);
-	}
-
-	public <T extends BuildResource> Iterable<BuildResource> getResources(Class<T> cls) {
-		return rm.getResources(cls);
-	}
-
 	public boolean addDependency(Strategem dependent, BuildResource resource) {
 		if (dependent == null)
 			throw new QuickBuildException("The strategem cannot be null");
@@ -130,53 +135,35 @@ public class BuildContext {
 		return manager.addDependency(dependent, resource);
 	}
 	
-	public void saveDependencies() {
-		manager.saveDependencies();
+	public Iterable<BuildResource> getDependencies(Strategem parent) {
+		return manager.getDependencies(parent);
 	}
 
-	public void saveBuildOrder() {
-		buildOrder.saveBuildOrder();
+	public <T extends BuildResource> Iterable<BuildResource> getResources(Class<T> cls) {
+		return rm.getResources(cls);
+	}
+
+	public <T extends BuildResource> T getBuiltResource(Strategem p, Class<T> ofCls) {
+		return rm.getBuiltResource(p, ofCls);
 	}
 
 	public String printableDependencyGraph() {
 		return manager.printableDependencyGraph();
 	}
 
-	public <T extends BuildResource> T getBuiltResource(Strategem p,
-			Class<T> ofCls) {
-		return rm.getBuiltResource(p, ofCls);
-	}
-
 	public String printableBuildOrder() {
 		return buildOrder.printOut();
 	}
 
-	public ErrorCase failure(List<String> args, String stdout, String stderr) {
-		return ehandler.failure(args, stdout, stderr);
+	// People shouldn't be doing this for themselves
+	@Deprecated
+	public BuildResource getPendingResource(PendingResource s) {
+		return rm.getPendingResource(s);
 	}
 
-	public BuildOrder getBuildOrder() {
-		return buildOrder;
+	// Use the resource manager directly
+	@Deprecated
+	public void resourceAvailable(BuildResource r) {
+		rm.resourceAvailable(r);
 	}
-
-	public ErrorHandler getErrorHandler() {
-		return ehandler;
-	}
-
-	public DependencyManager getDependencyManager() {
-		return manager;
-	}
-
-	public ResourceManager getResourceManager() {
-		return rm;
-	}
-	
-	public File getGitCacheFile(ExecuteStrategem node, String ext) {
-		return new File(conf.getCacheDir(), FileUtils.clean(node.name()) + ext);
-	}
-
-	public File getCacheFile(String file) {
-		return new File(conf.getCacheDir(), file);
-	}
-
 }

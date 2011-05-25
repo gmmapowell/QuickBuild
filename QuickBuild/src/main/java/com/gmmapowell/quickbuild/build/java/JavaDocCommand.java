@@ -70,6 +70,7 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 		{
 			File path = ((JarResource)br).getPath();
 			classpath.add(path);
+			cxt.addDependency(this, br);
 		}
 		
 		BuildClassPath sourcepath = new BuildClassPath();
@@ -80,6 +81,7 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 			sourcepath.add(path);
 			for (File f : FileUtils.findFilesUnderMatching(path, "*.java"))
 				packages.add(FileUtils.convertToDottedName(f.getParentFile()));
+			cxt.addDependency(this, br);
 		}
 		if (sourcepath.empty())
 			return BuildStatus.SKIPPED;

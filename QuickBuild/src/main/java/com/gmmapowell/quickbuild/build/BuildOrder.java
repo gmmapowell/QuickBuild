@@ -10,6 +10,7 @@ import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.FloatToEnd;
 import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
@@ -363,5 +364,31 @@ public class BuildOrder {
 				}
 			}
 		}
+	}
+
+	public ItemToBuild get(int band, int strat, int tactic) {
+		if (band >= bands.size())
+			return null;
+		ExecutionBand exband = bands.get(band);
+		if (strat >= exband.size())
+			return null;
+		BandElement be = exband.get(strat);
+		if (tactic >= be.size())
+			return null;
+		Tactic tt = be.tactic(tactic);
+		
+		BuildStatus bs = BuildStatus.SUCCESS;
+		if (be.isDeferred(tt))
+		{
+			bs = BuildStatus.DEFERRED;
+		}
+		else if (be.isCompletelyClean())
+			bs = BuildStatus.CLEAN;
+		return new ItemToBuild(bs, be, tt, (band+1) + "." + (strat+1)+"."+(tactic+1), tt.toString());
+	}
+
+	public ExecuteStrategem get(int band, int strat) {
+		ExecutionBand exband = bands.get(band);
+		return (ExecuteStrategem) exband.get(strat);
 	}
 }
