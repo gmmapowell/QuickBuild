@@ -7,11 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.gmmapowell.git.GitHelper;
-import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.FloatToEnd;
 import com.gmmapowell.quickbuild.core.Strategem;
-import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
@@ -51,25 +49,13 @@ public class BuildOrder {
 	private final File buildOrderFile;
 	private boolean buildAll;
 
-	enum Status { BEGIN, BUILD_THIS, MOVE_ON, RETRY, SKIP_TO_NEXT };
-	Status status = Status.BEGIN;
+	private final BuildContext cxt;
 
-	private int currentBand;
-	private int currentStrat;
-	private int currentTactic;
-
-	private final Config conf;
-
-	private final ResourceManager rm;
-
-	private boolean isBroken = false;
-
-	public BuildOrder(Config conf, ResourceManager rm, boolean buildAll)
+	public BuildOrder(BuildContext cxt, boolean buildAll)
 	{
-		this.conf = conf;
-		this.rm = rm;
+		this.cxt = cxt;
 		this.buildAll = buildAll;
-		buildOrderFile = new File(conf.getCacheDir(), "buildOrder.xml");
+		buildOrderFile = cxt.getCacheFile("buildOrder.xml");
 	}	
 
 	public void clear() {
@@ -287,67 +273,6 @@ public class BuildOrder {
 		output.write(buildOrderFile);
 	}
 
-	// TODO: I would like to move all of this off into its own file as well ...
-	// It can treat this as a "service"
-	public ItemToBuild next() {
-		for (;;)
-		{
-			if (status == Status.BEGIN)
-			{
-				currentBand = 0;
-				currentStrat = 0;
-				currentTactic = -1;
-				status = Status.BUILD_THIS;
-			}
-			if (currentBand >= bands.size())
-				return null;
-			ExecutionBand band = bands.get(currentBand);
-			if (status == Status.RETRY)
-			{
-				currentStrat = 0;
-				currentTactic = 0;
-			}
-			if (currentStrat >= band.size())
-			{
-				if (isBroken)
-					return null;
-				currentBand++;
-				currentStrat = 0;
-				currentTactic = -1;
-				continue;
-			}
-			BandElement be = band.get(currentStrat);
-			if (status == Status.MOVE_ON || currentTactic == -1)
-				currentTactic++;
-			if (currentTactic >= be.size() || status == Status.SKIP_TO_NEXT)
-			{
-				currentStrat++;
-				if (currentStrat < band.size())
-					System.out.println("Advancing to " + band.get(currentStrat));
-				currentTactic = -1;
-				status = Status.BUILD_THIS;
-				continue;
-			}
-			BuildStatus bs = BuildStatus.SUCCESS;
-			Tactic tactic = be.tactic(currentTactic);
-			if (be.isDeferred(tactic))
-			{
-				bs = BuildStatus.DEFERRED;
-			}
-			else if (be.isCompletelyClean())
-				bs = BuildStatus.CLEAN;
-			return new ItemToBuild(bs, be, tactic, (currentBand+1) + "." + (currentStrat+1)+"."+(currentTactic+1), tactic.toString());
-		}
-	}
-
-	public void advance() {
-		status = Status.MOVE_ON;
-	}
-
-	public void tryAgain() {
-		status = Status.RETRY;
-	}
-
 	public static String tacticIdentifier(Strategem parent, String suffix) {
 		String ret = parent.identifier();
 		if (!ret.endsWith("]"))
@@ -395,7 +320,7 @@ public class BuildOrder {
 		}
 		else
 		{
-			isDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, files, getGitCacheFile(strat, ""));
+			isDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, files, cxt.getGitCacheFile(strat, ""));
 			if (isDirty)
 				System.out.println("Marking " + strat + " dirty due to git hash-object");
 		}
@@ -430,7 +355,7 @@ public class BuildOrder {
 			OrderedFileList ancillaries = strat.ancillaryFiles();
 			if (ancillaries != null)
 			{
-				isDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, ancillaries, getGitCacheFile(strat, ".anc"));
+				isDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, ancillaries, cxt.getGitCacheFile(strat, ".anc"));
 				if (isDirty)
 				{
 					System.out.println("Marking " + strat + " dirty due to git hash-object");
@@ -438,24 +363,5 @@ public class BuildOrder {
 				}
 			}
 		}
-	}
-
-	private File getGitCacheFile(ExecuteStrategem node, String ext) {
-		return new File(conf.getCacheDir(), FileUtils.clean(node.name()) + ext);
-	}
-
-	public void forceRebuild() {
-		getGitCacheFile(currentStrat(), "").delete();
-	}
-
-	private ExecuteStrategem currentStrat() {
-		ExecutionBand band = bands.get(currentBand);
-		return (ExecuteStrategem) band.get(currentStrat);
-	}
-
-	public void fatal() {
-		isBroken  = true;
-		status = Status.SKIP_TO_NEXT;
-		
 	}
 }

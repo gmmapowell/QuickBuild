@@ -6,6 +6,7 @@ import java.io.IOException;
 import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
 import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildExecutor;
 import com.gmmapowell.quickbuild.config.Arguments;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
@@ -100,16 +101,7 @@ public class QuickBuild {
 
 			return;
 		}
-
-		/* TODO: I like this, but it needs to be more general
-		for (String s : arguments.dirResources)
-		{
-			System.out.println("Adding proj " + s);
-			cxt.addBuiltResource(new DirectoryResource(null, new File(s.substring(2))));
-		}
-		*/
 		
-		cxt.doBuild();
-		// now we try and build stuff ...
+		new BuildExecutor(cxt).doBuild();
 	}
 }

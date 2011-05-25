@@ -6,16 +6,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.graphs.DependencyGraph;
 import com.gmmapowell.graphs.Link;
 import com.gmmapowell.graphs.Node;
 import com.gmmapowell.graphs.NodeWalker;
-import com.gmmapowell.quickbuild.build.BuildContext.ComparisonResource;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.CloningResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
+import com.gmmapowell.quickbuild.core.SolidResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
@@ -48,6 +49,31 @@ import com.gmmapowell.xml.XMLElement;
 
 // Build order (& strats) is probably also better as a relation
 public class DependencyManager {
+	public static class ComparisonResource extends SolidResource {
+		private final String comparison;
+	
+		public ComparisonResource(String from) {
+			super(null, new File(FileUtils.getCurrentDir(), "unused"));
+			this.comparison = from;
+		}
+	
+		@Override
+		public Strategem getBuiltBy() {
+			throw new UtilException("Not implemented");
+		}
+	
+		@Override
+		public File getPath() {
+			throw new UtilException("Not implemented");
+		}
+	
+		@Override
+		public String compareAs() {
+			return comparison;
+		}
+	
+	}
+
 	private final DependencyGraph<BuildResource> dependencies = new DependencyGraph<BuildResource>();
 	private final File dependencyFile;
 	private final BuildOrder buildOrder;
@@ -141,12 +167,12 @@ public class DependencyManager {
 			for (XMLElement e : input.top().elementChildren())
 			{
 				String from = e.get("from");
-				BuildResource target = new ComparisonResource(from);
+				BuildResource target = new DependencyManager.ComparisonResource(from);
 				dependencies.ensure(target);
 				for (XMLElement r : e.elementChildren())
 				{
 					String resource = r.get("resource");
-					Node<BuildResource> source = dependencies.find(new ComparisonResource(resource));
+					Node<BuildResource> source = dependencies.find(new DependencyManager.ComparisonResource(resource));
 //					System.out.println(target + " <= " + source);
 					dependencies.ensureLink(target, source.getEntry());
 				}
@@ -230,7 +256,7 @@ public class DependencyManager {
 			for (BuildResource br : rm.current())
 			{
 				Node<BuildResource> n = dependencies.find(br);
-				if (n.getEntry() instanceof ComparisonResource)
+				if (n.getEntry() instanceof DependencyManager.ComparisonResource)
 					n.setEntry(br);
 			}
 			for (Strategem s : strats)
@@ -238,7 +264,7 @@ public class DependencyManager {
 				for (BuildResource br : allResources(s))
 				{
 					Node<BuildResource> n = dependencies.find(br);
-					if (n.getEntry() instanceof ComparisonResource)
+					if (n.getEntry() instanceof DependencyManager.ComparisonResource)
 						n.setEntry(br);
 				}
 			}
