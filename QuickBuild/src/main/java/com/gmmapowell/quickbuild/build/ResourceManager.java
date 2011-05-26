@@ -5,13 +5,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
-
-import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
-import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourceListener;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
@@ -57,38 +53,12 @@ public class ResourceManager implements ResourceListener {
 		return availableResources;
 	}
 	
-	public BuildResource getPendingResource(PendingResource pending) {
-		BuildResource ret = getPendingResourceIfAvailable(pending);
-		if (ret != null)
-			return ret;
-		
-		String resourceName = pending.compareAs();
-		System.out.println("Resource " + resourceName + " not found.  Available Resources are:");
-		for (BuildResource s : availableResources)
-			System.out.println("  " + s.compareAs());
-
-		throw new UtilException("There is no resource called " + resourceName);
-	}
-
 	@SuppressWarnings("unchecked")
 	public <T extends BuildResource> T getBuiltResource(Strategem p, Class<T> ofCls) {
 		for (BuildResource br : p.buildsResources())
 			if (ofCls.isInstance(br))
 				return (T)br;
 		throw new QuickBuildException("There is no resource of type " + ofCls + " produced by " + p.identifier());
-	}
-
-	BuildResource getPendingResourceIfAvailable(PendingResource pending) {
-		String resourceName = pending.compareAs();
-
-		// TODO: there really shouldn't be this duplication !!!
-		// This time I'm not going to worry about uniqueness
-		Pattern p = Pattern.compile(".*" + resourceName.toLowerCase()+".*");
-		for (BuildResource br : availableResources)
-			if (p.matcher(br.compareAs().toLowerCase()).matches())
-				return br;
-		
-		return null;
 	}
 
 	public Iterable<BuildResource> getResources(Class<? extends BuildResource> ofType)

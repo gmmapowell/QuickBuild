@@ -9,7 +9,6 @@ import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
-import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
@@ -161,11 +160,5 @@ public class BuildContext {
 
 	public String printableBuildOrder(boolean b) {
 		return buildOrder.printOut(b);
-	}
-
-	// People shouldn't be doing this for themselves
-	@Deprecated
-	public BuildResource getPendingResource(PendingResource s) {
-		return rm.getPendingResource(s);
 	}
 }
