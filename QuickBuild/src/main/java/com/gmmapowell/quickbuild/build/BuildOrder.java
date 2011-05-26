@@ -73,10 +73,10 @@ public class BuildOrder {
 	}
 
 	public void depends(DependencyManager manager, Strategem toBuild, Strategem mustHaveBuilt) {
-		if (mustHaveBuilt == null)
-			System.out.println("Must build " + toBuild);
-		else
-			System.out.println("Must have " + mustHaveBuilt +  " before " + toBuild);
+//		if (mustHaveBuilt == null)
+//			System.out.println("Must build " + toBuild);
+//		else
+//			System.out.println("Must have " + mustHaveBuilt +  " before " + toBuild);
 		ExecuteStrategem es;
 		String name = toBuild.identifier();
 		int inBand = -1;
@@ -113,8 +113,8 @@ public class BuildOrder {
 		}
 		es.dependsOn(mustHaveBuilt);
 		
-		if (mustHaveBuilt != null)
-			System.out.print(printOut(false));
+//		if (mustHaveBuilt != null)
+//			System.out.print(printOut(false));
 	}
 
 	public void handleFloatingDependencies(DependencyManager manager)
@@ -375,6 +375,8 @@ public class BuildOrder {
 
 	public String printOut(boolean withTactics) {
 		PrettyPrinter pp = new PrettyPrinter();
+		pp.indentWidth(2);
+		pp.indentMore();
 		int i=0;
 		for (ExecutionBand b : bands)
 		{
@@ -441,22 +443,18 @@ public class BuildOrder {
 				}
 			}
 		}
+		OrderedFileList ancillaries = strat.ancillaryFiles();
+		boolean ancDirty = false;
+		if (ancillaries != null && !ancillaries.isEmpty())
+			ancDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, ancillaries, cxt.getGitCacheFile(strat.name(), ".anc"));
+
 		if (isDirty || buildAll)
 		{
 			strat.markDirty();
 		}
-		else
-		{
-			OrderedFileList ancillaries = strat.ancillaryFiles();
-			if (ancillaries != null)
-			{
-				isDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, ancillaries, cxt.getGitCacheFile(strat.name(), ".anc"));
-				if (isDirty)
-				{
-					System.out.println("Marking " + strat + " dirty due to git hash-object on ancillaries");
-					strat.markDirtyLocally();
-				}
-			}
+		else if (ancDirty) {
+			System.out.println("Marking " + strat + " locally dirty due to git hash-object on ancillaries");
+			strat.markDirtyLocally();
 		}
 	}
 
@@ -479,7 +477,7 @@ public class BuildOrder {
 			if (((Catchup)be).deferred.get(tactic).isClean())
 				bs = BuildStatus.CLEAN;
 		}
-		else if (be.isCompletelyClean())
+		if (be.isCompletelyClean())
 			bs = BuildStatus.CLEAN;
 		return new ItemToBuild(bs, be, tt, (band+1) + "." + (strat+1)+"."+(tactic+1), tt.toString());
 	}

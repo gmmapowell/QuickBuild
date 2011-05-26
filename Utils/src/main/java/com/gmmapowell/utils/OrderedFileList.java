@@ -36,6 +36,11 @@ public class OrderedFileList implements Iterable<File> {
 		return list.iterator();
 	}
 
+	public boolean isEmpty()
+	{
+		return list.size() == 0;
+	}
+	
 	public static OrderedFileList empty() {
 		return new OrderedFileList();
 	}

@@ -35,7 +35,6 @@ public class BuildExecutor {
 	}
 
 	public void doBuild() {
-		System.out.println("");
 		System.out.println("Building ...");
 		ItemToBuild itb;
 		while ((itb = next())!= null)

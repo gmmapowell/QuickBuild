@@ -89,6 +89,7 @@ public class QuickBuild {
 		// now we need to read back anything we've cached ...
 		BuildContext cxt = new BuildContext(conf, configFactory, buildAll, arguments.showArgsFor, arguments.showDebugFor);
 		cxt.configure();
+		System.out.println();
 
 		if (arguments.configOnly)
 		{
@@ -96,14 +97,13 @@ public class QuickBuild {
 			System.out.print(cxt.printableDependencyGraph());
 			System.out.println("----");
 			System.out.println("---- BuildOrder");
-			System.out.print(cxt.printableBuildOrder());
+			System.out.print(cxt.printableBuildOrder(true));
 			System.out.println("----");
 
 			return;
 		}
-		System.out.println();
 		System.out.println("Predicted Build Order:");
-		System.out.print(cxt.printableBuildOrder());
+		System.out.print(cxt.printableBuildOrder(false));
 		System.out.println();
 		
 		new BuildExecutor(cxt).doBuild();

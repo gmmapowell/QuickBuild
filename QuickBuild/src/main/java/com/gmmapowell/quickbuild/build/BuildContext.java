@@ -159,8 +159,8 @@ public class BuildContext {
 		return manager.printableDependencyGraph();
 	}
 
-	public String printableBuildOrder() {
-		return buildOrder.printOut(true);
+	public String printableBuildOrder(boolean b) {
+		return buildOrder.printOut(b);
 	}
 
 	// People shouldn't be doing this for themselves

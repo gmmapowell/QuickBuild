@@ -61,11 +61,15 @@ public class ExecutionBand implements Iterable<BandElement> {
 	}
 
 	public void print(PrettyPrinter pp, boolean withTactics) {
-		pp.append("Requires:");
-		pp.indentMore();
-		for (BandElement be : elements)
-			be.showRequires(pp);
-		pp.indentLess();
+		// probably should be a separate option ... but currently read as "quieter"
+		if (withTactics)
+		{
+			pp.append("Requires:");
+			pp.indentMore();
+			for (BandElement be : elements)
+				be.showRequires(pp);
+			pp.indentLess();
+		}
 		for (BandElement be : elements)
 		{
 			be.print(pp, withTactics);
