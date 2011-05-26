@@ -1,5 +1,6 @@
 package com.gmmapowell.quickbuild.build.android;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class AdbCommand implements Tactic {
 
 	public void reinstall()
 	{
-		command("install", "-r", apk);
+		command("install", "-r", apk.getPath());
 	}
 	
 	private void command(Object... args) {
@@ -58,6 +59,8 @@ public class AdbCommand implements Tactic {
 		{
 			if (s instanceof String)
 				proc.arg((String) s);
+			else if (s instanceof File)
+				proc.arg(((File)s).getPath());
 			else if (s instanceof PendingResource)
 				proc.arg(((PendingResource) s).getPath().getPath());
 			else

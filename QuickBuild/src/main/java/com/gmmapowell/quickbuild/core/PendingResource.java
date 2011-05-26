@@ -75,4 +75,8 @@ public class PendingResource implements BuildResource {
 			return "Pended["+boundTo+"]";
 		return "PendingResource["+pendingName+"]";
 	}
+
+	public boolean isBound() {
+		return boundTo != null;
+	}
 }

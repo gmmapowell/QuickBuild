@@ -119,6 +119,7 @@ public class DependencyManager {
 		
 		// Now, separately, let's look at what we could build, if we tried ...
 		Set<BuildResource> willBuild = new HashSet<BuildResource>();
+		Set<CloningResource> clones = new HashSet<CloningResource>();
 		for (Strategem s : strats)
 		{
 			// Get it in the build order (at level 0)
@@ -128,9 +129,24 @@ public class DependencyManager {
 				willBuild.add(br);
 				
 				// TODO: sort this out properly.  We should be able to figure *something* out
-				if (!(br instanceof CloningResource))
+				if (br instanceof CloningResource)
+				{
+					System.out.println(br);
+					clones.add((CloningResource) br);
+				}
+				else
 					dependencies.ensure(br);
 			}
+		}
+		
+		// Resolve any clones as best we can ...
+		for (CloningResource clone : clones)
+		{
+			PendingResource pending = clone.getPending();
+			BuildResource from = resolve(pending);
+			BuildResource actual = from.cloneInto(clone);
+			clone.bind(actual);
+			dependencies.ensure(actual);
 		}
 		
 		// Now wire up the guys that depend on it
@@ -138,6 +154,8 @@ public class DependencyManager {
 		{			
 			for (PendingResource pr : s.needsResources())
 			{
+				if (pr.isBound())
+					continue;
 				BuildResource actual = resolve(pr);
 				dependencies.ensure(actual);
 				for (BuildResource br : s.buildsResources())
@@ -153,11 +171,13 @@ public class DependencyManager {
 	}
 
 	BuildResource resolve(PendingResource pr) {
+		if (pr.isBound())
+			return pr.physicalResource();
 		BuildResource uniq = null;
 		Pattern p = Pattern.compile(".*"+pr.compareAs().toLowerCase()+".*");
 		for (BuildResource br : dependencies.nodes())
 		{
-			if (br instanceof PendingResource)
+			if (br instanceof PendingResource || br instanceof ComparisonResource)
 				continue;
 			if (p.matcher(br.compareAs().toLowerCase()).matches())
 			{
@@ -286,15 +306,32 @@ public class DependencyManager {
 					n.setEntry(br);
 			}
 			// will be built
+			Set<CloningResource> clones = new HashSet<CloningResource>();
 			for (Strategem s : strats)
 			{
 				for (BuildResource br : s.buildsResources())
 				{
+					if (br instanceof CloningResource)
+					{
+						clones.add((CloningResource) br);
+						continue;
+					}
 					Node<BuildResource> n = dependencies.find(br);
 					if (n.getEntry() instanceof DependencyManager.ComparisonResource)
 						n.setEntry(br);
 				}
 			}
+			
+			// Resolve any clones as best we can ...
+			for (CloningResource clone : clones)
+			{
+				PendingResource pending = clone.getPending();
+				BuildResource from = resolve(pending);
+				BuildResource actual = from.cloneInto(clone);
+				clone.bind(actual);
+				dependencies.ensure(actual);
+			}
+
 			// needed ones
 			for (Strategem s : strats)
 			{
@@ -318,17 +355,5 @@ public class DependencyManager {
 		{
 			throw new QuickBuildCacheException("Failed to attach real strats to cache", ex);
 		}
-	}
-
-	private Iterable<BuildResource> builtResources(Strategem s) {
-		Set<BuildResource> ret = new HashSet<BuildResource>();
-		addAll(ret, s.buildsResources());
-		addAll(ret, s.providesResources());
-		return ret;
-	}
-
-	private void addAll(Set<BuildResource> ret, ResourcePacket<? extends BuildResource> resources) {
-		for (BuildResource br : resources)
-			ret.add(br);
 	}
 }

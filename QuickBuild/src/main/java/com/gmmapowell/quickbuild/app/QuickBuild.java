@@ -101,6 +101,10 @@ public class QuickBuild {
 
 			return;
 		}
+		System.out.println();
+		System.out.println("Predicted Build Order:");
+		System.out.print(cxt.printableBuildOrder());
+		System.out.println();
 		
 		new BuildExecutor(cxt).doBuild();
 	}

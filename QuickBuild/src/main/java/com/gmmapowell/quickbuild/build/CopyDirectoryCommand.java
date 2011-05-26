@@ -24,12 +24,11 @@ import com.gmmapowell.utils.OrderedFileList;
 public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem, Tactic {
 	private String rootDirectoryName;
 	private String fromResourceName;
-	private String toResourceName;
+	private String toPath;
 	private PendingResource fromResource;
 	private CloningResource toResource;
 	private final File rootDirectory;
 	private StructureHelper files;
-	private BuildResource actualTo;
 
 	@SuppressWarnings("unchecked")
 	public CopyDirectoryCommand(TokenizedLine toks) {
@@ -37,7 +36,7 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 		toks.process(this,
 			new ArgumentDefinition("*", Cardinality.REQUIRED, "rootDirectoryName", "root"),
 			new ArgumentDefinition("*", Cardinality.REQUIRED, "fromResourceName", "from resource"),
-			new ArgumentDefinition("*", Cardinality.REQUIRED, "toResourceName", "destination")
+			new ArgumentDefinition("*", Cardinality.REQUIRED, "toPath", "destination")
 		);
 		rootDirectory = FileUtils.relativePath(rootDirectoryName);
 	}
@@ -46,7 +45,7 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 	public Strategem applyConfig(Config config) {
 		files = new StructureHelper(rootDirectory, "");
 		fromResource = new PendingResource(fromResourceName);
-		toResource = new CloningResource(this, files.getRelative(toResourceName));
+		toResource = new CloningResource(this, fromResource, files.getRelative(toPath));
 		return this;
 	}
 
@@ -63,12 +62,9 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
-		System.out.println(fromResource.getPath());
 		FileUtils.assertDirectory(fromResource.getPath());
-		actualTo = fromResource.cloneInto(toResource);
-		FileUtils.copyRecursive(fromResource.getPath(), actualTo.getPath());
-		toResource.wasClonedAs(actualTo);
-		cxt.builtResource(actualTo);
+		FileUtils.copyRecursive(fromResource.getPath(), toResource.getPath());
+		cxt.builtResource(toResource);
 		return BuildStatus.SUCCESS;
 	}
 

@@ -39,7 +39,8 @@ public class DexBuildCommand implements Tactic {
 		RunProcess proc = new RunProcess(acxt.getDX().getPath());
 		proc.captureStdout();
 		proc.captureStderr();
-		proc.showArgs(true);
+		proc.showArgs(showArgs);
+		proc.debug(showDebug);
 		
 		proc.arg("--dex");
 		proc.arg("--output="+dexFile.getPath());
