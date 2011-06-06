@@ -92,4 +92,8 @@ public class ErrorCase {
 		return new File(logDir, FileUtils.clean(itb.name()));
 	}
 
+	public boolean isBroken() {
+		return outcome.isBroken();
+	}
+
 }

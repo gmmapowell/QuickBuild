@@ -62,14 +62,18 @@ public class ErrorHandler {
 		}
 	}
 	
-	public void showLog() {
+	public boolean showLog() {
+		boolean buildBroken = false;
 		Collections.sort(cases, ErrorCase.Comparator);
 		PrettyPrinter pp = new PrettyPrinter();
 		for (ErrorCase c : cases)
 		{
 			c.summary(pp);
+			if (c.isBroken())
+				buildBroken = true;
 		}
 		System.out.print(pp);
+		return buildBroken;
 	}
 	
 }

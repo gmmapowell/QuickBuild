@@ -17,7 +17,6 @@ public class BuildExecutor {
 
 	private Date buildStarted;
 	private int totalErrors;
-	private boolean buildBroken;
 	private int projectsWithTestFailures;
 
 	private Status status = Status.BUILD_CURRENT;
@@ -131,7 +130,7 @@ public class BuildExecutor {
 	}
 	
 	public void showAnyErrors() {
-		ehandler.showLog();
+		boolean buildBroken = ehandler.showLog();
 		if (buildBroken)
 		{
 			System.out.println("!!!! BUILD FAILED !!!!");
