@@ -1,10 +1,13 @@
 package com.gmmapowell.quickbuild.build.csharp;
 
 import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
+import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.parser.LinePatternMatch;
+import com.gmmapowell.parser.LinePatternParser;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
@@ -13,10 +16,12 @@ import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
 import com.gmmapowell.quickbuild.config.SpecificChildrenParent;
 import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
@@ -29,11 +34,8 @@ public class DevenvCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 	private File rootdir;
 	private List<Tactic> tactics = new ArrayList<Tactic>();
 	private OrderedFileList sources;
-	private ResourcePacket builds = new ResourcePacket();
+	private ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 	private StructureHelper files;
-	private MsResource resource;
-	private File cachedResource;
-	private File actualResource;
 
 	@SuppressWarnings("unchecked")
 	public DevenvCommand(TokenizedLine toks) {
@@ -49,24 +51,63 @@ public class DevenvCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 
 	@Override
 	public Strategem applyConfig(Config config) {
-		files = new StructureHelper(rootdir, config.getOutput());
-		tactics.add(this);
-		sources = new OrderedFileList(rootdir, "*.cs");
-		sources.add(rootdir, "*.xaml");
-		sources.add(rootdir, "*.csproj");
-		sources.add(rootdir, "*.sln");
-		resource = new MsResource(this, rootdir, projectName);
-		builds.add(resource);
-		
-		// Detect dirty builds on non-MS platforms by tracking the resource
-		
-		// How much of a hack is this?  How much should we encode?
-		// In the end, I think we should read the csproj files to find .exe and .xap deliverables
-		// Each of those should be a resource
-		
-		actualResource = files.getRelative(projectName + "/Bin/Debug/" + projectName + ".xap");
-		cachedResource = new File(config.getCacheDir(), projectName + ".xap");
-		
+		try
+		{
+			files = new StructureHelper(rootdir, config.getOutput());
+			tactics.add(this);
+			sources = new OrderedFileList(rootdir, "*.cs");
+			sources.add(rootdir, "*.xaml");
+			sources.add(rootdir, "*.csproj");
+			sources.add(rootdir, "*.sln");
+			for (File f : sources)
+			{
+				if (f.getName().endsWith(".csproj"))
+				{
+					// figure out what the resource is
+					LinePatternParser lpp = new LinePatternParser();
+					lpp.match("<OutputType>(.*)</OutputType>", "output", "type");
+					lpp.match("<OutputPath>(.*)</OutputPath>", "build", "path");
+					lpp.match("<AssemblyName>(.*)</AssemblyName>", "assembly", "name");
+					lpp.match("<XapFilename>(.*)</XapFilename>", "xap", "filename");
+					FileReader fr = new FileReader(f);
+					String type = null;
+					String path = null;
+					String assembly = null;
+					String xap = null;
+					for (LinePatternMatch lpm : lpp.applyTo(fr))
+					{
+						if (lpm.is("output"))
+							type = lpm.get("type");
+						else if (lpm.is("assembly"))
+							assembly = lpm.get("name");
+						else if (lpm.is("build"))
+						{
+							// Doing this right seems very hard :-(
+							if (!lpm.get("path").contains("Release"))
+								path = lpm.get("path").replace('\\', '/');
+						}
+						else if (lpm.is("xap"))
+							xap = lpm.get("filename");
+						else
+							throw new QuickBuildException("Cannot handle " + lpm);
+					}
+					if (type.equals("Library"))
+					{
+						if (xap != null)
+							builds.add(new XAPResource(this, new File(f.getParentFile(), path+"/"+xap)));
+						else
+							builds.add(new DLLResource(this, new File(f.getParentFile(), path+"/"+assembly+".dll")));
+					}
+					else
+						throw new QuickBuildException("Cannot handle msbuild type " + type);
+					fr.close();
+				}
+			}
+			}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
 		return this;
 	}
 
@@ -80,14 +121,25 @@ public class DevenvCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 		CsNature nature = cxt.getNature(CsNature.class);
 		if (nature == null || !nature.isAvailable())
 		{
-			System.out.println("CsNature not available ... skipping build");
-			for (BuildResource br : builds)
-				cxt.resourceAvailable(br);
+			System.out.println("CsNature not available ... attempting to copy");
 			BuildStatus ret = BuildStatus.SKIPPED;
-			if (!cachedResource.exists() || !FileUtils.isUpToDate(cachedResource, actualResource))
+			File msequiv = null;
+			if (cxt.hasPath("msequiv"))
+				msequiv = cxt.getPath("msequiv");
+			for (BuildResource br : builds)
 			{
-				FileUtils.copyAssertingDirs(actualResource, cachedResource);
-				ret = BuildStatus.SUCCESS;
+				File f = br.getPath();
+				if (msequiv != null)
+				{
+					File actual = new File(msequiv, FileUtils.makeRelative(br.getPath()).getPath());
+					File copy = FileUtils.relativePath(f);
+					if (actual.exists() && (!copy.exists() || !FileUtils.isUpToDate(copy, actual)))
+					{
+						FileUtils.copyAssertingDirs(actual, copy);
+						ret = BuildStatus.SUCCESS;
+					}
+				}
+				cxt.builtResource(br);
 			}
 			return ret;
 		}
@@ -100,7 +152,8 @@ public class DevenvCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
-			cxt.resourceAvailable(resource);
+			for (BuildResource br : builds)
+				cxt.builtResource(br);
 			return BuildStatus.SUCCESS;
 		}
 		System.out.println(proc.getStdout());
@@ -114,17 +167,17 @@ public class DevenvCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 	}
 
 	@Override
-	public ResourcePacket needsResources() {
-		return new ResourcePacket();
+	public ResourcePacket<PendingResource> needsResources() {
+		return new ResourcePacket<PendingResource>();
 	}
 
 	@Override
-	public ResourcePacket providesResources() {
-		return new ResourcePacket();
+	public ResourcePacket<BuildResource> providesResources() {
+		return new ResourcePacket<BuildResource>();
 	}
 
 	@Override
-	public ResourcePacket buildsResources() {
+	public ResourcePacket<BuildResource> buildsResources() {
 		return builds;
 	}
 
@@ -134,7 +187,7 @@ public class DevenvCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 	}
 
 	@Override
-	public Collection<? extends Tactic> tactics() {
+	public List<? extends Tactic> tactics() {
 		return tactics;
 	}
 

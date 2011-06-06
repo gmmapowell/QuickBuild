@@ -33,6 +33,13 @@ public class ListMap<K, V> implements Iterable<K> {
 			throw new UtilException("There is no key '" + k + "' in " + this);
 		return map.get(k);
 	}
+	
+	public int size(K k)
+	{
+		if (!map.containsKey(k))
+			return 0;
+		return map.get(k).size();
+	}
 
 	public boolean contains(K key) {
 		return map.containsKey(key);
@@ -56,5 +63,15 @@ public class ListMap<K, V> implements Iterable<K> {
 
 	public Set<Entry<K, List<V>>> entrySet() {
 		return map.entrySet();
+	}
+
+	public void take(Collection<V> ret, K k, int count) {
+		if (!map.containsKey(k))
+			return;
+		List<V> contents = map.get(k);
+		for (int i=0;i<count && contents.size() > 0;i++)
+		{
+			ret.add(contents.remove(0));
+		}
 	}
 }

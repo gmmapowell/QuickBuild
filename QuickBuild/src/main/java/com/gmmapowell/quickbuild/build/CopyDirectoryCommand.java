@@ -1,7 +1,7 @@
 package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
-import java.util.Collection;
+import java.util.List;
 
 import com.gmmapowell.collections.CollectionUtils;
 import com.gmmapowell.parser.TokenizedLine;
@@ -24,12 +24,11 @@ import com.gmmapowell.utils.OrderedFileList;
 public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem, Tactic {
 	private String rootDirectoryName;
 	private String fromResourceName;
-	private String toResourceName;
+	private String toPath;
 	private PendingResource fromResource;
 	private CloningResource toResource;
 	private final File rootDirectory;
 	private StructureHelper files;
-	private BuildResource actualTo;
 
 	@SuppressWarnings("unchecked")
 	public CopyDirectoryCommand(TokenizedLine toks) {
@@ -37,7 +36,7 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 		toks.process(this,
 			new ArgumentDefinition("*", Cardinality.REQUIRED, "rootDirectoryName", "root"),
 			new ArgumentDefinition("*", Cardinality.REQUIRED, "fromResourceName", "from resource"),
-			new ArgumentDefinition("*", Cardinality.REQUIRED, "toResourceName", "destination")
+			new ArgumentDefinition("*", Cardinality.REQUIRED, "toPath", "destination")
 		);
 		rootDirectory = FileUtils.relativePath(rootDirectoryName);
 	}
@@ -46,7 +45,7 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 	public Strategem applyConfig(Config config) {
 		files = new StructureHelper(rootDirectory, "");
 		fromResource = new PendingResource(fromResourceName);
-		toResource = new CloningResource(this, files.getRelative(toResourceName));
+		toResource = new CloningResource(this, fromResource, files.getRelative(toPath));
 		return this;
 	}
 
@@ -57,19 +56,15 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 	}
 
 	@Override
-	public Collection<? extends Tactic> tactics() {
+	public List<? extends Tactic> tactics() {
 		return CollectionUtils.listOf((Tactic)this);
 	}
 
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
-		BuildResource from = cxt.getPendingResource(fromResource);
-		System.out.println(from.getPath());
-		FileUtils.assertDirectory(from.getPath());
-		actualTo = from.cloneInto(toResource);
-		FileUtils.copyRecursive(from.getPath(), actualTo.getPath());
-		toResource.wasClonedAs(actualTo);
-		cxt.resourceAvailable(actualTo);
+		FileUtils.assertDirectory(fromResource.getPath());
+		FileUtils.copyRecursive(fromResource.getPath(), toResource.getPath());
+		cxt.builtResource(toResource);
 		return BuildStatus.SUCCESS;
 	}
 
@@ -84,20 +79,22 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 	}
 
 	@Override
-	public ResourcePacket needsResources() {
-		ResourcePacket ret = new ResourcePacket();
+	public ResourcePacket<PendingResource> needsResources() {
+		// TODO: this should all be resolved in construcotr
+		ResourcePacket<PendingResource> ret = new ResourcePacket<PendingResource>();
 		ret.add(fromResource);
 		return ret;
 	}
 
 	@Override
-	public ResourcePacket providesResources() {
-		return new ResourcePacket();
+	public ResourcePacket<BuildResource> providesResources() {
+		return new ResourcePacket<BuildResource>();
 	}
 
 	@Override
-	public ResourcePacket buildsResources() {
-		ResourcePacket ret = new ResourcePacket();
+	public ResourcePacket<BuildResource> buildsResources() {
+		// TODO: this should all be resolved in construcotr
+		ResourcePacket<BuildResource> ret = new ResourcePacket<BuildResource>();
 		ret.add(toResource);
 		return ret;
 	}

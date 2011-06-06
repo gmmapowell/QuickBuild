@@ -44,9 +44,9 @@ public abstract class SolidResource implements BuildResource {
 	public boolean equals(Object obj) {
 		if (obj == null)
 			return false;
-		if (!(obj instanceof SolidResource))
+		if (!(obj instanceof BuildResource))
 			return false;
-		return compareAs().equals(((SolidResource)obj).compareAs());
+		return compareAs().equals(((BuildResource)obj).compareAs());
 	}
 	
 	public String toString()

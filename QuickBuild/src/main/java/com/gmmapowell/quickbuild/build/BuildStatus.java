@@ -35,4 +35,9 @@ public enum BuildStatus {
 	public boolean builtResources() {
 		return moveOn();
 	}
+
+	// This is before we build ... do we need to build?
+	public boolean needsBuild() {
+		return this == SUCCESS || this == RETRY || this == DEFERRED;
+	}
 }

@@ -2,7 +2,6 @@ package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import com.gmmapowell.parser.TokenizedLine;
@@ -14,6 +13,8 @@ import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
 import com.gmmapowell.quickbuild.config.SpecificChildrenParent;
+import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
@@ -55,11 +56,11 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 	}
 
 	@Override
-	public Collection<? extends Tactic> tactics() {
+	public List<? extends Tactic> tactics() {
 		List<Tactic> ret = new ArrayList<Tactic>();
 
 		// Hasten, hasten ... cutten and pasten from AndroidCommand
-		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", FileUtils.findFilesMatching(files.getRelative("src/main/java"), "*.java"));
+		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", FileUtils.findFilesMatching(files.getRelative("src/main/java"), "*.java"));
 		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
 		ret.add(buildSrc);
@@ -98,20 +99,20 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 	}
 
 	@Override
-	public ResourcePacket needsResources() {
-		return new ResourcePacket();
+	public ResourcePacket<PendingResource> needsResources() {
+		return new ResourcePacket<PendingResource>();
 	}
 
 	@Override
-	public ResourcePacket providesResources() {
-		ResourcePacket ret = new ResourcePacket();
+	public ResourcePacket<BuildResource> providesResources() {
+		ResourcePacket<BuildResource> ret = new ResourcePacket<BuildResource>();
 		ret.add(new JavaSourceDirResource(this, srcdir, FileUtils.findFilesMatching(files.getRelative("src/main/java"), "*.java")));
 		return ret;
 	}
 
 	@Override
-	public ResourcePacket buildsResources() {
-		ResourcePacket ret = new ResourcePacket();
+	public ResourcePacket<BuildResource> buildsResources() {
+		ResourcePacket<BuildResource> ret = new ResourcePacket<BuildResource>();
 		ret.add(androidJar);
 		return ret;
 	}

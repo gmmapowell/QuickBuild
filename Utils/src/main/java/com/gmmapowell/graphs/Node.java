@@ -8,7 +8,7 @@ import com.gmmapowell.lambda.FuncR1;
 import com.gmmapowell.lambda.Lambda;
 
 public class Node<N> {
-	final N node;
+	N node;
 	private Set<Link<N>> linksTo = new HashSet<Link<N>>();
 	private Set<Link<N>> linksFrom = new HashSet<Link<N>>();
 	private Set<Node<N>> span = new HashSet<Node<N>>();
@@ -70,5 +70,9 @@ public class Node<N> {
 
 	public N getEntry() {
 		return node;
+	}
+
+	public void setEntry(N br) {
+		node = br;
 	}
 }

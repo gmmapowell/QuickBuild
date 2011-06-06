@@ -54,6 +54,14 @@ public class DirectedAcyclicGraph<N> {
 			return;
 		newNode(node);
 	}
+	
+	public Set<N> nodes() {
+		Set<N> ret = new HashSet<N>();
+		for (Node<N> n : nodes)
+			ret.add(n.getEntry());
+		return ret;
+	}
+
 
 	public void link(N from, N to) {
 		Node<N> f = find(from);
@@ -141,10 +149,10 @@ public class DirectedAcyclicGraph<N> {
 		{
 			if (done.contains(n))
 				continue;
+			done.add(n);
 			if (n.linksFrom().size() > 0)
 				postOrder(walker, done, CollectionUtils.setToList(Lambda.map(CollectionUtils.any(n.linksFrom()).extractTo, n.linksFrom()), nodeSpanSize));
 			walker.present(n);
-			done.add(n);
 		}
 	}
 

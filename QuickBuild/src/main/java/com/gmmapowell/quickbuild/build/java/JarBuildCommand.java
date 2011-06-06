@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
@@ -68,7 +69,7 @@ public class JarBuildCommand implements Tactic {
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
-			cxt.resourceAvailable(jar);
+			cxt.builtResource(jar);
 			return BuildStatus.SUCCESS;
 		}
 		return BuildStatus.BROKEN;
@@ -100,5 +101,10 @@ public class JarBuildCommand implements Tactic {
 	@Override
 	public Strategem belongsTo() {
 		return parent;
+	}
+
+	@Override
+	public String identifier() {
+		return BuildOrder.tacticIdentifier(parent, "jar");
 	}
 }

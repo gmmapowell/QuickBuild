@@ -1,13 +1,15 @@
 package com.gmmapowell.quickbuild.build.android;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
-import com.gmmapowell.quickbuild.core.SolidResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -24,10 +26,10 @@ import com.gmmapowell.system.RunProcess;
 public class AdbCommand implements Tactic {
 	private final AndroidContext acxt;
 	private List<Object[]> commands = new ArrayList<Object[]>();
-	private final SolidResource apk;
+	private final BuildResource apk;
 	private final Strategem parent;
 
-	public AdbCommand(AndroidContext acxt, Strategem parent, StructureHelper files, SolidResource apk) {
+	public AdbCommand(AndroidContext acxt, Strategem parent, StructureHelper files, BuildResource apk) {
 		this.acxt = acxt;
 		this.parent = parent;
 		this.apk = apk;
@@ -35,7 +37,7 @@ public class AdbCommand implements Tactic {
 
 	public void reinstall()
 	{
-		command("install", "-r", apk);
+		command("install", "-r", apk.getPath());
 	}
 	
 	private void command(Object... args) {
@@ -57,8 +59,10 @@ public class AdbCommand implements Tactic {
 		{
 			if (s instanceof String)
 				proc.arg((String) s);
+			else if (s instanceof File)
+				proc.arg(((File)s).getPath());
 			else if (s instanceof PendingResource)
-				proc.arg(cxt.getPendingResource((PendingResource) s).getPath().getPath());
+				proc.arg(((PendingResource) s).getPath().getPath());
 			else
 				throw new UtilException("Cannot handle argument of type " + s.getClass());
 		}
@@ -89,5 +93,10 @@ public class AdbCommand implements Tactic {
 	@Override
 	public Strategem belongsTo() {
 		return parent;
+	}
+
+	@Override
+	public String identifier() {
+		return BuildOrder.tacticIdentifier(parent, "adb");
 	}
 }

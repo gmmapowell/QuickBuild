@@ -2,7 +2,7 @@ package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
 import java.io.StringReader;
-import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -14,10 +14,12 @@ import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.ErrorCase;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.FloatToEnd;
+import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -68,6 +70,7 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 		{
 			File path = ((JarResource)br).getPath();
 			classpath.add(path);
+			cxt.addDependency(this, br);
 		}
 		
 		BuildClassPath sourcepath = new BuildClassPath();
@@ -78,6 +81,7 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 			sourcepath.add(path);
 			for (File f : FileUtils.findFilesUnderMatching(path, "*.java"))
 				packages.add(FileUtils.convertToDottedName(f.getParentFile()));
+			cxt.addDependency(this, br);
 		}
 		if (sourcepath.empty())
 			return BuildStatus.SKIPPED;
@@ -109,6 +113,7 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 			return BuildStatus.SKIPPED;
 		proc.execute();
 		
+		ErrorCase failure = null;
 		LinePatternParser lppOut = new LinePatternParser();
 		lppOut.match("([0-9]+) warning", "warnings", "count");
 		int cnt = 0;
@@ -116,7 +121,9 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 		{
 			if (lpm.is("warnings"))
 			{
-				System.out.println("JavaDoc encountered " + lpm.get("count") + " warnings:");
+				if (failure == null)
+					failure = cxt.failure(proc.getArgs(), proc.getStdout(), proc.getStderr());
+				failure.addMessage("JavaDoc encountered " + lpm.get("count") + " warnings:");
 				cnt++;
 			}
 			else
@@ -124,12 +131,14 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 		}
 
 		LinePatternParser lppErr = new LinePatternParser();
-		lppErr.match("warning - (.*)", "message", "text");
+		lppErr.match("src/[^/]+/java/(.+): warning - (.*)", "message", "location", "text");
 		for (LinePatternMatch lpm : lppErr.applyTo(new StringReader(proc.getStderr())))
 		{
 			if (lpm.is("message"))
 			{
-				System.out.println("  " + lpm.get("text"));
+				if (failure == null)
+					failure = cxt.failure(proc.getArgs(), proc.getStdout(), proc.getStderr());
+				failure.addMessage("  " + lpm.get("location") + ": " + lpm.get("text"));
 				cnt++;
 			}
 			else
@@ -142,6 +151,8 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 				return BuildStatus.SUCCESS;
 			return BuildStatus.TEST_FAILURES;
 		}
+		if (failure == null)
+			failure = cxt.failure(proc.getArgs(), proc.getStdout(), proc.getStderr());
 		return BuildStatus.BROKEN;
 	}
 
@@ -151,19 +162,19 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 	}
 
 	@Override
-	public ResourcePacket needsResources() {
-		return new ResourcePacket();
+	public ResourcePacket<PendingResource> needsResources() {
+		return new ResourcePacket<PendingResource>();
 	}
 
 	@Override
-	public ResourcePacket providesResources() {
-		return new ResourcePacket();
+	public ResourcePacket<BuildResource> providesResources() {
+		return new ResourcePacket<BuildResource>();
 	}
 
 	@Override
-	public ResourcePacket buildsResources() {
+	public ResourcePacket<BuildResource> buildsResources() {
 		// maybe javadoc?
-		return new ResourcePacket();
+		return new ResourcePacket<BuildResource>();
 	}
 
 	@Override
@@ -172,7 +183,7 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 	}
 
 	@Override
-	public Collection<? extends Tactic> tactics() {
+	public List<? extends Tactic> tactics() {
 		return CollectionUtils.listOf(this);
 	}
 

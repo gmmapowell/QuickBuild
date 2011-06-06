@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
@@ -38,7 +39,8 @@ public class DexBuildCommand implements Tactic {
 		RunProcess proc = new RunProcess(acxt.getDX().getPath());
 		proc.captureStdout();
 		proc.captureStderr();
-		proc.showArgs(true);
+		proc.showArgs(showArgs);
+		proc.debug(showDebug);
 		
 		proc.arg("--dex");
 		proc.arg("--output="+dexFile.getPath());
@@ -74,6 +76,11 @@ public class DexBuildCommand implements Tactic {
 		return parent;
 	}
 
+
+	@Override
+	public String identifier() {
+		return BuildOrder.tacticIdentifier(parent, "dex");
+	}
 
 
 }

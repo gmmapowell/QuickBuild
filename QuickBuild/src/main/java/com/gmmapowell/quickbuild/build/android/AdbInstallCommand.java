@@ -2,13 +2,13 @@ package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
+import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
@@ -45,7 +45,7 @@ public class AdbInstallCommand extends NoChildCommand implements ConfigBuildComm
 	
 
 	@Override
-	public Collection<? extends Tactic> tactics() {
+	public List<? extends Tactic> tactics() {
 		List<Tactic> ret = new ArrayList<Tactic>();
 		AdbCommand cmd = new AdbCommand(acxt, this, files, apk);
 		cmd.reinstall();
@@ -59,20 +59,20 @@ public class AdbInstallCommand extends NoChildCommand implements ConfigBuildComm
 	}
 
 	@Override
-	public ResourcePacket needsResources() {
-		ResourcePacket ret = new ResourcePacket();
+	public ResourcePacket<PendingResource> needsResources() {
+		ResourcePacket<PendingResource> ret = new ResourcePacket<PendingResource>();
 		ret.add(apk);
 		return ret;
 	}
 
 	@Override
-	public ResourcePacket providesResources() {
-		return new ResourcePacket();
+	public ResourcePacket<BuildResource> providesResources() {
+		return new ResourcePacket<BuildResource>();
 	}
 
 	@Override
-	public ResourcePacket buildsResources() {
-		return new ResourcePacket();
+	public ResourcePacket<BuildResource> buildsResources() {
+		return new ResourcePacket<BuildResource>();
 	}
 
 	@Override

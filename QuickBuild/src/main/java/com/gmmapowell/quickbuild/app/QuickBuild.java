@@ -6,12 +6,10 @@ import java.io.IOException;
 import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
 import com.gmmapowell.quickbuild.build.BuildContext;
-import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.BuildExecutor;
 import com.gmmapowell.quickbuild.config.Arguments;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
-import com.gmmapowell.quickbuild.core.Tactic;
-import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
@@ -36,12 +34,12 @@ public class QuickBuild {
 		arguments = new Arguments();
 		ProcessArgs.process(arguments, argumentDefinitions, args);
 		
-		System.out.println("user.home = " + System.getProperty("user.home"));
+//		System.out.println("user.home = " + System.getProperty("user.home"));
 		File file = new File(arguments.file);
 		OrderedFileList ofl = new OrderedFileList(FileUtils.relativePath(file));
 		Config conf = new Config(configFactory, file.getParentFile(), FileUtils.dropExtension(file.getName()));
 		{
-			File hostfile = FileUtils.relativePath(new File(FileUtils.getHostName() + ".host.qb"));
+			File hostfile = new File(file.getParentFile(), FileUtils.getHostName() + ".host.qb");
 			if (hostfile.exists())
 			{
 				SignificantWhiteSpaceFileReader.read(conf, configFactory, hostfile);
@@ -90,63 +88,24 @@ public class QuickBuild {
 		
 		// now we need to read back anything we've cached ...
 		BuildContext cxt = new BuildContext(conf, configFactory, buildAll, arguments.showArgsFor, arguments.showDebugFor);
-		try
-		{
-    		cxt.configure();
-			cxt.loadCache();
-		}
-		catch (QuickBuildCacheException ex) {
-			// the cache failed to load because of inconsistencies or whatever
-			// ignore it and try again
-			ex.printStackTrace();
-			System.out.println("Cache was out of date; ignoring");
-			cxt.buildAll();
-		}
+		cxt.configure();
+		System.out.println();
 
 		if (arguments.configOnly)
 		{
 			System.out.println("---- Dependencies");
 			System.out.print(cxt.printableDependencyGraph());
 			System.out.println("----");
+			System.out.println("---- BuildOrder");
+			System.out.print(cxt.printableBuildOrder(true));
+			System.out.println("----");
 
 			return;
 		}
-
-		/* TODO: I like this, but it needs to be more general
-		for (String s : arguments.dirResources)
-		{
-			System.out.println("Adding proj " + s);
-			cxt.addBuiltResource(new DirectoryResource(null, new File(s.substring(2))));
-		}
-		*/
-			
-		// now we try and build stuff ...
-		System.out.println("");
-		System.out.println("Building ...");
-		Tactic bc;
-		while ((bc = cxt.next())!= null)
-		{
-			BuildStatus outcome = cxt.execute(bc);
-			if (!outcome.isGood())
-			{
-				cxt.buildFail(outcome);
-				if (outcome.isBroken())
-				{
-					System.out.println("Aborting build due to failure");
-					break;
-				}
-				else if (outcome.tryAgain())
-				{
-					System.out.println("  Failed ... retrying");
-					cxt.tryAgain();
-					continue;
-				}
-				// else move on ...
-			}
-			cxt.advance();
-		}
-		cxt.saveDependencies();
-		cxt.saveBuildOrder();
-		cxt.showAnyErrors();
+		System.out.println("Predicted Build Order:");
+		System.out.print(cxt.printableBuildOrder(false));
+		System.out.println();
+		
+		new BuildExecutor(cxt).doBuild();
 	}
 }

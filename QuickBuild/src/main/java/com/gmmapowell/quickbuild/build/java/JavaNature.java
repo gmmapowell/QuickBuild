@@ -14,7 +14,6 @@ import com.gmmapowell.exceptions.GPJarException;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildContextAware;
-import com.gmmapowell.quickbuild.build.StrategemResource;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
@@ -36,13 +35,12 @@ public class JavaNature implements Nature, BuildContextAware {
 	public static void init(ConfigFactory config)
 	{
 		config.addCommandExtension("exclude", ExcludeCommand.class);
-		config.addCommandExtension("file", WarRandomFileCommand.class);
 		config.addCommandExtension("jar", JarCommand.class);
 		config.addCommandExtension("javadoc", JavaDocCommand.class);
 		config.addCommandExtension("junitlib", JUnitLibCommand.class);
-		config.addCommandExtension("lib", WarLibCommand.class);
 		config.addCommandExtension("nojunit", NoJUnitCommand.class);
 		config.addCommandExtension("package", IncludePackageCommand.class);
+		config.addCommandExtension("resource", WarResourceCommand.class);
 		config.addCommandExtension("target", SpecifyTargetCommand.class);
 		config.addCommandExtension("war", WarCommand.class);
 	}
@@ -138,7 +136,8 @@ public class JavaNature implements Nature, BuildContextAware {
 			boolean didSomething = false;
 			for (Strategem p : projectPackages.get(needsJavaPackage))
 			{
-				didSomething |= cxt.addDependency(dependent, new StrategemResource(p));
+				BuildResource br = cxt.getBuiltResource(p, JarResource.class);
+				didSomething |= cxt.addDependency(dependent, br);
 			}
 			return didSomething;
 		}

@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.csharp.XAPResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.Strategem;
@@ -25,14 +27,12 @@ public class WarBuildCommand implements Tactic {
 	private final List<PendingResource> warlibs;
 	private final List<Pattern> warexcl;
 	private final WarResource warResource;
-	private final List<WarRandomFileCommand> warfiles;
 
-	public WarBuildCommand(WarCommand parent, StructureHelper files, WarResource warResource, String targetName, List<PendingResource> warlibs, List<WarRandomFileCommand> warfiles, List<Pattern> warexcl) {
+	public WarBuildCommand(WarCommand parent, StructureHelper files, WarResource warResource, String targetName, List<PendingResource> warlibs, List<Pattern> warexcl) {
 		this.parent = parent;
 		this.files = files;
 		this.warResource = warResource;
 		this.warlibs = warlibs;
-		this.warfiles = warfiles;
 		this.warexcl = warexcl;
 		this.warfile = new File(files.getOutputDir(), targetName);
 	}
@@ -50,7 +50,8 @@ public class WarBuildCommand implements Tactic {
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		File tmp = files.getOutput("WebRoot");
 		File tmpClasses = files.getOutput("WebRoot/WEB-INF/classes");
-		File tmpLib = files.getOutput("WebRoot/WEB-INF/lib");
+		File jarsToDir = files.getOutput("WebRoot/WEB-INF/lib");
+		File xapsToDir = files.getOutput("WebRoot");
 		FileUtils.cleanDirectory(tmp);
 		FileUtils.assertDirectory(tmp);
 
@@ -59,24 +60,15 @@ public class WarBuildCommand implements Tactic {
 		str.add(parent);
 		for (PendingResource r : warlibs)
 		{
-			BuildResource br = cxt.getPendingResource(r);
-			copyLib(tmpLib, br);
-			if (br.getBuiltBy() != null)
-				str.add(br.getBuiltBy());
-		}
-		for (WarRandomFileCommand wrf : warfiles)
-		{
-			File from = wrf.getFrom(cxt);
-			File to = wrf.getTo(cxt, tmp);
-			if (!from.isFile())
-				throw new QuickBuildException("The file " + from + " has not been created; needed by war command");
-			FileUtils.copyAssertingDirs(from, to);
+			copyLib(r, jarsToDir, xapsToDir);
+			if (r.getBuiltBy() != null)
+				str.add(r.getBuiltBy());
 		}
 		for (Strategem s : str)
 		{
 			for (BuildResource r : cxt.getDependencies(s))
 			{
-				copyLib(tmpLib, r);
+				copyLib(r, jarsToDir, xapsToDir);
 			}
 		}
 		
@@ -124,64 +116,40 @@ public class WarBuildCommand implements Tactic {
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
-			cxt.resourceAvailable(warResource);
+			cxt.builtResource(warResource);
 			return BuildStatus.SUCCESS;
 		}
 		return BuildStatus.BROKEN;
 	}
 
-	private void copyLib(File tmpLib, BuildResource r) {
+	private void copyLib(BuildResource r, File jarsToDir, File xapsToDir) {
+		if (r instanceof PendingResource)
+			r = ((PendingResource)r).physicalResource();
 		if (r instanceof JarResource)
 		{
 			for (Pattern p : warexcl)
 				if (p.matcher(r.getPath().getName().toLowerCase()).matches())
 					return;
-			FileUtils.copyAssertingDirs(r.getPath(), new File(tmpLib, r.getPath().getName()));
+			FileUtils.copyAssertingDirs(r.getPath(), new File(jarsToDir, r.getPath().getName()));
 		}
+		else if (r instanceof XAPResource)
+		{
+			for (Pattern p : warexcl)
+				if (p.matcher(r.getPath().getName().toLowerCase()).matches())
+					return;
+			FileUtils.copyAssertingDirs(r.getPath(), new File(xapsToDir, r.getPath().getName()));
+		}
+		else
+			throw new QuickBuildException("Do not know how to include " + r +" of type " + r.getClass() + " inside a WAR");
 	}
 
 	@Override
 	public String toString() {
 		return "Create WAR: " + warResource;
 	}
+	
+	@Override
+	public String identifier() {
+		return BuildOrder.tacticIdentifier(parent, "war");
+	}
 }
-
-/*
-
-META-INF/
-META-INF/MANIFEST.MF
-
-index.html
-
-images/
-images/DivingIn.jpg
-scripts/
-scripts/clientvalidation.js
-styles/
-styles/questions.css
-
-WEB-INF/
-WEB-INF/web.xml
-WEB-INF/applicationContext.xml
-WEB-INF/breckenridge-common.xml
-WEB-INF/breckenridge-hsqldb.xml
-WEB-INF/breckenridge-mysql.xml
-WEB-INF/breckenridge-servlet.xml
-WEB-INF/breckenridge-sqlServer.xml
-WEB-INF/breckenridge-sqlServer2005.xml
-WEB-INF/defaultHibernateConfigurator.xml
-
-WEB-INF/freemarker/
-WEB-INF/freemarker/ParticipantSetupPage.ftl
-WEB-INF/freemarker/components/
-WEB-INF/freemarker/macros/
-
-
-WEB-INF/lib/
-WEB-INF/lib/commons-io-1.4-sources.jar
-WEB-INF/classes/org/breckenridge/businesslogic/
-WEB-INF/classes/org/breckenridge/businesslogic/ActivitySurvey.class
-WEB-INF/classes/breckenridgeConfigurator_sicklebill.properties
-WEB-INF/classes/log4j.xml
-
-*/
