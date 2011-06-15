@@ -61,8 +61,30 @@ public class ListMap<K, V> implements Iterable<K> {
 		return ret;
 	}
 
+	public void removeAll(K key)
+	{
+		map.remove(key);
+	}
+	
+	public void remove(K k, V v)
+	{
+		if (!map.containsKey(k))
+			return;
+		List<V> list = map.get(k);
+		list.remove(v);
+	}
 	public Set<Entry<K, List<V>>> entrySet() {
 		return map.entrySet();
+	}
+
+	public void extract(Collection<V> ret, K k, int offset, int count) {
+		if (!map.containsKey(k))
+			return;
+		List<V> contents = map.get(k);
+		for (int i=offset;i<count && contents.size() > i;i++)
+		{
+			ret.add(contents.get(i));
+		}
 	}
 
 	public void take(Collection<V> ret, K k, int count) {

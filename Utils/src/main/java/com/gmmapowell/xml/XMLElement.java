@@ -1,5 +1,7 @@
 package com.gmmapowell.xml;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -13,6 +15,8 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
 import com.gmmapowell.exceptions.UtilException;
+import com.sun.org.apache.xml.internal.serialize.OutputFormat;
+import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 
 public class XMLElement {
 	private final XML inside;
@@ -166,6 +170,34 @@ public class XMLElement {
 	@Override
 	public String toString() {
 		return "Element " + elt.getTagName();
+	}
+
+	public String serialize() {
+		OutputFormat of = new OutputFormat();
+		StringWriter fos = new StringWriter();
+		XMLSerializer serializer = new XMLSerializer(fos, of);
+		try {
+			serializer.asDOMSerializer();
+			serializer.serialize(elt);
+		} catch (IOException e) {
+			throw UtilException.wrap(e);
+		}
+		return fos.toString();
+	}
+
+	public void serializeChildrenTo(StringBuilder sb) {
+		OutputFormat of = new OutputFormat();
+		of.setOmitXMLDeclaration(true);
+		StringWriter fos = new StringWriter();
+		XMLSerializer serializer = new XMLSerializer(fos, of);
+		try {
+			NodeList childNodes = elt.getChildNodes();
+			for (int i=0;i<childNodes.getLength();i++)
+				serializer.serialize(childNodes.item(i));
+		} catch (IOException e) {
+			throw UtilException.wrap(e);
+		}
+		sb.append(fos.toString());
 	}
 
 	public String text() {

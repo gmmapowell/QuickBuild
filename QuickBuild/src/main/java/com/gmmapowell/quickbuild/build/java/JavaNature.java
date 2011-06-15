@@ -96,6 +96,7 @@ public class JavaNature implements Nature, BuildContextAware {
 				addedDuplicates = true;
 			}
 		}
+		jar.close();
 		if (addedDuplicates)
 			showDuplicates();
 	}

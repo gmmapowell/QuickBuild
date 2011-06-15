@@ -38,9 +38,15 @@ public class ClassPathIterator implements Iterator<ClassPathResource> {
 			if (from.isFile())
 			{
 				GPJarFile jf = new GPJarFile(from);
-				entryIterator = Lambda.map(ClassPathResource.fromJar, Lambda.filter(GPJarEntry.nameMatches(glob), jf.iterator()));
-				if (entryIterator.hasNext())
-					return true;
+				try
+				{
+					entryIterator = Lambda.map(ClassPathResource.fromJar, Lambda.filter(GPJarEntry.nameMatches(glob), jf.iterator()));
+					if (entryIterator.hasNext())
+						return true;
+				}
+				finally {
+					jf.close();
+				}
 			}
 			else
 			{

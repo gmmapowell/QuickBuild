@@ -86,7 +86,8 @@ class CallbackTable {
 				if (m.getReturnType().equals(Object.class) && ptypes.length == 2 && ptypes[1].equals(XMLElement.class))
 					method2 = m;
 				
-				callbackTable.put(name, new MethodMetaInfo(method1, method2));
+				if (method1 != null || method2 != null)
+					callbackTable.put(name, new MethodMetaInfo(method1, method2));
 			}
 			clz = clz.getSuperclass();
 		}
@@ -94,6 +95,8 @@ class CallbackTable {
 
 	public Object invoke(Object callbacks, String which, Object cxt, XMLElement xe)
 	{
+		if (callbacks == null)
+			throw new UtilException("Cannot invoke " + which + " on a null object");
 		if (!callbackTable.containsKey(which))
 			throw new UtilException("The tag " + which + " is not valid for the handler " + callbacks);
 		try
@@ -101,6 +104,8 @@ class CallbackTable {
 			MethodMetaInfo minfo = callbackTable.get(which);
 			if (minfo.method2 != null)
 				return minfo.method2.invoke(callbacks, cxt, xe);
+			if (minfo.method1 == null)
+				throw new UtilException("There is no invocation method for " + which + " on " + callbacks);
 			return minfo.method1.invoke(callbacks, xe);
 		}
 		catch (Exception ex)

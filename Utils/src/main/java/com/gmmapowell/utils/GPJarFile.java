@@ -57,5 +57,15 @@ public class GPJarFile implements Iterable<GPJarEntry> {
 			throw UtilException.wrap(ex);
 		}
 	}
+	
+	public void close()
+	{
+		try {
+			if (jf != null)
+				jf.close();
+		} catch (IOException e) {
+			throw new GPJarException(e);
+		}
+	}
 
 }
