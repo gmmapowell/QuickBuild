@@ -20,7 +20,6 @@ public class IncludePackageCommand extends NoChildCommand implements ConfigApply
 
 	@Override
 	public void applyTo(Config config) {
-		// TODO Auto-generated method stub
 		
 	}
 	

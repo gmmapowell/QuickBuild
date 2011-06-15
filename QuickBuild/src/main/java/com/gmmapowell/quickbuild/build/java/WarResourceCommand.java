@@ -18,7 +18,6 @@ public class WarResourceCommand extends NoChildCommand implements ConfigApplyCom
 
 	@Override
 	public void applyTo(Config config) {
-		// TODO Auto-generated method stub
 		
 	}
 

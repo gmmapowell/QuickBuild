@@ -12,7 +12,6 @@ public class NoJUnitCommand extends NoChildCommand implements ConfigApplyCommand
 
 	@Override
 	public void applyTo(Config config) {
-		// TODO Auto-generated method stub
 		
 	}
 }

@@ -30,13 +30,11 @@ public class AndroidNature implements Nature {
 
 	@Override
 	public void done() {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void info(StringBuilder sb) {
-		// TODO Auto-generated method stub
 		
 	}
 }

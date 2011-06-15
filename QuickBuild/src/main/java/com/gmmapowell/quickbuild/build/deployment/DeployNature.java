@@ -18,7 +18,6 @@ public class DeployNature implements Nature {
 
 	@Override
 	public void resourceAvailable(BuildResource br) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -28,13 +27,11 @@ public class DeployNature implements Nature {
 
 	@Override
 	public void done() {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void info(StringBuilder sb) {
-		// TODO Auto-generated method stub
 		
 	}
 

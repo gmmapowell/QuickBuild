@@ -49,7 +49,6 @@ public class ProxyCommand extends SpecificChildrenParent<ConfigApplyCommand> imp
 
 	@Override
 	public void applyTo(Config config) {
-		// TODO Auto-generated method stub
 		
 	}
 

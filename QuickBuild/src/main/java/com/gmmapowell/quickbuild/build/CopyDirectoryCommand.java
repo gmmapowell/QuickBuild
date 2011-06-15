@@ -51,8 +51,6 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 
 	@Override
 	public void addChild(ConfigApplyCommand obj) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -116,7 +114,6 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 
 	@Override
 	public boolean onCascade() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 

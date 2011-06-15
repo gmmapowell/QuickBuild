@@ -134,7 +134,6 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 
 	@Override
 	public boolean onCascade() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 }

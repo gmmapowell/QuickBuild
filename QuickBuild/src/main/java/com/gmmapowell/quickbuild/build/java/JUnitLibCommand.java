@@ -18,7 +18,6 @@ public class JUnitLibCommand extends NoChildCommand implements ConfigApplyComman
 
 	@Override
 	public void applyTo(Config config) {
-		// TODO Auto-generated method stub
 		
 	}
 

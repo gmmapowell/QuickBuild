@@ -42,7 +42,6 @@ public class DeployCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 
 	@Override
 	public void addChild(ConfigApplyCommand obj) {
-		// TODO Auto-generated method stub
 		
 	}
 

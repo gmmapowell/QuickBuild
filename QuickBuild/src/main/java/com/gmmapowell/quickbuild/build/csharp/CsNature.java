@@ -35,7 +35,6 @@ public class CsNature implements Nature {
 
 	@Override
 	public void resourceAvailable(BuildResource br) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -45,13 +44,11 @@ public class CsNature implements Nature {
 
 	@Override
 	public void done() {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void info(StringBuilder sb) {
-		// TODO Auto-generated method stub
 		
 	}
 

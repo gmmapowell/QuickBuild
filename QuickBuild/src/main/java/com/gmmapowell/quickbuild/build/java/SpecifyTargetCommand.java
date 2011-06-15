@@ -17,7 +17,6 @@ public class SpecifyTargetCommand extends NoChildCommand implements ConfigApplyC
 
 	@Override
 	public void applyTo(Config config) {
-		// TODO Auto-generated method stub
 		
 	}
 

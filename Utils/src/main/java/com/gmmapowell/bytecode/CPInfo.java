@@ -153,7 +153,6 @@ public abstract class CPInfo {
 			{
 				return ((Utf8Info)super.pool[idx]).utf8.equals(obj);
 			}
-			// TODO Auto-generated method stub
 			return super.equals(obj);
 		}
 

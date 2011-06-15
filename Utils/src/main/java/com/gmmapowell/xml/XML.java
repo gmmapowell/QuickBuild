@@ -54,7 +54,6 @@ public class XML {
 			doc.appendChild(doc.createElement(tag));
 			top = new XMLElement(this, doc.getDocumentElement());
 		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
