@@ -84,10 +84,11 @@ public class QuickBuild {
 		System.out.print(conf);
 			
 		boolean buildAll = arguments.buildAll;
-		buildAll |= GitHelper.checkFiles(true, ofl, new File(conf.getCacheDir(), file.getName()));
+		boolean blankMemory = GitHelper.checkFiles(true, ofl, new File(conf.getCacheDir(), file.getName()));
+		buildAll |= blankMemory;
 		
 		// now we need to read back anything we've cached ...
-		BuildContext cxt = new BuildContext(conf, configFactory, buildAll, arguments.showArgsFor, arguments.showDebugFor);
+		BuildContext cxt = new BuildContext(conf, configFactory, blankMemory, buildAll, arguments.showArgsFor, arguments.showDebugFor);
 		cxt.configure();
 		System.out.println();
 

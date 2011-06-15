@@ -27,8 +27,11 @@ public class BuildContext {
 	private final List<Pattern> showDebugFor = new ArrayList<Pattern>();
 	private final ResourceManager rm;
 
-	public BuildContext(Config conf, ConfigFactory configFactory, boolean buildAll, List<String> showArgsFor, List<String> showDebugFor) {
+	private final boolean blankMemory;
+
+	public BuildContext(Config conf, ConfigFactory configFactory, boolean blankMemory, boolean buildAll, List<String> showArgsFor, List<String> showDebugFor) {
 		this.conf = conf;
+		this.blankMemory = blankMemory;
 		rm = new ResourceManager(conf);
 		buildOrder = new BuildOrder(this, buildAll);
 		manager = new DependencyManager(conf, rm, buildOrder);
@@ -64,6 +67,8 @@ public class BuildContext {
 		rm.configure(strats);
 		try
 		{
+			if (blankMemory)
+				throw new QuickBuildCacheException("Blanking memory because root files changed", null);
 			buildOrder.loadBuildOrderCache();
 			manager.loadDependencyCache();
 			buildOrder.attachStrats(strats);

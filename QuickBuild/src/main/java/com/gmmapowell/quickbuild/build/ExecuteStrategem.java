@@ -44,6 +44,8 @@ public class ExecuteStrategem extends BandElement {
 
 	@Override
 	public int size() {
+		if (strat == null)
+			return 0;
 		return strat.tactics().size();
 	}
 
@@ -102,6 +104,8 @@ public class ExecuteStrategem extends BandElement {
 	}
 
 	public OrderedFileList sourceFiles() {
+		if (strat == null)
+			return new OrderedFileList();
 		return strat.sourceFiles();
 	}
 

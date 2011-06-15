@@ -406,10 +406,15 @@ public class BuildOrder {
 	}
 
 	public void figureDirtyness(DependencyManager manager, ExecuteStrategem strat) {
+		if (strat == null || strat.getStrat() == null)
+			return;
 		OrderedFileList files = strat.sourceFiles();
-		boolean isDirty;
+		boolean isDirty = false;
 		if (buildAll)
+		{
 			System.out.println("Marking " + strat + " dirty due to --build-all");
+			isDirty = true;
+		}
 		if (files == null)
 		{
 			isDirty = true;
@@ -417,7 +422,7 @@ public class BuildOrder {
 		}
 		else
 		{
-			isDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, files, cxt.getGitCacheFile(strat.name(), ""));
+			isDirty |= GitHelper.checkFiles(strat.isClean() && !buildAll, files, cxt.getGitCacheFile(strat.name(), ""));
 			if (isDirty)
 				System.out.println("Marking " + strat + " dirty due to git hash-object");
 		}
