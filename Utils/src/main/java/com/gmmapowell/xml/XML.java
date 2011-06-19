@@ -93,6 +93,19 @@ public class XML {
 		return new XML(is);
 	}
 
+	public static XML fromContainer(String name) {
+		if (name.startsWith("resource:"))
+			return fromResource(name.replace("resource:", ""));
+		else if (name.startsWith("file:"))
+			return fromFile(new File(name.replace("file:", "")));
+		else
+			throw new UtilException("I cannot understand the container name: " + name);
+	}
+
+	public static XML fromStream(InputStream stream) {
+		return new XML(stream);
+	}
+
 	public XMLElement top() {
 		return top;
 	}

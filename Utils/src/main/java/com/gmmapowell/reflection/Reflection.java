@@ -44,6 +44,8 @@ public class Reflection {
 			f.setAccessible(true);
 			if (value instanceof Boolean)
 				f.setBoolean(target, (Boolean)value);
+			else if (f.getType().getName().equals("int"))
+				f.setInt(target, Integer.parseInt((String)value));
 			else if (value == null || f.getType().isAssignableFrom(value.getClass()))
 				f.set(target, value);
 			else if (value != null && Collection.class.isAssignableFrom(f.getType()))

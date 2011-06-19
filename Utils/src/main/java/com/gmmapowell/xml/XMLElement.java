@@ -13,7 +13,6 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
-
 import com.gmmapowell.exceptions.UtilException;
 import com.sun.org.apache.xml.internal.serialize.OutputFormat;
 import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
@@ -87,6 +86,10 @@ public class XMLElement {
 	
 	// Children functions
 	public List<XMLElement> elementChildren() {
+		return elementChildren(null);
+	}
+	
+	public List<XMLElement> elementChildren(String tagged) {
 		ArrayList<XMLElement> ret = new ArrayList<XMLElement>();
 		NodeList nl = elt.getChildNodes();
 		int len = nl.getLength();
@@ -94,12 +97,11 @@ public class XMLElement {
 		{
 			Node n = nl.item(i);
 			
-			if (n instanceof Element)
+			if (n instanceof Element && (tagged == null || ((Element)n).getTagName().equals(tagged)))
 				ret.add(new XMLElement(inside, (Element)n));
 		}
 		return ret;
 	}
-	
 
 	// The idea of this is to use introspection and reflection to figure out what the object wants,
 	// and then give it that in the most appropriate order.
@@ -200,6 +202,16 @@ public class XMLElement {
 		sb.append(fos.toString());
 	}
 
+	public void serializeAttribute(StringBuilder sb, String attr) {
+		Attr node = elt.getAttributeNode(attr);
+		sb.append(attr);
+		sb.append("=");
+		sb.append("'");
+		// TODO: this really needs escaping
+		sb.append(node.getNodeValue());
+		sb.append("'");
+	}
+
 	public String text() {
 		return elt.getTextContent();
 	}
@@ -228,5 +240,22 @@ public class XMLElement {
 
 	public void setAttribute(XMLNSAttr attr, String value) {
 		attr.applyTo(elt, value);
+	}
+
+	public XMLElement uniqueElement(String string) {
+		XMLElement ret = null;
+		for (XMLElement e : elementChildren())
+			if (e.hasTag(string))
+			{
+				if (ret == null)
+				{
+					ret = e;
+					continue;
+				}
+				throw new UtilException("There was more than one element tagged " + string);
+			}
+		if (ret != null)
+			return ret;
+		throw new UtilException("There was no element called " + string);
 	}
 }

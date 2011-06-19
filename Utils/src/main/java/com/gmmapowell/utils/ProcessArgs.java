@@ -26,6 +26,11 @@ public class ProcessArgs {
 					if (ad.text.equals(args[i]))
 					{
 						Reflection.setField(config, ad.toVar, true);
+						argcount.op(ad, 1, new FuncR1<Integer, Integer>() {
+							@Override
+							public Integer apply(Integer arg) {
+								return arg+1;
+							}});
 						continue loop;
 					}
 				int idx = args[i].indexOf("="); 
@@ -39,6 +44,11 @@ public class ProcessArgs {
 							for (String s : val.split(","))
 								if (s != null && s.length() > 0)
 									Reflection.setField(config, ad.toVar, s); // append to collection
+							argcount.op(ad, 1, new FuncR1<Integer, Integer>() {
+								@Override
+								public Integer apply(Integer arg) {
+									return arg+1;
+								}});
 							continue loop;
 						}
 				}
