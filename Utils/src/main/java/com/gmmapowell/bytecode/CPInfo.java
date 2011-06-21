@@ -41,6 +41,11 @@ public abstract class CPInfo {
 		}
 
 		@Override
+		public String asClean() {
+			return utf8;
+		}
+
+		@Override
 		public void writeEntry(DataOutputStream dos) throws IOException {
 			dos.write(ByteCodeFile.CONSTANT_UTF8);
 			dos.writeShort(utf8.length());
@@ -66,6 +71,11 @@ public abstract class CPInfo {
 		}
 
 		@Override
+		public String asClean() {
+			return Integer.toString(val);
+		}
+
+		@Override
 		public void writeEntry(DataOutputStream dos) throws IOException {
 			dos.write(ByteCodeFile.CONSTANT_Integer);
 			dos.writeInt(val);
@@ -82,6 +92,11 @@ public abstract class CPInfo {
 		@Override
 		public String toString() {
 			return "Float: " + val;
+		}
+
+		@Override
+		public String asClean() {
+			return Float.toString(val);
 		}
 
 		@Override
@@ -105,6 +120,11 @@ public abstract class CPInfo {
 		}
 
 		@Override
+		public String asClean() {
+			return Long.toString(val);
+		}
+
+		@Override
 		public void writeEntry(DataOutputStream dos) throws IOException {
 			dos.write(ByteCodeFile.CONSTANT_Long);
 			dos.writeInt((int)(val >> 32));
@@ -123,6 +143,11 @@ public abstract class CPInfo {
 		@Override
 		public String toString() {
 			return "Double: " + val;
+		}
+
+		@Override
+		public String asClean() {
+			return Double.toString(val);
 		}
 
 		@Override
@@ -162,12 +187,26 @@ public abstract class CPInfo {
 			dos.writeShort(idx);
 		}
 
+		@Override
+		public String asClean() {
+			return "Class["+justName()+"]";
+		}
+
+		public String justName() {
+			return ((Utf8Info)pool[idx]).asClean();
+		}
+
 	}
 
 	public static class StringInfo extends CPInfo {
 
 		public StringInfo(CPInfo[] pool, int idx) {
 			super(pool, idx);
+		}
+
+		@Override
+		public String asClean() {
+			return '"' + pool[idx].asClean() + '"';
 		}
 
 		@Override
@@ -192,6 +231,21 @@ public abstract class CPInfo {
 			this.tag = tag;
 		}
 
+		@Override
+		public String asClean() {
+			if (tag == 9)
+			{
+				NTInfo cpInfo = (NTInfo) pool[nt];
+				return pool[clz].asClean() + "." + pool[cpInfo.name].asClean(); 
+			}
+			else if (tag == 10 || tag == 11)
+			{
+				NTInfo cpInfo = (NTInfo) pool[nt];
+				return pool[clz].asClean() + "." + pool[cpInfo.name].asClean() + " " + pool[cpInfo.descriptor].asClean(); 
+			}
+			else
+				throw new UtilException("No");
+		}
 
 		@Override
 		public String toString() {
@@ -248,6 +302,11 @@ public abstract class CPInfo {
 		}
 
 		@Override
+		public String asClean() {
+			return toString();
+		}
+
+		@Override
 		public void writeEntry(DataOutputStream dos) throws IOException {
 			dos.write(ByteCodeFile.CONSTANT_NameAndType);
 			dos.writeShort(name);
@@ -273,4 +332,6 @@ public abstract class CPInfo {
 	}
 
 	public abstract void writeEntry(DataOutputStream dos) throws IOException;
+
+	public abstract String asClean();
 }

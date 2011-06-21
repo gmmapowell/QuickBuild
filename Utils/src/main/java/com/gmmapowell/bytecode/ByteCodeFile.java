@@ -267,7 +267,11 @@ public class ByteCodeFile {
 	void writeAttributes(DataOutputStream dos, List<AttributeInfo> attrs) throws IOException {
 		dos.writeShort(attrs.size());
 		for (AttributeInfo ai : attrs)
+		{
+			dos.writeShort(ai.nameIdx);
+			dos.writeInt(ai.getBytes().length);
 			dos.write(ai.getBytes());
+		}
 	}
 
 	private CPInfo readPoolEntry(DataInputStream dis) throws IOException {
@@ -496,5 +500,9 @@ public class ByteCodeFile {
 			}
 		}
 		return false;
+	}
+
+	public AttributeInfo newAttribute(String named, byte[] data) {
+		return new AttributeInfo(pool, requireUtf8(named), data);
 	}
 }

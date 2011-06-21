@@ -23,4 +23,9 @@ public class Instruction {
 	public String toString() {
 		return Integer.toHexString(bytes[0]&0xff);
 	}
+
+	public void setLocation(int offset, int count) {
+		bytes[offset] = (count>>8)&0xff;
+		bytes[offset+1] = (count)&0xff;
+	}
 }

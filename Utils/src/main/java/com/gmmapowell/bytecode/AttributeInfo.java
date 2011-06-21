@@ -4,7 +4,7 @@ import com.gmmapowell.bytecode.CPInfo.Utf8Info;
 
 public class AttributeInfo {
 	private final CPInfo[] pool;
-	private final int nameIdx;
+	final int nameIdx;
 	private final byte[] bytes;
 
 	public AttributeInfo(CPInfo[] pool, int nameIdx, byte[] bytes) {

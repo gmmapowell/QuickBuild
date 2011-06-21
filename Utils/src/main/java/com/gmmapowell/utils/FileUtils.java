@@ -227,6 +227,10 @@ public class FileUtils {
 		return findFiles(file, file, string, null, null);
 	}
 
+	public static List<File> findFilesUnderRelativeToMatching(File file, File relativeTo, String string) {
+		return findFiles(file, relativeTo, string, null, null);
+	}
+
 	private static List<File> findFiles(File file, File under, String string, Collection<File> includeOnlyDirs, Collection<File> excludeOnlyDirs) {
 		List<File> ret = new ArrayList<File>();
 		if (!file.exists())

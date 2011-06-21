@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
+import com.gmmapowell.bytecode.JavaInfo.Access;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.FileUtils;
 
@@ -67,6 +68,7 @@ public class ByteCodeCreator {
 	{
 		return createAnyMethod(false, returns, name);
 	}
+	
 	public String getSuperClass() {
 		return superclass;
 	}
@@ -76,8 +78,8 @@ public class ByteCodeCreator {
 		return "Creating " + qualifiedName;
 	}
 
-	public void field(boolean isFinal, String type, String var) {
-		bcf.addField(new FieldInfo(bcf, isFinal, type, var));
+	public void field(boolean isFinal, Access access, String type, String var) {
+		bcf.addField(new FieldInfo(bcf, isFinal, access, type, var));
 	}
 
 	public void makeInterface() {

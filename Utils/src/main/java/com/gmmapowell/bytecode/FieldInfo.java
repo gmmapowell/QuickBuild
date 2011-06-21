@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gmmapowell.exceptions.UtilException;
+
 public class FieldInfo extends JavaInfo {
 	private final ByteCodeFile bcf;
 	private int access_flags;
@@ -12,9 +14,25 @@ public class FieldInfo extends JavaInfo {
 	private short descriptor_idx;
 	final List<AttributeInfo> attributes = new ArrayList<AttributeInfo>();
 
-	public FieldInfo(ByteCodeFile bcf, boolean isFinal, String type, String var) {
+	public FieldInfo(ByteCodeFile bcf, boolean isFinal, Access access, String type, String var) {
 		this.bcf = bcf;
-		int flags = ByteCodeFile.ACC_PRIVATE;
+		int flags = 0;
+		switch (access)
+		{
+		case PRIVATE:
+			flags = ByteCodeFile.ACC_PRIVATE;
+			break;
+		case PROTECTED:
+			flags = ByteCodeFile.ACC_PROTECTED;
+			break;
+		case DEFAULT:
+			break;
+		case PUBLIC:
+			flags = ByteCodeFile.ACC_PUBLIC;
+			break;
+		default:
+			throw new UtilException("Invalid access");
+		}
 		if (isFinal)
 			flags |= ByteCodeFile.ACC_FINAL;
 		access_flags = flags;

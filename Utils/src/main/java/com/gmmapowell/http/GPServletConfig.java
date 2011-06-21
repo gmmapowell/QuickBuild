@@ -4,7 +4,6 @@ import java.util.Enumeration;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServlet;
 
 public class GPServletConfig implements ServletConfig {
 
@@ -24,7 +23,7 @@ public class GPServletConfig implements ServletConfig {
 	}
 
 	@Override
-	public Enumeration getInitParameterNames() {
+	public Enumeration<String> getInitParameterNames() {
 		return servletContext.getInitParameterNames();
 	}
 

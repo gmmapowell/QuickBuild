@@ -3,10 +3,7 @@ package com.gmmapowell.http;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.LineNumberReader;
-import java.io.Reader;
 import java.io.UnsupportedEncodingException;
-import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
@@ -15,7 +12,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -62,7 +58,7 @@ public class GPRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public Enumeration getAttributeNames() {
+	public Enumeration<String> getAttributeNames() {
 		throw new UtilException("Not implemented");
 	}
 
@@ -107,7 +103,7 @@ public class GPRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public Enumeration getLocales() {
+	public Enumeration<String> getLocales() {
 		throw new UtilException("Not implemented");
 	}
 
@@ -117,12 +113,12 @@ public class GPRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public Map getParameterMap() {
+	public Map<String, String> getParameterMap() {
 		throw new UtilException("Not implemented");
 	}
 
 	@Override
-	public Enumeration getParameterNames() {
+	public Enumeration<String> getParameterNames() {
 		throw new UtilException("Not implemented");
 	}
 
@@ -228,12 +224,12 @@ public class GPRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public Enumeration getHeaderNames() {
+	public Enumeration<String> getHeaderNames() {
 		return new IteratorEnumerator<String>(headers.iterator());
 	}
 
 	@Override
-	public Enumeration getHeaders(String s) {
+	public Enumeration<String> getHeaders(String s) {
 		return new IteratorEnumerator<String>(headers.get(s).iterator());
 	}
 

@@ -48,7 +48,7 @@ public class GPServletContext implements ServletContext {
 	}
 
 	@Override
-	public Enumeration getAttributeNames() {
+	public Enumeration<String> getAttributeNames() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -70,8 +70,8 @@ public class GPServletContext implements ServletContext {
 	}
 
 	@Override
-	public Enumeration getInitParameterNames() {
-		return new IteratorEnumerator(initParams.keySet().iterator());
+	public Enumeration<String> getInitParameterNames() {
+		return new IteratorEnumerator<String>(initParams.keySet().iterator());
 	}
 
 	@Override
@@ -129,7 +129,7 @@ public class GPServletContext implements ServletContext {
 	}
 
 	@Override
-	public Set getResourcePaths(String arg0) {
+	public Set<String> getResourcePaths(String arg0) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -153,13 +153,13 @@ public class GPServletContext implements ServletContext {
 	}
 
 	@Override
-	public Enumeration getServletNames() {
+	public Enumeration<String> getServletNames() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Enumeration getServlets() {
+	public Enumeration<String> getServlets() {
 		// TODO Auto-generated method stub
 		return null;
 	}

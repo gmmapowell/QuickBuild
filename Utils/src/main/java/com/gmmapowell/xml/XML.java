@@ -27,6 +27,18 @@ public class XML {
 	private XMLElement top;
 	private final String version;
 
+	XML(String version)
+	{
+		this.version = version;
+		try {
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			doc = db.newDocument();
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		}
+	}
+
 	private XML(InputStream stream) {
 		try
 		{
@@ -110,6 +122,7 @@ public class XML {
 		return top;
 	}
 
+	
 	public static XML create(String version, String tag) {
 		return new XML(version, tag);
 	}
@@ -163,7 +176,7 @@ public class XML {
 	}
 
 	public XMLNamespace namespace(String ns, String url) {
-		top.elt.setAttribute("xmlns:"+ns, url);
+		top.setAttribute("xmlns:"+ns, url);
 		return new XMLNamespace(ns, url);
 	}
 }

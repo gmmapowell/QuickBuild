@@ -26,6 +26,7 @@ public class MethodCreator extends MethodInfo {
 	};
 	private final ByteCodeCreator byteCodeCreator;
 	private final String name;
+	private List<String> exceptions = new ArrayList<String>();
 
 	public MethodCreator(ByteCodeCreator byteCodeCreator, ByteCodeFile bcf, boolean isStatic, String returnType, String name) {
 		super(bcf);
@@ -35,8 +36,28 @@ public class MethodCreator extends MethodInfo {
 		nameIdx = bcf.requireUtf8(name);
 		if (!isStatic)
 		{
-			locals++;
+			locals = 1;
 		}
+	}
+
+	public void setAccess(Access a)
+	{
+		if (a == Access.PUBLIC)
+			access_flags = ByteCodeFile.ACC_PUBLIC;
+		else if (a == Access.PRIVATE)
+			access_flags = ByteCodeFile.ACC_PRIVATE;
+		else if (a == Access.PROTECTED)
+			access_flags = ByteCodeFile.ACC_PROTECTED;
+		else
+			throw new UtilException("Huh?");
+	}
+	
+	public void addAttribute(String named, String text) {
+		short ptr = bcf.requireUtf8(text);
+		byte[] data = new byte[2];
+		data[0] = (byte)(ptr>>8);
+		data[1] = (byte)(ptr&0xff);
+		attributes.add(bcf.newAttribute(named, data));
 	}
 
 	public void lenientMode(boolean mode)
@@ -51,10 +72,29 @@ public class MethodCreator extends MethodInfo {
 		arguments.add(map(type));
 		return ret;
 	}
-	
+
+	public void throwsException(String exception) {
+		exceptions.add(exception);
+	}
+
 	public void complete() {
 		if (access_flags == -1)
 			access_flags = ByteCodeFile.ACC_PUBLIC;
+		if (exceptions.size() != 0)
+		{
+			try {
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				DataOutputStream dos = new DataOutputStream(baos);
+				dos.writeShort(exceptions.size());
+				for (String s : exceptions)
+					dos.writeShort(bcf.requireClass(s));
+				attributes.add(bcf.newAttribute("Exceptions", baos.toByteArray()));
+			}
+			catch (Exception ex)
+			{
+				throw UtilException.wrap(ex);
+			}
+		}
 		if (instructions.size() == 0)
 			access_flags |= ByteCodeFile.ACC_ABSTRACT;
 		else
@@ -68,7 +108,6 @@ public class MethodCreator extends MethodInfo {
 			}
 			if (instructions.size() > 0)
 			{
-				int hdrlen = 2 + 2 + 4 /* + len */ + 2 /* + exc */ + 2 /* + attrs */;
 				int len = 0;
 				for (Instruction i : instructions)
 					len += i.length();
@@ -76,9 +115,6 @@ public class MethodCreator extends MethodInfo {
 				{
 					ByteArrayOutputStream baos = new ByteArrayOutputStream();
 					DataOutputStream dos = new DataOutputStream(baos);
-					short idx = bcf.requireUtf8("Code");
-					dos.writeShort(idx);
-					dos.writeInt(hdrlen + len);
 					dos.writeShort(maxStack);
 					dos.writeShort(locals);
 					dos.writeInt(len);
@@ -86,7 +122,7 @@ public class MethodCreator extends MethodInfo {
 						i.write(dos);
 					dos.writeShort(0); // exceptions
 					dos.writeShort(0); // code attributes
-					attributes.add(new AttributeInfo(bcf.pool, idx, baos.toByteArray()));
+					attributes.add(bcf.newAttribute("Code", baos.toByteArray()));
 				}
 				catch (Exception ex)
 				{
@@ -101,7 +137,7 @@ public class MethodCreator extends MethodInfo {
 		return signature(returnType, arguments);
 	}
 
-	private String signature(String ret, Iterable<String> args) {
+	public static String signature(String ret, Iterable<String> args) {
 		StringBuilder sb = new StringBuilder("(");
 		for (String s : args)
 			sb.append(s);
@@ -176,7 +212,19 @@ public class MethodCreator extends MethodInfo {
 		add(0, new Instruction(0xb4, hi(idx), lo(idx)));
 	}
 
-	public void invokeOtherConstructor(String clz,	String[] args) {
+	public Marker ifeq() {
+		Marker ret = new Marker(instructions, 1);
+		add(-1, new Instruction(0x99, 00, 00));
+		return ret;
+	}
+	
+	public Marker ifnull() {
+		Marker ret = new Marker(instructions, 1);
+		add(-1, new Instruction(0xc6, 00, 00));
+		return ret;
+	}
+
+	public void invokeOtherConstructor(String clz,	String... args) {
 		invoke(0xb7, clz, "void", "<init>", args);
 	}
 	
@@ -192,20 +240,36 @@ public class MethodCreator extends MethodInfo {
 		invoke(0xb7, byteCodeCreator.getSuperClass(), typeReturn, method, args);
 	}
 
-	private void invoke(int opcode, String clz, String ret, String meth, String... args) {
+	private int invokeIdx(String clz, String ret, String meth, String... args) {
 		int clzIdx = bcf.requireClass(clz);
 		int methIdx = bcf.requireUtf8(meth);
 		int sigIdx = bcf.requireUtf8(signature(map(ret), Lambda.map(mapType, CollectionUtils.listOf(args))));
 		int ntIdx = bcf.requireNT(methIdx, sigIdx);
 		int idx = bcf.requireRef(ByteCodeFile.CONSTANT_Methodref, clzIdx, ntIdx);
+		return idx;
+	}
+	
+	private void addInvoke(Instruction instruction, String ret, String... args) {
 		int pop = args.length;
 		if (ret.equals("void"))
 			++pop;
-		add(-pop, new Instruction(opcode, hi(idx), lo(idx)));
+		add(-pop, instruction);
+	}
+	
+	private void invoke(int opcode, String clz, String ret, String meth, String... args) {
+		int idx = invokeIdx(clz, ret, meth, args);
+		addInvoke(new Instruction(opcode, hi(idx), lo(idx)), ret, args);
 	}
 
 	public void invokeVirtualMethod(String clz, String ret, String method, String... args) {
 		invoke(0xb6, clz, ret, method, args);
+	}
+
+	public void invokeInterface(String clz, String ret, String method, String... args) {
+		int idx = invokeIdx(clz, ret, method, args);
+		int count = args.length+1;
+		// TODO: double and long values should add to count
+		addInvoke(new Instruction(0xb9, hi(idx), lo(idx), count, 0), ret, args);
 	}
 
 	public void ldcClass(String clz)
@@ -220,6 +284,10 @@ public class MethodCreator extends MethodInfo {
 	public void newObject(String clz) {
 		int idx = bcf.requireClass(clz);
 		add(1, new Instruction(0xbb, idx>>8,idx&0xff));
+	}
+
+	public void pop() {
+		add(-1, new Instruction(0x57));
 	}
 
 	public void putField(String clz, String type, String var) {

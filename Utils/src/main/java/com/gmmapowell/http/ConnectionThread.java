@@ -2,8 +2,6 @@ package com.gmmapowell.http;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 

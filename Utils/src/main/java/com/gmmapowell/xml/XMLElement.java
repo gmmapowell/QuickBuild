@@ -1,6 +1,9 @@
 package com.gmmapowell.xml;
 
+import java.io.Externalizable;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -17,9 +20,9 @@ import com.gmmapowell.exceptions.UtilException;
 import com.sun.org.apache.xml.internal.serialize.OutputFormat;
 import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 
-public class XMLElement {
+public class XMLElement implements Externalizable {
 	private final XML inside;
-	final Element elt;
+	private Element elt;
 	private final HashSet<String> attrsProcessed = new HashSet<String>();
 
 	XMLElement(XML inside, Element elt) {
@@ -257,5 +260,21 @@ public class XMLElement {
 		if (ret != null)
 			return ret;
 		throw new UtilException("There was no element called " + string);
+	}
+
+	public XMLElement()
+	{
+		inside = new XML("1.0");
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeObject(elt);
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException,
+			ClassNotFoundException {
+		elt = (Element) in.readObject();
 	}
 }
