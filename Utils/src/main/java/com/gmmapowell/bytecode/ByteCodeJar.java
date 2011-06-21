@@ -17,7 +17,7 @@ public class ByteCodeJar {
 	}
 
 	public ByteCodeCreator newEntry(String string) {
-		System.out.println("Creating new class " + string);
+//		System.out.println("Creating new class " + string);
 		ByteCodeCreator ret = new ByteCodeCreator(string);
 		files.add(ret);
 		return ret;

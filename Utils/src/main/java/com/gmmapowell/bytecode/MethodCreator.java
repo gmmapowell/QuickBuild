@@ -193,6 +193,10 @@ public class MethodCreator extends MethodInfo {
 			locals = i+1;
 	}
 	
+	public void athrow() {
+		add(-1, new Instruction(0xbf));
+	}
+	
 	public void checkCast(String clz)
 	{
 		int idx = bcf.requireClass(clz);
