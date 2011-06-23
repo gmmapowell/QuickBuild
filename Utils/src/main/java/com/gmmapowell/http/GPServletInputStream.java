@@ -22,7 +22,7 @@ public class GPServletInputStream extends ServletInputStream {
 			return -1;
 		int b = reader.read();
 		cnt ++; 
-		InlineServer.logger.info("read = " + (char)b + " cnt = " + cnt);
+//		InlineServer.logger.info("read = " + (char)b + " cnt = " + cnt);
 		return b;
 	}
 

@@ -27,9 +27,11 @@ public class GPRequest implements HttpServletRequest {
 	private final URI uri;
 	private final ListMap<String, String> headers = new ListMap<String, String>();
 	private final GPServletContext context;
+	private GPResponse response;
 	private final String rawUri;
 	private final InputStream is;
 	private GPServletInputStream servletInputStream;
+	private GPHttpSession session;
 
 	public GPRequest(GPServletContext context, String s, InputStream is) throws URISyntaxException {
 		this.context = context;
@@ -235,6 +237,8 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public int getIntHeader(String arg0) {
+		if (!headers.contains(arg0))
+			return 0;
 		return Integer.parseInt(headers.get(arg0).get(0));
 	}
 
@@ -290,7 +294,14 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public HttpSession getSession(boolean createIfNeeded) {
-		throw new UtilException("Not implemented");
+		if (session != null)
+			return session;
+		if (!createIfNeeded)
+			return null;
+		GPHttpSession ret = context.newSession();
+		// SHould use addCookie really, but I can't be bothered ...
+		response.addHeader("Set-Cookie", "JSESSIONID="+ret.cookie+"; Path=" + context.getContextPath());
+		return ret;
 	}
 
 	@Override
@@ -321,5 +332,9 @@ public class GPRequest implements HttpServletRequest {
 	@Override
 	public boolean isUserInRole(String arg0) {
 		throw new UtilException("Not implemented");
+	}
+
+	public void setResponse(GPResponse response) {
+		this.response = response;
 	}
 }

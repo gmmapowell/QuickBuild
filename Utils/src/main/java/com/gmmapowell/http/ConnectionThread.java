@@ -53,6 +53,8 @@ INFO: Header - Content-Length: 59
 			reply("Content-Length: 0");
 			reply("Date: Sat, 18 Jun 2011 21:52:27 GMT");
 			reply("Connection: close");
+			for (String r : response.sendHeaders())
+				reply(r);
 			reply("");
 			os.flush();
 			os.close();

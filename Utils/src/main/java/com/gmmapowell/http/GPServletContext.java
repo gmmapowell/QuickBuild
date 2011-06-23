@@ -9,12 +9,14 @@ import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpSession;
 
 import com.gmmapowell.collections.IteratorEnumerator;
 import com.gmmapowell.utils.FileUtils;
@@ -23,6 +25,8 @@ public class GPServletContext implements ServletContext {
 	private Map<String, String> initParams = new HashMap<String, String>();
 	private String contextPath;
 	String servletPath;
+	private Random rand = new Random();
+	private Map<String, GPHttpSession> sessions = new HashMap<String, GPHttpSession>();
 	
 	public GPServletContext(GPServletConfig config) {
 	}
@@ -192,5 +196,16 @@ public class GPServletContext implements ServletContext {
 	public void setAttribute(String arg0, Object arg1) {
 		// TODO Auto-generated method stub
 
+	}
+
+	public GPHttpSession newSession() {
+		String cookie = Long.toHexString(rand.nextLong());
+		GPHttpSession s = new GPHttpSession(this, cookie);
+		sessions.put(cookie, s);
+		return s;
+	}
+
+	public void deleteSession(GPHttpSession gpHttpSession) {
+		
 	}
 }

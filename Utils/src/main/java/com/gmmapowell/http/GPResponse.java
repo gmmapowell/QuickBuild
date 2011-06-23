@@ -2,20 +2,25 @@ package com.gmmapowell.http;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
+import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
 
 public class GPResponse implements HttpServletResponse {
 
 	private int status;
 	private String statusMsg;
+	private ListMap<String, String> headers = new ListMap<String, String>();
 
 	public GPResponse(GPRequest request) {
+		request.setResponse(this);
 	}
 
 	public String status() {
@@ -133,9 +138,7 @@ public class GPResponse implements HttpServletResponse {
 
 	@Override
 	public void addHeader(String arg0, String arg1) {
-		// TODO Auto-generated method stub
-
-		throw new UtilException("Not Implemented");
+		headers.add(arg0, arg1);
 	}
 
 	@Override
@@ -217,16 +220,44 @@ public class GPResponse implements HttpServletResponse {
 
 	@Override
 	public void setStatus(int arg0) {
-		// TODO Auto-generated method stub
-
-		throw new UtilException("Not Implemented");
+		status = arg0;
 	}
 
 	@Override
 	public void setStatus(int arg0, String arg1) {
-		// TODO Auto-generated method stub
+		status = arg0;
+		statusMsg = arg1;
+	}
 
-		throw new UtilException("Not Implemented");
+	public List<String> sendHeaders() {
+		List<String> ret = new ArrayList<String>();
+		for (String s : headers.keySet()) {
+			if (s.equals("Set-Cookie"))
+			{
+				for (String v : headers.get(s))
+				{
+					StringBuilder buf = new StringBuilder();
+					buf.append(s);
+					buf.append(": ");
+					buf.append(v);
+					ret.add(buf.toString());
+				}
+			}
+			else
+			{
+				StringBuilder buf = new StringBuilder();
+				buf.append(s);
+				String sep = ": ";
+				for (String v : headers.get(s))
+				{
+					buf.append(sep);
+					buf.append(v);
+					sep = ", ";
+				}
+				ret.add(buf.toString());
+			}
+		}
+		return ret;
 	}
 
 }
