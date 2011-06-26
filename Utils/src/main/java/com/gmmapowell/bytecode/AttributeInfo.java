@@ -13,6 +13,12 @@ public class AttributeInfo {
 		this.bytes = bytes;
 	}
 
+	public AttributeInfo(ByteCodeFile bcf, String attrClass, byte[] bytes) {
+		pool = bcf.pool;
+		nameIdx = bcf.requireUtf8(attrClass);
+		this.bytes = bytes;
+	}
+
 	public byte[] getBytes() {
 		return bytes;
 	}

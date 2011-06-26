@@ -2,10 +2,12 @@ package com.gmmapowell.bytecode;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.gmmapowell.collections.CollectionUtils;
+import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.lambda.FuncR1;
 import com.gmmapowell.lambda.Lambda;
@@ -27,6 +29,7 @@ public class MethodCreator extends MethodInfo {
 	private final ByteCodeCreator byteCodeCreator;
 	private final String name;
 	private List<String> exceptions = new ArrayList<String>();
+	private final ListMap<AnnotationType, Annotation> annotations = new ListMap<AnnotationType, Annotation>();
 
 	public MethodCreator(ByteCodeCreator byteCodeCreator, ByteCodeFile bcf, boolean isStatic, String returnType, String name) {
 		super(bcf);
@@ -77,9 +80,15 @@ public class MethodCreator extends MethodInfo {
 		exceptions.add(exception);
 	}
 
-	public void complete() {
+	public void complete() throws IOException {
 		if (access_flags == -1)
 			access_flags = ByteCodeFile.ACC_PUBLIC;
+		
+		for (AnnotationType at : annotations)
+		{
+			at.addTo(bcf, attributes, annotations.get(at), arguments.size());
+		}
+
 		if (exceptions.size() != 0)
 		{
 			try {
@@ -305,5 +314,17 @@ public class MethodCreator extends MethodInfo {
 
 	public void returnVoid() {
 		add(0, new Instruction(0xb1));
+	}
+
+	public Annotation addRTVAnnotation(String attrClass) {
+		Annotation ret = new Annotation(bcf, attrClass);
+		annotations.add(AnnotationType.RuntimeVisibleAnnotations, ret);
+		return ret;
+	}
+
+	public Annotation addRTVPAnnotation(String attrClass, int param) {
+		Annotation ret = new Annotation(bcf, attrClass, param);
+		annotations.add(AnnotationType.RuntimeVisibleParameterAnnotations, ret);
+		return ret;
 	}
 }

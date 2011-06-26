@@ -410,8 +410,47 @@ public class ByteCodeInspector extends ByteCodeFile {
 				readBytes(dis, data);
 				for (int j=2;j<data.length;j+=2)
 				{
-					int ex = data[j]<<8 | data[j+1];
+					int ex = getDataShort(data, j);
 					hexdump.print("throws exception " + pool[ex].asClean());
+				}
+			}
+			else if (attr.equals("RuntimeVisibleAnnotations")) {
+				int acnt = dis.readUnsignedShort();
+				hexdump.print("Has " + acnt + " annotations");
+				for (int rva = 0;rva<acnt;rva++)
+				{
+					int a = dis.readUnsignedShort();
+					hexdump.print("@" + pool[a].asClean());
+					int nvp = dis.readUnsignedShort();
+					hexdump.print(nvp + " arguments");
+					for (int rvp=0;rvp<nvp;rvp++)
+					{
+						int n = dis.readUnsignedShort();
+						hexdump.append("  " + pool[n].asClean() + "=");
+						readElementValue(dis);
+					}
+				}
+			}
+			else if (attr.equals("RuntimeVisibleParameterAnnotations")) {
+				int nparams = dis.readUnsignedByte();
+				hexdump.print("Method has " + nparams + " parameters");
+				for (int np = 0;np<nparams;np++)
+				{
+					int acnt = dis.readUnsignedShort();
+					hexdump.print("Parameter " + np + " has " + acnt + " annotations");
+					for (int rva = 0;rva<acnt;rva++)
+					{
+						int a = dis.readUnsignedShort();
+						hexdump.print("@" + pool[a].asClean());
+						int nvp = dis.readUnsignedShort();
+						hexdump.print(nvp + " arguments");
+						for (int rvp=0;rvp<nvp;rvp++)
+						{
+							int n = dis.readUnsignedShort();
+							hexdump.append("  " + pool[n].asClean() + "=");
+							readElementValue(dis);
+						}
+					}
 				}
 			}
 			else
@@ -426,6 +465,35 @@ public class ByteCodeInspector extends ByteCodeFile {
 		}		
 	}
 
+	private void readElementValue(DataInputStream dis) throws IOException {
+		char tag = (char) dis.readUnsignedByte();
+		switch (tag) {
+		case 's': // utf8
+		{
+			int offset = dis.readUnsignedShort();
+			hexdump.print('"' + pool[offset].asClean() + '"');
+			break;
+		}
+		case '[': // array
+		{
+			int arrSize = dis.readUnsignedShort();
+			hexdump.print("[");
+			for (int ai = 0;ai<arrSize;ai++)
+				readElementValue(dis);
+			hexdump.print("]");
+			break;
+		}
+		default:
+			throw new UtilException("The attribute value tag " + tag + " is not supported");
+		}
+	}
+
+	private int getDataShort(byte[] data, int j) {
+		int msb = ((int)data[j])&0xff;
+		int lsb = ((int)data[j+1])&0xff;
+		return msb << 8 | lsb;
+	}
+
 	private int disassemble(DataInputStream dis, int offset) throws IOException {
 		int opcode = dis.readUnsignedByte();
 		switch (opcode)
@@ -435,9 +503,9 @@ public class ByteCodeInspector extends ByteCodeFile {
 			hexdump.print("aconst_null");
 			return 1;
 		}
-		case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
+		case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07: case 0x08:
 		{
-			hexdump.print("aconst_" + (opcode-0x03));
+			hexdump.print("iconst_" + (opcode-0x03));
 			return 1;
 		}
 		case 0x10:

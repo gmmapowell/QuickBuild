@@ -20,6 +20,7 @@ import com.gmmapowell.bytecode.CPInfo.NTInfo;
 import com.gmmapowell.bytecode.CPInfo.RefInfo;
 import com.gmmapowell.bytecode.CPInfo.StringInfo;
 import com.gmmapowell.bytecode.CPInfo.Utf8Info;
+import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.FileUtils;
 
@@ -61,6 +62,7 @@ public class ByteCodeFile {
 	private List<MethodInfo> methods = new ArrayList<MethodInfo>();
 	private List<AttributeInfo> attributes = new ArrayList<AttributeInfo>();
 	private final String qualifiedName;
+	private ListMap<AnnotationType, Annotation> annotations = new ListMap<AnnotationType, Annotation>();
 	
 	public ByteCodeFile(File from, String qualifiedName)
 	{
@@ -137,6 +139,7 @@ public class ByteCodeFile {
 
 		for (MethodInfo mi : methods)
 			((MethodCreator)mi).complete();
+		complete();
 		
 		dos.writeInt(javaMagic);
 		dos.writeShort(0);
@@ -149,6 +152,14 @@ public class ByteCodeFile {
 		writeFields(dos);
 		writeMethods(dos);
 		writeAttributes(dos, attributes);
+	}
+
+	private void complete() throws IOException {
+		for (AnnotationType at : annotations)
+		{
+			at.addTo(this, attributes, annotations.get(at), -1);
+		}
+		
 	}
 
 	private void readConstantPool(DataInputStream dis) throws IOException {
@@ -504,5 +515,10 @@ public class ByteCodeFile {
 
 	public AttributeInfo newAttribute(String named, byte[] data) {
 		return new AttributeInfo(pool, requireUtf8(named), data);
+	}
+
+	public Annotation addClassAnnotation(AnnotationType type, Annotation annotation) {
+		annotations.add(type, annotation);
+		return annotation;
 	}
 }

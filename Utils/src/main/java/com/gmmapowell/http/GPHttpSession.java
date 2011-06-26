@@ -9,7 +9,6 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionContext;
 
 import com.gmmapowell.exceptions.UtilException;
-import com.sun.tools.javac.util.Context;
 
 @SuppressWarnings("deprecation")
 public class GPHttpSession implements HttpSession {
@@ -31,7 +30,7 @@ public class GPHttpSession implements HttpSession {
 	}
 
 	@Override
-	public Enumeration getAttributeNames() {
+	public Enumeration<String> getAttributeNames() {
 		throw new UtilException("Not Implemented");
 	}
 

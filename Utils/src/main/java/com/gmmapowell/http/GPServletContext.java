@@ -16,8 +16,6 @@ import javax.servlet.RequestDispatcher;
 import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpSession;
-
 import com.gmmapowell.collections.IteratorEnumerator;
 import com.gmmapowell.utils.FileUtils;
 
