@@ -4,11 +4,19 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public enum AnnotationType {
 	RuntimeVisibleAnnotations, RuntimeInvisibleAnnotations, RuntimeVisibleParameterAnnotations;
 
+	public static final Comparator<AnnotationType> sortOrder = new Comparator<AnnotationType>() {
+		@Override
+		public int compare(AnnotationType o1, AnnotationType o2) {
+			return o1.toString().compareTo(o2.toString());
+		}
+	}; 
+	
 	public boolean isPerParameter() {
 		return this == RuntimeVisibleParameterAnnotations;
 	}

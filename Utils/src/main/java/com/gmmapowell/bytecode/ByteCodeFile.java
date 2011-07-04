@@ -129,6 +129,10 @@ public class ByteCodeFile {
 		access_flags = ACC_PUBLIC | ACC_INTERFACE | ACC_ABSTRACT;
 	}
 
+	public void makeAbstract() {
+		access_flags = ACC_PUBLIC | ACC_ABSTRACT;
+	}
+
 	public void write(DataOutputStream dos) throws IOException {
 		if (access_flags == -1)
 			access_flags = ACC_SUPER | ACC_PUBLIC;

@@ -82,6 +82,10 @@ public class ByteCodeCreator {
 		bcf.addField(new FieldInfo(bcf, isFinal, access, type, var));
 	}
 
+	public void makeAbstract() {
+		bcf.makeAbstract();
+	}
+
 	public void makeInterface() {
 		bcf.makeInterface();
 	}

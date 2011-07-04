@@ -2,6 +2,7 @@ package com.gmmapowell.collections;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -9,12 +10,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 import com.gmmapowell.exceptions.UtilException;
 
 public class ListMap<K, V> implements Iterable<K> {
-	private Map<K, List<V>> map = new HashMap<K, List<V>>();
+	private final Map<K, List<V>> map;
 	
+	public ListMap() {
+		 map = new HashMap<K, List<V>>();
+	}
+	
+	public ListMap(Comparator<K> order) {
+		map = new TreeMap<K, List<V>>(order);
+	}
+
 	public void add(K k, V v)
 	{
 		if (!map.containsKey(k))

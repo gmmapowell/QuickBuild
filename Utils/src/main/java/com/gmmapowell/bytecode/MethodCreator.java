@@ -29,7 +29,7 @@ public class MethodCreator extends MethodInfo {
 	private final ByteCodeCreator byteCodeCreator;
 	private final String name;
 	private List<String> exceptions = new ArrayList<String>();
-	private final ListMap<AnnotationType, Annotation> annotations = new ListMap<AnnotationType, Annotation>();
+	private final ListMap<AnnotationType, Annotation> annotations = new ListMap<AnnotationType, Annotation>(AnnotationType.sortOrder);
 
 	public MethodCreator(ByteCodeCreator byteCodeCreator, ByteCodeFile bcf, boolean isStatic, String returnType, String name) {
 		super(bcf);
@@ -74,6 +74,10 @@ public class MethodCreator extends MethodInfo {
 		int ret = locals++;
 		arguments.add(map(type));
 		return ret;
+	}
+
+	public int argCount() {
+		return arguments.size();
 	}
 
 	public void throwsException(String exception) {
