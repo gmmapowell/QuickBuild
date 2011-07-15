@@ -8,7 +8,7 @@ import java.util.jar.JarOutputStream;
 
 import com.gmmapowell.exceptions.UtilException;
 
-public class ByteCodeJar {
+public class ByteCodeJar implements ByteCodeHolder {
 
 	private List<ByteCodeCreator> files = new ArrayList<ByteCodeCreator>();
 

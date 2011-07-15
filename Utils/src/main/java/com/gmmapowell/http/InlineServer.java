@@ -37,6 +37,10 @@ public class InlineServer {
 	}
 
 	public void run() {
+		run(true);
+	}
+
+	public void run(boolean doLoop) {
 		try
 		{
 			ServerSocket s = new ServerSocket(port);
@@ -44,7 +48,7 @@ public class InlineServer {
 			Class<?> forName = Class.forName(servletClass);
 			servletImpl = (HttpServlet) forName.newInstance();
 			servletImpl.init(config);
-			while (true)
+			while (doLoop)
 			{
 				Socket conn = s.accept();
 				logger.info("Accepting connection request and dispatching to thread");

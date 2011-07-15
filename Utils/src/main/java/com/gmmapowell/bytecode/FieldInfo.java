@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
 
 public class FieldInfo extends JavaInfo {
@@ -13,6 +14,7 @@ public class FieldInfo extends JavaInfo {
 	private short name_idx;
 	private short descriptor_idx;
 	final List<AttributeInfo> attributes = new ArrayList<AttributeInfo>();
+	private final ListMap<AnnotationType, Annotation> annotations = new ListMap<AnnotationType, Annotation>(AnnotationType.sortOrder);
 
 	public FieldInfo(ByteCodeFile bcf, boolean isFinal, Access access, String type, String var) {
 		this.bcf = bcf;
@@ -49,6 +51,19 @@ public class FieldInfo extends JavaInfo {
 		dos.writeShort(name_idx);
 		dos.writeShort(descriptor_idx);
 		bcf.writeAttributes(dos, attributes);
+	}
+
+	public void complete() throws IOException {
+		for (AnnotationType at : annotations)
+		{
+			at.addTo(bcf, attributes, annotations.get(at), -1);
+		}
+	}
+
+	public Annotation addRTVAnnotation(String attrClass) {
+		Annotation ret = new Annotation(bcf, attrClass);
+		annotations.add(AnnotationType.RuntimeVisibleAnnotations, ret);
+		return ret;
 	}
 
 }

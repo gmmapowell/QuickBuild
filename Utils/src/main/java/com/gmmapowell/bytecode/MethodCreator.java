@@ -257,12 +257,12 @@ public class MethodCreator extends MethodInfo {
 		invoke(0xb7, byteCodeCreator.getSuperClass(), typeReturn, method, args);
 	}
 
-	private int invokeIdx(String clz, String ret, String meth, String... args) {
+	private int invokeIdx(String clz, String ret, String meth, byte refType, String... args) {
 		int clzIdx = bcf.requireClass(clz);
 		int methIdx = bcf.requireUtf8(meth);
 		int sigIdx = bcf.requireUtf8(signature(map(ret), Lambda.map(mapType, CollectionUtils.listOf(args))));
 		int ntIdx = bcf.requireNT(methIdx, sigIdx);
-		int idx = bcf.requireRef(ByteCodeFile.CONSTANT_Methodref, clzIdx, ntIdx);
+		int idx = bcf.requireRef(refType, clzIdx, ntIdx);
 		return idx;
 	}
 	
@@ -274,7 +274,7 @@ public class MethodCreator extends MethodInfo {
 	}
 	
 	private void invoke(int opcode, String clz, String ret, String meth, String... args) {
-		int idx = invokeIdx(clz, ret, meth, args);
+		int idx = invokeIdx(clz, ret, meth, ByteCodeFile.CONSTANT_Methodref, args);
 		addInvoke(new Instruction(opcode, hi(idx), lo(idx)), ret, args);
 	}
 
@@ -283,7 +283,7 @@ public class MethodCreator extends MethodInfo {
 	}
 
 	public void invokeInterface(String clz, String ret, String method, String... args) {
-		int idx = invokeIdx(clz, ret, method, args);
+		int idx = invokeIdx(clz, ret, method, ByteCodeFile.CONSTANT_Interfaceref, args);
 		int count = args.length+1;
 		// TODO: double and long values should add to count
 		addInvoke(new Instruction(0xb9, hi(idx), lo(idx), count, 0), ret, args);

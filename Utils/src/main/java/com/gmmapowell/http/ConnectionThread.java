@@ -2,20 +2,20 @@ package com.gmmapowell.http;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
+import java.io.OutputStream;
 import java.net.Socket;
 
 import com.gmmapowell.exceptions.UtilException;
 
 public class ConnectionThread extends Thread {
 	private final InputStream is;
-	private final PrintWriter os;
+	private final OutputStream os;
 	private final InlineServer inlineServer;
 
 	public ConnectionThread(InlineServer inlineServer, Socket conn) throws IOException {
 		this.inlineServer = inlineServer;
 		is = conn.getInputStream();
-		os = new PrintWriter(conn.getOutputStream());
+		os = conn.getOutputStream();
 	}
 	
 	@Override
@@ -44,19 +44,10 @@ INFO: Header - Content-Type: application/xml
 INFO: Header - Content-Length: 59
 			 */
 			
-			GPResponse response = new GPResponse(request);
+			GPResponse response = new GPResponse(request, os);
 			inlineServer.service(request, response);
-			
-			reply(response.status());
-			reply("Server: Apache-Coyote/1.1");
-			reply("Content-Type: text/html;charset=utf-8");
-			reply("Content-Length: 0");
-			reply("Date: Sat, 18 Jun 2011 21:52:27 GMT");
-			reply("Connection: close");
-			for (String r : response.sendHeaders())
-				reply(r);
-			reply("");
-			os.flush();
+			response.commit();
+			response.getWriter().flush();
 			os.close();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -76,9 +67,4 @@ INFO: Header - Content-Length: 59
 		}
 		return sb.toString();
 	}
-
-	private void reply(String string) {
-		os.print(string +"\r\n");
-	}
-
 }

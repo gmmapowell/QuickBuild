@@ -1,5 +1,6 @@
 package com.gmmapowell.bytecode;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -48,6 +49,16 @@ public class ByteCodeCreator {
 		}
 	}
 
+	public byte[] generate() {
+		try {
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			generateByteCodes(baos);
+			return baos.toByteArray();
+		} catch (Exception e) {
+			throw UtilException.wrap(e);
+		}
+	}
+	
 	private void generateByteCodes(OutputStream os) throws IOException {
 		DataOutputStream dos = new DataOutputStream(os);
 		bcf.write(dos);
@@ -78,8 +89,10 @@ public class ByteCodeCreator {
 		return "Creating " + qualifiedName;
 	}
 
-	public void field(boolean isFinal, Access access, String type, String var) {
-		bcf.addField(new FieldInfo(bcf, isFinal, access, type, var));
+	public FieldInfo field(boolean isFinal, Access access, String type, String var) {
+		FieldInfo field = new FieldInfo(bcf, isFinal, access, type, var);
+		bcf.addField(field);
+		return field;
 	}
 
 	public void makeAbstract() {

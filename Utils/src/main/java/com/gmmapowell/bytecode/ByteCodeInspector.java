@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.gmmapowell.bytecode.CPInfo.ClassInfo;
@@ -28,6 +29,7 @@ public class ByteCodeInspector extends ByteCodeFile {
 
 	private HexDumpStream hexdump;
 	private boolean cleanMode;
+	private boolean showPool;
 
 	public static class HexDumpStream extends InputStream {
 
@@ -112,6 +114,8 @@ public class ByteCodeInspector extends ByteCodeFile {
 			{
 				if (s.equals("--clean"))
 					bci.cleanMode = true;
+				else if (s.equals("--pool"))
+					bci.showPool = true;
 				else if (s.startsWith("-"))
 					throw new UtilException("Unknown argument: " + s);
 				else
@@ -160,6 +164,8 @@ public class ByteCodeInspector extends ByteCodeFile {
 			if (!cleanMode)
 				hexdump.print("Version: " + majorVersion + "-" + minorVersion);
 			readConstantPool(dis);
+			if (showPool)
+				showPool();
 			int access = dis.readUnsignedShort(); // access_flags
 			if (!cleanMode)
 				hexdump.print("Access = "  + access);
@@ -209,6 +215,17 @@ public class ByteCodeInspector extends ByteCodeFile {
 					hexdump.print("****");
 				idx++; // skip the second entry
 			}
+		}
+	}
+
+	private void showPool() {
+		List<String> output = new ArrayList<String>();
+		for (int idx=1;idx<pool.length;idx++)
+			output.add(pool[idx].asClean());
+		Collections.sort(output);
+		for (String s : output)
+		{
+			hexdump.print(s);
 		}
 	}
 

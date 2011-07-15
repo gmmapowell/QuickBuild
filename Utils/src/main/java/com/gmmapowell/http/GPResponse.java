@@ -1,6 +1,7 @@
 package com.gmmapowell.http;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +18,15 @@ public class GPResponse implements HttpServletResponse {
 
 	private int status;
 	private String statusMsg;
-	private ListMap<String, String> headers = new ListMap<String, String>();
+	private final ListMap<String, String> headers = new ListMap<String, String>();
+	private final ServletOutputStream sos;
+	private final PrintWriter pw;
+	private boolean committed;
 
-	public GPResponse(GPRequest request) {
+	public GPResponse(GPRequest request, OutputStream os) {
 		request.setResponse(this);
+		pw = new PrintWriter(os);
+		sos = new GPServletOutputStream(os);
 	}
 
 	public String status() {
@@ -60,17 +66,23 @@ public class GPResponse implements HttpServletResponse {
 
 	@Override
 	public ServletOutputStream getOutputStream() throws IOException {
-		throw new UtilException("Not Implemented");
+		commit();
+		return sos;
+	}
+
+
+	private void reply(String string) {
+		pw.print(string +"\r\n");
 	}
 
 	@Override
 	public PrintWriter getWriter() throws IOException {
-		throw new UtilException("Not Implemented");
+		return pw;
 	}
 
 	@Override
 	public boolean isCommitted() {
-		throw new UtilException("Not Implemented");
+		return committed;
 	}
 
 	@Override
@@ -229,7 +241,7 @@ public class GPResponse implements HttpServletResponse {
 		statusMsg = arg1;
 	}
 
-	public List<String> sendHeaders() {
+	private List<String> sendHeaders() {
 		List<String> ret = new ArrayList<String>();
 		for (String s : headers.keySet()) {
 			if (s.equals("Set-Cookie"))
@@ -258,6 +270,21 @@ public class GPResponse implements HttpServletResponse {
 			}
 		}
 		return ret;
+	}
+
+	public void commit() {
+		if (!committed)
+		{
+			reply(status());
+			reply("Server: Apache-Coyote/1.1");
+			reply("Date: Sat, 18 Jun 2011 21:52:27 GMT");
+			reply("Connection: close");
+			for (String r : sendHeaders())
+				reply(r);
+			reply("");
+			pw.flush();
+			committed = true;
+		}
 	}
 
 }

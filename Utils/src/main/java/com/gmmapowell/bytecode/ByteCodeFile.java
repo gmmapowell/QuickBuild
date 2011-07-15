@@ -141,6 +141,8 @@ public class ByteCodeFile {
 		if (super_idx == -1)
 			super_idx = requireClass("java/lang/Object");
 
+		for (FieldInfo fi : fields)
+			fi.complete();
 		for (MethodInfo mi : methods)
 			((MethodCreator)mi).complete();
 		complete();
