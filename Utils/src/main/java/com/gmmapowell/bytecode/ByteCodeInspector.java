@@ -485,6 +485,12 @@ public class ByteCodeInspector extends ByteCodeFile {
 	private void readElementValue(DataInputStream dis) throws IOException {
 		char tag = (char) dis.readUnsignedByte();
 		switch (tag) {
+		case 'c': // class
+		{
+			int offset = dis.readUnsignedShort();
+			hexdump.print(pool[offset].asClean() + ".class");
+			break;
+		}
 		case 's': // utf8
 		{
 			int offset = dis.readUnsignedShort();

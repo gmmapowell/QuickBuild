@@ -27,7 +27,8 @@ public enum AnnotationTag {
 		case CLASS:
 		{
 			dos.writeByte('c');
-			throw new UtilException("Class?");
+			dos.writeShort((Short)value);
+			break;
 		}
 		case TEXT:
 		{

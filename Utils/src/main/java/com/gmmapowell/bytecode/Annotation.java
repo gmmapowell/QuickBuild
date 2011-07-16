@@ -37,6 +37,14 @@ public class Annotation
 	public void addParam(String paramName, String[] paramValue) {
 		args.add(new AnnotationArg(bcf, paramName, paramValue));
 	}
+	
+	public void addClassParam(String paramName, String className) {
+		args.add(AnnotationArg.classParam(bcf, paramName, className));
+	}
+	
+	public void addClassParams(String paramName, String... classes) {
+		args.add(AnnotationArg.classArray(bcf, paramName, classes));
+	}
 
 	public int forParam() {
 		return param;
