@@ -3,7 +3,7 @@ package com.gmmapowell.bytecode;
 import com.gmmapowell.utils.FileUtils;
 
 public class JavaInfo {
-	public static enum Access { PRIVATE, PUBLIC, PROTECTED, DEFAULT };
+	public static enum Access { PRIVATE, PUBLIC, PROTECTED, DEFAULT, PROTECTEDTRANSIENT };
 
 	public static String map(String type) {
 		if (type.startsWith("@")) // this is my own annotation to allow pre-mapped types to be passed around

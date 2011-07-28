@@ -3,9 +3,12 @@ package com.gmmapowell.http;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
@@ -22,11 +25,14 @@ public class GPResponse implements HttpServletResponse {
 	private final ServletOutputStream sos;
 	private final PrintWriter pw;
 	private boolean committed;
+	private SimpleDateFormat dateFormat;
 
 	public GPResponse(GPRequest request, OutputStream os) {
 		request.setResponse(this);
 		pw = new PrintWriter(os);
 		sos = new GPServletOutputStream(os);
+		dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+		dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 	}
 
 	public String status() {
@@ -232,7 +238,7 @@ public class GPResponse implements HttpServletResponse {
 
 	@Override
 	public void setStatus(int arg0) {
-		status = arg0;
+		setStatus(arg0, "OK");
 	}
 
 	@Override
@@ -276,8 +282,8 @@ public class GPResponse implements HttpServletResponse {
 		if (!committed)
 		{
 			reply(status());
-			reply("Server: Apache-Coyote/1.1");
-			reply("Date: Sat, 18 Jun 2011 21:52:27 GMT");
+			reply("Server: InlineServer/1.1");
+			reply("Date: " + dateFormat.format(new Date())); /* Sat, 18 Jun 2011 21:52:27 GMT */
 			reply("Connection: close");
 			for (String r : sendHeaders())
 				reply(r);

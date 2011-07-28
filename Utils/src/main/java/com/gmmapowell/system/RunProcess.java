@@ -22,6 +22,8 @@ public class RunProcess {
 	private boolean finished;
 	private boolean showArgs;
 	private boolean debug;
+	private boolean runBackground;
+	private Process proc;
 
 	public RunProcess(String cmd) {
 		cmdarray.add(cmd);
@@ -64,6 +66,12 @@ public class RunProcess {
 		showArgs = b;
 	}
 	
+	// TODO? Could have callback as well
+	public void background(boolean b)
+	{
+		runBackground = b;
+	}
+	
 	public void executeInDir(File inDir) {
 		workingDir = inDir;
 	}
@@ -74,15 +82,24 @@ public class RunProcess {
 			for (String s : cmdarray)
 				System.out.println(s);
 		try {
-			Process proc = Runtime.getRuntime().exec(cmdarray.toArray(new String[cmdarray.size()]), null, workingDir);
+			proc = Runtime.getRuntime().exec(cmdarray.toArray(new String[cmdarray.size()]), null, workingDir);
 			stdout.read(proc.getInputStream());
 			stderr.read(proc.getErrorStream());
-			exitCode = proc.waitFor();
-			stdout.join();
-			stderr.join();
+			if (runBackground)
+			{
+				new WaitForThread(this).start();
+				return;
+			}
+			waitForEnd();
 		} catch (Exception e) {
 			throw UtilException.wrap(e);
 		}
+	}
+
+	void waitForEnd() throws InterruptedException {
+		exitCode = proc.waitFor();
+		stdout.join();
+		stderr.join();
 		if (debug)
 		{
 			if (outCapture != null)
@@ -90,6 +107,7 @@ public class RunProcess {
 			if (errCapture != null)
 				System.out.println(errCapture);
 		}
+		System.out.println("Process terminated");
 		finished = true;
 	}
 	
@@ -139,6 +157,18 @@ public class RunProcess {
 
 	public List<String> getArgs() {
 		return cmdarray;
+	}
+
+	public boolean isFinished() {
+		return finished;
+	}
+
+	public void kill() {
+		// don't kill the dead
+		if (finished)
+			return;
+		System.out.println("Killing " + proc);
+		proc.destroy();
 	}
 }
 

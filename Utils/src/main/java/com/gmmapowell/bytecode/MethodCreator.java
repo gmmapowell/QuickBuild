@@ -54,6 +54,10 @@ public class MethodCreator extends MethodInfo {
 		else
 			throw new UtilException("Huh?");
 	}
+
+	public void makeFinal() {
+		access_flags |= ByteCodeFile.ACC_FINAL;
+	}
 	
 	public void addAttribute(String named, String text) {
 		short ptr = bcf.requireUtf8(text);
@@ -73,7 +77,7 @@ public class MethodCreator extends MethodInfo {
 	public int argument(String type) {
 		int ret = locals++;
 		arguments.add(map(type));
-		return ret;
+		return ret-1;
 	}
 
 	public int argCount() {
@@ -242,19 +246,23 @@ public class MethodCreator extends MethodInfo {
 	}
 
 	public void invokeOtherConstructor(String clz,	String... args) {
-		invoke(0xb7, clz, "void", "<init>", args);
+		invoke(0xb7, false, clz, "void", "<init>", args);
 	}
 	
 	public void invokeParentConstructor(String... args) {
 		if (byteCodeCreator.getSuperClass() == null)
 			throw new UtilException("Cannot use parent methods without defining superclass");
-		invoke(0xb7, byteCodeCreator.getSuperClass(), "void", "<init>", args);
+		invoke(0xb7, false, byteCodeCreator.getSuperClass(), "void", "<init>", args);
 	}
 
 	public void invokeParentMethod(String typeReturn, String method, String... args) {
 		if (byteCodeCreator.getSuperClass() == null)
 			throw new UtilException("Cannot use parent methods without defining superclass");
-		invoke(0xb7, byteCodeCreator.getSuperClass(), typeReturn, method, args);
+		invoke(0xb7, false, byteCodeCreator.getSuperClass(), typeReturn, method, args);
+	}
+
+	public void invokeStatic(String clz, String typeReturn, String method, String... args) {
+		invoke(0xb8, true, clz, typeReturn, method, args);
 	}
 
 	private int invokeIdx(String clz, String ret, String meth, byte refType, String... args) {
@@ -266,27 +274,29 @@ public class MethodCreator extends MethodInfo {
 		return idx;
 	}
 	
-	private void addInvoke(Instruction instruction, String ret, String... args) {
+	private void addInvoke(Instruction instruction, boolean isStatic, String ret, String... args) {
 		int pop = args.length;
 		if (ret.equals("void"))
 			++pop;
+		if (isStatic)
+			--pop;
 		add(-pop, instruction);
 	}
 	
-	private void invoke(int opcode, String clz, String ret, String meth, String... args) {
+	private void invoke(int opcode, boolean isStatic, String clz, String ret, String meth, String... args) {
 		int idx = invokeIdx(clz, ret, meth, ByteCodeFile.CONSTANT_Methodref, args);
-		addInvoke(new Instruction(opcode, hi(idx), lo(idx)), ret, args);
+		addInvoke(new Instruction(opcode, hi(idx), lo(idx)), isStatic, ret, args);
 	}
 
 	public void invokeVirtualMethod(String clz, String ret, String method, String... args) {
-		invoke(0xb6, clz, ret, method, args);
+		invoke(0xb6, false, clz, ret, method, args);
 	}
 
 	public void invokeInterface(String clz, String ret, String method, String... args) {
 		int idx = invokeIdx(clz, ret, method, ByteCodeFile.CONSTANT_Interfaceref, args);
 		int count = args.length+1;
 		// TODO: double and long values should add to count
-		addInvoke(new Instruction(0xb9, hi(idx), lo(idx), count, 0), ret, args);
+		addInvoke(new Instruction(0xb9, hi(idx), lo(idx), count, 0), false, ret, args);
 	}
 
 	public void ldcClass(String clz)

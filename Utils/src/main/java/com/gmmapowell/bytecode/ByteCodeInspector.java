@@ -332,6 +332,11 @@ public class ByteCodeInspector extends ByteCodeFile {
 			sb.append("synchronized ");
 			access &= ~ByteCodeFile.ACC_SYNCHRONIZED;
 		}
+		if ((access & ByteCodeFile.ACC_TRANSIENT) != 0)
+		{
+			sb.append("transient ");
+			access &= ~ByteCodeFile.ACC_TRANSIENT;
+		}
 
 		if (access != 0)
 			throw new UtilException("Unhandled flags: " + access);

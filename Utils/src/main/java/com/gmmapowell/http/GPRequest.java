@@ -10,6 +10,7 @@ import java.security.Principal;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletInputStream;
@@ -23,6 +24,7 @@ import com.gmmapowell.exceptions.UtilException;
 
 public class GPRequest implements HttpServletRequest {
 
+	private static final Logger logger = Logger.getLogger("InlineServer");
 	private final String method;
 	private final URI uri;
 	private final ListMap<String, String> headers = new ListMap<String, String>();
@@ -40,6 +42,7 @@ public class GPRequest implements HttpServletRequest {
 		method = command[0];
 		rawUri = command[1];
 		uri = new URI(rawUri);
+		logger.info("Received request for " + rawUri);
 	}
 
 	public void addHeader(String s) {
@@ -249,7 +252,8 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public String getPathInfo() {
-		return uri.getPath().replace(getContextPath()+getServletPath(), "");
+		String up = uri.getPath();
+		return up.replace(getContextPath()+getServletPath(), "");
 	}
 
 	@Override
@@ -269,12 +273,16 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public String getRequestURI() {
-		return rawUri;
+		String ru = rawUri;
+		int idx = ru.indexOf('?');
+		if (idx != -1)
+			ru = ru.substring(0, idx);
+		return ru;
 	}
 
 	@Override
 	public StringBuffer getRequestURL() {
-		return new StringBuffer(rawUri);
+		return new StringBuffer(getRequestURI());
 	}
 
 	@Override

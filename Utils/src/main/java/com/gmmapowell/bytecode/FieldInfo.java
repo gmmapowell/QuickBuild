@@ -27,6 +27,9 @@ public class FieldInfo extends JavaInfo {
 		case PROTECTED:
 			flags = ByteCodeFile.ACC_PROTECTED;
 			break;
+		case PROTECTEDTRANSIENT:
+			flags = ByteCodeFile.ACC_PROTECTED | ByteCodeFile.ACC_TRANSIENT;
+			break;
 		case DEFAULT:
 			break;
 		case PUBLIC:

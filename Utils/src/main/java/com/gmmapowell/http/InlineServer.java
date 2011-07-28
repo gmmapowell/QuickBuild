@@ -10,6 +10,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 
+import com.gmmapowell.serialization.Endpoint;
+
 public class InlineServer {
 	public static final Logger logger = Logger.getLogger("InlineServer");
 
@@ -18,6 +20,7 @@ public class InlineServer {
 	protected final GPServletConfig config = new GPServletConfig();
 
 	private HttpServlet servletImpl;
+	private Endpoint alertEP;
 
 	public InlineServer(int port, String servletClass) {
 		this.port = port;
@@ -36,6 +39,10 @@ public class InlineServer {
 		config.initParam(key, value);
 	}
 
+	public void setAlert(String alert) {
+		alertEP = Endpoint.parse(alert);
+	}
+
 	public void run() {
 		run(true);
 	}
@@ -44,14 +51,20 @@ public class InlineServer {
 		try
 		{
 			ServerSocket s = new ServerSocket(port);
-			logger.info("Listening on port " + port);
+			logger.info("Listening on port " + s.getLocalPort());
 			Class<?> forName = Class.forName(servletClass);
 			servletImpl = (HttpServlet) forName.newInstance();
 			servletImpl.init(config);
+			if (alertEP != null)
+			{
+				Endpoint addr = new Endpoint(s);
+				logger.info("Sending " + addr + " to " + alertEP);
+				alertEP.send(addr.toString());
+			}
 			while (doLoop)
 			{
 				Socket conn = s.accept();
-				logger.info("Accepting connection request and dispatching to thread");
+				logger.fine("Accepting connection request and dispatching to thread");
 				new ConnectionThread(this, conn).start();
 			}
 		}

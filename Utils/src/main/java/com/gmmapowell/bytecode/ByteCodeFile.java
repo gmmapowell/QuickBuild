@@ -35,6 +35,7 @@ public class ByteCodeFile {
 	public final static short ACC_FINAL        = 0x0010;
 	public final static short ACC_SUPER        = 0x0020;
 	public final static short ACC_SYNCHRONIZED = 0x0020;
+	public final static short ACC_TRANSIENT    = 0x0080;
 	public final static short ACC_NATIVE       = 0x0100;
 	public final static short ACC_INTERFACE    = 0x0200;
 	public final static short ACC_ABSTRACT     = 0x0400;
