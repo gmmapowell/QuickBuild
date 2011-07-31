@@ -47,6 +47,13 @@ public class AnnotationArg {
 		return new AnnotationArg(bcf, name, AnnotationTag.ARRAY, classStructs);
 	}
 	
+	public static AnnotationArg annArray(ByteCodeFile bcf, String paramName, Annotation[] args) {
+		AnnotationArg[] annStructs = new AnnotationArg[args.length];
+		for (int i=0;i<args.length;i++)
+			annStructs[i] = new AnnotationArg(bcf, null, AnnotationTag.ANNOTATION, args[i]);
+		return new AnnotationArg(bcf, paramName, AnnotationTag.ARRAY, annStructs);
+	}
+	
 	public void write(DataOutputStream dos) throws IOException {
 		dos.writeShort(bcf.requireUtf8(name));
 		tag.write(bcf, dos, value);

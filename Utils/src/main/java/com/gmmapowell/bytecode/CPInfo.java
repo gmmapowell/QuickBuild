@@ -236,12 +236,15 @@ public abstract class CPInfo {
 			if (tag == 9)
 			{
 				NTInfo cpInfo = (NTInfo) pool[nt];
-				return pool[clz].asClean() + "." + pool[cpInfo.name].asClean(); 
+				return "F" + pool[clz].asClean() + "." + pool[cpInfo.name].asClean() + "{" + pool[cpInfo.descriptor].asClean() + "}";  
 			}
 			else if (tag == 10 || tag == 11)
 			{
+				String cm = "M";
+				if (tag == 11)
+					cm = "I";
 				NTInfo cpInfo = (NTInfo) pool[nt];
-				return pool[clz].asClean() + "." + pool[cpInfo.name].asClean() + " " + pool[cpInfo.descriptor].asClean(); 
+				return cm + pool[clz].asClean() + "." + pool[cpInfo.name].asClean() + " " + pool[cpInfo.descriptor].asClean(); 
 			}
 			else
 				throw new UtilException("No");

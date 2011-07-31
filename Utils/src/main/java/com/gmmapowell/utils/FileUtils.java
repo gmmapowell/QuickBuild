@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.LineNumberReader;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -324,11 +325,32 @@ public class FileUtils {
 		return urlPath(root, mavenToFile.getParentFile()) + "/" + mavenToFile.getName();
 	}
 
-	public static void copyStream(InputStream inputStream, FileOutputStream fos) throws IOException {
+	public static void copyFileToStream(File from, OutputStream to) {
+		InputStream is = null;
+		try
+		{
+			try
+			{
+				is = new FileInputStream(from);
+				copyStream(is, to);
+			}
+			finally
+			{
+				if (is != null)
+					is.close();
+			}
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
+	}
+
+	public static void copyStream(InputStream inputStream, OutputStream to) throws IOException {
 		byte[] bs = new byte[500];
 		int cnt = 0;
 		while ((cnt = inputStream.read(bs, 0, 500)) > 0)
-			fos.write(bs, 0, cnt);
+			to.write(bs, 0, cnt);
 	}
 
 	public static void assertDirectory(File file) {
@@ -506,6 +528,7 @@ public class FileUtils {
 	public static boolean isUpToDate(File copy, File orig) {
 		return (copy.lastModified() >= orig.lastModified());
 	}
+
 
 }
 	

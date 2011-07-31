@@ -13,7 +13,8 @@ public enum AnnotationTag {
 		case ANNOTATION:
 		{
 			dos.writeByte('@');
-			throw new UtilException("Class?");
+			((Annotation)value).write(dos);
+			break;
 		}
 		case ARRAY:
 		{

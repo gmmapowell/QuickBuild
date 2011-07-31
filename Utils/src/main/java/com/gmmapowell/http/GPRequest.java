@@ -42,7 +42,7 @@ public class GPRequest implements HttpServletRequest {
 		method = command[0];
 		rawUri = command[1];
 		uri = new URI(rawUri);
-		logger.info("Received request for " + rawUri);
+		logger.info("Received " + method + " request for " + rawUri);
 	}
 
 	public void addHeader(String s) {

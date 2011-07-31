@@ -35,14 +35,6 @@ public class ConnectionThread extends Thread {
 			if (request == null)
 				throw new UtilException("There was no incoming request");
 			request.endHeaders();
-			/* Expect:
-INFO: Header - POST /ziniki/resources/login HTTP/1.1
-INFO: Header - User-Agent: curl/7.19.7 (universal-apple-darwin10.0) libcurl/7.19.7 OpenSSL/0.9.8l zlib/1.2.3
-INFO: Header - Host: localhost:10080
-INFO: Header - Accept: text/html
-INFO: Header - Content-Type: application/xml
-INFO: Header - Content-Length: 59
-			 */
 			
 			GPResponse response = new GPResponse(request, os);
 			inlineServer.service(request, response);

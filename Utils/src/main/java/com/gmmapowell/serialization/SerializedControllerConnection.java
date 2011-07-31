@@ -78,10 +78,17 @@ public class SerializedControllerConnection extends Thread {
 			isok |= clz.isInstance(cr);
 		if (!isok)
 			throw new UtilException("Invalid request type: " + cr.getClass());
-		Serializable ret = cr.execute(this);
-		if ((ret != null) != cr.waitForResponse())
-			throw new UtilException("Expect Response = " + cr.waitForResponse() + "; Response = " + ret);
-		return ret;
+		try
+		{
+			Serializable ret = cr.execute(this);
+			if ((ret != null) != cr.waitForResponse())
+				throw new UtilException("Expect Response = " + cr.waitForResponse() + "; Response = " + ret);
+			return ret;
+		}
+		catch (Exception ex)
+		{
+			return ex;
+		}
 	}
 
 	public SerializedController getParent() {

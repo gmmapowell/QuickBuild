@@ -21,6 +21,14 @@ public class Endpoint {
 		this.port = port;
 	}
 
+	public String getHost() {
+		return addr.getHostAddress();
+	}
+
+	public int getPort() {
+		return port;
+	}
+
 	public Endpoint(ServerSocket s) {
 		this(s.getInetAddress(), s.getLocalPort());
 	}

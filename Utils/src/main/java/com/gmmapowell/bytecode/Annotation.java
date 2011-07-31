@@ -45,6 +45,10 @@ public class Annotation
 	public void addClassParams(String paramName, String... classes) {
 		args.add(AnnotationArg.classArray(bcf, paramName, classes));
 	}
+	
+	public void addAnnParam(String paramName, Annotation... args) {
+		this.args.add(AnnotationArg.annArray(bcf, paramName, args));
+	}
 
 	public int forParam() {
 		return param;

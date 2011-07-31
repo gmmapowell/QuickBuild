@@ -7,6 +7,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
 
 import com.gmmapowell.exceptions.GPJarException;
 import com.gmmapowell.exceptions.UtilException;
@@ -33,10 +34,12 @@ public class GPJarFile implements Iterable<GPJarEntry> {
 	}
 
 	private JarFile jf;
+	private boolean stillOpen;
 	
 	public GPJarFile(File f) {
 		try {
 			jf = new JarFile(FileUtils.relativePath(f));
+			stillOpen = true;
 		} catch (IOException e) {
 			throw new GPJarException(e);
 		}
@@ -60,12 +63,24 @@ public class GPJarFile implements Iterable<GPJarEntry> {
 	
 	public void close()
 	{
+		stillOpen = false;
 		try {
 			if (jf != null)
 				jf.close();
 		} catch (IOException e) {
 			throw new GPJarException(e);
 		}
+	}
+
+	public boolean isOpen() {
+		return stillOpen;
+	}
+
+	public GPJarEntry get(String name) {
+		ZipEntry ret = jf.getEntry(name);
+		if (ret == null || !(ret instanceof JarEntry))
+			return null;
+		return new GPJarEntry(this, (JarEntry) ret);
 	}
 
 }

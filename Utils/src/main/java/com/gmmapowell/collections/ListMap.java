@@ -32,6 +32,12 @@ public class ListMap<K, V> implements Iterable<K> {
 		map.get(k).add(v);
 	}
 
+	public void add(K k, int pos, V v) {
+		if (!map.containsKey(k))
+			map.put(k, new ArrayList<V>());
+		map.get(k).add(pos, v);
+	}
+
 	@Override
 	public Iterator<K> iterator() {
 		return map.keySet().iterator();

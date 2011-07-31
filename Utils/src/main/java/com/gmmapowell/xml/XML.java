@@ -8,7 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
+import java.lang.reflect.Constructor;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -178,6 +178,25 @@ public class XML {
 	public XMLNamespace namespace(String ns, String url) {
 		top.setAttribute("xmlns:"+ns, url);
 		return new XMLNamespace(ns, url);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T populate(Class<T> cls, Object cxt) {
+		Constructor<T> ctor = null;
+		for (Constructor<?> c : cls.getConstructors())
+		{
+			Class<?>[] args = c.getParameterTypes();
+			if (args.length == 2 && args[1].equals(XMLElement.class))
+				ctor = (Constructor<T>) c;
+		}
+		T ret;
+		try {
+			ret = ctor.newInstance(cxt, top);
+		} catch (Exception e) {
+			throw UtilException.wrap(e);
+		}
+		top.populate(cxt, ret);
+		return ret;
 	}
 }
 

@@ -441,16 +441,7 @@ public class ByteCodeInspector extends ByteCodeFile {
 				hexdump.print("Has " + acnt + " annotations");
 				for (int rva = 0;rva<acnt;rva++)
 				{
-					int a = dis.readUnsignedShort();
-					hexdump.print("@" + pool[a].asClean());
-					int nvp = dis.readUnsignedShort();
-					hexdump.print(nvp + " arguments");
-					for (int rvp=0;rvp<nvp;rvp++)
-					{
-						int n = dis.readUnsignedShort();
-						hexdump.append("  " + pool[n].asClean() + "=");
-						readElementValue(dis);
-					}
+					readAnnotation(dis);
 				}
 			}
 			else if (attr.equals("RuntimeVisibleParameterAnnotations")) {
@@ -462,16 +453,7 @@ public class ByteCodeInspector extends ByteCodeFile {
 					hexdump.print("Parameter " + np + " has " + acnt + " annotations");
 					for (int rva = 0;rva<acnt;rva++)
 					{
-						int a = dis.readUnsignedShort();
-						hexdump.print("@" + pool[a].asClean());
-						int nvp = dis.readUnsignedShort();
-						hexdump.print(nvp + " arguments");
-						for (int rvp=0;rvp<nvp;rvp++)
-						{
-							int n = dis.readUnsignedShort();
-							hexdump.append("  " + pool[n].asClean() + "=");
-							readElementValue(dis);
-						}
+						readAnnotation(dis);
 					}
 				}
 			}
@@ -485,6 +467,19 @@ public class ByteCodeInspector extends ByteCodeFile {
 					hexdump.print("");
 			}
 		}		
+	}
+
+	private void readAnnotation(DataInputStream dis) throws IOException {
+		int a = dis.readUnsignedShort();
+		hexdump.print("@" + pool[a].asClean());
+		int nvp = dis.readUnsignedShort();
+		hexdump.print(nvp + " arguments");
+		for (int rvp=0;rvp<nvp;rvp++)
+		{
+			int n = dis.readUnsignedShort();
+			hexdump.append("  " + pool[n].asClean() + "=");
+			readElementValue(dis);
+		}
 	}
 
 	private void readElementValue(DataInputStream dis) throws IOException {
@@ -509,6 +504,11 @@ public class ByteCodeInspector extends ByteCodeFile {
 			for (int ai = 0;ai<arrSize;ai++)
 				readElementValue(dis);
 			hexdump.print("]");
+			break;
+		}
+		case '@': // attribute
+		{
+			readAnnotation(dis);
 			break;
 		}
 		default:

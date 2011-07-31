@@ -110,4 +110,8 @@ public class ByteCodeCreator {
 	public Annotation addRTVAnnotation(String attrClass) {
 		return bcf.addClassAnnotation(AnnotationType.RuntimeVisibleAnnotations, new Annotation(bcf, attrClass));
 	}
+
+	public Annotation newAnnotation(String attrClass) {
+		return new Annotation(bcf, attrClass);
+	}
 }
