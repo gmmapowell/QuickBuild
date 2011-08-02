@@ -8,6 +8,8 @@ public class JavaInfo {
 	public static String map(String type) {
 		if (type.startsWith("@")) // this is my own annotation to allow pre-mapped types to be passed around
 			return type.substring(1);
+		if (type.equals("?"))
+			return "*";
 		int dims = 0;
 		while (type.charAt(dims) == '[')
 			dims++;

@@ -64,6 +64,12 @@ public class SchedulePlanner {
 				backtrack++;
 			}
 		}
+		if (played == 0)
+		{
+			playbook.print();
+			System.out.println("Backtracking with no success from w = " + w + " f = " + f);
+			return 0;
+		}
 		return played;
 	}
 }

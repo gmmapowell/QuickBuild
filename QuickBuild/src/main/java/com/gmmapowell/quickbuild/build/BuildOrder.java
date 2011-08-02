@@ -107,7 +107,7 @@ public class BuildOrder {
 		{
 			if (inBand != -1)
 				bands.get(inBand).remove(es);
-			ExecutionBand addToBand = require(es.getStrat(), toBand, drift);
+			ExecutionBand addToBand = require(es.getStrat(), mustHaveBuilt, toBand, drift);
 			addToBand.add(es);
 			es.bind(toBuild);
 		}
@@ -160,7 +160,7 @@ public class BuildOrder {
 					DeferredTactic dt = new DeferredTactic(tt.identifier());
 					dt.bind(es, tt);
 					es.defer(dt);
-					Catchup c = require(null, minBand, drift).getCatchup();
+					Catchup c = require(null, null, minBand, drift).getCatchup();
 					c.defer(dt);
 					for (PendingResource pr : addl)
 						if (pr.getBuiltBy() != null)
@@ -170,12 +170,33 @@ public class BuildOrder {
 		}
 	}
 	
-	private ExecutionBand require(Strategem building, int toBand, int drift) {
+	private ExecutionBand require(Strategem building, Strategem mustHaveBuilt, int toBand, int drift) {
 		if (toBand < bands.size())
 		{
-			for (int i=0;i<toBand;i++)
-				if (bands.get(i).hasPrereq(building))
-					throw new QuickBuildException("I think this is a circular dependency");
+			for (int i=0;i<toBand;i++) {
+				ExecutionBand destBand = bands.get(i);
+				if (destBand.hasPrereq(building))
+				{
+					// This is a complex case.  We are being asked to put "building" in band "toBand", but there is a lower band with (one or more)
+					// strategems that depend on the "building" target.  We need to try and move those up, but only if "mustHaveBuilt" is not one of them
+					// (and hopefully staying out of any other, more complex, circular dependencies)
+					if (destBand.hasPrereqFor(building, mustHaveBuilt))
+						throw new QuickBuildException("I think this is a circular dependency");
+					// In this case, we need to split the offending band and make a new band _above_ the target band and put anything that
+					// depends on "building" into that band.
+					ExecutionBand tmp = new ExecutionBand(destBand.drift());
+					for (int k=destBand.size()-1;k>=0;k--)
+					{
+						BandElement bandElement = destBand.get(k);
+						if (bandElement.hasPrereq(building))
+						{
+							tmp.add(bandElement);
+							destBand.remove(bandElement);
+						}
+					}
+					bands.add(toBand, tmp);
+				}
+			}
 			ExecutionBand band = bands.get(toBand);
 			if (bands.get(toBand).drift() == drift)
 			{

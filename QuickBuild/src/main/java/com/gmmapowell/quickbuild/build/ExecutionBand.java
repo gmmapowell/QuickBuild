@@ -84,6 +84,13 @@ public class ExecutionBand implements Iterable<BandElement> {
 		return false;
 	}
 
+	public boolean hasPrereqFor(Strategem building, Strategem mustHaveBuilt) {
+		for (BandElement be : elements)
+			if (be.hasPrereq(building) && be.wouldBuild(mustHaveBuilt))
+				return true;
+		return false;
+	}
+
 	public Catchup getCatchup() {
 		for (BandElement be : elements)
 			if (be instanceof Catchup)

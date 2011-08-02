@@ -53,6 +53,7 @@ public class BuildExecutor {
 				{
 					System.out.println("  Failed ... retrying");
 					tryAgain();
+					System.out.println(cxt.printableBuildOrder(false));
 					continue;
 				}
 				// else move on ...

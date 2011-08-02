@@ -15,7 +15,14 @@ public abstract class SolidResource implements BuildResource {
 	{
 		parent = builtBy;
 		file = path;
-		this.relative = FileUtils.makeRelative(path); 
+		File tmp = null;
+		try
+		{
+			tmp = FileUtils.makeRelative(path);
+		}
+		catch (Exception ex)
+		{ /* no worries */ }
+		this.relative =  tmp;
 	}
 	
 	public abstract String compareAs();

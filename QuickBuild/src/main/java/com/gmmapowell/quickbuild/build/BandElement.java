@@ -71,4 +71,11 @@ public abstract class BandElement {
 			pp.requireNewline();
 		}
 	}
+
+	public boolean wouldBuild(Strategem mustHaveBuilt) {
+		for (int i=0;i<size();i++)
+			if (tactic(i).belongsTo().equals(mustHaveBuilt))
+				return true;
+		return false;
+	}
 }

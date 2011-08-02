@@ -29,7 +29,9 @@ public class DeployCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 	private List<String> artifacts = new ArrayList<String>();
 	private List<Tactic> tactics = new ArrayList<Tactic>();
 	private ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
+	private ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 	private Map<String, PendingResource> pendings = new HashMap<String, PendingResource>();
+	private Map<String, BuildResource> buildings = new HashMap<String, BuildResource>();
 
 	@SuppressWarnings("unchecked")
 	public DeployCommand(TokenizedLine toks) {
@@ -52,6 +54,10 @@ public class DeployCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 			PendingResource pr = new PendingResource(i);
 			pendings.put(i, pr);
 			needs.add(pr);
+			
+			DeployedObject dobj = new DeployedObject(this, FileUtils.relativePath(new File(config.getPath(target), i)));
+			buildings.put(i, dobj);
+			builds.add(dobj);
 		}
 
 		tactics.add(this);
@@ -80,6 +86,7 @@ public class DeployCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 		{
 			File from = pendings.get(i).getPath();
 			FileUtils.copyAssertingDirs(from, new File(deployTo, i));
+			cxt.builtResource(buildings.get(i));
 		}
 		return BuildStatus.SUCCESS;
 	}
@@ -101,7 +108,7 @@ public class DeployCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 
 	@Override
 	public ResourcePacket<BuildResource> buildsResources() {
-		return new ResourcePacket<BuildResource>();
+		return builds;
 	}
 
 	@Override
