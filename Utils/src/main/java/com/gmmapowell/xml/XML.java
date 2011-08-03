@@ -9,11 +9,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXParseException;
 
 import com.gmmapowell.exceptions.UtilException;
@@ -197,6 +208,38 @@ public class XML {
 		}
 		top.populate(cxt, ret);
 		return ret;
+	}
+
+	public String applyXPath(String path) {
+		try {
+			XPathFactory xf = XPathFactory.newInstance();
+			XPath xp = xf.newXPath();
+			XPathExpression xe = xp.compile(path);
+			return (String) xe.evaluate(doc, XPathConstants.STRING);
+		} catch (XPathExpressionException e) {
+			throw UtilException.wrap(e);
+		}
+	}
+
+	public List<XMLElement> elementsMatching(String path) {
+		List<XMLElement> ret = new ArrayList<XMLElement>();
+		try {
+			XPathFactory xf = XPathFactory.newInstance();
+			XPath xp = xf.newXPath();
+			XPathExpression xe = xp.compile(path);
+			NodeList evaluate = (NodeList) xe.evaluate(doc, XPathConstants.NODESET);
+			for (int i=0;i<evaluate.getLength();i++)
+			{
+				Node item = evaluate.item(i);
+				if (item instanceof Element)
+					ret.add(new XMLElement(this, (Element) item));
+				else
+					throw new UtilException("Cannot return " + item + " as an element");
+			}
+			return ret;
+		} catch (XPathExpressionException e) {
+			throw UtilException.wrap(e);
+		}
 	}
 }
 

@@ -277,4 +277,8 @@ public class XMLElement implements Externalizable {
 			ClassNotFoundException {
 		elt = (Element) in.readObject();
 	}
+
+	public int requiredInt(String parm) {
+		return Integer.parseInt(required(parm));
+	}
 }
