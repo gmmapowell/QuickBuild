@@ -121,18 +121,15 @@ public class BuildOrder {
 					}
 					else if (strat.tag().equals("Deferred"))
 					{
-						for (XMLElement defer : strat.elementChildren())
-						{
-							String name = defer.get("name");
-							for (DeferredTactic dt : deferred)
-								if (dt.is(name))
-								{
-									deferred.remove(dt);
-									band.add(dt);
-									dt.bind(band);
-									break;
-								}
-						}
+						String name = strat.get("name");
+						for (DeferredTactic dt : deferred)
+							if (dt.is(name))
+							{
+								deferred.remove(dt);
+								band.add(dt);
+								dt.bind(band);
+								break;
+							}
 					}
 					else
 						throw new RuntimeException("The tag " + strat.tag() + " was not valid");
@@ -179,26 +176,25 @@ public class BuildOrder {
 			for (BandElement be : band)
 			{
 				XMLElement esi;
-				String tag;
 				if (be instanceof ExecuteStrategem)
 				{
 					ExecuteStrategem es = (ExecuteStrategem)be;
 					esi = item.addElement("Strategem");
 					esi.setAttribute("name", es.name());
-					tag = "Defer";
+					for (DeferredTactic dt : be.deferred())
+					{
+						XMLElement def = esi.addElement("Defer");
+						def.setAttribute("name", dt.name());
+					}
 				}
 				else if (be instanceof DeferredTactic)
 				{
+					DeferredTactic dt = (DeferredTactic) be;
 					esi = item.addElement("Deferred");
-					tag = "Tactic";
+					esi.setAttribute("name", dt.name());
 				}
 				else
 					throw new RuntimeException("Cannot handle " + be);
-				for (DeferredTactic dt : be.deferred())
-				{
-					XMLElement def = esi.addElement(tag);
-					def.setAttribute("name", dt.name());
-				}
 			}
 		}
 		FileUtils.assertDirectory(buildOrderFile.getParentFile());

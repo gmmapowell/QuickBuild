@@ -68,22 +68,25 @@ public class QuickBuild {
 		SignificantWhiteSpaceFileReader.read(conf, configFactory, file);
 		conf.done();
 		configFactory.done();
-		System.out.println("Files read (in order):");
-		for (File f : ofl)
+		if (arguments.debug)
 		{
-			String path = f.getPath();
-			try
+			System.out.println("Files read (in order):");
+			for (File f : ofl)
 			{
-				path = f.getCanonicalPath();
+				String path = f.getPath();
+				try
+				{
+					path = f.getCanonicalPath();
+				}
+				catch (IOException ex)
+				{
+				}
+				System.out.println("  " + path);
 			}
-			catch (IOException ex)
-			{
-			}
-			System.out.println("  " + path);
+			System.out.println();
+			System.out.println("Configuration:");
+			System.out.print(conf);
 		}
-		System.out.println();
-		System.out.println("Configuration:");
-		System.out.print(conf);
 			
 		boolean buildAll = arguments.buildAll;
 		boolean blankMemory = arguments.blank;
@@ -106,10 +109,12 @@ public class QuickBuild {
 
 			return;
 		}
-		System.out.println("Predicted Build Order:");
-		System.out.print(cxt.printableBuildOrder(false));
-		System.out.println();
-		
+		if (arguments.debug) {
+			System.out.println("Predicted Build Order:");
+			System.out.print(cxt.printableBuildOrder(false));
+			System.out.println();
+		}
+			
 		new BuildExecutor(cxt).doBuild();
 	}
 }
