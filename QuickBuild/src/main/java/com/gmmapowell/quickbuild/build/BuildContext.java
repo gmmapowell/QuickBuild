@@ -29,12 +29,12 @@ public class BuildContext {
 
 	private final boolean blankMemory;
 
-	public BuildContext(Config conf, ConfigFactory configFactory, boolean blankMemory, boolean buildAll, List<String> showArgsFor, List<String> showDebugFor) {
+	public BuildContext(Config conf, ConfigFactory configFactory, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor) {
 		this.conf = conf;
 		this.blankMemory = blankMemory;
 		rm = new ResourceManager(conf);
-		buildOrder = new BuildOrder(this, buildAll);
-		manager = new DependencyManager(conf, rm, buildOrder);
+		buildOrder = new BuildOrder(this, buildAll, debug);
+		manager = new DependencyManager(conf, rm, buildOrder, debug);
 		buildOrder.dependencyManager(manager);
 		ehandler = new ErrorHandler(conf.getLogDir());
 		for (String s : showArgsFor)

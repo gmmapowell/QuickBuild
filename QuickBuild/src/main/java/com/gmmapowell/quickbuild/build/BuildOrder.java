@@ -16,7 +16,6 @@ import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
-import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 import com.gmmapowell.utils.PrettyPrinter;
@@ -55,14 +54,16 @@ public class BuildOrder {
 	private final List<ExecutionBand> bands = new ArrayList<ExecutionBand>();
 	private final File buildOrderFile;
 	private boolean buildAll;
+	private final boolean debug;
 
 	private final BuildContext cxt;
 	private DependencyManager dependencies;
 
-	public BuildOrder(BuildContext cxt, boolean buildAll)
+	public BuildOrder(BuildContext cxt, boolean buildAll, boolean debug)
 	{
 		this.cxt = cxt;
 		this.buildAll = buildAll;
+		this.debug = debug;
 		buildOrderFile = cxt.getCacheFile("buildOrder.xml");
 	}	
 
@@ -86,199 +87,6 @@ public class BuildOrder {
 		pending.add(es);
 	}
 
-	/*
-	public void depends(DependencyManager manager, Strategem toBuild, Strategem mustHaveBuilt) {
-//		if (mustHaveBuilt == null)
-//			System.out.println("Must build " + toBuild);
-//		else
-//			System.out.println("Must have " + mustHaveBuilt +  " before " + toBuild);
-		ExecuteStrategem es;
-		String name = toBuild.identifier();
-		int inBand = -1;
-		int toBand = 0;
-		int drift = 0;
-//		if (toBuild instanceof FloatToEnd)
-//			drift = ((FloatToEnd)toBuild).priority();
-		if (!mapping.containsKey(name))
-		{
-			es = new ExecuteStrategem(name);
-			mapping.put(name, es);
-		}
-		else
-		{
-			es = mapping.get(name);
-			toBand = inBand = findBandPos(es.inBand());
-		}
-		if (mustHaveBuilt != null)
-		{
-			if (!mapping.containsKey(mustHaveBuilt.identifier()))
-				throw new RuntimeException("There is no previously built " + mustHaveBuilt.identifier());
-			ExecuteStrategem prev = mapping.get(mustHaveBuilt.identifier());
-			int prevBand = findBandPos(prev.inBand());
-			if (inBand <= prevBand)
-				toBand = prevBand+1;
-		}
-		if (toBand != inBand)
-		{
-			if (inBand != -1)
-				bands.get(inBand).remove(es);
-			ExecutionBand addToBand = require(es.getStrat(), mustHaveBuilt, toBand, drift);
-			addToBand.add(es);
-			es.bind(toBuild);
-		}
-		es.dependsOn(mustHaveBuilt);
-		
-//		if (mustHaveBuilt != null)
-//			System.out.print(printOut(false));
-	}
-*/
-	public void handleFloatingDependencies(DependencyManager manager)
-	{
-		for (int i=0;i<bands.size();i++)
-		{
-			ExecutionBand band = bands.get(i);
-			for (BandElement es : band)
-			{
-				if (es instanceof ExecuteStrategem)
-					handleFloatingDependencies(manager, i, (ExecuteStrategem) es);
-			}
-		}
-	}
-	private void handleFloatingDependencies(DependencyManager manager, int inBand, ExecuteStrategem es) {
-		int drift = 0;
-		
-		for (Tactic tt : es.getStrat().tactics())
-		{
-			if (es.isDeferred(tt))
-				continue;
-			if (tt instanceof DependencyFloat)
-			{
-				int minBand = inBand;
-				ResourcePacket<PendingResource> addl = ((DependencyFloat)tt).needsAdditionalBuiltResources();
-				for (PendingResource pr : addl)
-				{
-					BuildResource br = manager.resolve(pr);
-					if (br.getBuiltBy() == null)
-						continue;
-					// We need to find the minimum band that has this, but is at least minBand
-					for (int i=bands.size()-1;i>=minBand;i--)
-					{
-						if (bands.get(i).produces(br))
-						{
-							minBand = i+1;
-							break;
-						}
-					}
-				}
-				if (minBand > inBand)
-				{
-					DeferredTactic dt = new DeferredTactic(tt.identifier());
-					dt.bind(es, tt);
-					es.defer(dt);
-					Catchup c = require(null, null, minBand, drift).getCatchup();
-					c.defer(dt);
-					for (PendingResource pr : addl)
-						if (pr.getBuiltBy() != null)
-							c.dependsOn(pr.getBuiltBy());
-				}
-			}
-		}
-	}
-	
-	private ExecutionBand require(Strategem building, Strategem mustHaveBuilt, int toBand, int drift) {
-		if (toBand < bands.size())
-		{
-			for (int i=0;i<toBand;i++) {
-				ExecutionBand destBand = bands.get(i);
-				if (destBand.hasPrereq(building))
-				{
-					// This is a complex case.  We are being asked to put "building" in band "toBand", but there is a lower band with (one or more)
-					// strategems that depend on the "building" target.  We need to try and move those up, but only if "mustHaveBuilt" is not one of them
-					// (and hopefully staying out of any other, more complex, circular dependencies)
-					if (destBand.hasPrereqFor(building, mustHaveBuilt))
-						throw new QuickBuildException("I think this is a circular dependency");
-					// In this case, we need to split the offending band and make a new band _above_ the target band and put anything that
-					// depends on "building" into that band.
-					ExecutionBand tmp = new ExecutionBand(destBand.drift());
-					for (int k=destBand.size()-1;k>=0;k--)
-					{
-						BandElement bandElement = destBand.get(k);
-						if (bandElement.hasPrereq(building))
-						{
-							tmp.add(bandElement);
-							destBand.remove(bandElement);
-						}
-					}
-					bands.add(toBand, tmp);
-				}
-			}
-			ExecutionBand band = bands.get(toBand);
-			if (bands.get(toBand).drift() == drift)
-			{
-				List<BandElement> moves = new ArrayList<BandElement>();
-				for (BandElement be : band)
-					if (be.hasPrereq(building))
-					{
-						moves.add(be);
-					}
-				if (moves.size() > 0)
-				{
-					ExecutionBand n = makeNew(building, toBand+1, drift);
-					for (BandElement be : moves)
-					{
-						band.remove(be);
-						n.add(be);
-					}
-				}
-				return band;
-			}
-		}
-		return makeNew(building, toBand, drift);
-	}
-
-	private ExecutionBand makeNew(Strategem building, int toBand, int drift) {
-		ExecutionBand ret = new ExecutionBand(drift);
-		while (toBand < bands.size() && bands.get(toBand).drift() < drift)
-		{
-			toBand++;
-		}
-		bands.add(toBand, ret);
-		return ret;
-	}
-
-	private int findBandPos(ExecutionBand inBand) {
-		for (int i=0;i<bands.size();i++)
-			if (bands.get(i) == inBand)
-				return i;
-		throw new RuntimeException("There is no band " + inBand);
-	}
-
-	/* Sample File:
-
-	<?xml version="1.0" encoding="ISO-8859-1"?>
-	<BuildOrder>
-		<Band>
-	    	<Strategem name="Jar[API.jar]"/>
-	    	<Strategem name="Jar[Kernel.jar]"/>
-	    	<Strategem name="Jar[Platform.jar]">
-	    		<Defer name="JUnit[Platform.jar-src]"/>
-	    	</Strategem>
-	    </Band>
-		<Band>
-	    	<Strategem name="Jar[Cluster.jar]"/>
-	    	<Strategem name="Jar[MockKernel.jar]"/>
-	    	<Catchup>
-	    		<Deferred name="JUnit[Platform.jar-src]"/>
-	    	</Catchup>
-	    </Band>
-		<Band>
-	    	<Strategem name="War[ziniki.war]"/>
-	    </Band>
-	    <Band drift="5">
-	    	<Strategem name="JavaDoc[]"/>
-	    </Band>
-	</BuildOrder>
-		 */
 	void loadBuildOrderCache() {
 		if (!buildOrderFile.canRead())
 		{
@@ -514,9 +322,9 @@ public class BuildOrder {
 		BuildStatus bs = BuildStatus.SUCCESS;
 		if (be.isDeferred(tt))
 			bs = BuildStatus.SKIPPED;
-		else if (be instanceof Catchup) {
+		else if (be instanceof DeferredTactic) {
 			bs = BuildStatus.DEFERRED;
-			if (((Catchup)be).deferred.get(tactic).isClean())
+			if (((DeferredTactic)be).isClean())
 				bs = BuildStatus.CLEAN;
 		}
 		if (be.isCompletelyClean())
@@ -554,19 +362,20 @@ public class BuildOrder {
 				offerAt = maxBuilt;
 				withDrift = drift;
 				canOffer = p;
-				System.out.println("Considering " + p.name() + " drift = " + drift + " at " + maxBuilt + " split = " + needsSplit);
+//				System.out.println("Considering " + p.name() + " drift = " + drift + " at " + maxBuilt + " split = " + needsSplit);
 			}
 		}
 		// TODO: at this point, we should come back and see if there is a dependency which has
 		// a higher drift value that its dependent (shouldn't happen though).
 		if (canOffer != null)
 		{
-			System.out.println("Trying " + canOffer.name() + " drift = " + withDrift + " at " + offerAt + " split = " + willSplit);
+//			System.out.println("Trying " + canOffer.name() + " drift = " + withDrift + " at " + offerAt + " split = " + willSplit);
 			if (willSplit)
 				splitFloaters((ExecuteStrategem)canOffer);
 			pending.remove(canOffer);
 			addTo(offerAt+1, canOffer);
-			System.out.println(printOut(false));
+			if (debug)
+				System.out.println(printOut(false));
 			return true;
 		}
 
@@ -656,6 +465,16 @@ public class BuildOrder {
 		bands.get(band).add(canOffer);
 		if (canOffer instanceof ExecuteStrategem)
 			((ExecuteStrategem)canOffer).markDirty();
+	}
+
+	private ExecutionBand makeNew(Strategem building, int toBand, int drift) {
+		ExecutionBand ret = new ExecutionBand(drift);
+		while (toBand < bands.size() && bands.get(toBand).drift() < drift)
+		{
+			toBand++;
+		}
+		bands.add(toBand, ret);
+		return ret;
 	}
 
 	public ExecuteStrategem get(int band, int strat) {

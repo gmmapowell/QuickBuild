@@ -1,7 +1,5 @@
 package com.gmmapowell.quickbuild.build;
 
-import java.util.List;
-
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;

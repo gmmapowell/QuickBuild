@@ -93,11 +93,13 @@ public class DependencyManager {
 	private final File dependencyFile;
 	private final BuildOrder buildOrder;
 	private final ResourceManager rm;
+	private final boolean debug;
 
-	public DependencyManager(Config conf, ResourceManager rm, BuildOrder buildOrder)
+	public DependencyManager(Config conf, ResourceManager rm, BuildOrder buildOrder, boolean debug)
 	{
 		this.rm = rm;
 		this.buildOrder = buildOrder;
+		this.debug = debug;
 		dependencyFile = new File(conf.getCacheDir(), "dependencies.xml");
 	}
 	
@@ -161,16 +163,8 @@ public class DependencyManager {
 				dependencies.ensure(actual);
 				for (BuildResource br : s.buildsResources())
 					dependencies.ensureLink(br, actual);
-				
-				/* I want this not to happen ...
-				if (actual.getBuiltBy() != null)
-					buildOrder.depends(this, s, actual.getBuiltBy());
-					*/
 			}
 		}
-		
-		// Finally, tell the build order to float things ...
-		buildOrder.handleFloatingDependencies(this);
 	}
 
 	BuildResource resolve(PendingResource pr) {
@@ -191,8 +185,6 @@ public class DependencyManager {
 		}
 		if (uniq == null)
 			throw new QuickBuildException("Could not find any dependency that matched " + pr.compareAs() +": have " + dependencies.nodes());
-//		dependencies.ensure(pr);
-//		dependencies.ensureLink(pr, uniq);
 		pr.bindTo(uniq);
 		return uniq;
 	}
@@ -292,11 +284,10 @@ public class DependencyManager {
 			throw new QuickBuildException("No Way!");
 		if (resource instanceof PendingResource)
 			throw new QuickBuildException("No Way!");
-		System.out.println("Added dependency from " + br + " on " + resource);
+		if (debug)
+			System.out.println("Added dependency from " + br + " on " + resource);
 		dependencies.ensureLink(br, resource);
 		buildOrder.reject(br.getBuiltBy());
-		// Again, I want this not to exist ...
-//		buildOrder.depends(this, br.getBuiltBy(), resource.getBuiltBy());
 		return true;
 	}
 	

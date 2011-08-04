@@ -9,6 +9,7 @@ public class Arguments {
 	public boolean buildAll;
 	public boolean blank;
 	public boolean configOnly;
+	public boolean debug;
 	public String file;
 	public List<String> showArgsFor = new ArrayList<String>();
 	public List<String> showDebugFor = new ArrayList<String>();

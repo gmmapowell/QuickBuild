@@ -23,6 +23,7 @@ public class QuickBuild {
 		new ArgumentDefinition("--build-all", Cardinality.OPTION, "buildAll", null),
 		new ArgumentDefinition("--args", Cardinality.LIST, "showArgsFor", null),
 		new ArgumentDefinition("--debug", Cardinality.LIST, "showDebugFor", null),
+		new ArgumentDefinition("--debugInternals", Cardinality.LIST, "debug", null),
 		new ArgumentDefinition("--blank", Cardinality.OPTION, "blank", "blank memory")
 	};
 
@@ -90,7 +91,7 @@ public class QuickBuild {
 		buildAll |= blankMemory;
 		
 		// now we need to read back anything we've cached ...
-		BuildContext cxt = new BuildContext(conf, configFactory, blankMemory, buildAll, arguments.showArgsFor, arguments.showDebugFor);
+		BuildContext cxt = new BuildContext(conf, configFactory, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor);
 		cxt.configure();
 		System.out.println();
 

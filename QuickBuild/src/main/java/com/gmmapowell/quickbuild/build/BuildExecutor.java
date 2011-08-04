@@ -51,11 +51,13 @@ public class BuildExecutor {
 				}
 				else if (outcome.tryAgain())
 				{
-					System.out.println("  Failed ... retrying");
+					System.out.println("  Failed ... trying something else");
 					tryAgain();
 //					System.out.println(cxt.printableBuildOrder(false));
 					continue;
 				}
+				else
+					System.out.println("  Failed, but carrying on");
 				// else move on ...
 			}
 			advance();
@@ -69,7 +71,7 @@ public class BuildExecutor {
 		boolean retrying = false;
 		for (;;)
 		{
-			System.out.println("next(status=" + status + ")");
+//			System.out.println("next(status=" + status + ")");
 			if (status == Status.NOT_SET)
 				throw new QuickBuildException("Invalid status");
 			// Do the obvious first: try and move on if required
@@ -97,8 +99,8 @@ public class BuildExecutor {
 				currentStrat = 0;
 				currentBand++;
 			}
-			
-			System.out.println("itb("+currentBand+","+currentStrat+","+currentTactic+")");
+
+//			System.out.println("itb("+currentBand+","+currentStrat+","+currentTactic+")");
 			// If the identified ITB exists, return it
 			ItemToBuild itb = buildOrder.get(currentBand, currentStrat, currentTactic);
 			if (itb != null)
@@ -107,7 +109,7 @@ public class BuildExecutor {
 				return itb;
 			}
 
-			System.out.println("itb = null, status=" + status);
+//			System.out.println("itb = null, status=" + status);
 			
 			// OK, we've reached the end of the road ...
 			if (status == Status.BUILD_CURRENT)
