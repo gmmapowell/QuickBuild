@@ -240,8 +240,6 @@ public class BuildOrder {
 		ExecutionBand ret = new ExecutionBand(drift);
 		while (toBand < bands.size() && bands.get(toBand).drift() < drift)
 		{
-			if (bands.get(toBand).hasPrereq(building))
-				throw new QuickBuildException("I think this is like a circular dependency, but with drifting ...");
 			toBand++;
 		}
 		bands.add(toBand, ret);
@@ -535,10 +533,14 @@ public class BuildOrder {
 		if (pending.size() > 0)
 		{
 			ExecuteStrategem canOffer = null;
+			int withDrift = -2;
 			int offerAt = -2;
 			loop:
 			for (ExecuteStrategem p : pending)
 			{
+				int drift = getDrift(p);
+				if (withDrift != -2 && drift > withDrift)
+					continue;
 				int maxBuilt = -1;
 				for (BuildResource pr : dependencies.getDependencies(p.getStrat()))
 				{
@@ -549,12 +551,15 @@ public class BuildOrder {
 					}
 					maxBuilt = Math.max(maxBuilt, builtAt);
 				}
-				if (offerAt == -2 || maxBuilt < offerAt)
+				if (offerAt == -2 || drift < withDrift || (drift == withDrift && maxBuilt < offerAt))
 				{
 					offerAt = maxBuilt;
+					withDrift = drift;
 					canOffer = p;
 				}
 			}
+			// TODO: at this point, we should come back and see if there is a dependency which has
+			// a higher drift value that its dependent (shouldn't happen though).
 			if (canOffer != null)
 			{
 				pending.remove(canOffer);
@@ -565,6 +570,13 @@ public class BuildOrder {
 			throw new UtilException("There is no way to build everything");
 		}
 		return false;
+	}
+
+	private int getDrift(ExecuteStrategem es) {
+		Strategem building = es.getStrat();
+		if (building instanceof FloatToEnd)
+			return ((FloatToEnd)building).priority();
+		return 0;
 	}
 
 	private int isBuilt(Strategem builtBy) {
@@ -578,12 +590,17 @@ public class BuildOrder {
 	}
 
 	private void addTo(int band, ExecuteStrategem es) {
-		int drift = 0;
-		Strategem building = es.getStrat();
-		if (building instanceof FloatToEnd)
-			drift = ((FloatToEnd)building).priority();
+		int drift = getDrift(es);
+		while (band<bands.size())
+		{
+			if (bands.get(band).drift() == drift)
+				break;
+			else if (bands.get(band).drift() > drift)
+				throw new UtilException("This shouldn't happen - bands have been added in wrong drift order");
+			band++;
+		}
 		if (band >= bands.size())
-			makeNew(building, band, drift);
+			makeNew(es.getStrat(), band, drift);
 		bands.get(band).add(es);
 		es.markDirty();
 	}
