@@ -42,7 +42,8 @@ public class BuildExecutor {
 			BuildStatus outcome = execute(itb);
 			if (!outcome.isGood())
 			{
-				ehandler.buildFail(outcome);
+				if (outcome.isWorthReporting())
+					ehandler.buildFail(outcome);
 				if (outcome.isBroken())
 				{
 					System.out.println("  Failed ... skipping to next in band");

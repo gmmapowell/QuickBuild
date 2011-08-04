@@ -35,6 +35,10 @@ public enum BuildStatus {
 	public boolean isExit1() {
 		return needsRebuild();
 	}
+	
+	public boolean isWorthReporting() {
+		return this == BROKEN || this == TEST_FAILURES;
+	}
 
 	public boolean builtResources() {
 		return moveOn();

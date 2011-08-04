@@ -93,7 +93,7 @@ public class ErrorCase {
 	}
 
 	public boolean isBroken() {
-		return outcome.isExit1();
+		return outcome.isWorthReporting();
 	}
 
 }
