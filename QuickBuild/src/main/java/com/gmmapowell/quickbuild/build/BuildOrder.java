@@ -47,7 +47,6 @@ import com.gmmapowell.xml.XMLElement;
 public class BuildOrder {
 	// We are going to track everything based on name, so we need to map name to strategem
 	private final Map<String, ExecuteStrategem> mapping = new HashMap<String, ExecuteStrategem>();
-	private final List<Strategem> well = new ArrayList<Strategem>();
 	private final List<ExecuteStrategem> pending = new ArrayList<ExecuteStrategem>();
 	
 	// This is the basic hierarchy ... everything in the same "band" is independent, but dependent on _something_ in the previous band
@@ -82,7 +81,9 @@ public class BuildOrder {
 
 	public void knowAbout(Strategem s) {
 		mapping.put(s.identifier(), new ExecuteStrategem(s.identifier()));
-		well.add(s);
+		ExecuteStrategem es = mapping.get(s.identifier());
+		es.bind(s);
+		pending.add(es);
 	}
 
 	/*
@@ -531,23 +532,14 @@ public class BuildOrder {
 	private boolean addFromWell() {
 		// TODO: the well should be sorted by drift
 		// TODO: we should pull from well before pending BUT we should pull by drift first
-		if (well.size() > 0)
-		{
-			Strategem building = well.remove(0);
-			ExecuteStrategem es = mapping.get(building.identifier());
-			es.bind(building);
-			addTo(0, es);
-			System.out.println(printOut(false));
-			return true;
-		}
 		if (pending.size() > 0)
 		{
 			ExecuteStrategem canOffer = null;
-			int offerAt = -1;
+			int offerAt = -2;
 			loop:
 			for (ExecuteStrategem p : pending)
 			{
-				int maxBuilt = 0;
+				int maxBuilt = -1;
 				for (BuildResource pr : dependencies.getDependencies(p.getStrat()))
 				{
 					int builtAt = isBuilt(pr.getBuiltBy());
@@ -557,7 +549,7 @@ public class BuildOrder {
 					}
 					maxBuilt = Math.max(maxBuilt, builtAt);
 				}
-				if (offerAt == -1 || maxBuilt < offerAt)
+				if (offerAt == -2 || maxBuilt < offerAt)
 				{
 					offerAt = maxBuilt;
 					canOffer = p;
