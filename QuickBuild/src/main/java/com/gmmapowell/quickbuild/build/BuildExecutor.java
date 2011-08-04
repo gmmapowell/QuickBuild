@@ -148,23 +148,25 @@ public class BuildExecutor {
 	}
 	
 	public void showAnyErrors() {
-		boolean buildBroken = ehandler.showLog();
+		boolean buildBroken = ehandler.showLog(System.err);
 		if (buildBroken)
 		{
-			System.out.println("!!!! BUILD FAILED !!!!");
+			if (projectsWithTestFailures > 0)
+				System.err.print(" " + projectsWithTestFailures + " projects had test failures");
+			System.err.println("!!!! BUILD FAILED !!!!");
 			System.exit(1);
 		}
 		else if (buildStarted == null) {
-			System.out.println("Nothing done.");
+			System.err.println("Nothing done.");
 		} else
 		{
-			System.out.print(">> Build completed in ");
-			System.out.print(DateUtils.elapsedTime(buildStarted, new Date(), DateUtils.Format.hhmmss3));
+			System.err.print(">> Build completed in ");
+			System.err.print(DateUtils.elapsedTime(buildStarted, new Date(), DateUtils.Format.hhmmss3));
 			if (projectsWithTestFailures > 0)
-				System.out.print(" " + projectsWithTestFailures + " projects had test failures");
+				System.err.print(" " + projectsWithTestFailures + " projects had test failures");
 			if (totalErrors > 0)
-				System.out.print(" " + totalErrors + " total build commands failed (including retries)");
-			System.out.println();
+				System.err.print(" " + totalErrors + " total build commands failed (including retries)");
+			System.err.println();
 		}
 	}
 

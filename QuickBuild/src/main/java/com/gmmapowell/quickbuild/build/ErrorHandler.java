@@ -1,6 +1,7 @@
 package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,7 +63,7 @@ public class ErrorHandler {
 		}
 	}
 	
-	public boolean showLog() {
+	public boolean showLog(PrintStream err) {
 		boolean buildBroken = false;
 		Collections.sort(cases, ErrorCase.Comparator);
 		PrettyPrinter pp = new PrettyPrinter();
@@ -72,7 +73,7 @@ public class ErrorHandler {
 			if (c.isBroken())
 				buildBroken = true;
 		}
-		System.out.print(pp);
+		err.print(pp);
 		return buildBroken;
 	}
 	
