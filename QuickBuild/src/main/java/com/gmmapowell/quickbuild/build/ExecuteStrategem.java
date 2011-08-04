@@ -1,5 +1,8 @@
 package com.gmmapowell.quickbuild.build;
 
+import java.util.List;
+
+import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.OrderedFileList;
@@ -95,7 +98,7 @@ public class ExecuteStrategem extends BandElement {
 			pp.indentMore();
 			for (DeferredTactic dt : deferred)
 			{
-				dt.print(pp);
+				dt.print(pp, false);
 				pp.requireNewline();
 			}
 			pp.indentLess();
@@ -122,5 +125,10 @@ public class ExecuteStrategem extends BandElement {
 		if (strat instanceof HasAncillaryFiles)
 			return ((HasAncillaryFiles)strat).getAncillaryFiles();
 		return null;
+	}
+
+	@Override
+	public Iterable<BuildResource> getDependencies(DependencyManager manager) {
+		return manager.getDependencies(strat);
 	}
 }

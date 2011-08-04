@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.PrettyPrinter;
@@ -33,6 +34,8 @@ public abstract class BandElement {
 	
 	public abstract int size();
 
+	public abstract Strategem getStrat();
+	
 	public abstract Tactic tactic(int currentTactic);
 
 	public abstract boolean isDeferred(Tactic tactic);
@@ -78,4 +81,8 @@ public abstract class BandElement {
 				return true;
 		return false;
 	}
+
+	public abstract String name();
+
+	public abstract Iterable<BuildResource> getDependencies(DependencyManager manager);
 }

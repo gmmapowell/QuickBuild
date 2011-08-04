@@ -66,6 +66,7 @@ public class BuildExecutor {
 	}
 
 	public ItemToBuild next() {
+		boolean retrying = false;
 		for (;;)
 		{
 			System.out.println("next(status=" + status + ")");
@@ -111,9 +112,14 @@ public class BuildExecutor {
 			// OK, we've reached the end of the road ...
 			if (status == Status.BUILD_CURRENT)
 			{
-				throw new QuickBuildException("Can't build current when there isn't one! " + currentBand + " " + currentStrat + " " + currentTactic);
+				// This is a random hack to try and stay out of infinite loops ...
+				if (retrying)
+					throw new QuickBuildException("Can't build current when there isn't one! " + currentBand + " " + currentStrat + " " + currentTactic);
+
+				status = Status.NEXT_TACTIC;
+				retrying = true;
 			}
-			if (status == Status.NEXT_BAND)
+			else if (status == Status.NEXT_BAND)
 				return null; // we are at the beginning of a band, but none ...
 			else if (status == Status.NEXT_STRAT)
 			{

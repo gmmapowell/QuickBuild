@@ -44,11 +44,6 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
-		if (this.addlResources.iterator().hasNext())
-		{
-			System.out.println("************ DEFERRED THINGYS!");
-			return BuildStatus.SUCCESS;
-		}
 		RunClassPath classpath = new RunClassPath(jbc);
 		if (addlResources != null)
 			for (BuildResource r : addlResources)

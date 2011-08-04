@@ -1,8 +1,11 @@
 package com.gmmapowell.quickbuild.build;
 
+import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.PrettyPrinter;
 
+@Deprecated
 public class Catchup extends BandElement {
 
 	@Override
@@ -24,13 +27,13 @@ public class Catchup extends BandElement {
 	public void print(PrettyPrinter pp, boolean withTactics) {
 		pp.append("Catchup");
 		pp.requireNewline();
-		if (withTactics)
-		{
-			pp.indentMore();
-			for (DeferredTactic dt : deferred)
-				dt.print(pp);
-			pp.indentLess();
-		}
+//		if (withTactics)
+//		{
+//			pp.indentMore();
+//			for (DeferredTactic dt : deferred)
+//				dt.print(pp);
+//			pp.indentLess();
+//		}
 	}
 
 	@Override
@@ -50,5 +53,23 @@ public class Catchup extends BandElement {
 	@Override
 	public String toString() {
 		return "Catchup[" + deferred + "]";
+	}
+
+	@Override
+	public Strategem getStrat() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String name() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Iterable<BuildResource> getDependencies(DependencyManager manager) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
