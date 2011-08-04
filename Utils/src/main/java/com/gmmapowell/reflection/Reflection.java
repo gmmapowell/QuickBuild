@@ -1,6 +1,8 @@
 package com.gmmapowell.reflection;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 
 import com.gmmapowell.exceptions.UtilException;
@@ -69,6 +71,22 @@ public class Reflection {
 			if (clz.getSuperclass() != null)
 				return findField(clz.getSuperclass(), fieldName);
 			return null;
+		}
+	}
+
+	public static Object callStatic(Class<?> clazz, String method, Object... args) {
+		try {
+			for (Method mi : clazz.getDeclaredMethods())
+			{
+				if (Modifier.isStatic(mi.getModifiers()) && mi.getName().equals(method) && mi.getParameterTypes().length == args.length)
+				{
+					mi.setAccessible(true);
+					return mi.invoke(null, args);
+				}
+			}
+			throw new UtilException("Method " + method + " not found");
+		} catch (Exception e) {
+			throw UtilException.wrap(e);
 		}
 	}
 }

@@ -107,7 +107,8 @@ public class RunProcess {
 			if (errCapture != null)
 				System.out.println(errCapture);
 		}
-		System.out.println("Process terminated");
+		if (debug)
+			System.out.println("Process terminated");
 		finished = true;
 	}
 	
@@ -167,7 +168,8 @@ public class RunProcess {
 		// don't kill the dead
 		if (finished)
 			return;
-		System.out.println("Killing " + proc);
+		if (debug)
+			System.out.println("Killing " + proc);
 		proc.destroy();
 	}
 }

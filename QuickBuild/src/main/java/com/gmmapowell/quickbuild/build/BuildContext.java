@@ -35,6 +35,7 @@ public class BuildContext {
 		rm = new ResourceManager(conf);
 		buildOrder = new BuildOrder(this, buildAll);
 		manager = new DependencyManager(conf, rm, buildOrder);
+		buildOrder.dependencyManager(manager);
 		ehandler = new ErrorHandler(conf.getLogDir());
 		for (String s : showArgsFor)
 			this.showArgsFor.add(Pattern.compile(".*"+s.toLowerCase()+".*"));

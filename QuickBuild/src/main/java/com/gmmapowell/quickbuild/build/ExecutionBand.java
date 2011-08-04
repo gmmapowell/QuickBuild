@@ -50,6 +50,10 @@ public class ExecutionBand implements Iterable<BandElement> {
 		return elements.get(currentStrat);
 	}
 
+	public boolean contains(ExecuteStrategem es) {
+		return elements.contains(es);
+	}
+
 	public void remove(BandElement be) {
 		if (!elements.remove(be))
 			throw new RuntimeException("Band did not contain " + be);

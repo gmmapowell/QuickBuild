@@ -22,7 +22,8 @@ public class QuickBuild {
 		new ArgumentDefinition("--config-only", Cardinality.OPTION, "configOnly", null),
 		new ArgumentDefinition("--build-all", Cardinality.OPTION, "buildAll", null),
 		new ArgumentDefinition("--args", Cardinality.LIST, "showArgsFor", null),
-		new ArgumentDefinition("--debug", Cardinality.LIST, "showDebugFor", null)
+		new ArgumentDefinition("--debug", Cardinality.LIST, "showDebugFor", null),
+		new ArgumentDefinition("--blank", Cardinality.OPTION, "blank", "blank memory")
 	};
 
 	private static Arguments arguments;
@@ -84,7 +85,8 @@ public class QuickBuild {
 		System.out.print(conf);
 			
 		boolean buildAll = arguments.buildAll;
-		boolean blankMemory = GitHelper.checkFiles(true, ofl, new File(conf.getCacheDir(), file.getName()));
+		boolean blankMemory = arguments.blank;
+		blankMemory |= GitHelper.checkFiles(true, ofl, new File(conf.getCacheDir(), file.getName()));
 		buildAll |= blankMemory;
 		
 		// now we need to read back anything we've cached ...

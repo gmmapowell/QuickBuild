@@ -6,7 +6,7 @@ import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.DateUtils;
 
 public class BuildExecutor {
-	private enum Status { NOT_SET, BUILD_CURRENT, RESTART_BAND, NEXT_TACTIC, NEXT_STRAT, NEXT_BAND };
+	private enum Status { NOT_SET, BUILD_CURRENT, RESTART_BAND, RESTART_STRAT, NEXT_TACTIC, NEXT_STRAT, NEXT_BAND };
 
 	private final BuildContext cxt;
 	private BuildOrder buildOrder;
@@ -53,7 +53,7 @@ public class BuildExecutor {
 				{
 					System.out.println("  Failed ... retrying");
 					tryAgain();
-					System.out.println(cxt.printableBuildOrder(false));
+//					System.out.println(cxt.printableBuildOrder(false));
 					continue;
 				}
 				// else move on ...
@@ -68,6 +68,7 @@ public class BuildExecutor {
 	public ItemToBuild next() {
 		for (;;)
 		{
+			System.out.println("next(status=" + status + ")");
 			if (status == Status.NOT_SET)
 				throw new QuickBuildException("Invalid status");
 			// Do the obvious first: try and move on if required
@@ -77,6 +78,11 @@ public class BuildExecutor {
 			{
 				currentTactic = 0;
 				currentStrat = 0;
+				status = Status.BUILD_CURRENT;
+			}
+			else if (status == Status.RESTART_STRAT)
+			{
+				currentTactic = 0;
 				status = Status.BUILD_CURRENT;
 			}
 			else if (status == Status.NEXT_STRAT)
@@ -91,6 +97,7 @@ public class BuildExecutor {
 				currentBand++;
 			}
 			
+			System.out.println("itb("+currentBand+","+currentStrat+","+currentTactic+")");
 			// If the identified ITB exists, return it
 			ItemToBuild itb = buildOrder.get(currentBand, currentStrat, currentTactic);
 			if (itb != null)
@@ -98,6 +105,8 @@ public class BuildExecutor {
 				status = Status.NOT_SET;
 				return itb;
 			}
+
+			System.out.println("itb = null, status=" + status);
 			
 			// OK, we've reached the end of the road ...
 			if (status == Status.BUILD_CURRENT)
@@ -122,7 +131,7 @@ public class BuildExecutor {
 	}
 
 	public void tryAgain() {
-		status = Status.RESTART_BAND;
+		status = Status.RESTART_STRAT;
 	}
 
 	public void fatal() {

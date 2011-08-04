@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.DependencyFloat;
@@ -46,6 +47,8 @@ import com.gmmapowell.xml.XMLElement;
 public class BuildOrder {
 	// We are going to track everything based on name, so we need to map name to strategem
 	private final Map<String, ExecuteStrategem> mapping = new HashMap<String, ExecuteStrategem>();
+	private final List<Strategem> well = new ArrayList<Strategem>();
+	private final List<ExecuteStrategem> pending = new ArrayList<ExecuteStrategem>();
 	
 	// This is the basic hierarchy ... everything in the same "band" is independent, but dependent on _something_ in the previous band
 	// We can build the members of a band in any order
@@ -55,6 +58,7 @@ public class BuildOrder {
 	private boolean buildAll;
 
 	private final BuildContext cxt;
+	private DependencyManager dependencies;
 
 	public BuildOrder(BuildContext cxt, boolean buildAll)
 	{
@@ -62,6 +66,10 @@ public class BuildOrder {
 		this.buildAll = buildAll;
 		buildOrderFile = cxt.getCacheFile("buildOrder.xml");
 	}	
+
+	public void dependencyManager(DependencyManager manager) {
+		this.dependencies = manager;
+	}
 
 	public void clear() {
 		mapping.clear();
@@ -72,6 +80,12 @@ public class BuildOrder {
 		buildAll = true;
 	}
 
+	public void knowAbout(Strategem s) {
+		mapping.put(s.identifier(), new ExecuteStrategem(s.identifier()));
+		well.add(s);
+	}
+
+	/*
 	public void depends(DependencyManager manager, Strategem toBuild, Strategem mustHaveBuilt) {
 //		if (mustHaveBuilt == null)
 //			System.out.println("Must build " + toBuild);
@@ -82,8 +96,8 @@ public class BuildOrder {
 		int inBand = -1;
 		int toBand = 0;
 		int drift = 0;
-		if (toBuild instanceof FloatToEnd)
-			drift = ((FloatToEnd)toBuild).priority();
+//		if (toBuild instanceof FloatToEnd)
+//			drift = ((FloatToEnd)toBuild).priority();
 		if (!mapping.containsKey(name))
 		{
 			es = new ExecuteStrategem(name);
@@ -116,7 +130,7 @@ public class BuildOrder {
 //		if (mustHaveBuilt != null)
 //			System.out.print(printOut(false));
 	}
-
+*/
 	public void handleFloatingDependencies(DependencyManager manager)
 	{
 		for (int i=0;i<bands.size();i++)
@@ -486,10 +500,16 @@ public class BuildOrder {
 
 	public ItemToBuild get(int band, int strat, int tactic) {
 		if (band >= bands.size())
-			return null;
+		{
+			if (!addFromWell())
+				return null;
+		}
 		ExecutionBand exband = bands.get(band);
 		if (strat >= exband.size())
-			return null;
+		{
+			if (!addFromWell() || strat >= exband.size())
+				return null;
+		}
 		BandElement be = exband.get(strat);
 		if (tactic >= be.size())
 			return null;
@@ -508,11 +528,88 @@ public class BuildOrder {
 		return new ItemToBuild(bs, be, tt, (band+1) + "." + (strat+1)+"."+(tactic+1), tt.toString());
 	}
 
+	private boolean addFromWell() {
+		// TODO: the well should be sorted by drift
+		// TODO: we should pull from well before pending BUT we should pull by drift first
+		if (well.size() > 0)
+		{
+			Strategem building = well.remove(0);
+			ExecuteStrategem es = mapping.get(building.identifier());
+			es.bind(building);
+			addTo(0, es);
+			System.out.println(printOut(false));
+			return true;
+		}
+		if (pending.size() > 0)
+		{
+			ExecuteStrategem canOffer = null;
+			int offerAt = -1;
+			loop:
+			for (ExecuteStrategem p : pending)
+			{
+				int maxBuilt = 0;
+				for (BuildResource pr : dependencies.getDependencies(p.getStrat()))
+				{
+					int builtAt = isBuilt(pr.getBuiltBy());
+					if (builtAt == -1)
+					{
+						continue loop;
+					}
+					maxBuilt = Math.max(maxBuilt, builtAt);
+				}
+				if (offerAt == -1 || maxBuilt < offerAt)
+				{
+					offerAt = maxBuilt;
+					canOffer = p;
+				}
+			}
+			if (canOffer != null)
+			{
+				pending.remove(canOffer);
+				addTo(offerAt+1, canOffer);
+				System.out.println(printOut(false));
+				return true;
+			}
+			throw new UtilException("There is no way to build everything");
+		}
+		return false;
+	}
+
+	private int isBuilt(Strategem builtBy) {
+		if (builtBy == null)
+			return 0;
+		ExecuteStrategem es = mapping.get(builtBy.identifier());
+		for (int i=0;i<bands.size();i++)
+			if (bands.get(i).contains(es))
+				return i;
+		return -1;
+	}
+
+	private void addTo(int band, ExecuteStrategem es) {
+		int drift = 0;
+		Strategem building = es.getStrat();
+		if (building instanceof FloatToEnd)
+			drift = ((FloatToEnd)building).priority();
+		if (band >= bands.size())
+			makeNew(building, band, drift);
+		bands.get(band).add(es);
+		es.markDirty();
+	}
+
 	public ExecuteStrategem get(int band, int strat) {
 		ExecutionBand exband = bands.get(band);
 		BandElement be = exband.get(strat);
 		if (be instanceof ExecuteStrategem)
 			return (ExecuteStrategem) be;
 		return null;
+	}
+
+	public void reject(Strategem s) {
+		ExecuteStrategem es = mapping.get(s.identifier());
+		for (ExecutionBand b : bands)
+			if (b.contains(es))
+				b.remove(es);
+		if (!pending.contains(es))
+			pending.add(es);
 	}
 }

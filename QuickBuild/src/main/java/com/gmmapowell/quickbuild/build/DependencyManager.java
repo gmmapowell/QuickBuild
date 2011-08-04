@@ -123,7 +123,8 @@ public class DependencyManager {
 		for (Strategem s : strats)
 		{
 			// Get it in the build order (at level 0)
-			buildOrder.depends(this, s, null);
+			// buildOrder.depends(this, s, null);
+			buildOrder.knowAbout(s);
 			for (BuildResource br : s.buildsResources())
 			{
 				willBuild.add(br);
@@ -161,8 +162,10 @@ public class DependencyManager {
 				for (BuildResource br : s.buildsResources())
 					dependencies.ensureLink(br, actual);
 				
+				/* I want this not to happen ...
 				if (actual.getBuiltBy() != null)
 					buildOrder.depends(this, s, actual.getBuiltBy());
+					*/
 			}
 		}
 		
@@ -291,7 +294,9 @@ public class DependencyManager {
 			throw new QuickBuildException("No Way!");
 		System.out.println("Added dependency from " + br + " on " + resource);
 		dependencies.ensureLink(br, resource);
-		buildOrder.depends(this, br.getBuiltBy(), resource.getBuiltBy());
+		buildOrder.reject(br.getBuiltBy());
+		// Again, I want this not to exist ...
+//		buildOrder.depends(this, br.getBuiltBy(), resource.getBuiltBy());
 		return true;
 	}
 	
