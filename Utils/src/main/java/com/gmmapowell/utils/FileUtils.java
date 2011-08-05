@@ -1,5 +1,6 @@
 package com.gmmapowell.utils;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -7,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.OutputStream;
 import java.net.InetAddress;
@@ -527,6 +529,33 @@ public class FileUtils {
 
 	public static boolean isUpToDate(File copy, File orig) {
 		return (copy.lastModified() >= orig.lastModified());
+	}
+
+
+	public static String readFile(File f) {
+		FileInputStream fis = null;
+		try
+		{
+			StringBuffer sb = new StringBuffer();
+			fis = new FileInputStream(f);
+			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+			String s;
+			while ((s = br.readLine()) != null)
+				sb.append(s+"\n");
+			return sb.toString();
+		}
+		catch (IOException ex)
+		{
+			throw UtilException.wrap(ex);
+		}
+		finally {
+			if (fis != null)
+				try {
+					fis.close();
+				} catch (IOException ex) {
+					throw UtilException.wrap(ex);
+				}
+		}
 	}
 
 

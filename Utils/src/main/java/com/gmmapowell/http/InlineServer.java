@@ -6,9 +6,9 @@ import java.net.Socket;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import com.gmmapowell.serialization.Endpoint;
 
@@ -28,13 +28,17 @@ public class InlineServer {
 	}
 
 	public void setContextPath(String path) {
-		((GPServletContext)config.getServletContext()).setContextPath(path);
+		servletContext().setContextPath(path);
 	}
 
 	public void setServletPath(String path) {
-		((GPServletContext)config.getServletContext()).setServletPath(path);
+		servletContext().setServletPath(path);
 	}
 
+	private GPServletContext servletContext() {
+		return ((GPServletContext)config.getServletContext());
+	}
+	
 	public void initParam(String key, String value) {
 		config.initParam(key, value);
 	}
@@ -74,8 +78,9 @@ public class InlineServer {
 		}
 	}
 
-	public void service(ServletRequest req, ServletResponse resp) throws ServletException, IOException
+	public void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
 	{
-		servletImpl.service(req, resp);
+		if (req.getRequestURI().startsWith(servletContext().getContextPath()+req.getServletPath()))
+			servletImpl.service(req, resp);
 	}
 }
