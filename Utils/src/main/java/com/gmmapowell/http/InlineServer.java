@@ -80,7 +80,6 @@ public class InlineServer {
 
 	public void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
 	{
-		if (req.getRequestURI().startsWith(servletContext().getContextPath()+req.getServletPath()))
-			servletImpl.service(req, resp);
+		servletImpl.service(req, resp);
 	}
 }

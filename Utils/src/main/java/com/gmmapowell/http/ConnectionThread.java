@@ -1,11 +1,13 @@
 package com.gmmapowell.http;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
 import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.utils.FileUtils;
 
 public class ConnectionThread extends Thread {
 	private final InputStream is;
@@ -22,13 +24,14 @@ public class ConnectionThread extends Thread {
 	public void run()
 	{
 		try {
+			GPServletContext servletContext = (GPServletContext) inlineServer.config.getServletContext();
 			String s;
 			GPRequest request = null;
 			while ((s = readLine()) != null && s.trim().length() > 0)
 			{
 				InlineServer.logger.fine("Header - " + s);
 				if (request == null)
-					request = new GPRequest((GPServletContext) inlineServer.config.getServletContext(), s, is);
+					request = new GPRequest(servletContext, s, is);
 				else
 					request.addHeader(s);
 			}
@@ -37,7 +40,18 @@ public class ConnectionThread extends Thread {
 			request.endHeaders();
 			
 			GPResponse response = new GPResponse(request, os);
-			inlineServer.service(request, response);
+			if (request.isForServlet())
+				inlineServer.service(request, response);
+			else {
+				InputStream staticResource = request.getStaticResource();
+				if (staticResource != null)
+				{
+					response.setStatus(200);
+					FileUtils.copyStream(staticResource, response.getOutputStream());
+				}
+				else
+					response.setStatus(404);
+			}
 			response.commit();
 			response.getWriter().flush();
 			os.close();

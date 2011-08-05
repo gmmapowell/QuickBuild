@@ -1,6 +1,7 @@
 package com.gmmapowell.http;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -253,7 +254,11 @@ public class GPRequest implements HttpServletRequest {
 	@Override
 	public String getPathInfo() {
 		String up = uri.getPath();
-		return up.replace(getContextPath()+getServletPath(), "");
+		String ret = up.replace(getContextPath()+getServletPath(), "");
+		int idx = ret.indexOf("?");
+		if (idx >= 0)
+			ret = ret.substring(0, idx);
+		return ret;
 	}
 
 	@Override
@@ -344,5 +349,13 @@ public class GPRequest implements HttpServletRequest {
 
 	public void setResponse(GPResponse response) {
 		this.response = response;
+	}
+
+	public boolean isForServlet() {
+		return getRequestURI().startsWith(getContextPath()+getServletPath());
+	}
+
+	public InputStream getStaticResource() {
+		return context.getResourceAsStream(getPathInfo()); 
 	}
 }
