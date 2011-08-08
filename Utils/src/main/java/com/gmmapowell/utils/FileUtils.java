@@ -360,7 +360,7 @@ public class FileUtils {
 			if (!file.mkdirs())
 				throw new UtilException("Cannot create directory " + file);
 		if (!file.isDirectory())
-			throw new UtilException("Maven cache directory '" + file + "' is not a directory");
+			throw new UtilException("File '" + file + "' is not a directory");
 	}
 
 	public static File getCurrentDir() {
@@ -432,15 +432,8 @@ public class FileUtils {
 	}
 
 	public static void copyAssertingDirs(File from, File to) {
-		try
-		{
-			assertDirectory(to.getParentFile());
-			copy(from, to);
-		}
-		catch (IOException ex)
-		{
-			throw UtilException.wrap(ex);
-		}
+		assertDirectory(to.getParentFile());
+		copy(from, to);
 	}
 
 	public static void copyRecursive(File from, File to) {
@@ -465,12 +458,19 @@ public class FileUtils {
 			throw new UtilException("Encountered " + nerrors + " copying " + from + " to " + to);
 	}
 
-	public static void copy(File f, File f2) throws IOException {
-		FileInputStream fis = new FileInputStream(f);
-		FileOutputStream fos = new FileOutputStream(f2);
-		copyStream(fis, fos);
-		fis.close();
-		fos.close();
+	public static void copy(File f, File f2) {
+		try
+		{
+			FileInputStream fis = new FileInputStream(f);
+			FileOutputStream fos = new FileOutputStream(f2);
+			copyStream(fis, fos);
+			fis.close();
+			fos.close();
+		}
+		catch (IOException ex)
+		{
+			throw UtilException.wrap(ex);
+		}
 	}
 
 	public static String clean(String name) {

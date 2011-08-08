@@ -39,7 +39,7 @@ public abstract class SolidResource implements BuildResource {
 
 	@Override
 	public BuildResource cloneInto(CloningResource to) {
-		throw new UtilException("Cannot clone into " + this + " - implement it");
+		throw new UtilException("Cannot clone into " + this + " - implement it in the appropriate subclass " + this.getClass());
 	}
 	
 	@Override

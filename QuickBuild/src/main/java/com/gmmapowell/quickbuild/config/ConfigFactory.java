@@ -12,6 +12,7 @@ import com.gmmapowell.parser.CommandObjectFactory;
 import com.gmmapowell.parser.Parent;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.CopyDirectoryCommand;
+import com.gmmapowell.quickbuild.build.CopyResourceCommand;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
@@ -37,7 +38,8 @@ public class ConfigFactory implements CommandObjectFactory {
 		addCommandExtension("libs", LibsCommand.class);
 
 		// standard build commands
-		addCommandExtension("copy", CopyDirectoryCommand.class);
+		addCommandExtension("copydir", CopyDirectoryCommand.class);
+		addCommandExtension("copy", CopyResourceCommand.class);
 	}
 
 	@Override

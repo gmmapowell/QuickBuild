@@ -21,32 +21,28 @@ import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
-public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem, Tactic {
-	private String rootDirectoryName;
+public class CopyResourceCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem, Tactic {
 	private String fromResourceName;
 	private String toPath;
 	private PendingResource fromResource;
 	private CloningResource toResource;
-	private final File rootDirectory;
 	private StructureHelper files;
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 
 	@SuppressWarnings("unchecked")
-	public CopyDirectoryCommand(TokenizedLine toks) {
+	public CopyResourceCommand(TokenizedLine toks) {
 		// TODO: want 4 args
 		toks.process(this,
-			new ArgumentDefinition("*", Cardinality.REQUIRED, "rootDirectoryName", "root"),
 			new ArgumentDefinition("*", Cardinality.REQUIRED, "fromResourceName", "from resource"),
 			new ArgumentDefinition("*", Cardinality.REQUIRED, "toPath", "destination")
 		);
-		rootDirectory = FileUtils.relativePath(rootDirectoryName);
 	}
 
 	@Override
 	public Strategem applyConfig(Config config) {
-		files = new StructureHelper(rootDirectory, "");
+		files = new StructureHelper(FileUtils.getCurrentDir(), "");
 		fromResource = new PendingResource(fromResourceName);
-		toResource = new CloningResource(this, fromResource, files.getRelative(toPath));
+		toResource = new CloningResource(this, fromResource, new File(files.getRelative(toPath), new File(fromResourceName).getName()));
 		builds.add(toResource);
 		return this;
 	}
@@ -64,13 +60,14 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		try
 		{
-			FileUtils.assertDirectory(fromResource.getPath());
-			FileUtils.copyRecursive(fromResource.getPath(), toResource.getPath());
+			FileUtils.assertDirectory(toResource.getPath().getParentFile());
+			FileUtils.copy(fromResource.getPath(), toResource.getPath());
 			cxt.builtResource(toResource);
 			return BuildStatus.SUCCESS;
 		}
 		catch (Exception ex)
 		{
+			ex.printStackTrace();
 			cxt.failure(null, null, null);
 			return BuildStatus.BROKEN;
 		}
@@ -106,7 +103,7 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 
 	@Override
 	public File rootDirectory() {
-		return rootDirectory;
+		return FileUtils.getCurrentDir();
 	}
 
 	@Override
