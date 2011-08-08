@@ -58,6 +58,8 @@ public class JarBuildCommand implements Tactic {
 					continue;
 				if (blockedByFilters(f))
 					continue;
+				if (f.getName().startsWith(".git"))
+					continue;
 				proc.arg("-C");
 				proc.arg(dir.getPath());
 				proc.arg(f.getPath());

@@ -47,4 +47,8 @@ public class GPJarEntry {
 	public InputStream asStream() {
 		return jar.getInputStream(entry);
 	}
+
+	public JarEntry getJava() {
+		return entry;
+	}
 }
