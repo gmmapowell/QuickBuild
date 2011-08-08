@@ -542,16 +542,22 @@ public class ByteCodeInspector extends ByteCodeFile {
 			hexdump.print("bipush " + bi);
 			return 2;
 		}
-		case 0x15:
-		{
-			int reg = dis.readUnsignedByte();
-			hexdump.print("iload " + reg);
-			return 2;
-		}
 		case 0x12:
 		{
 			int idx = dis.readUnsignedByte();
 			hexdump.print("ldc " + show(idx));
+			return 2;
+		}
+		case 0x13:
+		{
+			int idx = dis.readUnsignedShort();
+			hexdump.print("ldc_w " + show(idx));
+			return 3;
+		}
+		case 0x15:
+		{
+			int reg = dis.readUnsignedByte();
+			hexdump.print("iload " + reg);
 			return 2;
 		}
 		case 0x19:
