@@ -1,6 +1,7 @@
 package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -170,7 +171,7 @@ public class DependencyManager {
 	BuildResource resolve(PendingResource pr) {
 		if (pr.isBound())
 			return pr.physicalResource();
-		BuildResource uniq = null;
+		List<BuildResource> uniq = new ArrayList<BuildResource>();
 		Pattern p = Pattern.compile(".*"+pr.compareAs().toLowerCase()+".*");
 		for (BuildResource br : dependencies.nodes())
 		{
@@ -178,15 +179,15 @@ public class DependencyManager {
 				continue;
 			if (p.matcher(br.compareAs().toLowerCase()).matches())
 			{
-				if (uniq != null)
-					throw new QuickBuildException("Cannot resolve comparison: " + pr.compareAs() + " matches at least " + uniq.compareAs() + " and " + br.compareAs());
-				uniq = br;
+				uniq.add(br);
 			}
 		}
-		if (uniq == null)
+		if (uniq.size() == 0)
 			throw new QuickBuildException("Could not find any dependency that matched " + pr.compareAs() +": have " + dependencies.nodes());
-		pr.bindTo(uniq);
-		return uniq;
+		else if (uniq.size() > 1)
+			throw new QuickBuildException("Cannot resolve comparison: " + pr.compareAs() + " matches: " + uniq);
+		pr.bindTo(uniq.get(0));
+		return uniq.get(0);
 	}
 
 	public void loadDependencyCache()

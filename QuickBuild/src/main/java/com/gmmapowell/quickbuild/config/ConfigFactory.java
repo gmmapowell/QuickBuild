@@ -92,7 +92,11 @@ public class ConfigFactory implements CommandObjectFactory {
 	{
 		try {
 			if (handlers.containsKey(cmd))
+			{
+				if (handler == handlers.get(cmd).getDeclaringClass())
+					return;
 				throw new QBConfigurationException("Duplicate command handler: " + cmd);
+			}
 			Constructor<? extends Parent<?>> ctor;
 			ctor = handler.getConstructor(TokenizedLine.class);
 			handlers.put(cmd, ctor);

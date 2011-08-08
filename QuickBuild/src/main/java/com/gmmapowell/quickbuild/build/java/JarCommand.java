@@ -36,6 +36,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	private List<File> includePackages;
 	private List<File> excludePackages;
 	private final List<PendingResource> junitLibs = new ArrayList<PendingResource>();
+	private final List<PendingResource> jarLibs = new ArrayList<PendingResource>();
 	private boolean runJunit = true;
 	protected ResourcePacket<BuildResource> willProvide = new ResourcePacket<BuildResource>();
 	private JavaSourceDirResource mainSources;
@@ -92,6 +93,10 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			{
 				includePackage((IncludePackageCommand)opt);
 			}
+			else if (opt instanceof JarLibCommand)
+			{
+				addJarLib((JarLibCommand)opt);
+			}
 			else if (opt instanceof JUnitLibCommand)
 			{
 				addJUnitLib((JUnitLibCommand)opt);
@@ -114,6 +119,11 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 
 	private void addJUnitLib(JUnitLibCommand opt) {
 		junitLibs.add(opt.getResource());
+	}
+
+	private void addJarLib(JarLibCommand opt) {
+		needsResources.add(opt.getResource());
+		jarLibs.add(opt.getResource());
 	}
 
 	private void includePackage(IncludePackageCommand ipc) {
