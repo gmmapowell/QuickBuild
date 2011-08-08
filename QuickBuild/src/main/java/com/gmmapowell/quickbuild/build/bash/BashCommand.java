@@ -32,6 +32,7 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 	private File execdir;
 	private final List<String> args = new ArrayList<String>();
+	private File bashPath;
 	
 	@SuppressWarnings("unchecked")
 	public BashCommand(TokenizedLine toks) {
@@ -58,6 +59,12 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 			else
 				throw new UtilException("The option " + opt + " is not supported");
 		}
+		String os = config.getVar("os");
+		if (os.equals("windows") || os.equals("win7"))
+		{
+			bashPath = config.getPath("bashexe");
+		}
+
 		return this;
 	}
 
@@ -113,7 +120,15 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		showArgs = true;
 		showDebug = true;
-		RunProcess exec = new RunProcess(scriptName);
+		RunProcess exec = null;
+		if (bashPath != null)
+		{
+			exec = new RunProcess(bashPath.getPath());
+			exec.arg(scriptName);
+		}
+		else
+			exec = new RunProcess(scriptName);
+		new RunProcess(scriptName);
 		exec.debug(showDebug);
 		exec.showArgs(showArgs);
 		for (String a : args)

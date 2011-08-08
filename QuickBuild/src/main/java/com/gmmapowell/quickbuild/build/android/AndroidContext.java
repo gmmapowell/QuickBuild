@@ -18,7 +18,7 @@ public class AndroidContext {
 	public AndroidContext(Config conf) {
 		String os = conf.getVar("os");
 		String bat = "";
-		if (os.equals("windows"))
+		if (os.equals("windows") || os.equals("win7"))
 			bat =".bat";
 		File androidSDK = conf.getPath("androidsdk");
 		String androidPlatform = conf.getVar("androidplatform");
