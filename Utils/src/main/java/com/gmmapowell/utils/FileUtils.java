@@ -559,5 +559,8 @@ public class FileUtils {
 	}
 
 
+	public static String posixPath(File path) {
+		return path.getPath().replaceAll("\\\\", "/");
+	}
 }
 	

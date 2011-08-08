@@ -6,6 +6,7 @@ import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.CloningResource;
 import com.gmmapowell.quickbuild.core.SolidResource;
 import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.utils.FileUtils;
 
 public class JarResource extends SolidResource {
 	public JarResource(Strategem parent, File f) {
@@ -29,6 +30,6 @@ public class JarResource extends SolidResource {
 
 	@Override
 	public String compareAs() {
-		return "Jar[" + relative + "]";
+		return "Jar[" + FileUtils.posixPath(relative) + "]";
 	}
 }
