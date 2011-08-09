@@ -1,10 +1,8 @@
 package com.gmmapowell.quickbuild.build.ftp;
 
 import java.io.File;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -30,7 +28,6 @@ import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 import com.gmmapowell.utils.WriteThruStream;
 import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.HostKeyRepository;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
@@ -47,7 +44,6 @@ public class DistributeCommand extends SpecificChildrenParent<ConfigApplyCommand
 	private File fromdir;
 	private String host;
 	private String username;
-	private String path;
 	private String saveAs;
 	private File knownHosts;
 
@@ -160,6 +156,8 @@ public class DistributeCommand extends SpecificChildrenParent<ConfigApplyCommand
 			os.close();
 			thr.join();
 			builds.provide(cxt, false);
+			if (thr.broken)
+				return BuildStatus.BROKEN;
 		}
 		catch (Exception ex)
 		{
@@ -176,12 +174,11 @@ public class DistributeCommand extends SpecificChildrenParent<ConfigApplyCommand
 	}
 
 	public class SenderThread extends Thread {
-		private InputStream readFrom;
 		private final WriteThruStream wts;
+		private boolean broken;
 
 		public SenderThread(WriteThruStream wts) {
 			this.wts = wts;
-			readFrom = wts.getInputEnd();
 		}
 
 		@Override
@@ -195,15 +192,14 @@ public class DistributeCommand extends SpecificChildrenParent<ConfigApplyCommand
 				s.connect();
 				ChannelSftp openChannel = (ChannelSftp) s.openChannel("sftp");
 				openChannel.connect();
-				Vector ls = openChannel.ls("gmmapowell.com");
 				openChannel.put(wts.getInputEnd(), saveAs);
 				s.disconnect();
 			}
 			catch (Exception ex)
 			{
 				ex.printStackTrace();
-				System.exit(0);
 				wts.cancel();
+				broken = true;
 			}
 		}
 	}
