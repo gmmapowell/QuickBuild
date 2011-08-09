@@ -62,7 +62,7 @@ public class CopyResourceCommand extends SpecificChildrenParent<ConfigApplyComma
 		{
 			FileUtils.assertDirectory(toResource.getPath().getParentFile());
 			FileUtils.copy(fromResource.getPath(), toResource.getPath());
-			cxt.builtResource(toResource);
+			cxt.builtResource(toResource, false);
 			return BuildStatus.SUCCESS;
 		}
 		catch (Exception ex)

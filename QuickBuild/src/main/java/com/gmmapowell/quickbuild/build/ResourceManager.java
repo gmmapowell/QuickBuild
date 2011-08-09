@@ -42,11 +42,15 @@ public class ResourceManager implements ResourceListener {
 
 	@Override
 	public void resourceAvailable(BuildResource r) {
+		resourceAvailable(r, true);
+	}
+
+	public void resourceAvailable(BuildResource r, boolean analyze) {
 		availableResources.add(r);
 		if (!r.getPath().exists())
 			throw new QuickBuildException("The resource " + r.compareAs() + " has been made available but does not exist");
 		for (Notification n : notifications)
-			n.dispatch(r);
+			n.dispatch(r, analyze);
 	}
 	
 	public Collection<BuildResource> current() {

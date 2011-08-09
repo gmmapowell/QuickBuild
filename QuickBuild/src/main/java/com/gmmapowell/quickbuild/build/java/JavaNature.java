@@ -57,7 +57,10 @@ public class JavaNature implements Nature, BuildContextAware {
 	}
 	
 	@Override
-	public void resourceAvailable(BuildResource br) {
+	public void resourceAvailable(BuildResource br, boolean analyze) {
+		if (!analyze)
+			return;
+		
 		if (br instanceof JarResource)
 			scanJar((JarResource)br);
 		else if (br instanceof JavaSourceDirResource)
@@ -76,6 +79,7 @@ public class JavaNature implements Nature, BuildContextAware {
 		catch (GPJarException ex)
 		{
 			System.out.println("Could not open jar " + br.getPath());
+			ex.printStackTrace();
 			return;
 		}
 		boolean addedDuplicates = false;

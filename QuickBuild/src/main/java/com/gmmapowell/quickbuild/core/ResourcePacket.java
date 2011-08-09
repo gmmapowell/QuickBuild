@@ -24,8 +24,12 @@ public class ResourcePacket<T extends BuildResource> implements Iterable<T> {
 	}
 
 	public void provide(BuildContext cxt) {
+		provide(cxt, true);
+	}
+
+	public void provide(BuildContext cxt, boolean analyze) {
 		for (T obj : resources)
-			cxt.builtResource(obj);
+			cxt.builtResource(obj, analyze);
 	}
 
 }

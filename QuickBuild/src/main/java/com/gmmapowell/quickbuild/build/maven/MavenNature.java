@@ -50,7 +50,7 @@ public class MavenNature implements Nature {
 	}
 
 	@Override
-	public void resourceAvailable(BuildResource br) {
+	public void resourceAvailable(BuildResource br, boolean analyze) {
 		throw new UtilException("Can't handle " + br);
 	}
 

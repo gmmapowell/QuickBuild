@@ -12,9 +12,9 @@ public class Notification {
 		this.nature = nature;
 	}
 
-	public void dispatch(BuildResource br)
+	public void dispatch(BuildResource br, boolean analyze)
 	{
 		if (cls.isAssignableFrom(br.getClass()))
-			nature.resourceAvailable(br);
+			nature.resourceAvailable(br, analyze);
 	}
 }

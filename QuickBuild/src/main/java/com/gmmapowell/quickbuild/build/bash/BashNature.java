@@ -27,7 +27,7 @@ public class BashNature implements Nature, BuildContextAware {
 	}
 	
 	@Override
-	public void resourceAvailable(BuildResource br) {
+	public void resourceAvailable(BuildResource br, boolean analyze) {
 	}
 
 	public boolean isAvailable() {

@@ -57,7 +57,7 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 	@Override
 	public Strategem applyConfig(Config config) {
 		tactics.add(this);
-		builds.add(new JarResource(this, new File(outputTo)));
+		builds.add(new JarResource(this, FileUtils.relativePath(outputTo)));
 		for (ConfigApplyCommand opt : options)
 			if (opt instanceof WarResourceCommand)
 			{
@@ -133,12 +133,16 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 						continue;
 					else if (name.endsWith("/") && entries.contains(name))
 						continue;
+					else if (name.startsWith("META-INF/") && entries.contains(name))
+						continue;
 					jf.putNextEntry(new JarEntry(je.getJava()));
 					FileUtils.copyStream(je.asStream(), jf);
 					entries.add(name);
 				}
 			}
-			builds.provide(cxt);
+			jf.close();
+			jf = null;
+			builds.provide(cxt, false);
 			return BuildStatus.SUCCESS;
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -147,7 +151,8 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 		}
 		finally {
 			try {
-				jf.close();
+				if (jf != null)
+					jf.close();
 			}
 			catch (IOException ex)
 			{

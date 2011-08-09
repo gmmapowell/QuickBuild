@@ -17,7 +17,7 @@ public class DeployNature implements Nature {
 	}
 
 	@Override
-	public void resourceAvailable(BuildResource br) {
+	public void resourceAvailable(BuildResource br, boolean analyze) {
 
 	}
 
