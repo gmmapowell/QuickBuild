@@ -27,6 +27,7 @@ public class CopyResourceCommand extends SpecificChildrenParent<ConfigApplyComma
 	private PendingResource fromResource;
 	private CloningResource toResource;
 	private StructureHelper files;
+	private final ResourcePacket<PendingResource> needed = new ResourcePacket<PendingResource>();
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 
 	@SuppressWarnings("unchecked")
@@ -44,6 +45,7 @@ public class CopyResourceCommand extends SpecificChildrenParent<ConfigApplyComma
 		fromResource = new PendingResource(fromResourceName);
 		toResource = new CloningResource(this, fromResource, new File(files.getRelative(toPath), new File(fromResourceName).getName()));
 		builds.add(toResource);
+		needed.add(fromResource);
 		return this;
 	}
 
@@ -85,10 +87,7 @@ public class CopyResourceCommand extends SpecificChildrenParent<ConfigApplyComma
 
 	@Override
 	public ResourcePacket<PendingResource> needsResources() {
-		// TODO: this should all be resolved in construcotr
-		ResourcePacket<PendingResource> ret = new ResourcePacket<PendingResource>();
-		ret.add(fromResource);
-		return ret;
+		return needed;
 	}
 
 	@Override

@@ -158,8 +158,10 @@ public class DependencyManager {
 		{			
 			for (PendingResource pr : s.needsResources())
 			{
+				/* speculative removal - this fixes problems with copyResource not having dependencies 
 				if (pr.isBound())
 					continue;
+					*/
 				BuildResource actual = resolve(pr);
 				dependencies.ensure(actual);
 				for (BuildResource br : s.buildsResources())

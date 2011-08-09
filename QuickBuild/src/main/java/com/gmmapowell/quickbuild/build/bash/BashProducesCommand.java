@@ -9,7 +9,6 @@ import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
-import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;

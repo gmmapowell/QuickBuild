@@ -139,7 +139,7 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 		if (exec.getExitCode() == 0)
 		{
 			for (BuildResource br : builds)
-				cxt.builtResource(br);
+				cxt.builtResource(br, false); // todo: should be an option on BashProducesCommand
 			return BuildStatus.SUCCESS;
 		}
 		else
