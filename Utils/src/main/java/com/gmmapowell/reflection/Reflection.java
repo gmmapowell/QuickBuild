@@ -89,4 +89,20 @@ public class Reflection {
 			throw UtilException.wrap(e);
 		}
 	}
+
+	public static Object invoke(Object obj, String method, Object... args) {
+		try {
+			for (Method mi : obj.getClass().getDeclaredMethods())
+			{
+				if (!Modifier.isStatic(mi.getModifiers()) && mi.getName().equals(method) && mi.getParameterTypes().length == args.length)
+				{
+					mi.setAccessible(true);
+					return mi.invoke(obj, args);
+				}
+			}
+			throw new UtilException("Method " + method + " not found");
+		} catch (Exception e) {
+			throw UtilException.wrap(e);
+		}
+	}
 }

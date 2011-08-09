@@ -118,8 +118,6 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
-		showArgs = true;
-		showDebug = true;
 		RunProcess exec = null;
 		if (bashPath != null)
 		{

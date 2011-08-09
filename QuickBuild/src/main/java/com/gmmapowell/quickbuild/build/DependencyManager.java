@@ -148,9 +148,11 @@ public class DependencyManager {
 		{
 			PendingResource pending = clone.getPending();
 			BuildResource from = resolve(pending);
-			BuildResource actual = from.cloneInto(clone);
-			clone.bind(actual);
-			dependencies.ensure(actual);
+			BuildResource copy = from.cloneInto(clone);
+			clone.bind(copy);
+			dependencies.ensure(clone);
+			dependencies.ensure(copy);
+			dependencies.ensureLink(clone, copy);
 		}
 		
 		// Now wire up the guys that depend on it
