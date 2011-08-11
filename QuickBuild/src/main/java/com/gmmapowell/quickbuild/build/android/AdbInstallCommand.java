@@ -27,6 +27,8 @@ public class AdbInstallCommand extends NoChildCommand implements ConfigBuildComm
 	private StructureHelper files;
 	private PendingResource apk;
 	private File rootDir;
+	private final ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
+	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 
 	public AdbInstallCommand(TokenizedLine toks) {
 		toks.process(this,
@@ -40,6 +42,8 @@ public class AdbInstallCommand extends NoChildCommand implements ConfigBuildComm
 	public Strategem applyConfig(Config config) {
 		acxt = config.getAndroidContext();
 		apk = new PendingResource(resource);
+		needs.add(apk);
+		builds.add(new AdbInstalledResource(this, resource));
 		return this;
 	}
 	
@@ -60,9 +64,7 @@ public class AdbInstallCommand extends NoChildCommand implements ConfigBuildComm
 
 	@Override
 	public ResourcePacket<PendingResource> needsResources() {
-		ResourcePacket<PendingResource> ret = new ResourcePacket<PendingResource>();
-		ret.add(apk);
-		return ret;
+		return needs;
 	}
 
 	@Override
@@ -72,7 +74,7 @@ public class AdbInstallCommand extends NoChildCommand implements ConfigBuildComm
 
 	@Override
 	public ResourcePacket<BuildResource> buildsResources() {
-		return new ResourcePacket<BuildResource>();
+		return builds;
 	}
 
 	@Override

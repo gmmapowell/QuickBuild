@@ -264,7 +264,7 @@ public class BuildOrder {
 		if (!isDirty)
 		{
 			for (BuildResource wb : strat.getStrat().buildsResources())
-				if (!wb.getPath().exists())
+				if (wb.getPath() == null || !wb.getPath().exists())
 				{
 					System.out.println("Marking " + strat + " dirty because " + wb.compareAs() + " does not exist");
 					isDirty = true;

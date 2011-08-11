@@ -176,7 +176,7 @@ public class DependencyManager {
 		if (pr.isBound())
 			return pr.physicalResource();
 		List<BuildResource> uniq = new ArrayList<BuildResource>();
-		Pattern p = Pattern.compile(".*"+pr.compareAs().toLowerCase()+".*");
+		Pattern p = Pattern.compile(".*"+pr.compareAs().toLowerCase().replaceAll("\\.", "\\\\.")+".*");
 		for (BuildResource br : dependencies.nodes())
 		{
 			if (br instanceof PendingResource || br instanceof ComparisonResource)
