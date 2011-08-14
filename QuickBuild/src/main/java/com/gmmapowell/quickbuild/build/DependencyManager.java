@@ -53,17 +53,26 @@ import com.gmmapowell.xml.XMLElement;
 
 // Build order (& strats) is probably also better as a relation
 public class DependencyManager {
-	public static class ComparisonResource extends SolidResource {
+	public class ComparisonResource extends SolidResource {
 		private final String comparison;
+		private final String builtBy;
 	
-		public ComparisonResource(String from) {
+		public ComparisonResource(String from, String builtBy) {
 			super(null, new File(FileUtils.getCurrentDir(), "unused"));
 			this.comparison = from;
+			this.builtBy = builtBy;
 		}
 	
 		@Override
 		public Strategem getBuiltBy() {
-			throw new UtilException("Not implemented");
+			if (builtBy == null)
+				return null;
+			if (stratMap == null)
+				throw new UtilException("Cannot ask for strat before attaching them");
+			else if (!stratMap.containsKey(builtBy))
+				throw new UtilException("There is no strat matching " + builtBy);
+			else
+				return stratMap.get(builtBy);
 		}
 	
 		@Override
@@ -97,6 +106,7 @@ public class DependencyManager {
 	private final ResourceManager rm;
 	private final boolean debug;
 	private final HashMap<Strategem, Set<BuildResource>> cache = new HashMap<Strategem, Set<BuildResource>>();
+	private HashMap<String, Strategem> stratMap = null;
 
 	public DependencyManager(Config conf, ResourceManager rm, BuildOrder buildOrder, boolean debug)
 	{
@@ -223,12 +233,15 @@ public class DependencyManager {
 			for (XMLElement e : input.top().elementChildren())
 			{
 				String from = e.get("from");
-				BuildResource target = new DependencyManager.ComparisonResource(from);
+				String by = null;
+				if (e.hasAttribute("builtBy"))
+					by = e.get("builtBy");
+				BuildResource target = new ComparisonResource(from, by);
 				dependencies.ensure(target);
 				for (XMLElement r : e.elementChildren())
 				{
 					String resource = r.get("resource");
-					Node<BuildResource> source = dependencies.find(new DependencyManager.ComparisonResource(resource));
+					Node<BuildResource> source = dependencies.find(new ComparisonResource(resource, null));
 //					System.out.println(target + " <= " + source);
 					dependencies.ensureLink(target, source.getEntry());
 				}
