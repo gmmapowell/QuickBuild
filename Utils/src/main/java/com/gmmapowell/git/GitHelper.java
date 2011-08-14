@@ -35,6 +35,8 @@ public class GitHelper {
 		}
 		proc.execute();
 		boolean dirty = !file.exists();
+		if (dirty)
+			System.out.println("Git cache file " + file + " does not exist");
 		File newFile = null;
 		try
 		{

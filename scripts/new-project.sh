@@ -33,6 +33,11 @@ if [ -z "$name" ] ; then
   usage
 fi
 
+if [ -e "$name" ] ; then
+  echo "The project $name already exists" >&2
+  exit 1
+fi
+
 mkdir -p $name/src/main/java
 mkdir -p $name/src/main/resources
 mkdir -p $name/src/test/java

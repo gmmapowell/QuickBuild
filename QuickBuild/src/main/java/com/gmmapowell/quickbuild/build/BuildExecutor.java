@@ -52,13 +52,13 @@ public class BuildExecutor {
 				}
 				else if (outcome.tryAgain())
 				{
-					System.out.println("  Failed ... trying something else");
+					System.out.println("  Failed ... but trying to satisfy dependencies");
 					tryAgain();
 //					System.out.println(cxt.printableBuildOrder(false));
 					continue;
 				}
 				else
-					System.out.println("  Failed, but carrying on");
+					System.out.println("  Partially failed, moving on ...");
 				// else move on ...
 			}
 			advance();

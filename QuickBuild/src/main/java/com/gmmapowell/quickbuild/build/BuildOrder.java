@@ -264,11 +264,18 @@ public class BuildOrder {
 		if (!isDirty)
 		{
 			for (BuildResource wb : strat.getStrat().buildsResources())
+			{
 				if (wb.getPath() == null || !wb.getPath().exists())
+				{
+					System.out.println("Marking " + strat + " dirty because " + wb.compareAs() + " does not have a file output");
+					isDirty = true;
+				}
+				else if (!wb.getPath().exists())
 				{
 					System.out.println("Marking " + strat + " dirty because " + wb.compareAs() + " does not exist");
 					isDirty = true;
 				}
+			}
 		}
 		if (!isDirty)
 		{
@@ -345,7 +352,7 @@ public class BuildOrder {
 			for (BuildResource pr : p.getDependencies(dependencies))
 			{
 				int builtAt = isBuilt(pr);
-				if (builtAt == -1)
+				if (builtAt == -2)
 				{
 					continue loop;
 				}
@@ -390,7 +397,7 @@ public class BuildOrder {
 			for (PendingResource pr : addl)
 			{
 				BuildResource br = dependencies.resolve(pr);
-				if (isBuilt(br) == -1)
+				if (isBuilt(br) == -2)
 					needSplit = true;
 			}
 			if (needSplit)
@@ -418,7 +425,7 @@ public class BuildOrder {
 				for (PendingResource pr : addl)
 				{
 					BuildResource br = dependencies.resolve(pr);
-					if (isBuilt(br) == -1)
+					if (isBuilt(br) == -2)
 						needSplit = true;
 				}
 			}
@@ -435,15 +442,15 @@ public class BuildOrder {
 
 	private int isBuilt(BuildResource pr) {
 		if (pr instanceof PendingResource && !((PendingResource) pr).isBound())
-			return -1;
+			return -2;
 		Strategem s = pr.getBuiltBy();
 		if (s == null)
-			return 0;
+			return -1;
 		ExecuteStrategem es = mapping.get(s.identifier());
 		for (int i=0;i<bands.size();i++)
 			if (bands.get(i).contains(es))
 				return i;
-		return -1;
+		return -2;
 	}
 
 	private void addTo(int band, BandElement canOffer) {
@@ -488,5 +495,9 @@ public class BuildOrder {
 				b.remove(es);
 		if (!pending.contains(es))
 			pending.add(es);
+	}
+
+	public int count(int band) {
+		return bands.get(band).size();
 	}
 }

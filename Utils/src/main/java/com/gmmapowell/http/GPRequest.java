@@ -49,7 +49,7 @@ public class GPRequest implements HttpServletRequest {
 		int colon = s.indexOf(":");
 		if (colon == -1)
 			return;
-		headers.add(s.substring(0, colon), s.substring(colon+1).trim());
+		headers.add(s.substring(0, colon).toLowerCase(), s.substring(colon+1).trim());
 	}
 	
 	public void endHeaders() {
@@ -240,9 +240,9 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public int getIntHeader(String arg0) {
-		if (!headers.contains(arg0))
+		if (!headers.contains(arg0.toLowerCase()))
 			return 0;
-		return Integer.parseInt(headers.get(arg0).get(0));
+		return Integer.parseInt(headers.get(arg0.toLowerCase()).get(0));
 	}
 
 	@Override

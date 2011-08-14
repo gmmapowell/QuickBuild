@@ -7,6 +7,7 @@ import java.util.List;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
 import com.gmmapowell.quickbuild.build.java.JavaBuildCommand;
+import com.gmmapowell.quickbuild.build.java.JavaNature;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
@@ -30,6 +31,8 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 	private StructureHelper files;
 	private ApkResource apkResource;
 	private File apkFile;
+	private ResourcePacket<PendingResource> uselibs = new ResourcePacket<PendingResource>();
+	private ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
 
 	@SuppressWarnings("unchecked")
 	public AndroidCommand(TokenizedLine toks) {
@@ -39,10 +42,24 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 
 	@Override
 	public Strategem applyConfig(Config config) {
+		config.getNature(JavaNature.class);
+		config.getNature(AndroidNature.class);
 		files = new StructureHelper(rootDir, config.getOutput());
 		acxt = config.getAndroidContext();
 		apkFile = files.getOutput(projectName+".apk");
 		apkResource = new ApkResource(this, apkFile);
+		
+		for (ConfigApplyCommand cmd : options)
+		{
+			cmd.applyTo(config);
+			if (cmd instanceof AndroidUseLibraryCommand)
+			{
+				PendingResource pr = ((AndroidUseLibraryCommand)cmd).getResource();
+				uselibs.add(pr);
+				needs.add(pr);
+			}
+		}
+
 		return this;
 	}
 
@@ -94,11 +111,8 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		}
 		
 		DexBuildCommand dex = new DexBuildCommand(acxt, this, files, files.getOutput("classes"), files.getRelative("src/android/lib"), dexFile);
-		for (ConfigApplyCommand cmd : options)
-		{
-			if (cmd instanceof AndroidUseLibraryCommand)
-				((AndroidUseLibraryCommand)cmd).provideTo(dex);
-		}
+		for (PendingResource pr : uselibs)
+			dex.addJar(pr.physicalResource().getPath());
 		ret.add(dex);
 		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(this, acxt, manifest, zipfile, resdir, assetsDir);
 		ret.add(pkg);
@@ -121,7 +135,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 
 	@Override
 	public ResourcePacket<PendingResource> needsResources() {
-		return new ResourcePacket<PendingResource>();
+		return needs;
 	}
 
 	@Override
