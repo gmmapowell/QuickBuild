@@ -37,9 +37,10 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	private final String quickBuildName;
 	private final Set<BuildResource> availableResources = new HashSet<BuildResource>();
 	private final ConfigFactory factory;
+	private File cacheDir;
 
 	@SuppressWarnings("unchecked")
-	public Config(ConfigFactory factory, File qbdir, String quickBuildName)
+	public Config(ConfigFactory factory, File qbdir, String quickBuildName, String cacheDir)
 	{
 		super(ConfigApplyCommand.class, ConfigBuildCommand.class);
 		this.factory = factory;
@@ -58,6 +59,11 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		{
 			throw UtilException.wrap(ex);
 		}
+		if (cacheDir != null)
+			this.cacheDir = new File(cacheDir);
+		else
+			this.cacheDir = new File(getWorkingDir(), "cache");
+		FileUtils.assertDirectory(this.cacheDir);
 	}
 	
 	@Override
@@ -151,7 +157,7 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	}
 
 	public File getCacheDir() {
-		return new File(getWorkingDir(), "cache");
+		return cacheDir;
 	}
 
 	public File getLogDir() {

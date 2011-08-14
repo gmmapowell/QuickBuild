@@ -19,6 +19,7 @@ import com.gmmapowell.utils.ProcessArgs;
 public class QuickBuild {
 	private static ArgumentDefinition[] argumentDefinitions = new ArgumentDefinition[] {
 		new ArgumentDefinition("*.qb", Cardinality.REQUIRED, "file", "configuration file"),
+		new ArgumentDefinition("--cache", Cardinality.OPTION, "cachedir", "Cache directory"),
 		new ArgumentDefinition("--config-only", Cardinality.OPTION, "configOnly", null),
 		new ArgumentDefinition("--build-all", Cardinality.OPTION, "buildAll", null),
 		new ArgumentDefinition("--args", Cardinality.LIST, "showArgsFor", null),
@@ -39,7 +40,7 @@ public class QuickBuild {
 //		System.out.println("user.home = " + System.getProperty("user.home"));
 		File file = new File(arguments.file);
 		OrderedFileList ofl = new OrderedFileList(FileUtils.relativePath(file));
-		Config conf = new Config(configFactory, file.getParentFile(), FileUtils.dropExtension(file.getName()));
+		Config conf = new Config(configFactory, file.getParentFile(), FileUtils.dropExtension(file.getName()), arguments.cachedir);
 		{
 			File hostfile = new File(file.getParentFile(), FileUtils.getHostName() + ".host.qb");
 			if (hostfile.exists())

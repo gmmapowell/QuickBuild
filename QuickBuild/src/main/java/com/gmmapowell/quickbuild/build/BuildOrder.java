@@ -238,6 +238,11 @@ public class BuildOrder {
 				}
 			}
 		}
+		for (BandElement es : pending)
+		{
+			if (es instanceof ExecuteStrategem)
+				figureDirtyness(manager, (ExecuteStrategem) es);
+		}
 	}
 
 	public void figureDirtyness(DependencyManager manager, ExecuteStrategem strat) {
@@ -250,15 +255,17 @@ public class BuildOrder {
 			System.out.println("Marking " + strat + " dirty due to --build-all");
 			isDirty = true;
 		}
+		boolean wasDirty = isDirty;
 		if (files == null)
 		{
 			isDirty = true;
-			System.out.println("Marking " + strat + " dirty due to NULL file list");
+			if (!wasDirty)
+				System.out.println("Marking " + strat + " dirty due to NULL file list");
 		}
 		else
 		{
 			isDirty |= GitHelper.checkFiles(strat.isClean() && !buildAll, files, cxt.getGitCacheFile(strat.name(), ""));
-			if (isDirty)
+			if (!wasDirty && isDirty)
 				System.out.println("Marking " + strat + " dirty due to git hash-object");
 		}
 		if (!isDirty)
