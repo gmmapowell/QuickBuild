@@ -141,7 +141,11 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 			return BuildStatus.SUCCESS;
 		}
 		else
+		{
+			System.out.println(exec.getStdout());
+			System.out.println(exec.getStderr());
 			return BuildStatus.BROKEN;
+		}
 	}
 	
 	@Override
