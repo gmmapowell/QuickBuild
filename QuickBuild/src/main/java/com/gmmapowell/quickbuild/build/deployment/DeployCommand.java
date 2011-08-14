@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
@@ -32,6 +33,7 @@ public class DeployCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 	private ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 	private Map<String, PendingResource> pendings = new HashMap<String, PendingResource>();
 	private Map<String, BuildResource> buildings = new HashMap<String, BuildResource>();
+	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 
 	@SuppressWarnings("unchecked")
 	public DeployCommand(TokenizedLine toks) {
@@ -44,7 +46,7 @@ public class DeployCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 
 	@Override
 	public void addChild(ConfigApplyCommand obj) {
-		
+		options.add(obj);
 	}
 
 	@Override
@@ -58,6 +60,14 @@ public class DeployCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 			DeployedObject dobj = new DeployedObject(this, FileUtils.relativePath(new File(config.getPath(target), i)));
 			buildings.put(i, dobj);
 			builds.add(dobj);
+		}
+		
+		for (ConfigApplyCommand cmd : options)
+		{
+			if (cmd instanceof AfterCommand)
+				needs.add(((AfterCommand)cmd).getAfter());
+			else
+				throw new UtilException("Unrecognized Command: " + cmd);
 		}
 
 		tactics.add(this);

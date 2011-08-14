@@ -42,6 +42,7 @@ public abstract class SolidResource implements BuildResource {
 		throw new UtilException("Cannot clone into " + this + " - implement it in the appropriate subclass " + this.getClass());
 	}
 	
+	/*
 	@Override
 	public int hashCode() {
 		return compareAs().hashCode();
@@ -55,6 +56,7 @@ public abstract class SolidResource implements BuildResource {
 			return false;
 		return compareAs().equals(((BuildResource)obj).compareAs());
 	}
+	*/
 	
 	public String toString()
 	{

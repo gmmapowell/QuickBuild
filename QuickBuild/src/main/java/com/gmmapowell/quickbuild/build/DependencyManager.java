@@ -2,6 +2,7 @@ package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -95,6 +96,7 @@ public class DependencyManager {
 	private final BuildOrder buildOrder;
 	private final ResourceManager rm;
 	private final boolean debug;
+	private final HashMap<Strategem, Set<BuildResource>> cache = new HashMap<Strategem, Set<BuildResource>>();
 
 	public DependencyManager(Config conf, ResourceManager rm, BuildOrder buildOrder, boolean debug)
 	{
@@ -130,16 +132,20 @@ public class DependencyManager {
 			buildOrder.knowAbout(s);
 			for (BuildResource br : s.buildsResources())
 			{
-				willBuild.add(br);
-				
-				// TODO: sort this out properly.  We should be able to figure *something* out
 				if (br instanceof CloningResource)
 				{
-					System.out.println(br);
-					clones.add((CloningResource) br);
+					CloningResource cr = (CloningResource) br;
+					BuildResource actual = cr.getActual();
+					if (actual == null)
+					{
+						clones.add(cr);
+						continue;
+					}
+					br = actual;
 				}
-				else
-					dependencies.ensure(br);
+
+				willBuild.add(br);
+				dependencies.ensure(br);
 			}
 		}
 		
@@ -150,14 +156,14 @@ public class DependencyManager {
 			BuildResource from = resolve(pending);
 			BuildResource copy = from.cloneInto(clone);
 			clone.bind(copy);
-			dependencies.ensure(clone);
 			dependencies.ensure(copy);
-			dependencies.ensureLink(clone, copy);
 		}
 		
 		// Now wire up the guys that depend on it
 		for (Strategem s : strats)
 		{			
+			s.buildsResources().resolveClones();
+
 			for (PendingResource pr : s.needsResources())
 			{
 				/* speculative removal - this fixes problems with copyResource not having dependencies 
@@ -167,9 +173,20 @@ public class DependencyManager {
 				BuildResource actual = resolve(pr);
 				dependencies.ensure(actual);
 				for (BuildResource br : s.buildsResources())
+				{
+					if (br instanceof CloningResource)
+					{
+						CloningResource cr = (CloningResource) br;
+						br = cr.getActual();
+						if (br == null)
+							throw new QuickBuildException("It's an error for a cloning resource to not be resolved by now");
+					}
+					
 					dependencies.ensureLink(br, actual);
+				}
 			}
 		}
+		cache.clear();
 	}
 
 	BuildResource resolve(PendingResource pr) {
@@ -216,6 +233,7 @@ public class DependencyManager {
 					dependencies.ensureLink(target, source.getEntry());
 				}
 			}
+			cache.clear();
 		}
 		catch (Exception ex)
 		{
@@ -231,7 +249,10 @@ public class DependencyManager {
 			@Override
 			public void present(Node<BuildResource> node) {
 				XMLElement dep = output.addElement("Dependency");
-				dep.setAttribute("from", node.getEntry().compareAs());
+				BuildResource br = node.getEntry();
+				dep.setAttribute("from", br.compareAs());
+				if (br.getBuiltBy() != null)
+					dep.setAttribute("builtBy", br.getBuiltBy().identifier());
 				for (Link<BuildResource> l : node.linksFrom())
 				{
 					XMLElement ref = dep.addElement("References");
@@ -246,11 +267,15 @@ public class DependencyManager {
 	}
 
 	public Iterable<BuildResource> getDependencies(Strategem dependent) {
+		if (cache.containsKey(dependent))
+			return cache.get(dependent);
+		
 		Set<BuildResource> ret = new HashSet<BuildResource>();
 		for (BuildResource br : dependent.buildsResources())
 		{
 			findDependencies(ret, br);
 		}
+		cache.put(dependent, ret);
 		return ret;
 	}
 
@@ -265,6 +290,7 @@ public class DependencyManager {
 
 	public void clearCache() {
 		dependencies.clear();
+		cache.clear();
 	}
 
 	public String printableDependencyGraph() {
@@ -293,6 +319,10 @@ public class DependencyManager {
 			System.out.println("Added dependency from " + br + " on " + resource);
 		dependencies.ensureLink(br, resource);
 		buildOrder.reject(br.getBuiltBy());
+		
+		// TODO: this could be more subtle
+		cache.clear();
+		
 		return true;
 	}
 	
@@ -356,5 +386,6 @@ public class DependencyManager {
 		{
 			throw new QuickBuildCacheException("Failed to attach real strats to cache", ex);
 		}
+		cache.clear();
 	}
 }

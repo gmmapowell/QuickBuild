@@ -115,6 +115,6 @@ public class QuickBuild {
 			System.out.println();
 		}
 			
-		new BuildExecutor(cxt).doBuild();
+		new BuildExecutor(cxt, arguments.debug).doBuild();
 	}
 }

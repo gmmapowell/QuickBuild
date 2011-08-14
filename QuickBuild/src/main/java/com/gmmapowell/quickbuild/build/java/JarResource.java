@@ -19,7 +19,7 @@ public class JarResource extends SolidResource {
 
 	@Override
 	public BuildResource cloneInto(CloningResource to) {
-		return new JarResource(parent, to.getClonedPath());
+		return new JarResource(to.getBuiltBy(), to.getClonedPath());
 	}
 
 	@Override

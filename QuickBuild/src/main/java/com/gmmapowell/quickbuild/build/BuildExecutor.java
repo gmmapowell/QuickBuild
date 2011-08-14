@@ -23,10 +23,12 @@ public class BuildExecutor {
 	private int currentBand = 0;
 	private int currentStrat = 0;
 	private int currentTactic = 0;
+	private final boolean debug;
 
 
-	public BuildExecutor(BuildContext cxt) {
+	public BuildExecutor(BuildContext cxt, boolean debug) {
 		this.cxt = cxt;
+		this.debug = debug;
 		buildOrder = cxt.getBuildOrder();
 		ehandler = cxt.getErrorHandler();
 		manager = cxt.getDependencyManager();
@@ -39,7 +41,15 @@ public class BuildExecutor {
 		while ((itb = next())!= null)
 		{
 			ehandler.currentCmd(itb);
+			if (debug)
+			{
+				System.out.print(new Date().toString()+" ");
+			}
 			BuildStatus outcome = execute(itb);
+			if (debug)
+			{
+				System.out.println(new Date().toString() + " Completed");
+			}
 			if (!outcome.isGood())
 			{
 				if (outcome.isWorthReporting())

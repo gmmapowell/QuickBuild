@@ -10,11 +10,13 @@ public class CloningResource implements BuildResource {
 	private final Strategem builtBy;
 	private BuildResource actual;
 	private final PendingResource pending;
+	private final int hash;
 
 	public CloningResource(Strategem builtBy, PendingResource fromResource, File clonedPath) {
 		this.builtBy = builtBy;
 		this.pending = fromResource;
 		this.clonedPath = clonedPath;
+		this.hash = pending.hashCode();
 	}
 
 	public PendingResource getPending() {
@@ -29,25 +31,23 @@ public class CloningResource implements BuildResource {
 		this.actual = actual;
 	}
 	
+	public BuildResource getActual() {
+		return actual;
+	}
+	
 	@Override
 	public File getPath() {
-		if (actual == null)
-			throw new QuickBuildException("Cannot use CloningResource before bound");
-		return actual.getPath();
+		throw new QuickBuildException("Just don't use it like this");
 	}
 
 	@Override
 	public String compareAs() {
-		if (actual == null)
-			throw new QuickBuildException("Cannot use CloningResource before bound");
-		return actual.compareAs();
+		throw new QuickBuildException("Just don't use it like this");
 	}
 
 	@Override
 	public Strategem getBuiltBy() {
-		if (actual == null)
-			return builtBy;
-		return actual.getBuiltBy();
+		return builtBy;
 	}
 
 	@Override
@@ -55,28 +55,23 @@ public class CloningResource implements BuildResource {
 		throw new UtilException("Cannot clone a cloning resource");
 	}
 	
+	/*
 	@Override
 	public int hashCode() {
-		if (actual == null)
-			return pending.hashCode();
-		return compareAs().hashCode();
+		return hash;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == null)
 			return false;
-		if (!(obj instanceof BuildResource))
+		if (!(obj instanceof CloningResource))
 			return false;
-		if (actual == null)
-			return pending.equals(obj);
-		return compareAs().equals(((BuildResource)obj).compareAs());
+		return hash == obj.hashCode();
 	}
-
+	*/
 	@Override
 	public String toString() {
-		if (actual != null)
-			return "Cloned["+actual+"]";
-		return "CloneTo[" + clonedPath + "]";
+		return "CloneTo[" + clonedPath + (actual != null ? "*": "") + "]";
 	}
 }

@@ -10,6 +10,7 @@ public class DeployNature implements Nature {
 	public static void init(ConfigFactory config)
 	{
 		config.addCommandExtension("deploy", DeployCommand.class);
+		config.addCommandExtension("after", AfterCommand.class);
 	}
 
 	public DeployNature(Config cxt)

@@ -345,6 +345,10 @@ public class BuildOrder {
 		loop:
 		for (BandElement p : pending)
 		{
+			if (debug)
+			{
+				System.out.println("Considering " + p.name());
+			}
 			int drift = getDrift(p);
 			if (withDrift != -2 && drift > withDrift)
 				continue;
@@ -354,8 +358,12 @@ public class BuildOrder {
 				int builtAt = isBuilt(pr);
 				if (builtAt == -2)
 				{
+					if (debug)
+						System.out.println("  Rejecting because " + pr + " is not built");
 					continue loop;
 				}
+				if (debug)
+					System.out.println("  Dependency " + pr + " was built at " + builtAt);
 				maxBuilt = Math.max(maxBuilt, builtAt);
 			}
 			boolean needsSplit = needSplit(p);
@@ -365,14 +373,20 @@ public class BuildOrder {
 				offerAt = maxBuilt;
 				withDrift = drift;
 				canOffer = p;
-//				System.out.println("Considering " + p.name() + " drift = " + drift + " at " + maxBuilt + " split = " + needsSplit);
+				if (debug)
+				{
+					System.out.println("  Will consider " + p.name() + " drift = " + drift + " at " + maxBuilt + " split = " + needsSplit);
+					if (p.name().equals("Deploy[tomcat]"))
+						System.out.println("Why?");
+				}
 			}
 		}
 		// TODO: at this point, we should come back and see if there is a dependency which has
 		// a higher drift value that its dependent (shouldn't happen though).
 		if (canOffer != null)
 		{
-//			System.out.println("Trying " + canOffer.name() + " drift = " + withDrift + " at " + offerAt + " split = " + willSplit);
+			if (debug)
+				System.out.println("And trying " + canOffer.name() + " drift = " + withDrift + " at " + offerAt + " split = " + willSplit);
 			if (willSplit)
 				splitFloaters((ExecuteStrategem)canOffer);
 			pending.remove(canOffer);

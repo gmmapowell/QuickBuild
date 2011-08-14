@@ -74,11 +74,15 @@ public class BuildContext {
 			manager.loadDependencyCache();
 			buildOrder.attachStrats(strats);
 			manager.attachStrats(strats);
+			for (Strategem s : strats)
+			{			
+				s.buildsResources().resolveClones();
+			}
 		}
 		catch (QuickBuildCacheException ex) {
 			// the cache failed to load because of inconsistencies or whatever
 			// ignore it and try again
-			System.out.println("Cache was out of date; ignoring");
+			System.out.println("Cache was out of date; rebuilding");
 			System.out.println("  " + ex.getMessage());
 			if (ex.getCause() != null)
 				System.out.println("  > "+ ex.getCause().getMessage());
