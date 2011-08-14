@@ -129,6 +129,9 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 		new RunProcess(scriptName);
 		exec.debug(showDebug);
 		exec.showArgs(showArgs);
+		exec.captureStdout();
+		exec.captureStderr();
+
 		for (String a : args)
 			exec.arg(a);
 		exec.executeInDir(execdir);
