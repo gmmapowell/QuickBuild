@@ -166,4 +166,9 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 	public String toString() {
 		return identifier();
 	}
+
+	@Override
+	public boolean analyzeExports() {
+		return false;
+	}
 }

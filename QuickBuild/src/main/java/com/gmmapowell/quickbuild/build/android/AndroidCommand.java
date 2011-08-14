@@ -169,4 +169,9 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 	public boolean onCascade() {
 		return false;
 	}
+
+	@Override
+	public boolean analyzeExports() {
+		return true;
+	}
 }

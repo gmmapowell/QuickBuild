@@ -268,4 +268,9 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		return false;
 	}
 
+	@Override
+	public boolean analyzeExports() {
+		return true;
+	}
+
 }

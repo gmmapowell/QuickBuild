@@ -124,5 +124,10 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 		return false;
 	}
 
+	@Override
+	public boolean analyzeExports() {
+		return false;
+	}
+
 }
 

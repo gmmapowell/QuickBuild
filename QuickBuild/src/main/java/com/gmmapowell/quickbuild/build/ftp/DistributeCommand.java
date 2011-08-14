@@ -213,4 +213,9 @@ public class DistributeCommand extends SpecificChildrenParent<ConfigApplyCommand
 	public String toString() {
 		return "Distribute[" + host + "]";
 	}
+
+	@Override
+	public boolean analyzeExports() {
+		return false;
+	}
 }

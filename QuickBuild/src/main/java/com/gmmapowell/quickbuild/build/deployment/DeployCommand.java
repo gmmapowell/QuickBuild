@@ -146,5 +146,8 @@ public class DeployCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 		return identifier();
 	}
 
-
+	@Override
+	public boolean analyzeExports() {
+		return false;
+	}
 }

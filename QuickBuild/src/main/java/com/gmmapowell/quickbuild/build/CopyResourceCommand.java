@@ -121,5 +121,10 @@ public class CopyResourceCommand extends SpecificChildrenParent<ConfigApplyComma
 		return false;
 	}
 
+	@Override
+	public boolean analyzeExports() {
+		return false;
+	}
+
 }
 

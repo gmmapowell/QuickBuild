@@ -136,4 +136,9 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 	public boolean onCascade() {
 		return false;
 	}
+
+	@Override
+	public boolean analyzeExports() {
+		return true;
+	}
 }

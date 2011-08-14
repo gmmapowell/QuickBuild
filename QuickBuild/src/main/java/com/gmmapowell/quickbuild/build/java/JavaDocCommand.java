@@ -203,4 +203,9 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 	public int priority() {
 		return 5;
 	}
+
+	@Override
+	public boolean analyzeExports() {
+		return true;
+	}
 }

@@ -96,4 +96,9 @@ public class AdbInstallCommand extends NoChildCommand implements ConfigBuildComm
 	public boolean onCascade() {
 		return false;
 	}
+
+	@Override
+	public boolean analyzeExports() {
+		return false;
+	}
 }

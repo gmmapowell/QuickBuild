@@ -149,4 +149,9 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 		return "Bash[" + scriptName + "]";
 	}
 
+	@Override
+	public boolean analyzeExports() {
+		return false;
+	}
+
 }

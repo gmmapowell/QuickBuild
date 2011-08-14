@@ -129,4 +129,8 @@ public class ExecuteStrategem extends BandElement {
 	public Iterable<BuildResource> getDependencies(DependencyManager manager) {
 		return manager.getDependencies(strat);
 	}
+
+	public boolean analyzeExports() {
+		return strat.analyzeExports();
+	}
 }

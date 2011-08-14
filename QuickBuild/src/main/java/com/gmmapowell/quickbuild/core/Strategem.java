@@ -21,4 +21,5 @@ public interface Strategem {
 	List<? extends Tactic> tactics();
 	OrderedFileList sourceFiles();
 	boolean onCascade();
+	boolean analyzeExports();
 }

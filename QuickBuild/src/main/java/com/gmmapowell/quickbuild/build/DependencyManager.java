@@ -340,6 +340,9 @@ public class DependencyManager {
 	}
 	
 	public void attachStrats(List<Strategem> strats) {
+		stratMap = new HashMap<String, Strategem>();
+		for (Strategem s : strats)
+			stratMap.put(s.identifier(), s);
 		try
 		{
 			// existing

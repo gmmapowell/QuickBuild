@@ -100,6 +100,6 @@ public class ResourceManager implements ResourceListener {
 
 	public void exportAll(ExecuteStrategem strat) {
 		for (BuildResource br : strat.getStrat().buildsResources())
-			resourceAvailable(br);
+			resourceAvailable(br, strat.analyzeExports());
 	}
 }

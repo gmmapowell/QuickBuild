@@ -206,4 +206,10 @@ public class DevenvCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 		return identifier();
 	}
 
+
+	@Override
+	public boolean analyzeExports() {
+		return true;
+	}
+
 }
