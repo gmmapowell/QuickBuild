@@ -284,6 +284,8 @@ public class DependencyManager {
 			return cache.get(dependent);
 		
 		Set<BuildResource> ret = new HashSet<BuildResource>();
+		for (PendingResource pr : dependent.needsResources())
+			ret.add(pr.physicalResource());
 		for (BuildResource br : dependent.buildsResources())
 		{
 			findDependencies(ret, br);
