@@ -33,6 +33,7 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 	private File execdir;
 	private final List<String> args = new ArrayList<String>();
 	private File bashPath;
+	private BashDirectoryCommand dir;
 	
 	@SuppressWarnings("unchecked")
 	public BashCommand(TokenizedLine toks) {
@@ -56,6 +57,8 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 				needs.add(((BashResourceCommand)opt).getPendingResource());
 			else if (opt instanceof BashProducesCommand)
 				builds.add(((BashProducesCommand)opt).getProducedResource(this));
+			else if (opt instanceof BashDirectoryCommand)
+				dir = (BashDirectoryCommand) opt;
 			else
 				throw new UtilException("The option " + opt + " is not supported");
 		}
@@ -131,6 +134,8 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 		exec.showArgs(showArgs);
 		exec.captureStdout();
 		exec.captureStderr();
+		if (dir != null)
+			exec.executeInDir(new File(dir.dir));
 
 		for (String a : args)
 			exec.arg(a);
