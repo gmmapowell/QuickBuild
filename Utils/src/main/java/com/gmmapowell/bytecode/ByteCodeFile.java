@@ -1,5 +1,6 @@
 package com.gmmapowell.bytecode;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -61,10 +62,11 @@ public class ByteCodeFile {
 	private int super_idx = -1;
 	private List<FieldInfo> fields = new ArrayList<FieldInfo>();
 	private List<MethodInfo> methods = new ArrayList<MethodInfo>();
-	private List<AttributeInfo> attributes = new ArrayList<AttributeInfo>();
+	List<AttributeInfo> attributes = new ArrayList<AttributeInfo>();
 	private final String qualifiedName;
 	private ListMap<AnnotationType, Annotation> annotations = new ListMap<AnnotationType, Annotation>();
-	
+	final List<InnerClass> innerClasses = new ArrayList<InnerClass>();
+
 	public ByteCodeFile(File from, String qualifiedName)
 	{
 		this.qualifiedName = qualifiedName;
@@ -162,6 +164,15 @@ public class ByteCodeFile {
 	}
 
 	private void complete() throws IOException {
+		if (!innerClasses.isEmpty())
+		{
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			DataOutputStream dos = new DataOutputStream(baos);
+			dos.writeShort(innerClasses.size());
+			for (int i=0;i<innerClasses.size();i++)
+				innerClasses.get(i).write(dos);
+			attributes.add(new AttributeInfo(this, "InnerClasses", baos.toByteArray()));
+		}
 		for (AnnotationType at : annotations)
 		{
 			at.addTo(this, attributes, annotations.get(at), -1);

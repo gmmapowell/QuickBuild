@@ -30,9 +30,11 @@ public class MethodCreator extends MethodInfo {
 	private final String name;
 	private List<String> exceptions = new ArrayList<String>();
 	private final ListMap<AnnotationType, Annotation> annotations = new ListMap<AnnotationType, Annotation>(AnnotationType.sortOrder);
+	private final boolean isStatic;
 
 	public MethodCreator(ByteCodeCreator byteCodeCreator, ByteCodeFile bcf, boolean isStatic, String returnType, String name) {
 		super(bcf);
+		this.isStatic = isStatic;
 		this.name = name;
 		this.returnType = map(returnType);
 		this.byteCodeCreator = byteCodeCreator;
@@ -45,14 +47,7 @@ public class MethodCreator extends MethodInfo {
 
 	public void setAccess(Access a)
 	{
-		if (a == Access.PUBLIC)
-			access_flags = ByteCodeFile.ACC_PUBLIC;
-		else if (a == Access.PRIVATE)
-			access_flags = ByteCodeFile.ACC_PRIVATE;
-		else if (a == Access.PROTECTED)
-			access_flags = ByteCodeFile.ACC_PROTECTED;
-		else
-			throw new UtilException("Huh?");
+		access_flags = a.asByte();
 	}
 
 	public void makeFinal() {
@@ -91,6 +86,8 @@ public class MethodCreator extends MethodInfo {
 	public void complete() throws IOException {
 		if (access_flags == -1)
 			access_flags = ByteCodeFile.ACC_PUBLIC;
+		if (isStatic)
+			access_flags |= ByteCodeFile.ACC_STATIC;
 		
 		for (AnnotationType at : annotations)
 		{
@@ -173,14 +170,14 @@ public class MethodCreator extends MethodInfo {
 
 	private void add(int stackChange, Instruction instruction) {
 		instructions.add(instruction);
-		opstack(stackChange);
 		if (lenientMode)
-			System.err.println(instruction + " stack = " + opdepth);
+			System.err.println(instruction + " stack = " + opdepth + " change = " + stackChange);
+		opstack(stackChange);
 	}
 
 	private void opstack(int i) {
 		opdepth += i;
-		if (opdepth < 0)
+		if (opdepth < 0 && !lenientMode)
 			throw new UtilException("Stack underflow generating " + name + " in " + bcf);
 		if (opdepth > maxStack)
 			maxStack = opdepth;
@@ -197,6 +194,12 @@ public class MethodCreator extends MethodInfo {
 			add(1, new Instruction(0x19, i));
 	}
 	
+	public void anewarray(String clz)
+	{
+		int idx = bcf.requireClass(clz);
+		add(0, new Instruction(0xbd, hi(idx), lo(idx)));
+	}
+
 	public void areturn() {
 		add(-1, new Instruction(0xb0));
 	}
@@ -233,15 +236,73 @@ public class MethodCreator extends MethodInfo {
 		add(0, new Instruction(0xb4, hi(idx), lo(idx)));
 	}
 
+	public void getStatic(String clz, String type, String var) {
+		int clzIdx = bcf.requireClass(clz);
+		int fieldIdx = bcf.requireUtf8(var);
+		int sigIdx = bcf.requireUtf8(map(type));
+		int ntIdx = bcf.requireNT(fieldIdx, sigIdx);
+		int idx = bcf.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
+		add(1, new Instruction(0xb2, hi(idx), lo(idx)));
+	}
+
+	public void iconst(int i) {
+		if (i >= -1 && i <=5)
+		{
+			i += 0x3;
+			add(1, new Instruction(i));
+		}
+		else
+		{
+			// TODO: should be able, just not yet supported.
+			throw new UtilException("Cannot make iconst(" + i + ")");
+		}
+	}
+
 	public Marker ifeq() {
 		Marker ret = new Marker(instructions, 1);
 		add(-1, new Instruction(0x99, 00, 00));
 		return ret;
 	}
 	
+	public Marker ifne() {
+		Marker ret = new Marker(instructions, 1);
+		add(-1, new Instruction(0x9a, 00, 00));
+		return ret;
+	}
+
+	public Marker iflt() {
+		Marker ret = new Marker(instructions, 1);
+		add(-1, new Instruction(0x9b, 00, 00));
+		return ret;
+	}
+
+	public Marker ifge() {
+		Marker ret = new Marker(instructions, 1);
+		add(-1, new Instruction(0x9c, 00, 00));
+		return ret;
+	}
+
+	public Marker ifgt() {
+		Marker ret = new Marker(instructions, 1);
+		add(-1, new Instruction(0x9d, 00, 00));
+		return ret;
+	}
+
+	public Marker ifle() {
+		Marker ret = new Marker(instructions, 1);
+		add(-1, new Instruction(0x9e, 00, 00));
+		return ret;
+	}
+
 	public Marker ifnull() {
 		Marker ret = new Marker(instructions, 1);
 		add(-1, new Instruction(0xc6, 00, 00));
+		return ret;
+	}
+
+	public Marker ifnonnull() {
+		Marker ret = new Marker(instructions, 1);
+		add(-1, new Instruction(0xc7, 00, 00));
 		return ret;
 	}
 
@@ -324,6 +385,15 @@ public class MethodCreator extends MethodInfo {
 		int ntIdx = bcf.requireNT(fieldIdx, sigIdx);
 		int idx = bcf.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
 		add(-2, new Instruction(0xb5, idx>>8, idx&0xff));
+	}
+
+	public void putStatic(String clz, String type, String var) {
+		int clzIdx = bcf.requireClass(clz);
+		int fieldIdx = bcf.requireUtf8(var);
+		int sigIdx = bcf.requireUtf8(map(type));
+		int ntIdx = bcf.requireNT(fieldIdx, sigIdx);
+		int idx = bcf.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
+		add(-1, new Instruction(0xb3, idx>>8, idx&0xff));
 	}
 
 	public void returnVoid() {

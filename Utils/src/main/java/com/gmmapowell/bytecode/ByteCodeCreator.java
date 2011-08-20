@@ -5,6 +5,8 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
@@ -75,6 +77,10 @@ public class ByteCodeCreator {
 		return createAnyMethod(false, "void", "<init>");
 	}
 
+	public MethodCreator sctor() {
+		return createAnyMethod(true, "void", "<clinit>");
+	}
+
 	public MethodCreator method(String returns, String name)
 	{
 		return createAnyMethod(false, returns, name);
@@ -106,6 +112,19 @@ public class ByteCodeCreator {
 	public void implementsInterface(String intf) {
 		bcf.addInterface(intf);
 	}
+	
+	public void signatureAttribute(String name, String sig) {
+		int u8 = bcf.requireUtf8(sig);
+		byte[] data = new byte[2];
+		data[0] = (byte) ((u8>>8)&0xff);
+		data[1] = (byte) (u8&0xff);
+		addAttribute(name, data);
+	}
+
+	public void addAttribute(String name, byte[] data) {
+		AttributeInfo attr = bcf.newAttribute(name, data);
+		bcf.attributes.add(attr);
+	}
 
 	public Annotation addRTVAnnotation(String attrClass) {
 		return bcf.addClassAnnotation(AnnotationType.RuntimeVisibleAnnotations, new Annotation(bcf, attrClass));
@@ -113,5 +132,9 @@ public class ByteCodeCreator {
 
 	public Annotation newAnnotation(String attrClass) {
 		return new Annotation(bcf, attrClass);
+	}
+
+	public void addInnerClassReference(Access access, String parentClass, String inner) {
+		bcf.innerClasses.add(new InnerClass(bcf, access, parentClass+"$"+inner, parentClass, inner));
 	}
 }

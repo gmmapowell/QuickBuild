@@ -37,4 +37,8 @@ public class ByteCodeJar implements ByteCodeHolder {
 		}
 	}
 
+	public boolean hasEntries() {
+		return !files.isEmpty();
+	}
+
 }

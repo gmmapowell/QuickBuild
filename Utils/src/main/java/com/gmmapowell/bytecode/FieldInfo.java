@@ -18,26 +18,7 @@ public class FieldInfo extends JavaInfo {
 
 	public FieldInfo(ByteCodeFile bcf, boolean isFinal, Access access, String type, String var) {
 		this.bcf = bcf;
-		int flags = 0;
-		switch (access)
-		{
-		case PRIVATE:
-			flags = ByteCodeFile.ACC_PRIVATE;
-			break;
-		case PROTECTED:
-			flags = ByteCodeFile.ACC_PROTECTED;
-			break;
-		case PROTECTEDTRANSIENT:
-			flags = ByteCodeFile.ACC_PROTECTED | ByteCodeFile.ACC_TRANSIENT;
-			break;
-		case DEFAULT:
-			break;
-		case PUBLIC:
-			flags = ByteCodeFile.ACC_PUBLIC;
-			break;
-		default:
-			throw new UtilException("Invalid access");
-		}
+		int flags = access.asByte();
 		if (isFinal)
 			flags |= ByteCodeFile.ACC_FINAL;
 		access_flags = flags;

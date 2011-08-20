@@ -1,9 +1,34 @@
 package com.gmmapowell.bytecode;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.FileUtils;
 
 public class JavaInfo {
-	public static enum Access { PRIVATE, PUBLIC, PROTECTED, DEFAULT, PROTECTEDTRANSIENT };
+	public static enum Access { PRIVATE, PUBLIC, PROTECTED, DEFAULT, PROTECTEDTRANSIENT, PRIVATESTATIC, PUBLICSTATIC, DEFAULTSTATIC; 
+		public short asByte() {
+			switch (this)
+			{
+			case PRIVATE:
+				return ByteCodeFile.ACC_PRIVATE;
+			case PRIVATESTATIC:
+				return ByteCodeFile.ACC_PRIVATE|ByteCodeFile.ACC_STATIC;
+			case PROTECTED:
+				return ByteCodeFile.ACC_PROTECTED;
+			case PROTECTEDTRANSIENT:
+				return ByteCodeFile.ACC_PROTECTED | ByteCodeFile.ACC_TRANSIENT;
+			case DEFAULT:
+				return 0;
+			case DEFAULTSTATIC:
+				return ByteCodeFile.ACC_STATIC;
+			case PUBLIC:
+				return ByteCodeFile.ACC_PUBLIC;
+			case PUBLICSTATIC:
+				return ByteCodeFile.ACC_PUBLIC|ByteCodeFile.ACC_STATIC;
+			default:
+				throw new UtilException("Invalid access");
+			}
+		}
+	};
 
 	public static String map(String type) {
 		if (type.startsWith("@")) // this is my own annotation to allow pre-mapped types to be passed around

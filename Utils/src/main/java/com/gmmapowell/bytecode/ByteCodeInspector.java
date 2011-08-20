@@ -457,6 +457,17 @@ public class ByteCodeInspector extends ByteCodeFile {
 					}
 				}
 			}
+			else if (attr.equals("InnerClasses")) {
+				int refersTo = dis.readUnsignedShort();
+				for (int j=0;j<refersTo;j++)
+				{
+					int ic = dis.readUnsignedShort();
+					int oc = dis.readUnsignedShort();
+					int in = dis.readUnsignedShort();
+					int acc = dis.readUnsignedShort();
+					hexdump.print("Ref" + flags(acc) + show(ic) + " <= " + show(oc) + "." + show(in));
+				}
+			}
 			else
 			{
 				byte[] bytes = new byte[len];
@@ -702,6 +713,13 @@ public class ByteCodeInspector extends ByteCodeFile {
 			int idx = dis.readUnsignedShort();
 			CPInfo info = pool[idx];
 			hexdump.print("new " + show(info));
+			return 3;
+		}
+		case 0xbd:
+		{
+			int idx = dis.readUnsignedShort();
+			CPInfo info = pool[idx];
+			hexdump.print("anewarray " + show(info));
 			return 3;
 		}
 		case 0xbf:
