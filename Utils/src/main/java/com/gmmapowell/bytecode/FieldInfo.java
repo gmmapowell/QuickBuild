@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.gmmapowell.collections.ListMap;
-import com.gmmapowell.exceptions.UtilException;
 
 public class FieldInfo extends JavaInfo {
 	private final ByteCodeFile bcf;
