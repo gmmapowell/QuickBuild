@@ -18,12 +18,16 @@ public class AndroidContext {
 	public AndroidContext(Config conf) {
 		String os = conf.getVar("os");
 		String bat = "";
+		String exe = "";
 		if (os.equals("windows") || os.equals("win7"))
+		{
 			bat =".bat";
+			exe = ".exe";
+		}
 		File androidSDK = conf.getPath("androidsdk");
 		String androidPlatform = conf.getVar("androidplatform");
 		File platformDir = FileUtils.fileConcat(androidSDK.getPath(), "platforms", androidPlatform);
-		aapt = new File(platformDir, "tools/aapt");
+		aapt = new File(platformDir, "tools/aapt" +exe);
 		if (!aapt.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + aapt);
 		dx = new File(platformDir, "tools/dx" +bat);
@@ -32,10 +36,10 @@ public class AndroidContext {
 		apk = new File(androidSDK, "tools/apkbuilder" + bat);
 		if (!apk.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + apk);
-		adb = new File(androidSDK, "tools/adb");
+		adb = new File(androidSDK, "tools/adb" +exe);
 		if (!adb.exists())
 		{
-			adb = new File(androidSDK, "platform-tools/adb");
+			adb = new File(androidSDK, "platform-tools/adb" +exe);
 			if (!adb.exists())
 				throw new QBConfigurationException("Invalid android configuration: cannot find " + adb + " in either location");
 		}
