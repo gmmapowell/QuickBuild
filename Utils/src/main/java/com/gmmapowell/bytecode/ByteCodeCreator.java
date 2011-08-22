@@ -41,7 +41,7 @@ public class ByteCodeCreator {
 
 	public void addToJar(JarOutputStream jos) {
 		try {
-			JarEntry je = new JarEntry(file.getPath());
+			JarEntry je = new JarEntry(file.getPath().replaceAll("\\\\", "/"));
 			jos.putNextEntry(je);
 			generateByteCodes(jos);
 		} catch (Exception e) {
