@@ -56,7 +56,11 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 			else if (opt instanceof BashResourceCommand)
 				needs.add(((BashResourceCommand)opt).getPendingResource());
 			else if (opt instanceof BashProducesCommand)
-				builds.add(((BashProducesCommand)opt).getProducedResource(this));
+			{
+				BashProducesCommand bpc = (BashProducesCommand)opt;
+				bpc.applyTo(config);
+				builds.add(bpc.getProducedResource(this));
+			}
 			else if (opt instanceof BashDirectoryCommand)
 				dir = (BashDirectoryCommand) opt;
 			else

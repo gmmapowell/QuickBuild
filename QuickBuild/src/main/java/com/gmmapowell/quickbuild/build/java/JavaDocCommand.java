@@ -15,6 +15,7 @@ import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.build.ErrorCase;
+import com.gmmapowell.quickbuild.build.android.AndroidJarCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
@@ -77,6 +78,8 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 		Set<String> packages = new TreeSet<String>();
 		for (BuildResource br : cxt.getResources(JavaSourceDirResource.class))
 		{
+			if (br.getBuiltBy() instanceof AndroidJarCommand)
+				continue;
 			File path = ((JavaSourceDirResource)br).getPath();
 			sourcepath.add(path);
 			for (File f : FileUtils.findFilesUnderMatching(path, "*.java"))

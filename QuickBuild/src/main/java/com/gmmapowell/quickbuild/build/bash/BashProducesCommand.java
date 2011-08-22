@@ -12,10 +12,12 @@ import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
+import com.gmmapowell.utils.FileUtils;
 
 public class BashProducesCommand extends NoChildCommand implements ConfigApplyCommand {
 	private String type;
 	private String resource;
+	private File resourceFile;
 	
 	public BashProducesCommand(TokenizedLine toks)
 	{
@@ -25,12 +27,12 @@ public class BashProducesCommand extends NoChildCommand implements ConfigApplyCo
 
 	@Override
 	public void applyTo(Config config) {
-		
+		resourceFile = FileUtils.relativePath(resource);
 	}
 
 	public BuildResource getProducedResource(Strategem bash) {
 		if (type.equals("jar"))
-			return new JarResource(bash, new File(resource));
+			return new JarResource(bash, resourceFile);
 		else
 			throw new UtilException("Cannot handle bash resource type " + type);
 	}
