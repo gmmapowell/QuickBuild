@@ -193,6 +193,7 @@ public class Reflection {
 		@SuppressWarnings("unchecked")
 		@Override
 		public T invoke(Object[] args) throws Exception {
+			m.setAccessible(true);
 			return (T) m.invoke(clz, args);
 		}
 
