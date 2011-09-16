@@ -49,4 +49,11 @@ public class FieldInfo extends JavaInfo {
 		return ret;
 	}
 
+	public void attribute(String named, String text) {
+		short ptr = bcf.requireUtf8(text);
+		byte[] data = new byte[2];
+		data[0] = (byte)(ptr>>8);
+		data[1] = (byte)(ptr&0xff);
+		attributes.add(bcf.newAttribute(named, data));
+	}
 }

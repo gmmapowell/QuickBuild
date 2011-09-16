@@ -4,7 +4,7 @@ import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.FileUtils;
 
 public class JavaInfo {
-	public static enum Access { PRIVATE, PUBLIC, PROTECTED, DEFAULT, PROTECTEDTRANSIENT, PRIVATESTATIC, PUBLICSTATIC, DEFAULTSTATIC, PUBLICTRANSIENT; 
+	public static enum Access { PRIVATE, PUBLIC, PROTECTED, DEFAULT, PROTECTEDTRANSIENT, PRIVATESTATIC, PUBLICSTATIC, DEFAULTSTATIC, PUBLICTRANSIENT, PUBLICABSTRACT; 
 		public short asByte() {
 			switch (this)
 			{
@@ -26,6 +26,8 @@ public class JavaInfo {
 				return ByteCodeFile.ACC_PUBLIC|ByteCodeFile.ACC_STATIC;
 			case PUBLICTRANSIENT:
 				return ByteCodeFile.ACC_PUBLIC|ByteCodeFile.ACC_TRANSIENT;
+			case PUBLICABSTRACT:
+				return ByteCodeFile.ACC_PUBLIC|ByteCodeFile.ACC_ABSTRACT;
 			default:
 				throw new UtilException("Invalid access");
 			}

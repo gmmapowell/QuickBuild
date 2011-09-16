@@ -65,17 +65,17 @@ public class PrettyPrinter {
 	 *
 	 * @param s the composite string to break up
 	 */
-	public void appendIndented(String text)
+	public void appendIndented(String s)
 	{
 		int from = 0;
-		while (from < text.length())
+		while (from < s.length())
 		{
-			int idx = text.indexOf('\n', from);
+			int idx = s.indexOf('\n', from);
 			if (idx == -1)
-				idx = text.length();
+				idx = s.length();
 
 			requireNewline();
-			append(text.substring(from, idx));
+			append(s.substring(from, idx));
 			from = idx+1;
 		}
 		requireNewline();

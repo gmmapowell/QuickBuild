@@ -339,7 +339,10 @@ public class ByteCodeInspector extends ByteCodeFile {
 		}
 
 		if (access != 0)
-			throw new UtilException("Unhandled flags: " + access);
+		{
+			sb.append(" !!!! [" + access + "]");
+//			throw new UtilException("Unhandled flags: " + access);
+		}
 		return sb.toString();
 	}
 
@@ -643,6 +646,11 @@ public class ByteCodeInspector extends ByteCodeFile {
 			short jumpTo = dis.readShort();
 			hexdump.print("goto " + StringUtil.hex(offset+jumpTo, 4));
 			return 3;
+		}
+		case 0xac:
+		{
+			hexdump.print("ireturn");
+			return 1;
 		}
 		case 0xb0:
 		{

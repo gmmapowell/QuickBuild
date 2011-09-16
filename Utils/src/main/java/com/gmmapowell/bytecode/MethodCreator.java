@@ -360,6 +360,10 @@ public class MethodCreator extends MethodInfo {
 		addInvoke(new Instruction(0xb9, hi(idx), lo(idx), count, 0), false, ret, args);
 	}
 
+	public void ireturn() {
+		add(-1, new Instruction(0xac));
+	}
+
 	public void ldcClass(String clz)
 	{
 		add(1, new Instruction(0x12, bcf.requireClass(clz)));
