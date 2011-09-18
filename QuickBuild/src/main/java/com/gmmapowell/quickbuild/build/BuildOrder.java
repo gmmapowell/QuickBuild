@@ -359,6 +359,19 @@ public class BuildOrder {
 			int drift = getDrift(p);
 			if (withDrift != -2 && drift > withDrift)
 				continue;
+			if (p instanceof DeferredTactic)
+			{
+				BuildResource reject = null;
+				for (BuildResource sr : p.getStrat().buildsResources())
+					if (isBuilt(sr) < 0)
+						reject = sr;
+				if (reject != null)
+				{
+					if (debug)
+						System.out.println("Rejecting deferred because its parent has not built");
+					continue;
+				}
+			}
 			int maxBuilt = -1;
 			for (BuildResource pr : p.getDependencies(dependencies))
 			{
