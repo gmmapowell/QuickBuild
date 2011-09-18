@@ -8,8 +8,6 @@ import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
 
 public class BashNature implements Nature, BuildContextAware {
-	private BuildContext cxt;
-	private final Config conf;
 
 	public static void init(ConfigFactory config)
 	{
@@ -24,7 +22,6 @@ public class BashNature implements Nature, BuildContextAware {
 
 	public BashNature(Config conf)
 	{
-		this.conf = conf;
 	}
 	
 	@Override
@@ -45,6 +42,5 @@ public class BashNature implements Nature, BuildContextAware {
 
 	@Override
 	public void provideBuildContext(BuildContext cxt) {
-		this.cxt = cxt;
 	}
 }

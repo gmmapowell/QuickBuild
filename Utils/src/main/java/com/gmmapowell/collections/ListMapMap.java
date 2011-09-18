@@ -40,9 +40,18 @@ public class ListMapMap<F1, F2, T> {
 		return map.containsKey(f1) && map.get(f1).contains(f2);
 	}
 	
+	public void remove(F1 f1, F2 f2) {
+		ListMap<F2, T> listMap = map.get(f1);
+		listMap.removeAll(f2);
+	}
+	
 	@Override
 	public String toString() {
 		return map.toString();
+	}
+	
+	public Set<F1> key1Set() {
+		return map.keySet();
 	}
 
 	public Collection<T> values() {

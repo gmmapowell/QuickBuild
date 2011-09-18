@@ -15,8 +15,6 @@ public class GPHttpSession implements HttpSession {
 
 	final String cookie;
 	private Map<String,Object> attributes = new HashMap<String, Object>();
-	// TODO: somebody needs to be watching over this ...
-	private int maxInactive;
 	private final GPServletContext context;
 
 	public GPHttpSession(GPServletContext context, String cookie) {
@@ -106,7 +104,6 @@ public class GPHttpSession implements HttpSession {
 
 	@Override
 	public void setMaxInactiveInterval(int arg0) {
-		maxInactive = arg0;
 	}
 
 }

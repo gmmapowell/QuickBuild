@@ -10,13 +10,11 @@ public class CloningResource implements BuildResource {
 	private final Strategem builtBy;
 	private BuildResource actual;
 	private final PendingResource pending;
-	private final int hash;
 
 	public CloningResource(Strategem builtBy, PendingResource fromResource, File clonedPath) {
 		this.builtBy = builtBy;
 		this.pending = fromResource;
 		this.clonedPath = clonedPath;
-		this.hash = pending.hashCode();
 	}
 
 	public PendingResource getPending() {
