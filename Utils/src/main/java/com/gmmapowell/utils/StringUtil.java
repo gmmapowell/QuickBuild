@@ -50,6 +50,13 @@ public class StringUtil {
 			sb.insert(0, "0");
 		return sb.toString();
 	}
+	  
+	public static String hex(byte[] b) {
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < b.length; i++)
+			sb.append(hex(b[i] & 0xff, 2));
+		return sb.toString().toUpperCase();
+	}
 	
 	public static String capitalize(String s)
 	{
