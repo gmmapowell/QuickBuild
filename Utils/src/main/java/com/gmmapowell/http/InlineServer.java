@@ -36,9 +36,9 @@ public class InlineServer {
 	}
 
 	private GPServletContext servletContext() {
-		return ((GPServletContext)config.getServletContext());
+		return ((GPServletContext) config.getServletContext());
 	}
-	
+
 	public void initParam(String key, String value) {
 		config.initParam(key, value);
 	}
@@ -52,34 +52,29 @@ public class InlineServer {
 	}
 
 	public void run(boolean doLoop) {
-		try
-		{
+		try {
 			ServerSocket s = new ServerSocket(port);
 			logger.info("Listening on port " + s.getLocalPort());
 			Class<?> forName = Class.forName(servletClass);
 			servletImpl = (HttpServlet) forName.newInstance();
 			servletImpl.init(config);
-			if (alertEP != null)
-			{
+			if (alertEP != null) {
 				Endpoint addr = new Endpoint(s);
 				logger.info("Sending " + addr + " to " + alertEP);
 				alertEP.send(addr.toString());
 			}
-			while (doLoop)
-			{
+			while (doLoop) {
 				Socket conn = s.accept();
 				logger.fine("Accepting connection request and dispatching to thread");
 				new ConnectionThread(this, conn).start();
 			}
-		}
-		catch (Exception ex)
-		{
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}
 
-	public void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
-	{
+	public void service(HttpServletRequest req, HttpServletResponse resp)
+			throws ServletException, IOException {
 		servletImpl.service(req, resp);
 	}
 }

@@ -28,7 +28,7 @@ public class ConnectionThread extends Thread {
 			GPRequest request = null;
 			while ((s = readLine()) != null && s.trim().length() > 0)
 			{
-				InlineServer.logger.info("Header - " + s);
+				InlineServer.logger.fine("Header - " + s);
 				if (request == null)
 					request = new GPRequest(servletContext, s, is);
 				else

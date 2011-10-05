@@ -17,6 +17,7 @@ public class Crypto {
 	public static byte[] computeHash(String str) {
 		try {
 			MessageDigest d = MessageDigest.getInstance("SHA-1");
+			d.reset();
 			d.update(str.getBytes());
 			return d.digest();
 		} catch (NoSuchAlgorithmException e) {

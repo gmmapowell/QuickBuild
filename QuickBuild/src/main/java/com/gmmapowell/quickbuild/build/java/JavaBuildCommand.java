@@ -109,26 +109,24 @@ public class JavaBuildCommand implements Tactic {
 			// TODO: cxt.addClassDirForProject(project, bindir);
 			return BuildStatus.SUCCESS;
 		}
-		if (proc.getExitCode() == 1)
+		// compilation errors, usually
+		LinePatternParser lpp = new LinePatternParser();
+		lpp.match("package ([a-zA-Z0-9_.]*) does not exist", "nopackage", "pkgname");
+		lpp.match("cannot access ([a-zA-Z0-9_.]*)\\.[a-zA-Z0-9_]*", "nopackage", "pkgname");
+		int cnt = 0;
+		for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStderr())))
 		{
-			// compilation errors, usually
-			LinePatternParser lpp = new LinePatternParser();
-			lpp.match("package ([a-zA-Z0-9_.]*) does not exist", "nopackage", "pkgname");
-			lpp.match("cannot access ([a-zA-Z0-9_.]*)\\.[a-zA-Z0-9_]*", "nopackage", "pkgname");
-			int cnt = 0;
-			for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStderr())))
+			if (lpm.is("nopackage"))
 			{
-				if (lpm.is("nopackage"))
-				{
-					if (nature.addDependency(parent, lpm.get("pkgname")))
-						cnt++;
-				}
-				else
-					throw new QuickBuildException("Do not know how to handle match " + lpm);
+				if (nature.addDependency(parent, lpm.get("pkgname")))
+					cnt++;
 			}
-			if (cnt > 0)
-				return BuildStatus.RETRY;
+			else
+				throw new QuickBuildException("Do not know how to handle match " + lpm);
 		}
+		System.out.println("Corrected " + cnt + " errors, retrying");
+		if (cnt > 0)
+			return BuildStatus.RETRY;
 		System.out.println(proc.getStderr());
 		return BuildStatus.BROKEN;
 	}

@@ -78,7 +78,7 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 	@Override
 	public String identifier() {
 		// I don't think this is identification enough, but what would be?  An Id?  A hash of all the things it produces?
-		return "Bash["+scriptName+"]";
+		return "Bash["+scriptName+"-"+args+"]";
 	}
 
 	@Override
@@ -162,7 +162,7 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 	
 	@Override
 	public String toString() {
-		return "Bash[" + scriptName + "]";
+		return "Bash[" + scriptName + "-"+args+"]";
 	}
 
 	@Override

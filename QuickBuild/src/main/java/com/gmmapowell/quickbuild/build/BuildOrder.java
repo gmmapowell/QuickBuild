@@ -368,11 +368,12 @@ public class BuildOrder {
 				if (reject != null)
 				{
 					if (debug)
-						System.out.println("Rejecting deferred because its parent has not built");
+						System.out.println("  Rejecting 'deferred' because its parent has not built");
 					continue;
 				}
 			}
 			int maxBuilt = -1;
+			boolean hasDependency = false;
 			for (BuildResource pr : p.getDependencies(dependencies))
 			{
 				int builtAt = isBuilt(pr);
@@ -380,12 +381,17 @@ public class BuildOrder {
 				{
 					if (debug)
 						System.out.println("  Rejecting because " + pr + " is not built");
-					continue loop;
+					hasDependency = true;
+					continue;
 				}
+				else if (hasDependency)
+					continue;
 				if (debug)
 					System.out.println("  Dependency " + pr + " was built at " + builtAt);
 				maxBuilt = Math.max(maxBuilt, builtAt);
 			}
+			if (hasDependency)
+				continue loop;
 			boolean needsSplit = needSplit(p);
 			if (offerAt == -2 || drift < withDrift || (drift == withDrift && maxBuilt < offerAt) /*|| (drift == withDrift && maxBuilt == offerAt && (willSplit && !needsSplit))*/)
 			{
