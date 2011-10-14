@@ -25,6 +25,7 @@ import com.gmmapowell.utils.FileUtils;
 public class JUnitRunCommand implements Tactic, DependencyFloat {
 	private final File srcdir;
 	private File bindir;
+	private File errdir;
 	
 	// TODO: this is currently unused ... it should be, I think, for Android
 	private final BuildClassPath bootclasspath = new BuildClassPath();
@@ -40,6 +41,7 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 		this.jbc = jbc;
 		this.srcdir = new File(files.getBaseDir(), "src/test/java");
 		this.bindir = files.getOutput("test-classes");
+		this.errdir = files.getOutput("test-results");
 	}
 
 	@Override
@@ -87,6 +89,9 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 
 	private BuildStatus handleFailure(BuildContext cxt, RunProcess proc) {
 		ErrorCase failure = cxt.failure(proc.getArgs(), proc.getStdout(), proc.getStderr());
+		FileUtils.assertDirectory(errdir);
+		FileUtils.createFile(new File(errdir, "stdout"), proc.getStdout());
+		FileUtils.createFile(new File(errdir, "stderr"), proc.getStderr());
 		LinePatternParser lpp = new LinePatternParser();
 		lpp.matchAll("([.E]*)", "summary", "details");
 		lpp.matchAll("([0-9]+\\) [a-zA-Z0-9_.()]+)", "case", "name");

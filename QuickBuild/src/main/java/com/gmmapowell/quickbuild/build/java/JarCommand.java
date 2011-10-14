@@ -178,7 +178,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			if (sourceFiles.size() == 0)
 				return null;
 			
-			JavaBuildCommand ret = new JavaBuildCommand(this, files, src, bin, label, allFiles);
+			JavaBuildCommand ret = new JavaBuildCommand(this, files, src, bin, label, sourceFiles);
 			accum.add(ret);
 			
 			JavaSourceDirResource sourcesResource = new JavaSourceDirResource(this, dir, sourceFiles);

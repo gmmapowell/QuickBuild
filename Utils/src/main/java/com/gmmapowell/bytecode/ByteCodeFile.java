@@ -455,6 +455,8 @@ public class ByteCodeFile {
 	}
 
 	public short requireUtf8(String name) {
+		if (name == null)
+			throw new UtilException("Cannot have null name");
 		for (short i=1;i<nextPoolEntry;i++)
 			if (pool[i] != null && pool[i] instanceof CPInfo.Utf8Info && ((CPInfo.Utf8Info)pool[i]).asString().equals(name))
 			{

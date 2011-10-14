@@ -28,6 +28,10 @@ public class ItemToBuild {
 		this.label = label;
 	}
 
+	public boolean firstTactic() {
+		return strat.isFirstTactic(tactic);
+	}
+	
 	public boolean lastTactic() {
 		return strat.isLastTactic(tactic);
 	}

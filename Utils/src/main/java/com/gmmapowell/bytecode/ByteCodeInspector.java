@@ -462,13 +462,24 @@ public class ByteCodeInspector extends ByteCodeFile {
 			}
 			else if (attr.equals("InnerClasses")) {
 				int refersTo = dis.readUnsignedShort();
+				List<String> output = new ArrayList<String>();
 				for (int j=0;j<refersTo;j++)
 				{
 					int ic = dis.readUnsignedShort();
 					int oc = dis.readUnsignedShort();
 					int in = dis.readUnsignedShort();
 					int acc = dis.readUnsignedShort();
-					hexdump.print("Ref" + flags(acc) + show(ic) + " <= " + show(oc) + "." + show(in));
+					String out = "Ref" + flags(acc) + show(ic) + " <= " + show(oc) + "." + show(in);
+					if (cleanMode)
+						output.add(out);
+					else
+						hexdump.print(out);
+				}
+				if (cleanMode)
+				{
+					Collections.sort(output);
+					for (String s : output)
+						hexdump.print(s);
 				}
 			}
 			else

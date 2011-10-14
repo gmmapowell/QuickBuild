@@ -32,6 +32,8 @@ public abstract class CPInfo {
 		}
 
 		public Utf8Info(String str) {
+			if (str == null)
+				throw new UtilException("Cannot create UTF8 with null string");
 			utf8 = str;
 		}
 

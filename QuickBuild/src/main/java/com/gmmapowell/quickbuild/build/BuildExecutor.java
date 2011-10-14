@@ -183,6 +183,8 @@ public class BuildExecutor {
 
 	
 	public BuildStatus execute(ItemToBuild itb) {
+		if (itb.firstTactic())
+			System.out.println(itb.name());
 		if (itb.needsBuild == BuildStatus.SKIPPED)  // defer now, do later ...
 			System.out.print("-");
 		else if (itb.needsBuild == BuildStatus.SUCCESS) // normal build

@@ -115,6 +115,11 @@ public class ExecuteStrategem extends BandElement {
 	}
 
 	@Override
+	public boolean isFirstTactic(Tactic tactic) {
+		return strat.tactics().get(0) == tactic;
+	}
+
+	@Override
 	public boolean isLastTactic(Tactic tactic) {
 		return strat.tactics().get(strat.tactics().size()-1) == tactic;
 	}

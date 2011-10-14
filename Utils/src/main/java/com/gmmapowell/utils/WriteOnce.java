@@ -25,5 +25,13 @@ public class WriteOnce<T> {
 		return value;
 	}
 
+	public void nullIfUnwritten() {
+		if (!isSet)
+		{
+			value = null;
+			isSet = true;
+		}
+	}
+
 
 }

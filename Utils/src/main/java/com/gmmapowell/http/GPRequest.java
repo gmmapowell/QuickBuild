@@ -114,7 +114,18 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public String getParameter(String arg0) {
-		throw new UtilException("Not implemented");
+		String q = uri.getQuery();
+		int k = q.indexOf(arg0 + "=");
+		if (k == 0 || (k > 0 && q.charAt(k-1) == '&'))
+		{
+			int from = k+arg0.length()+1;
+			int t = q.indexOf('&', from);
+			if (t == -1)
+				return q.substring(from);
+			else
+				return q.substring(from, t);
+		}
+		return null;
 	}
 
 	@Override
@@ -311,7 +322,7 @@ public class GPRequest implements HttpServletRequest {
 		if (!createIfNeeded)
 			return null;
 		GPHttpSession ret = context.newSession();
-		// SHould use addCookie really, but I can't be bothered ...
+		// Should use addCookie really, but I can't be bothered ...
 		response.addHeader("Set-Cookie", "JSESSIONID="+ret.cookie+"; Path=" + context.getContextPath());
 		return ret;
 	}

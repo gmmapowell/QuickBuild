@@ -1,6 +1,7 @@
 package com.gmmapowell.utils;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -48,7 +49,7 @@ public class FileUtils {
 				File from = relativePath(rootdir, f.getPath());
 				if (!from.isDirectory())
 					continue;
-				ret.add(from);
+				ret.add(makeRelativeTo(from, rootdir));
 				for (File d : findDirectoriesUnder(from))
 					ret.add(makeRelativeTo(relativePath(from, d.getPath()), rootdir));
 			}
@@ -561,6 +562,20 @@ public class FileUtils {
 
 	public static String posixPath(File path) {
 		return path.getPath().replaceAll("\\\\", "/");
+	}
+
+
+	public static void createFile(File file, String stdout) {
+		try
+		{
+			FileOutputStream fos = new FileOutputStream(file);
+			ByteArrayInputStream bais = new ByteArrayInputStream(stdout.getBytes());
+			copyStream(bais, fos);
+		}
+		catch (IOException ex)
+		{
+			throw UtilException.wrap(ex);
+		}
 	}
 }
 	

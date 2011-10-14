@@ -83,6 +83,11 @@ public class DeferredTactic extends BandElement {
 	}
 
 	@Override
+	public boolean isFirstTactic(Tactic tactic) {
+		return tactic == this.tactic;
+	}
+
+	@Override
 	public boolean isLastTactic(Tactic tactic) {
 		return tactic == this.tactic;
 	}
