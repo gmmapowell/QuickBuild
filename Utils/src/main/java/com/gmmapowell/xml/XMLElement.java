@@ -174,7 +174,7 @@ public class XMLElement implements Externalizable {
 
 	@Override
 	public String toString() {
-		return "Element " + elt.getTagName();
+		return "XMLElement[" + elt.getTagName() + " @ {" + inside.fromResource + ":" + elt.getUserData("lineNumber")+"}]";
 	}
 
 	public String serialize() {

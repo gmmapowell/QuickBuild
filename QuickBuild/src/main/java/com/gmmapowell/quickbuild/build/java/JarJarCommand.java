@@ -117,6 +117,7 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		JarOutputStream jf = null;
 		try {
+			FileUtils.assertDirectory(new File(outputTo).getParentFile());
 			jf = new JarOutputStream(new FileOutputStream(FileUtils.relativePath(outputTo)));
 			// TODO: should write META-INF/MANIFEST.MF
 			Set<String> entries = new HashSet<String>();

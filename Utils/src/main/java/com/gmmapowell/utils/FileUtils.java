@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.gmmapowell.exceptions.NoSuchDirectoryException;
 import com.gmmapowell.exceptions.UtilException;
 
 public class FileUtils {
@@ -238,7 +239,7 @@ public class FileUtils {
 	private static List<File> findFiles(File file, File under, String string, Collection<File> includeOnlyDirs, Collection<File> excludeOnlyDirs) {
 		List<File> ret = new ArrayList<File>();
 		if (!file.exists())
-			throw new UtilException("There is no file " + file);
+			throw new NoSuchDirectoryException("There is no file " + file);
 		FileFilter filter = new GlobFilter(file, string, includeOnlyDirs, excludeOnlyDirs);
 		findRecursive(ret, filter, under, file);
 		return ret;
@@ -247,7 +248,7 @@ public class FileUtils {
 	public static List<File> findDirectoriesUnder(File dir) {
 		List<File> ret = new ArrayList<File>();
 		if (!dir.exists())
-			throw new UtilException("There is no file " + dir);
+			throw new NoSuchDirectoryException("There is no file " + dir);
 		findRecursive(ret, isdirectory, dir, dir);
 		return ret;
 	}

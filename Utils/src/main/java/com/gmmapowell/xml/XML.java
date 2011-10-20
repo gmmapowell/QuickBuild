@@ -37,9 +37,11 @@ public class XML {
 	Document doc;
 	private XMLElement top;
 	private final String version;
+	final String fromResource;
 
 	XML(String version)
 	{
+		this.fromResource = "-";
 		this.version = version;
 		try {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -50,12 +52,12 @@ public class XML {
 		}
 	}
 
-	private XML(InputStream stream) {
+	private XML(String from, InputStream stream) {
 		try
 		{
-			DocumentBuilder bldr = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-			doc = bldr.parse(stream);
-			version = "1.0"; // TODO: actually get this from the PI
+			fromResource = from;
+			doc = PositionalXMLReader.readXML(stream);
+			version = doc.getXmlVersion();
 			top = new XMLElement(this, doc.getDocumentElement());
 		}
 		catch (SAXParseException ex)
@@ -69,6 +71,7 @@ public class XML {
 	}
 	
 	private XML(String version, String tag) {
+		this.fromResource = "-";
 		this.version = version;
 		try {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -86,7 +89,7 @@ public class XML {
 		try
 		{
 			fis = new FileInputStream(f);
-			XML ret = new XML(fis);
+			XML ret = new XML(f.toString(), fis);
 			return ret;
 		}
 		catch (IOException ex)
@@ -108,12 +111,12 @@ public class XML {
 			if (stream == null)
 				throw new UtilException("Could not find resource " + name);
 		}
-		return new XML(stream);
+		return new XML(name, stream);
 	}
 
 	public static XML fromString(String s) {
 		InputStream is = new ByteArrayInputStream(s.getBytes());
-		return new XML(is);
+		return new XML("-", is);
 	}
 
 	public static XML fromContainer(String name) {
@@ -125,8 +128,8 @@ public class XML {
 			throw new UtilException("I cannot understand the container name: " + name);
 	}
 
-	public static XML fromStream(InputStream stream) {
-		return new XML(stream);
+	public static XML fromStream(String nameIs, InputStream stream) {
+		return new XML(nameIs, stream);
 	}
 
 	public XMLElement top() {
