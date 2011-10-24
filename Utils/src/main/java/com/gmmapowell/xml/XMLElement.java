@@ -17,6 +17,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.exceptions.XMLAttributeException;
 import com.sun.org.apache.xml.internal.serialize.OutputFormat;
 import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 
@@ -46,7 +47,7 @@ public class XMLElement implements Externalizable {
 	// Linear Access to attributes
 	public String required(String attr) {
 		if (!elt.hasAttribute(attr))
-			throw new UtilException("The required attribute '" + attr + "' was not found on " + this);
+			throw new XMLAttributeException("The required attribute '" + attr + "' was not found on " + this);
 		attrsProcessed.add(attr);
 		return elt.getAttribute(attr);
 	}
@@ -76,7 +77,7 @@ public class XMLElement implements Externalizable {
 			for (String a : attributes())
 				if (!attrsProcessed.contains(a))
 					msg.append(" " + a);
-			throw new UtilException(msg.toString());
+			throw new XMLAttributeException(msg.toString());
 		}
 	}
 	

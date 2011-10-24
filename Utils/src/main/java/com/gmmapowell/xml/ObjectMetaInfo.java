@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.gmmapowell.exceptions.InvalidXMLTagException;
 import com.gmmapowell.exceptions.UtilException;
 
 // I would expect this to be capable of handling sensible defaults
@@ -98,7 +99,7 @@ class CallbackTable {
 		if (callbacks == null)
 			throw new UtilException("Cannot invoke " + which + " on a null object");
 		if (!callbackTable.containsKey(which))
-			throw new UtilException("The tag " + which + " is not valid for the handler " + callbacks);
+			throw new InvalidXMLTagException(xe, which, callbacks);
 		try
 		{
 			MethodMetaInfo minfo = callbackTable.get(which);

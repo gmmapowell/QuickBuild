@@ -1,6 +1,7 @@
 package com.gmmapowell.quickbuild.build.ftp;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -148,11 +149,7 @@ public class DistributeCommand extends SpecificChildrenParent<ConfigApplyCommand
 			os = new ZipOutputStream(wts.getOutputEnd());
 			SenderThread thr = new SenderThread(wts);
 			thr.start();
-			for (File f : FileUtils.findFilesUnderMatching(fromdir, "*"))
-			{
-				os.putNextEntry(new ZipEntry(f.getPath()));
-				FileUtils.copyFileToStream(FileUtils.relativePath(fromdir, f.getPath()), os);
-			}
+			sendFilesTo(os);
 			os.close();
 			thr.join();
 			builds.provide(cxt, false);
@@ -171,6 +168,21 @@ public class DistributeCommand extends SpecificChildrenParent<ConfigApplyCommand
 			return BuildStatus.BROKEN;
 		}
 		return BuildStatus.SUCCESS;
+	}
+
+	private void sendFilesTo(ZipOutputStream os) throws IOException {
+		for (File f : FileUtils.findFilesUnderMatching(fromdir, "*"))
+		{
+			File g = FileUtils.relativePath(fromdir, f.getPath());
+//			System.out.println("Sending " + g + " => " + g.isDirectory());
+			if (g.isDirectory())
+				continue;
+			else
+			{
+				os.putNextEntry(new ZipEntry(f.getPath()));
+				FileUtils.copyFileToStream(g, os);
+			}
+		}
 	}
 
 	public class SenderThread extends Thread {
