@@ -12,7 +12,7 @@ public class ArgCommand extends NoChildCommand implements ConfigApplyCommand  {
 	
 	public ArgCommand(TokenizedLine toks)
 	{
-		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "arg", "argument"));
+		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED_ALLOW_FLAGS, "arg", "argument"));
 	}
 
 	@Override

@@ -52,6 +52,17 @@ public class ProcessArgs {
 							continue loop;
 						}
 				}
+				for (ArgumentDefinition ad : argumentDefinitions)
+					if (ad.cardinality == Cardinality.REQUIRED_ALLOW_FLAGS)
+					{
+						Reflection.setField(config, ad.toVar, args[i]);
+						argcount.op(ad, 1, new FuncR1<Integer, Integer>() {
+							@Override
+							public Integer apply(Integer arg) {
+								return arg+1;
+							}});
+						continue loop;
+					}
 				throw new UtilException("There is no option definition for " + args[i]);
 			}
 			else if (args[i].startsWith("-"))
@@ -66,6 +77,7 @@ public class ProcessArgs {
 						continue loop;
 					}
 				}
+				throw new UtilException("There is no option definition for " + args[i]);
 			}
 			else
 			{

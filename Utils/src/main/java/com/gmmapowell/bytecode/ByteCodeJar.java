@@ -17,7 +17,9 @@ public class ByteCodeJar implements ByteCodeHolder {
 	}
 
 	public ByteCodeCreator newEntry(String string) {
-//		System.out.println("Creating new class " + string);
+		for (ByteCodeCreator bcc : files)
+			if (bcc.getCreatedName().equals(string))
+				throw new UtilException("Duplicated JAR entry: " + string);
 		ByteCodeCreator ret = new ByteCodeCreator(string);
 		files.add(ret);
 		return ret;
