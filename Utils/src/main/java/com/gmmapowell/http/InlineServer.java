@@ -3,6 +3,8 @@ package com.gmmapowell.http;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -21,6 +23,8 @@ public class InlineServer {
 
 	private HttpServlet servletImpl;
 	private Endpoint alertEP;
+
+	private final List<NotifyOnServerReady> interestedParties = new ArrayList<NotifyOnServerReady>();
 
 	public InlineServer(int port, String servletClass) {
 		this.port = port;
@@ -58,11 +62,13 @@ public class InlineServer {
 			Class<?> forName = Class.forName(servletClass);
 			servletImpl = (HttpServlet) forName.newInstance();
 			servletImpl.init(config);
+			Endpoint addr = new Endpoint(s);
 			if (alertEP != null) {
-				Endpoint addr = new Endpoint(s);
 				logger.info("Sending " + addr + " to " + alertEP);
 				alertEP.send(addr.toString());
 			}
+			for (NotifyOnServerReady nosr : interestedParties)
+				nosr.serverReady(this, addr);
 			while (doLoop) {
 				Socket conn = s.accept();
 				logger.fine("Accepting connection request and dispatching to thread");
@@ -76,5 +82,9 @@ public class InlineServer {
 	public void service(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		servletImpl.service(req, resp);
+	}
+
+	public void notify(NotifyOnServerReady toNotify) {
+		interestedParties.add(toNotify);
 	}
 }
