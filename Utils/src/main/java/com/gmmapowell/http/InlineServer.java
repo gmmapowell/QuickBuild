@@ -3,6 +3,7 @@ package com.gmmapowell.http;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -25,6 +26,8 @@ public class InlineServer {
 	private Endpoint alertEP;
 
 	private final List<NotifyOnServerReady> interestedParties = new ArrayList<NotifyOnServerReady>();
+
+	private boolean doLoop;
 
 	public InlineServer(int port, String servletClass) {
 		this.port = port;
@@ -55,9 +58,11 @@ public class InlineServer {
 		run(true);
 	}
 
-	public void run(boolean doLoop) {
+	public void run(boolean wantLoop) {
 		try {
+			this.doLoop = wantLoop;
 			ServerSocket s = new ServerSocket(port);
+			s.setSoTimeout(1000);
 			logger.info("Listening on port " + s.getLocalPort());
 			Class<?> forName = Class.forName(servletClass);
 			servletImpl = (HttpServlet) forName.newInstance();
@@ -70,10 +75,18 @@ public class InlineServer {
 			for (NotifyOnServerReady nosr : interestedParties)
 				nosr.serverReady(this, addr);
 			while (doLoop) {
-				Socket conn = s.accept();
-				logger.fine("Accepting connection request and dispatching to thread");
-				new ConnectionThread(this, conn).start();
+				try
+				{
+					Socket conn = s.accept();
+					logger.fine("Accepting connection request and dispatching to thread");
+					new ConnectionThread(this, conn).start();
+				}
+				catch (SocketTimeoutException ex)
+				{
+					// this is perfectly normal ... continue (or not)
+				}
 			}
+			logger.info("Server exiting");
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -86,5 +99,9 @@ public class InlineServer {
 
 	public void notify(NotifyOnServerReady toNotify) {
 		interestedParties.add(toNotify);
+	}
+
+	public void pleaseExit() {
+		doLoop = false;
 	}
 }
