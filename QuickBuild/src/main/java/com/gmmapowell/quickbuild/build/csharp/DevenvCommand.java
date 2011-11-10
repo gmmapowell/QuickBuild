@@ -98,6 +98,10 @@ public class DevenvCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 						else
 							builds.add(new DLLResource(this, new File(f.getParentFile(), path+"/"+assembly+".dll")));
 					}
+					else if (type.equals("Library"))
+					{
+						builds.add(new EXEResource(this, new File(f.getParentFile(), path +"/" + assembly+".exe")));
+					}
 					else
 						throw new QuickBuildException("Cannot handle msbuild type " + type);
 					fr.close();

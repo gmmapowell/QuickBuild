@@ -12,7 +12,7 @@ public class AndroidContext {
 	private final File dx;
 	private final File platformJar;
 	private final File apk;
-	private File adb;
+	private final File adb;
 
 	// TODO: this needs to be cross-platform (somehow)
 	public AndroidContext(Config conf) {
@@ -27,22 +27,29 @@ public class AndroidContext {
 		File androidSDK = conf.getPath("androidsdk");
 		String androidPlatform = conf.getVar("androidplatform");
 		File platformDir = FileUtils.fileConcat(androidSDK.getPath(), "platforms", androidPlatform);
-		aapt = new File(platformDir, "tools/aapt" +exe);
-		if (!aapt.exists())
-			throw new QBConfigurationException("Invalid android configuration: cannot find " + aapt);
-		dx = new File(platformDir, "tools/dx" +bat);
-		if (!dx.exists())
-			throw new QBConfigurationException("Invalid android configuration: cannot find " + dx);
+		File aapt1 = new File(androidSDK, "platform-tools/aapt");
+		if (!aapt1.exists())
+			aapt1 = new File(platformDir, "tools/aapt" +exe);
+		if (!aapt1.exists())
+			throw new QBConfigurationException("Invalid android configuration: cannot find " + aapt1);
+		aapt = aapt1;
+		File dx1 = new File(androidSDK, "platform-tools/dx" +bat);
+		if (!dx1.exists())
+			dx1 = new File(platformDir, "tools/dx" +bat);
+		if (!dx1.exists())
+			throw new QBConfigurationException("Invalid android configuration: cannot find " + dx1);
+		dx = dx1;
 		apk = new File(androidSDK, "tools/apkbuilder" + bat);
 		if (!apk.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + apk);
-		adb = new File(androidSDK, "tools/adb" +exe);
-		if (!adb.exists())
+		File adb1 = new File(androidSDK, "tools/adb" +exe);
+		if (!adb1.exists())
 		{
-			adb = new File(androidSDK, "platform-tools/adb" +exe);
-			if (!adb.exists())
-				throw new QBConfigurationException("Invalid android configuration: cannot find " + adb + " in either location");
+			adb1 = new File(androidSDK, "platform-tools/adb" +exe);
+			if (!adb1.exists())
+				throw new QBConfigurationException("Invalid android configuration: cannot find " + adb1);
 		}
+		adb = adb1;
 		platformJar = new File(platformDir, "android.jar");
 		if (!platformJar.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + platformJar);

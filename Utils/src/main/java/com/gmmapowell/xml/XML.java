@@ -203,6 +203,8 @@ public class XML {
 			if (args.length == 2 && args[1].equals(XMLElement.class))
 				ctor = (Constructor<T>) c;
 		}
+		if (ctor == null)
+			throw new UtilException("There is no (Object, XMLElement) constructor for " + cls);
 		T ret;
 		try {
 			ret = ctor.newInstance(cxt, top);

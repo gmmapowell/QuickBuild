@@ -124,7 +124,7 @@ public class Reflection {
 			if (args.length != jtypes.length)
 				continue;
 			for (int i=0;i<args.length;i++)
-				if (!jtypes[i].isInstance(args[i]))
+				if (args[i] != null && !jtypes[i].isInstance(args[i]))
 					continue loop;
 			return j;
 		}
