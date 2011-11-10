@@ -98,7 +98,7 @@ public class DevenvCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 						else
 							builds.add(new DLLResource(this, new File(f.getParentFile(), path+"/"+assembly+".dll")));
 					}
-					else if (type.equals("Library"))
+					else if (type.equals("Exe"))
 					{
 						builds.add(new EXEResource(this, new File(f.getParentFile(), path +"/" + assembly+".exe")));
 					}
