@@ -93,6 +93,8 @@ public class ErrorCase {
 	}
 
 	public boolean isBroken() {
+		if (outcome == null)
+			return false;
 		return outcome.isWorthReporting();
 	}
 
