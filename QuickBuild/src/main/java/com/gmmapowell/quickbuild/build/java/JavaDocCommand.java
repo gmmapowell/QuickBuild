@@ -118,7 +118,7 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 		
 		ErrorCase failure = null;
 		LinePatternParser lppOut = new LinePatternParser();
-		lppOut.match("([0-9]+) warning", "warnings", "count");
+		lppOut.match("([0-9]+) warnings", "warnings", "count");
 		int cnt = 0;
 		for (LinePatternMatch lpm : lppOut.applyTo(new StringReader(proc.getStdout())))
 		{
