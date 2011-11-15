@@ -27,7 +27,7 @@ public class AndroidContext {
 		File androidSDK = conf.getPath("androidsdk");
 		String androidPlatform = conf.getVar("androidplatform");
 		File platformDir = FileUtils.fileConcat(androidSDK.getPath(), "platforms", androidPlatform);
-		File aapt1 = new File(androidSDK, "platform-tools/aapt");
+		File aapt1 = new File(androidSDK, "platform-tools/aapt" + exe);
 		if (!aapt1.exists())
 			aapt1 = new File(platformDir, "tools/aapt" +exe);
 		if (!aapt1.exists())

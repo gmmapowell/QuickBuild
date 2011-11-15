@@ -68,7 +68,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		addResources(null, junit, "src/test/resources");
 		addJUnitRun(tactics, junit);
 		if (tactics.size() == 0)
-			throw new QuickBuildException("None of the required source directories exist to build " + targetName);
+			throw new QuickBuildException("None of the required source directories exist (or have source files) to build " + targetName);
 		tactics.add(jar);
 		
 		additionalCommands(config);
