@@ -113,4 +113,9 @@ public class ListMap<K, V> implements Iterable<K> {
 			ret.add(contents.remove(0));
 		}
 	}
+
+	public void ensure(K k) {
+		if (!map.containsKey(k))
+			map.put(k, new ArrayList<V>());
+	}
 }

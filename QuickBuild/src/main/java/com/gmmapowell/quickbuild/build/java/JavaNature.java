@@ -31,6 +31,7 @@ public class JavaNature implements Nature, BuildContextAware {
 	private BuildContext cxt;
 	private List<File> libdirs = new ArrayList<File>();
 	private final Config conf;
+	private final List<String> reportedDuplicates = new ArrayList<String>();
 
 	public static void init(ConfigFactory config)
 	{
@@ -123,6 +124,9 @@ public class JavaNature implements Nature, BuildContextAware {
 	public void showDuplicates() {
 		for (String s : duplicates)
 		{
+			if (reportedDuplicates.contains(s))
+				continue;
+			reportedDuplicates.add(s);
 			System.out.println("Duplicate/overlapping definitions found for package: " + s);
 			for (BuildResource f : duplicates.get(s))
 				System.out.println("  " + f);

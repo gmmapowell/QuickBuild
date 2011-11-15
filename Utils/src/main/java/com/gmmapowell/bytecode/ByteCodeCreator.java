@@ -81,6 +81,8 @@ public class ByteCodeCreator {
 
 	public MethodCreator method(String returns, String name)
 	{
+		if (name.contains("."))
+			throw new UtilException("Cannot create method name: " + name);
 		return createAnyMethod(false, returns, name);
 	}
 	

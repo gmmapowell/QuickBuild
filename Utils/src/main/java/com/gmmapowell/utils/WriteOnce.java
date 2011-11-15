@@ -6,6 +6,10 @@ public class WriteOnce<T> {
 	private boolean isSet;
 	private T value;
 	
+	/** If the value has not already been set, this call will set it.  Once set, it cannot
+	 * be set to another value
+	 * @param setTo the value to store
+	 */
 	public void set(T setTo) {
 		if (isSet)
 			throw new UtilException("Cannot set a writeOnce variable more than once");
@@ -13,18 +17,30 @@ public class WriteOnce<T> {
 		isSet = true;
 	}
 
-	// This can be used to confirm "null" if you reach a point where it hasn't been set.
+	/** After all other initialization logic is complete, this can be used to set an
+	 * arbitrary default value.
+	 * @param value the value to set 
+	 */
 	public void complete(T value) {
 		if (!isSet)
 			set(value);
 	}
 
+	/** Once the value has been set, recover it
+	 * 
+	 * @return the value to recover
+	 */
 	public T get() {
 		if (!isSet)
 			throw new UtilException("Cannot read a writeOnce variable before setting it");
 		return value;
 	}
 
+	/** After all other initialization logic is complete, calling this will ensure
+	 * that if no other value has been set, the member will be set to null.
+	 * 
+	 * This is the same as complete(null)
+	 */
 	public void nullIfUnwritten() {
 		if (!isSet)
 		{
