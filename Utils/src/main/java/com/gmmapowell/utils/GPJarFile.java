@@ -83,4 +83,8 @@ public class GPJarFile implements Iterable<GPJarEntry> {
 		return new GPJarEntry(this, (JarEntry) ret);
 	}
 
+	@Override
+	public String toString() {
+		return "[JAR: " + jf.getName()+"]";
+	}
 }

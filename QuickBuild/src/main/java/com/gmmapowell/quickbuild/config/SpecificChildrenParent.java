@@ -23,5 +23,4 @@ public abstract class SpecificChildrenParent<T> implements Parent<T> {
 			}
 		return false;
 	}
-
 }

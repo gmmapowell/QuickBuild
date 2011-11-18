@@ -9,24 +9,32 @@ userlib="org.eclipse.jdt.launching.JRE_CONTAINER";
 while [ $# -gt 0 ] ; do
   case $1 in
     --android)
-      userlib="org.eclipse.jdt.USER_LIBRARY/android-4"
       android=1
+      version=4
+      case "$2" in
+        --version)
+           version="$3"
+           shift 2
+           ;;
+      esac
+      userlib="org.eclipse.jdt.USER_LIBRARY/android-$version"
       if [ $# -lt 3 ] ; then
         usage
       fi
       package=$2
       pkgPath="`echo $package | sed 's%\\.%/%'g`"
       launch=$3
-      shift 2
+      srcpaths="src/android/gen"
+      shift 3
       ;;
     --*)
       usage
       ;;
     *)
       name=$1
+      shift
       ;;
   esac
-  shift
 done
 
 if [ -z "$name" ] ; then
@@ -80,6 +88,12 @@ cat << HERE > $name/.classpath
 <classpath>
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="src" path="src/test/java" output="bin/testclasses"/>
+HERE
+for p in $srcpaths
+do
+  echo '	<classpathentry kind="src" path="'"$p"'"/>' >> $name/.classpath
+done
+cat << HERE >> $name/.classpath
 	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="src" path="src/test/resources" output="bin/testclasses"/>
 	<classpathentry kind="con" path="$userlib"/>

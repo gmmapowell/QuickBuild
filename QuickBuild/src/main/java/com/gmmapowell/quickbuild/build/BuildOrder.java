@@ -330,7 +330,9 @@ public class BuildOrder {
 		Tactic tt = be.tactic(tactic);
 		
 		BuildStatus bs = BuildStatus.SUCCESS;
-		if (be.isDeferred(tt))
+		if (be.isNotApplicable())
+			bs = BuildStatus.NOTAPPLICABLE;
+		else if (be.isDeferred(tt))
 			bs = BuildStatus.SKIPPED;
 		else if (be instanceof DeferredTactic) {
 			bs = BuildStatus.DEFERRED;

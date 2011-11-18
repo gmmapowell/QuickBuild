@@ -13,10 +13,10 @@ import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.config.AbstractBuildCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
-import com.gmmapowell.quickbuild.config.SpecificChildrenParent;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.FloatToEnd;
 import com.gmmapowell.quickbuild.core.PendingResource;
@@ -32,10 +32,9 @@ import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
-public class DistributeCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem, Tactic, FloatToEnd {
+public class DistributeCommand extends AbstractBuildCommand implements ConfigBuildCommand, Strategem, Tactic, FloatToEnd {
 	private String directory;
 	private String destination;
-	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private final List<Tactic> tactics = new ArrayList<Tactic>();
 	private File execdir;
 	private File privateKeyPath;
@@ -56,17 +55,9 @@ public class DistributeCommand extends SpecificChildrenParent<ConfigApplyCommand
 	}
 
 	@Override
-	public void addChild(ConfigApplyCommand obj) {
-		options.add(obj);
-	}
-
-	@Override
 	public Strategem applyConfig(Config config) {
 		execdir = FileUtils.getCurrentDir();
-		for (ConfigApplyCommand opt : options)
-		{
-			throw new UtilException("The option " + opt + " is not supported");
-		}
+		super.handleOptions(config);
 
 		fromdir = FileUtils.combine(execdir, directory);
 		if (destination.startsWith("sftp:"))

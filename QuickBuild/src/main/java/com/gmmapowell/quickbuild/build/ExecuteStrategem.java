@@ -1,5 +1,6 @@
 package com.gmmapowell.quickbuild.build;
 
+import com.gmmapowell.quickbuild.config.AbstractBuildCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -137,5 +138,13 @@ public class ExecuteStrategem extends BandElement {
 
 	public boolean analyzeExports() {
 		return strat.analyzeExports();
+	}
+
+	@Override
+	public boolean isNotApplicable() {
+		// TODO: one day they all will be 
+		if (strat instanceof AbstractBuildCommand)
+			return !((AbstractBuildCommand) strat).isApplicable();
+		return false;
 	}
 }

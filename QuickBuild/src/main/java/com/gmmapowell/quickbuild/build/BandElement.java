@@ -87,4 +87,6 @@ public abstract class BandElement {
 	public abstract String name();
 
 	public abstract Iterable<BuildResource> getDependencies(DependencyManager manager);
+
+	public abstract boolean isNotApplicable();
 }

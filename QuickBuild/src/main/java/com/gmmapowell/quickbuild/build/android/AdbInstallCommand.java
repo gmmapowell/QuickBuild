@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.TokenizedLine;
+import com.gmmapowell.quickbuild.config.AbstractBuildCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
@@ -19,7 +20,7 @@ import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
-public class AdbInstallCommand extends NoChildCommand implements ConfigBuildCommand, Strategem {
+public class AdbInstallCommand extends AbstractBuildCommand implements ConfigBuildCommand, Strategem {
 	private String root;
 	private String resource;
 //	private String emulator;
@@ -30,6 +31,7 @@ public class AdbInstallCommand extends NoChildCommand implements ConfigBuildComm
 	private final ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 
+	@SuppressWarnings("unchecked")
 	public AdbInstallCommand(TokenizedLine toks) {
 		toks.process(this,
 				new ArgumentDefinition("*", Cardinality.REQUIRED, "root", "root dir"),
@@ -40,6 +42,7 @@ public class AdbInstallCommand extends NoChildCommand implements ConfigBuildComm
 
 	@Override
 	public Strategem applyConfig(Config config) {
+		super.handleOptions(config);
 		acxt = config.getAndroidContext();
 		apk = new PendingResource(resource);
 		needs.add(apk);
