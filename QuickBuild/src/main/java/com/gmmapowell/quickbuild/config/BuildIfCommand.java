@@ -23,6 +23,8 @@ public class BuildIfCommand extends NoChildCommand implements ConfigApplyCommand
 	}
 
 	public boolean isApplicable() {
+		if (!config.hasVar(option))
+			return true;
 		String var = config.getVar(option);
 		return var != null && var.equals(value);
 	}

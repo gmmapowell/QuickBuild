@@ -209,4 +209,8 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	public <T extends Nature> T getNature(Class<T> cls) {
 		return factory.getNature(this, cls);
 	}
+
+	public boolean hasVar(String option) {
+		return varProps.containsKey(option);
+	}
 }
