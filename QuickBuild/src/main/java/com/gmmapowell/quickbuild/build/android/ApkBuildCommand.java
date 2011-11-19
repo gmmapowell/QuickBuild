@@ -31,6 +31,8 @@ public class ApkBuildCommand implements Tactic {
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		RunProcess proc = new RunProcess(acxt.getAPKBuilder().getPath());
+		proc.showArgs(showArgs);
+		proc.debug(showDebug);
 		proc.captureStdout();
 		proc.captureStderr();
 		

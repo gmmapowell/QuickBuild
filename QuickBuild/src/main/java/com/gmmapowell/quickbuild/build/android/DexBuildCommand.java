@@ -2,11 +2,14 @@ package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.java.JarResource;
+import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -46,11 +49,21 @@ public class DexBuildCommand implements Tactic {
 		proc.arg("--output="+dexFile.getPath());
 		proc.arg(bindir.getPath());
 		
+		LinkedHashSet<String> paths = new LinkedHashSet<String>();
+		for (BuildResource br : cxt.getDependencies(parent))
+		{
+			if (br instanceof JarResource)
+				paths.add(br.getPath().getPath());
+		}
+		
 		for (File f : FileUtils.findFilesMatching(libdir, "*.jar"))
-			proc.arg(f.getPath());
+			paths.add(f.getPath());
 		for (File f : jars)
-			proc.arg(f.getPath());
+			paths.add(f.getPath());
 
+		for (String s : paths)
+			proc.arg(s);
+		
 		proc.execute();
 		if (proc.getStderr().length() > 0 || proc.getStdout().length() > 0)
 		{
@@ -81,6 +94,4 @@ public class DexBuildCommand implements Tactic {
 	public String identifier() {
 		return BuildOrder.tacticIdentifier(parent, "dex");
 	}
-
-
 }
