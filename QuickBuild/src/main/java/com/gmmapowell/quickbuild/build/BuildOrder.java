@@ -263,20 +263,21 @@ public class BuildOrder {
 		boolean isDirty = false;
 		if (buildAll)
 		{
-			System.out.println("Marking " + strat + " dirty due to --build-all");
+			if (debug)
+				System.out.println("Marking " + strat + " dirty due to --build-all");
 			isDirty = true;
 		}
 		boolean wasDirty = isDirty;
 		if (files == null)
 		{
 			isDirty = true;
-			if (!wasDirty)
+			if (!wasDirty && debug)
 				System.out.println("Marking " + strat + " dirty due to NULL file list");
 		}
 		else
 		{
 			isDirty |= GitHelper.checkFiles(strat.isClean() && !buildAll, files, cxt.getGitCacheFile(strat.name(), ""));
-			if (!wasDirty && isDirty)
+			if (!wasDirty && isDirty && debug)
 				System.out.println("Marking " + strat + " dirty due to git hash-object");
 		}
 		if (!isDirty)
@@ -285,12 +286,14 @@ public class BuildOrder {
 			{
 				if (wb.getPath() == null || !wb.getPath().exists())
 				{
-					System.out.println("Marking " + strat + " dirty because " + wb.compareAs() + " does not have a file output");
+					if (debug)
+						System.out.println("Marking " + strat + " dirty because " + wb.compareAs() + " does not have a file output");
 					isDirty = true;
 				}
 				else if (!wb.getPath().exists())
 				{
-					System.out.println("Marking " + strat + " dirty because " + wb.compareAs() + " does not exist");
+					if (debug)
+						System.out.println("Marking " + strat + " dirty because " + wb.compareAs() + " does not exist");
 					isDirty = true;
 				}
 			}
@@ -304,13 +307,15 @@ public class BuildOrder {
 					if (dirtyUnbuilt.contains(d))
 					{
 						isDirty = true;
-						System.out.println("Marking " + strat + " dirty due to library " + d + " is dirty");
+						if (debug)
+							System.out.println("Marking " + strat + " dirty due to library " + d + " is dirty");
 					}
 				}
 				else if (!mapping.get(d.getBuiltBy().identifier()).isClean())
 				{
 					isDirty = true;
-					System.out.println("Marking " + strat + " dirty due to " + d + " is dirty");
+					if (debug)
+						System.out.println("Marking " + strat + " dirty due to " + d + " is dirty");
 				}
 			}
 		}
@@ -324,7 +329,8 @@ public class BuildOrder {
 			strat.markDirty();
 		}
 		else if (ancDirty) {
-			System.out.println("Marking " + strat + " locally dirty due to git hash-object on ancillaries");
+			if (debug)
+				System.out.println("Marking " + strat + " locally dirty due to git hash-object on ancillaries");
 			strat.markDirtyLocally();
 		}
 	}

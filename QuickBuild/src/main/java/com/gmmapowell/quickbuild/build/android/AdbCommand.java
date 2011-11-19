@@ -24,8 +24,23 @@ import com.gmmapowell.system.RunProcess;
 */
 
 public class AdbCommand implements Tactic {
+	public class Command {
+
+		final Object[] args;
+		private BuildStatus stat =  BuildStatus.BROKEN;
+
+		public Command(Object[] args) {
+			this.args = args;
+		}
+
+		public void errorStatus(BuildStatus stat) {
+			this.stat  = stat;
+		}
+
+	}
+
 	private final AndroidContext acxt;
-	private List<Object[]> commands = new ArrayList<Object[]>();
+	private List<Command> commands = new ArrayList<Command>();
 	private final BuildResource apk;
 	private final Strategem parent;
 
@@ -37,11 +52,13 @@ public class AdbCommand implements Tactic {
 
 	public void reinstall()
 	{
-		command("install", "-r", apk.getPath());
+		command("install", "-r", apk.getPath()).errorStatus(BuildStatus.TEST_FAILURES);
 	}
 	
-	private void command(Object... args) {
-		commands.add(args);
+	private Command command(Object... args) {
+		Command command = new Command(args);
+		commands.add(command);
+		return command;
 	}
 
 	@Override
@@ -55,7 +72,8 @@ public class AdbCommand implements Tactic {
 		proc.captureStdout();
 		proc.captureStderr();
 		
-		for (Object s : commands.get(0))
+		Command cmd = commands.get(0);
+		for (Object s : cmd.args)
 		{
 			if (s instanceof String)
 				proc.arg((String) s);
@@ -73,18 +91,18 @@ public class AdbCommand implements Tactic {
 			return BuildStatus.SUCCESS;
 		}
 		System.out.println(proc.getStderr());
-		return BuildStatus.BROKEN;
+		return cmd.stat;
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		for (Object[] cmd : commands)
+		for (Command cmd : commands)
 		{
 			if (sb.length() > 0)
 				sb.append("\n");
 			sb.append("adb");
-			for (Object s : cmd)
+			for (Object s : cmd.args)
 				sb.append(" " + s);
 		}
 		return sb.toString();
