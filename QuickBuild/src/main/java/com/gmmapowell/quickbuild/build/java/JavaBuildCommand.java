@@ -118,8 +118,13 @@ public class JavaBuildCommand implements Tactic {
 		{
 			if (lpm.is("nopackage"))
 			{
-				if (nature.addDependency(parent, lpm.get("pkgname")))
+				String pkg = lpm.get("pkgname");
+				if (nature.addDependency(parent, pkg, showDebug))
+				{
+					if (showDebug)
+						System.out.println("  ... added for package " + pkg);
 					cnt++;
+				}
 			}
 			else
 				throw new QuickBuildException("Do not know how to handle match " + lpm);

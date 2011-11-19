@@ -140,12 +140,12 @@ public class BuildContext {
 		return ehandler.failure(args, stdout, stderr);
 	}
 	
-	public boolean addDependency(Strategem dependent, BuildResource resource) {
+	public boolean addDependency(Strategem dependent, BuildResource resource, boolean wantDebug) {
 		if (dependent == null)
 			throw new QuickBuildException("The strategem cannot be null");
 		if (resource == null)
 			throw new QuickBuildException("The resource cannot be null");
-		return manager.addDependency(dependent, resource);
+		return manager.addDependency(dependent, resource, wantDebug);
 	}
 	
 	public Iterable<BuildResource> getDependencies(Strategem parent) {

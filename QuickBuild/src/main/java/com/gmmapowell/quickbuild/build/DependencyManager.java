@@ -319,17 +319,17 @@ public class DependencyManager {
 		return dependencies.toString();
 	}
 
-	public boolean addDependency(Strategem dependent, BuildResource resource) {
+	public boolean addDependency(Strategem dependent, BuildResource resource, boolean wantDebug) {
 		// The actual dependency is for the things to be built
 		boolean ret = false;
 		if (resource instanceof PendingResource)
 			throw new QuickBuildException("No Way!");
 		for (BuildResource br : dependent.buildsResources())
-			ret |= addDependency(br, resource);
+			ret |= addDependency(br, resource, wantDebug);
 		return ret;
 	}
 
-	private boolean addDependency(BuildResource br, BuildResource resource) {
+	private boolean addDependency(BuildResource br, BuildResource resource, boolean wantDebug) {
 		if (dependencies.hasLink(br, resource))
 			return false;
 		
@@ -337,7 +337,7 @@ public class DependencyManager {
 			throw new QuickBuildException("No Way!");
 		if (resource instanceof PendingResource)
 			throw new QuickBuildException("No Way!");
-		if (debug)
+		if (debug || wantDebug)
 			System.out.println("Added dependency from " + br + " on " + resource);
 		dependencies.ensureLink(br, resource);
 		buildOrder.reject(br.getBuiltBy());

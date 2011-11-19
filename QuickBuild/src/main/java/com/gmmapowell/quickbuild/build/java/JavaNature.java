@@ -132,12 +132,12 @@ public class JavaNature implements Nature, BuildContextAware {
 		}
 	}
 
-	public boolean addDependency(Strategem dependent, String needsJavaPackage) {
+	public boolean addDependency(Strategem dependent, String needsJavaPackage, boolean debug) {
 		// First, try and resolve it with a base jar, or a built jar
 		if (availablePackages.containsKey(needsJavaPackage))
 		{
 			JarResource resource = availablePackages.get(needsJavaPackage);
-			return cxt.addDependency(dependent, resource);
+			return cxt.addDependency(dependent, resource, debug);
 		}
 		
 		// OK, try and move the projects around a bit
@@ -147,7 +147,7 @@ public class JavaNature implements Nature, BuildContextAware {
 			for (Strategem p : projectPackages.get(needsJavaPackage))
 			{
 				BuildResource br = cxt.getBuiltResource(p, JarResource.class);
-				didSomething |= cxt.addDependency(dependent, br);
+				didSomething |= cxt.addDependency(dependent, br, debug);
 			}
 			return didSomething;
 		}
@@ -155,7 +155,7 @@ public class JavaNature implements Nature, BuildContextAware {
 		// It's possible the first reference we come to is a nested class.  Try this hack:
 		int idx = needsJavaPackage.lastIndexOf(".");
 		if (idx != -1 && Character.isUpperCase(needsJavaPackage.charAt(idx+1)))
-			return addDependency(dependent, needsJavaPackage.substring(0,idx));
+			return addDependency(dependent, needsJavaPackage.substring(0,idx), debug);
 
 		return false;
 //		throw new JavaBuildFailure("cannot find any code that defines package " + needsJavaPackage);
