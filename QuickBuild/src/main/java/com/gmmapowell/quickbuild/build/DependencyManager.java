@@ -292,6 +292,15 @@ public class DependencyManager {
 		return ret;
 	}
 
+	public Iterable<BuildResource> unBuilt()
+	{
+		List<BuildResource> ret = new ArrayList<BuildResource>();
+		for (BuildResource br : dependencies.nodes())
+			if (br.getBuiltBy() == null)
+				ret.add(br);
+		return ret;
+	}
+	
 	private void findDependencies(Set<BuildResource> ret, BuildResource br) {
 		Iterable<BuildResource> allChildren = dependencies.allChildren(br);
 		for (BuildResource a : allChildren)

@@ -3,8 +3,10 @@ package com.gmmapowell.quickbuild.build;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.git.GitHelper;
@@ -58,6 +60,7 @@ public class BuildOrder {
 
 	private final BuildContext cxt;
 	private DependencyManager dependencies;
+	private final Set<BuildResource> dirtyUnbuilt = new HashSet<BuildResource>();
 
 	public BuildOrder(BuildContext cxt, boolean buildAll, boolean debug)
 	{
@@ -227,6 +230,14 @@ public class BuildOrder {
 	}
 
 	public void figureDirtyness(DependencyManager manager) {
+		for (BuildResource br : manager.unBuilt())
+		{
+			File f = br.getPath();
+			OrderedFileList ofl = new OrderedFileList(f);
+			boolean checkFiles = GitHelper.checkFiles(!buildAll, ofl, cxt.getGitCacheFile("Unbuilt_"+f.getName(), ""));
+			if (checkFiles)
+				dirtyUnbuilt .add(br);
+		}
 		for (ExecutionBand b : bands)
 		{
 			for (BandElement be : b)
@@ -289,8 +300,14 @@ public class BuildOrder {
 			for (BuildResource d : manager.getDependencies(strat.getStrat()))
 			{
 				if (d.getBuiltBy() == null)
-					continue;
-				if (!mapping.get(d.getBuiltBy().identifier()).isClean())
+				{
+					if (dirtyUnbuilt.contains(d))
+					{
+						isDirty = true;
+						System.out.println("Marking " + strat + " dirty due to library " + d + " is dirty");
+					}
+				}
+				else if (!mapping.get(d.getBuiltBy().identifier()).isClean())
 				{
 					isDirty = true;
 					System.out.println("Marking " + strat + " dirty due to " + d + " is dirty");
