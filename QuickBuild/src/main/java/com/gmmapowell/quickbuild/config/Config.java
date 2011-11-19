@@ -10,10 +10,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.http.ProxyInfo;
 import com.gmmapowell.http.ProxyableConnection;
 import com.gmmapowell.quickbuild.build.android.AndroidContext;
+import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.ResourceListener;
@@ -38,6 +40,7 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	private final Set<BuildResource> availableResources = new HashSet<BuildResource>();
 	private final ConfigFactory factory;
 	private File cacheDir;
+	private final ListMap<String, String> libraryContexts = new ListMap<String, String>();
 
 	@SuppressWarnings("unchecked")
 	public Config(ConfigFactory factory, File qbdir, String quickBuildName, String cacheDir)
@@ -212,5 +215,34 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 
 	public boolean hasVar(String option) {
 		return varProps.containsKey(option);
+	}
+
+	public void bindLibraryContext(String context, String library) {
+		libraryContexts.add(library, context);
+	}
+
+	public boolean matchesContext(JarResource jr, String context) {
+		String askedFor = jr.compareAs();
+//		System.out.println("Asked for " + jr + " in context " + context);
+//		System.out.println(libraryContexts);
+		
+		// Because of matching, the resource "jr" could match a number of context entries.
+		// We want to allow it to try to match as many as possible looking for a hit,
+		// but if it matches one or more and doesn't hit any of them, "false" should be the answer.
+		// However, if it simply doesn't match anything, "true" is the answer ...
+		boolean ret = true;
+		for (String s : libraryContexts)
+		{
+			if (askedFor.contains(s))
+			{
+				for (String c : libraryContexts.get(s))
+					if (c.equals(context))
+						return true;
+				ret = false;
+			}
+		}
+//		if (!ret)
+//			System.out.println("  ... rejecting request");
+		return ret;
 	}
 }

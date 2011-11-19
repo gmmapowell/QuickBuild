@@ -3,10 +3,9 @@ package com.gmmapowell.quickbuild.build.java;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.collections.SetMap;
@@ -25,8 +24,8 @@ import com.gmmapowell.utils.GPJarFile;
 
 public class JavaNature implements Nature, BuildContextAware {
 	private final List<String> loadedLibs = new ArrayList<String>();
-	private final Map<String, JarResource> availablePackages = new HashMap<String, JarResource>();
-	private final SetMap<String, BuildResource> duplicates = new SetMap<String, BuildResource>();
+	private final SetMap<String, JarResource> availablePackages = new SetMap<String, JarResource>();
+	private final Set<String> duplicates = new HashSet<String>();
 	private final ListMap<String, Strategem> projectPackages = new ListMap<String, Strategem>();
 	private BuildContext cxt;
 	private List<File> libdirs = new ArrayList<File>();
@@ -58,6 +57,8 @@ public class JavaNature implements Nature, BuildContextAware {
 	
 	@Override
 	public void resourceAvailable(BuildResource br, boolean analyze) {
+//		if (debug)
+//			System.out.println("Available resource: " + br + " analyzing: " + analyze);
 		if (!analyze)
 			return;
 		
@@ -82,29 +83,22 @@ public class JavaNature implements Nature, BuildContextAware {
 			ex.printStackTrace();
 			return;
 		}
-		boolean addedDuplicates = false;
+//		boolean addedDuplicates = false;
 		for (GPJarEntry e : jar)
 		{
 			if (!e.isClassFile())
 				continue;
 			String pkg = e.getPackage();
-			if (!availablePackages.containsKey(pkg))
-			{
-				availablePackages.put(pkg, br);
-			}
-			else if (availablePackages.get(pkg).equals(br))
-				continue;
-			else
-			{
-				if (!duplicates.contains(pkg))
-					duplicates.add(pkg, availablePackages.get(pkg));
-				duplicates.add(pkg, br);
-				addedDuplicates = true;
-			}
+//			if (availablePackages.contains(pkg) && !availablePackages.get(pkg).contains(br))
+//			{
+//				addedDuplicates = true;
+//				duplicates.add(pkg);
+//			}
+			availablePackages.add(pkg, br);
 		}
 		jar.close();
-		if (addedDuplicates)
-			showDuplicates();
+//		if (addedDuplicates)
+//			showDuplicates();
 	}
 
 	private void rememberSources(JavaSourceDirResource br) {
@@ -127,17 +121,29 @@ public class JavaNature implements Nature, BuildContextAware {
 				continue;
 			reportedDuplicates.add(s);
 			System.out.println("Duplicate/overlapping definitions found for package: " + s);
-			for (BuildResource f : duplicates.get(s))
+			for (JarResource f : availablePackages.get(s))
 				System.out.println("  " + f);
 		}
 	}
 
-	public boolean addDependency(Strategem dependent, String needsJavaPackage, boolean debug) {
+	public boolean addDependency(Strategem dependent, String needsJavaPackage, String context, boolean debug) {
 		// First, try and resolve it with a base jar, or a built jar
-		if (availablePackages.containsKey(needsJavaPackage))
+		if (availablePackages.contains(needsJavaPackage))
 		{
-			JarResource resource = availablePackages.get(needsJavaPackage);
-			return cxt.addDependency(dependent, resource, debug);
+			Set<JarResource> resources = availablePackages.get(needsJavaPackage);
+			JarResource haveOne = null;
+			for (JarResource jr : resources)
+			{
+				if (conf.matchesContext(jr, context))
+				{
+					if (haveOne != null)
+						System.out.println("Multiple choices in context " + context + " for package " + needsJavaPackage + ": chose " + haveOne + " and not " + jr);
+					else
+						haveOne = jr;
+				}
+			}
+			if (haveOne != null)
+				return cxt.addDependency(dependent, haveOne, debug);
 		}
 		
 		// OK, try and move the projects around a bit
@@ -146,8 +152,9 @@ public class JavaNature implements Nature, BuildContextAware {
 			boolean didSomething = false;
 			for (Strategem p : projectPackages.get(needsJavaPackage))
 			{
-				BuildResource br = cxt.getBuiltResource(p, JarResource.class);
-				didSomething |= cxt.addDependency(dependent, br, debug);
+				JarResource jr = cxt.getBuiltResource(p, JarResource.class);
+				if (conf.matchesContext(jr, context))
+					didSomething |= cxt.addDependency(dependent, jr, debug);
 			}
 			return didSomething;
 		}
@@ -155,7 +162,7 @@ public class JavaNature implements Nature, BuildContextAware {
 		// It's possible the first reference we come to is a nested class.  Try this hack:
 		int idx = needsJavaPackage.lastIndexOf(".");
 		if (idx != -1 && Character.isUpperCase(needsJavaPackage.charAt(idx+1)))
-			return addDependency(dependent, needsJavaPackage.substring(0,idx), debug);
+			return addDependency(dependent, needsJavaPackage.substring(0,idx), context, debug);
 
 		return false;
 //		throw new JavaBuildFailure("cannot find any code that defines package " + needsJavaPackage);

@@ -2,7 +2,9 @@ package com.gmmapowell.quickbuild.build.bash;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
@@ -36,6 +38,7 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 	private final List<String> args = new ArrayList<String>();
 	private File bashPath;
 	private BashDirectoryCommand dir;
+	private final Set<BuildResource> analysis = new HashSet<BuildResource>();
 	
 	@SuppressWarnings("unchecked")
 	public BashCommand(TokenizedLine toks) {
@@ -62,7 +65,10 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 			{
 				ProducesCommand bpc = (ProducesCommand)opt;
 				bpc.applyTo(config);
-				builds.add(bpc.getProducedResource(this));
+				BuildResource jr = bpc.getProducedResource(this);
+				builds.add(jr);
+				if (bpc.doAnalysis())
+					analysis.add(jr);
 			}
 			else if (opt instanceof BashDirectoryCommand)
 				dir = (BashDirectoryCommand) opt;
@@ -152,7 +158,7 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 		if (exec.getExitCode() == 0)
 		{
 			for (BuildResource br : builds)
-				cxt.builtResource(br, false); // todo: should be an option on BashProducesCommand
+				cxt.builtResource(br, analysis.contains(br));
 			return BuildStatus.SUCCESS;
 		}
 		else

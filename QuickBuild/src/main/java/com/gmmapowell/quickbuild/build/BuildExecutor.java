@@ -62,7 +62,7 @@ public class BuildExecutor {
 				}
 				else if (outcome.tryAgain())
 				{
-					System.out.println("  Failed ... but trying to satisfy dependencies");
+					System.out.println("  Failed ... returning to ready queue");
 					tryAgain();
 //					System.out.println(cxt.printableBuildOrder(false));
 					continue;

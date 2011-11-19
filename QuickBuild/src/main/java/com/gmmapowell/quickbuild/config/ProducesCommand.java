@@ -16,11 +16,14 @@ public class ProducesCommand extends NoChildCommand implements ConfigApplyComman
 	private String type;
 	private String resource;
 	private File resourceFile;
+	private boolean analyze;
 	
 	public ProducesCommand(TokenizedLine toks)
 	{
-		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "type", "resource type"),
-						   new ArgumentDefinition("*", Cardinality.REQUIRED, "resource", "resource"));
+		toks.process(this, 
+			new ArgumentDefinition("--analyze", Cardinality.OPTION, "analyze", "do analysis on produced resource"),
+			new ArgumentDefinition("*", Cardinality.REQUIRED, "type", "resource type"),
+			new ArgumentDefinition("*", Cardinality.REQUIRED, "resource", "resource"));
 	}
 
 	@Override
@@ -28,6 +31,11 @@ public class ProducesCommand extends NoChildCommand implements ConfigApplyComman
 		resourceFile = FileUtils.relativePath(resource);
 	}
 
+	public boolean doAnalysis()
+	{
+		return analyze;
+	}
+	
 	public BuildResource getProducedResource(Strategem bash) {
 		if (type.equals("jar"))
 			return new JarResource(bash, resourceFile);
