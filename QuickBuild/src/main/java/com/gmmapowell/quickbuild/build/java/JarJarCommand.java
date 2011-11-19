@@ -17,6 +17,7 @@ import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
+import com.gmmapowell.quickbuild.config.ResourceCommand;
 import com.gmmapowell.quickbuild.config.SpecificChildrenParent;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
@@ -59,17 +60,19 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 		tactics.add(this);
 		builds.add(new JarResource(this, FileUtils.relativePath(outputTo)));
 		for (ConfigApplyCommand opt : options)
-			if (opt instanceof WarResourceCommand)
+		{
+			opt.applyTo(config);
+			if (opt instanceof ResourceCommand)
 			{
-				addResource((WarResourceCommand)opt);
+				addResource((ResourceCommand)opt);
 			}
 			else
 				throw new UtilException("The option " + opt + " is not valid for JarCommand");
-
+		}
 		return this;
 	}
 
-	private void addResource(WarResourceCommand opt) {
+	private void addResource(ResourceCommand opt) {
 		needs.add(opt.getPendingResource());
 	}
 

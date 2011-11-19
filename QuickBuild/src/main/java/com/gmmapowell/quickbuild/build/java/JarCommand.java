@@ -53,7 +53,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		config.getNature(JavaNature.class);
 		files = new StructureHelper(rootdir, config.getOutput());
 		
-		processOptions();
+		processOptions(config);
 		jarResource = new JarResource(this, files.getOutput(FileUtils.ensureExtension(targetName, ".jar")));
 
 		JarBuildCommand jar = new JarBuildCommand(this, files, jarResource, includePackages, excludePackages);
@@ -83,8 +83,10 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		// strategy pattern
 	}
 
-	private void processOptions() {
+	private void processOptions(Config config) {
 		for (ConfigApplyCommand opt : options)
+		{
+			opt.applyTo(config);
 			if (opt instanceof SpecifyTargetCommand)
 			{
 				targetName = ((SpecifyTargetCommand) opt).getName();
@@ -109,6 +111,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 				;
 			else
 				throw new UtilException("The option " + opt + " is not valid for JarCommand");
+		}
 		if (targetName == null)
 			targetName = projectName + ".jar";
 	}

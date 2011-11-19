@@ -8,6 +8,8 @@ import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.config.ProducesCommand;
+import com.gmmapowell.quickbuild.config.ResourceCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
@@ -51,13 +53,14 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 		execdir = FileUtils.getCurrentDir();
 		for (ConfigApplyCommand opt : options)
 		{
+			opt.applyTo(config);
 			if (opt instanceof ArgCommand)
 				args.add(((ArgCommand)opt).getArg());
-			else if (opt instanceof BashResourceCommand)
-				needs.add(((BashResourceCommand)opt).getPendingResource());
-			else if (opt instanceof BashProducesCommand)
+			else if (opt instanceof ResourceCommand)
+				needs.add(((ResourceCommand)opt).getPendingResource());
+			else if (opt instanceof ProducesCommand)
 			{
-				BashProducesCommand bpc = (BashProducesCommand)opt;
+				ProducesCommand bpc = (ProducesCommand)opt;
 				bpc.applyTo(config);
 				builds.add(bpc.getProducedResource(this));
 			}

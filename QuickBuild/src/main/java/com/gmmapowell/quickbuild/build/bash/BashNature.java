@@ -15,9 +15,7 @@ public class BashNature implements Nature, BuildContextAware {
 		config.addCommandExtension("bash", BashCommand.class);
 		// Command names should be scoped to super-command
 		// If super-command is "null" then they are top-level commands
-		config.addCommandExtension("resource1", BashResourceCommand.class);
 		config.addCommandExtension("dir", BashDirectoryCommand.class);
-		config.addCommandExtension("produces", BashProducesCommand.class);
 	}
 
 	public BashNature(Config conf)

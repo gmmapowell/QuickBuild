@@ -43,7 +43,6 @@ public class JavaNature implements Nature, BuildContextAware {
 		config.addCommandExtension("lib", JarLibCommand.class);
 		config.addCommandExtension("nojunit", NoJUnitCommand.class);
 		config.addCommandExtension("package", IncludePackageCommand.class);
-		config.addCommandExtension("resource", WarResourceCommand.class);
 		config.addCommandExtension("target", SpecifyTargetCommand.class);
 		config.addCommandExtension("war", WarCommand.class);
 	}

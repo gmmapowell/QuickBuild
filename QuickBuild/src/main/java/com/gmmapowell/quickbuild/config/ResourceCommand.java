@@ -1,33 +1,32 @@
-package com.gmmapowell.quickbuild.build.bash;
+package com.gmmapowell.quickbuild.config;
 
 import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.TokenizedLine;
-import com.gmmapowell.quickbuild.config.Config;
-import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 
-public class BashResourceCommand extends NoChildCommand implements ConfigApplyCommand {
+public class ResourceCommand extends NoChildCommand implements ConfigApplyCommand {
 	private String resource;
+	private PendingResource pending;
 	
-	public BashResourceCommand(TokenizedLine toks)
+	public ResourceCommand(TokenizedLine toks)
 	{
 		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "resource", "resource"));
 	}
 
 	@Override
 	public void applyTo(Config config) {
-		
+		pending = new PendingResource(resource);
 	}
 
 	public PendingResource getPendingResource() {
-		return new PendingResource(resource);
+		return pending;
 	}
 	
 	@Override
 	public String toString() {
-		return "BashResource["+resource+"]";
+		return "Resource["+resource+"]";
 	}
 
 }

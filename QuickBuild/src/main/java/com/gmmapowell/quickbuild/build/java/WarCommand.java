@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
+import com.gmmapowell.quickbuild.config.ResourceCommand;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.FileUtils;
@@ -28,9 +29,9 @@ public class WarCommand extends JarCommand {
 			warexcl.add(((ExcludeCommand)cmd).getPattern());
 			return true;
 		}
-		else if (cmd instanceof WarResourceCommand)
+		else if (cmd instanceof ResourceCommand)
 		{
-			PendingResource pr = ((WarResourceCommand)cmd).getPendingResource();
+			PendingResource pr = ((ResourceCommand)cmd).getPendingResource();
 			warlibs.add(pr);
 			needsResources.add(pr);
 			return true;

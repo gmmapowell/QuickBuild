@@ -1,4 +1,4 @@
-package com.gmmapowell.quickbuild.build.bash;
+package com.gmmapowell.quickbuild.config;
 
 import java.io.File;
 
@@ -6,20 +6,18 @@ import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.java.JarResource;
-import com.gmmapowell.quickbuild.config.Config;
-import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 
-public class BashProducesCommand extends NoChildCommand implements ConfigApplyCommand {
+public class ProducesCommand extends NoChildCommand implements ConfigApplyCommand {
 	private String type;
 	private String resource;
 	private File resourceFile;
 	
-	public BashProducesCommand(TokenizedLine toks)
+	public ProducesCommand(TokenizedLine toks)
 	{
 		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "type", "resource type"),
 						   new ArgumentDefinition("*", Cardinality.REQUIRED, "resource", "resource"));
@@ -39,7 +37,7 @@ public class BashProducesCommand extends NoChildCommand implements ConfigApplyCo
 	
 	@Override
 	public String toString() {
-		return "BashProduces["+type+","+resource+"]";
+		return "Produces["+type+","+resource+"]";
 	}
 
 }

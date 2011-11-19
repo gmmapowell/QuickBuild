@@ -176,10 +176,8 @@ public class DependencyManager {
 
 			for (PendingResource pr : s.needsResources())
 			{
-				/* speculative removal - this fixes problems with copyResource not having dependencies 
-				if (pr.isBound())
-					continue;
-					*/
+				if (pr == null)
+					throw new QuickBuildException("The strategem " + s + " has a null 'needed' resource: " + s.needsResources());
 				BuildResource actual = resolve(pr);
 				dependencies.ensure(actual);
 				for (BuildResource br : s.buildsResources())
