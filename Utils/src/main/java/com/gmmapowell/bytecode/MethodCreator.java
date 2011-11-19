@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gmmapowell.bytecode.Var.AVar;
 import com.gmmapowell.collections.CollectionUtils;
 import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
@@ -69,14 +70,51 @@ public class MethodCreator extends MethodInfo {
 		this.lenientMode = mode;
 	}
 	
-	public int argument(String type) {
-		int ret = locals++;
+	public Var argument(String type, String aname) {
+		// TODO: should consider that the type might be IVar or whatever
+		// Not that it matters right now ...
 		arguments.add(map(type));
-		return ret-1;
+		return avar(type, aname).setArgument(arguments.size()-1);
 	}
 
+	// @Deprecated // I would like to deprecate this, but can't pay the cost right now
+	public Var argument(String type) {
+		return argument(type, "arg" + (arguments.size()-1));
+	}
+
+	public AVar myThis() {
+		if (isStatic)
+			throw new UtilException("Static methods don't have 'this'");
+		return AVar.myThis(this);
+	}
+
+	public Var saveAslocal(String clz, String name) {
+		Var ret = avar(clz, name);
+		ret.store();
+		return ret;
+	}
+
+	public Var avar(String clz, String name)
+	{
+		return new AVar(this, clz, name);
+	}
+	
 	public int argCount() {
 		return arguments.size();
+	}
+
+	// TODO: this shouldn't be so hard.  We should have a "field object" that
+	// we can ask for its "getter"
+	public FieldExpr field(Var from, String clz, String type, String named) {
+		return new FieldExpr(this, from, clz, type, named);
+	}
+
+	public AssignExpr assign(Var assignTo, Expr expr) {
+		return new AssignExpr(this, assignTo, expr);
+	}
+
+	public Expr assign(FieldExpr field, Expr expr) {
+		return new AssignExpr(this, field, expr);
 	}
 
 	public void throwsException(String exception) {
@@ -414,5 +452,13 @@ public class MethodCreator extends MethodInfo {
 		Annotation ret = new Annotation(bcf, attrClass, param);
 		annotations.add(AnnotationType.RuntimeVisibleParameterAnnotations, ret);
 		return ret;
+	}
+
+	public int nextLocal() {
+		return locals++;
+	}
+
+	public String getClassName() {
+		return byteCodeCreator.getCreatedName();
 	}
 }

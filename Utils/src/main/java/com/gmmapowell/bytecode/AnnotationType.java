@@ -31,7 +31,9 @@ public enum AnnotationType {
 			for (int i=0;i<paramCount;i++)
 				lists.add(new ArrayList<Annotation>());
 			for (Annotation a : list)
+			{
 				lists.get(a.forParam()).add(a);
+			}
 			for (List<Annotation> al : lists)
 				writeAnnoList(dos, al);
 		}
