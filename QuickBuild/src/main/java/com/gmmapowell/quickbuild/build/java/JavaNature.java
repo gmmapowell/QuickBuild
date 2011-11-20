@@ -61,7 +61,7 @@ public class JavaNature implements Nature, BuildContextAware {
 	public void resourceAvailable(BuildResource br, boolean analyze) {
 //		if (debug)
 //			System.out.println("Available resource: " + br + " analyzing: " + analyze);
-		if (!analyze)
+		if (!analyze && !br.doAnalysis())
 			return;
 		
 		if (br instanceof JarResource)

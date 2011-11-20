@@ -68,6 +68,18 @@ public class CloningResource implements BuildResource {
 		return hash == obj.hashCode();
 	}
 	*/
+	
+	@Override
+	public void enableAnalysis() {
+		throw new UtilException("Think Again");
+	}
+
+	@Override
+	public boolean doAnalysis() {
+		throw new UtilException("Think Again");
+	}
+
+
 	@Override
 	public String toString() {
 		return "CloneTo[" + clonedPath + (actual != null ? "*": "") + "]";

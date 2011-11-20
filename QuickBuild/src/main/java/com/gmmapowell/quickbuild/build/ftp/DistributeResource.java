@@ -9,6 +9,7 @@ import com.gmmapowell.quickbuild.core.Strategem;
 public class DistributeResource implements BuildResource {
 	private final DistributeCommand strat;
 	private final String host;
+	private boolean analyze;
 
 	public DistributeResource(DistributeCommand strat, String host) {
 		this.strat = strat;
@@ -35,6 +36,16 @@ public class DistributeResource implements BuildResource {
 		throw new RuntimeException("I don't really understand this");
 	}
 	
+	@Override
+	public void enableAnalysis() {
+		analyze = true;
+	}
+
+	@Override
+	public boolean doAnalysis() {
+		return analyze;
+	}
+
 	@Override
 	public String toString() {
 		return compareAs();

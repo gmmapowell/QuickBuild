@@ -10,6 +10,7 @@ public abstract class SolidResource implements BuildResource {
 	protected final File file;
 	protected final File relative;
 	protected final Strategem parent;
+	private boolean analyze;
 
 	protected SolidResource(Strategem builtBy, File path)
 	{
@@ -57,7 +58,16 @@ public abstract class SolidResource implements BuildResource {
 		return compareAs().equals(((BuildResource)obj).compareAs());
 	}
 	*/
-	
+	@Override
+	public void enableAnalysis() {
+		analyze = true;
+	}
+
+	@Override
+	public boolean doAnalysis() {
+		return analyze;
+	}
+
 	public String toString()
 	{
 		return compareAs();

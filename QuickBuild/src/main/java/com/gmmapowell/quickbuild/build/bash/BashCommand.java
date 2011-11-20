@@ -68,7 +68,10 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 				BuildResource jr = bpc.getProducedResource(this);
 				builds.add(jr);
 				if (bpc.doAnalysis())
+				{
+					jr.enableAnalysis();
 					analysis.add(jr);
+				}
 			}
 			else if (opt instanceof BashDirectoryCommand)
 				dir = (BashDirectoryCommand) opt;

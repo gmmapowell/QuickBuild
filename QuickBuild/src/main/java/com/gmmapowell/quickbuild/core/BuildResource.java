@@ -8,4 +8,6 @@ public interface BuildResource {
 	File getPath();
 	String compareAs();
 	BuildResource cloneInto(CloningResource toResource);
+	void enableAnalysis();
+	boolean doAnalysis();
 }

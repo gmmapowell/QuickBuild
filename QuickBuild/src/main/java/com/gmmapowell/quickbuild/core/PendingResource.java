@@ -2,6 +2,7 @@ package com.gmmapowell.quickbuild.core;
 
 import java.io.File;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.DependencyManager.ComparisonResource;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 
@@ -71,6 +72,16 @@ public class PendingResource implements BuildResource {
 		if (!(obj instanceof BuildResource))
 			return false;
 		return compareAs().equals(((BuildResource)obj).compareAs());
+	}
+	
+	@Override
+	public void enableAnalysis() {
+		throw new UtilException("Think Again");
+	}
+
+	@Override
+	public boolean doAnalysis() {
+		throw new UtilException("Think Again");
 	}
 		
 	@Override

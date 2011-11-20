@@ -9,8 +9,11 @@ import com.gmmapowell.quickbuild.core.Strategem;
 
 public class ApkResource extends SolidResource {
 
+	private final String comparison;
+
 	public ApkResource(Strategem parent, File apkFile) {
 		super(parent, apkFile);
+		comparison = "Apk[" + relative + "]";
 	}
 
 	@Override
@@ -20,7 +23,17 @@ public class ApkResource extends SolidResource {
 
 	@Override
 	public String compareAs() {
-		return "Apk[" + relative + "]";
+		return comparison;
+	}
+
+	@Override
+	public int hashCode() {
+		return comparison.hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		return ((obj instanceof ApkResource) && comparison.equals(((ApkResource)obj).comparison));
 	}
 
 	@Override

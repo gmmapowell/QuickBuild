@@ -8,11 +8,12 @@ import com.gmmapowell.quickbuild.core.Strategem;
 
 public class AdbInstalledResource implements BuildResource {
 	private final AdbInstallCommand strat;
-	private final String apk;
+	private final String comparison;
+	private boolean analyze;
 
 	public AdbInstalledResource(AdbInstallCommand strat, String apk) {
 		this.strat = strat;
-		this.apk = apk;
+		comparison = "AdbInstalled["+apk.replaceAll("\\.", "_").replaceAll("/", "_")+"]";
 	}
 
 	@Override
@@ -27,14 +28,34 @@ public class AdbInstalledResource implements BuildResource {
 
 	@Override
 	public String compareAs() {
-		return "AdbInstalled["+apk.replaceAll("\\.", "_").replaceAll("/", "_")+"]";
+		return comparison;
 	}
 
+	@Override
+	public int hashCode() {
+		return comparison.hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		return ((obj instanceof AdbInstalledResource) && comparison.equals(((AdbInstalledResource)obj).comparison));
+	}
+	
 	@Override
 	public BuildResource cloneInto(CloningResource toResource) {
 		throw new RuntimeException("I don't really understand this");
 	}
 	
+	@Override
+	public void enableAnalysis() {
+		analyze = true;
+	}
+
+	@Override
+	public boolean doAnalysis() {
+		return analyze;
+	}
+
 	@Override
 	public String toString() {
 		return compareAs();
