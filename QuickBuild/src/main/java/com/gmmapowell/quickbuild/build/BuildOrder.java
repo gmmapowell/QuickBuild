@@ -554,7 +554,6 @@ public class BuildOrder {
 	}
 
 	public void reject(Strategem s) {
-		System.out.println("Rejecting strategem " + s);
 		if (!mapping.containsKey(s.identifier()))
 			throw new UtilException("Cannot reject non-existent " + s.identifier() + " have " + mapping.keySet());
 		ExecuteStrategem es = mapping.get(s.identifier());
@@ -563,6 +562,7 @@ public class BuildOrder {
 				b.remove(es);
 		if (!pending.contains(es))
 		{
+			System.out.println("Rejecting strategem " + s);
 			pending.add(es);
 		
 			// and then make sure all dependents are rejected
