@@ -554,12 +554,21 @@ public class BuildOrder {
 	}
 
 	public void reject(Strategem s) {
+		System.out.println("Rejecting strategem " + s);
+		if (!mapping.containsKey(s.identifier()))
+			throw new UtilException("Cannot reject non-existent " + s.identifier() + " have " + mapping.keySet());
 		ExecuteStrategem es = mapping.get(s.identifier());
 		for (ExecutionBand b : bands)
 			if (b.contains(es))
 				b.remove(es);
 		if (!pending.contains(es))
+		{
 			pending.add(es);
+		
+			// and then make sure all dependents are rejected
+			for (Strategem d : dependencies.getAllStratsThatDependOn(s))
+				reject(d);
+		}
 	}
 
 	public int count(int band) {

@@ -91,7 +91,7 @@ public class AdbInstallCommand extends AbstractBuildCommand implements ConfigBui
 
 	@Override
 	public String identifier() {
-		return "AdbInstall[" + apk.compareAs() + "]";
+		return "AdbInstall[" + apk.getPending() + "]";
 	}
 
 	@Override

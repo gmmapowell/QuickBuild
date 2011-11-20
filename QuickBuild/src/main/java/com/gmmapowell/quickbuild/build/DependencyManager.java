@@ -301,6 +301,15 @@ public class DependencyManager {
 		return ret;
 	}
 	
+	public Iterable<Strategem> getAllStratsThatDependOn(Strategem buildFirst) {
+		Set<Strategem> ret = new HashSet<Strategem>();
+		for (BuildResource br : dependencies.nodes())
+			for (BuildResource wb : buildFirst.buildsResources())
+				if (dependencies.hasLink(br, wb) && br.getBuiltBy() != null)
+					ret.add(br.getBuiltBy());
+		return ret;
+	}
+	
 	private void findDependencies(Set<BuildResource> ret, BuildResource br) {
 		Iterable<BuildResource> allChildren = dependencies.allChildren(br);
 		for (BuildResource a : allChildren)

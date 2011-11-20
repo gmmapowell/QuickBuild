@@ -20,6 +20,10 @@ public class PendingResource implements BuildResource {
 		return boundTo.getPath();
 	}
 
+	public String getPending() {
+		return pendingName;
+	}
+	
 	@Override
 	public String compareAs() {
 		if (boundTo != null)
