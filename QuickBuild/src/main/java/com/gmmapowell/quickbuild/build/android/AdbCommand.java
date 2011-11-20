@@ -90,6 +90,11 @@ public class AdbCommand implements Tactic {
 		{
 			return BuildStatus.SUCCESS;
 		}
+		else if (proc.getStderr().contains("error: device not found"))
+		{
+			System.out.println("Device not found - ignoring");
+			return BuildStatus.SUCCESS;
+		}
 		System.out.println(proc.getStderr());
 		return cmd.stat;
 	}

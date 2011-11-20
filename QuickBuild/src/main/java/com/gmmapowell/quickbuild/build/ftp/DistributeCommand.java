@@ -15,6 +15,7 @@ import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.config.AbstractBuildCommand;
 import com.gmmapowell.quickbuild.config.Config;
+import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.FloatToEnd;
@@ -45,6 +46,7 @@ public class DistributeCommand extends AbstractBuildCommand implements ConfigBui
 	private String username;
 	private String saveAs;
 	private File knownHosts;
+	private String wrapIn = "";
 
 	@SuppressWarnings("unchecked")
 	public DistributeCommand(TokenizedLine toks) {
@@ -78,6 +80,22 @@ public class DistributeCommand extends AbstractBuildCommand implements ConfigBui
 		else
 			throw new UtilException("Only sftp is supported for distribute at the moment");
 		return this;
+	}
+
+	
+	@Override
+	public boolean handleOption(Config config, ConfigApplyCommand opt) {
+		if (super.handleOption(config, opt))
+			return true;
+		else if (opt instanceof DistributeWrapCommand)
+		{
+			wrapIn = ((DistributeWrapCommand) opt).getWrap();
+			if (!wrapIn.endsWith("/"))
+				wrapIn += "/";
+		}
+		else
+			return false;
+		return true;
 	}
 
 	@Override
@@ -169,7 +187,7 @@ public class DistributeCommand extends AbstractBuildCommand implements ConfigBui
 				continue;
 			else
 			{
-				os.putNextEntry(new ZipEntry(f.getPath()));
+				os.putNextEntry(new ZipEntry(wrapIn + f.getPath()));
 				FileUtils.copyFileToStream(g, os);
 			}
 		}

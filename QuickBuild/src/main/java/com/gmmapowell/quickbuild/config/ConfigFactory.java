@@ -14,6 +14,7 @@ import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.CopyDirectoryCommand;
 import com.gmmapowell.quickbuild.build.CopyResourceCommand;
 import com.gmmapowell.quickbuild.build.ftp.DistributeCommand;
+import com.gmmapowell.quickbuild.build.ftp.DistributeWrapCommand;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
@@ -49,6 +50,7 @@ public class ConfigFactory implements CommandObjectFactory {
 		
 		// this should be in some other nature, but save me now!
 		addCommandExtension("distribute", DistributeCommand.class);
+		addCommandExtension("wrap", DistributeWrapCommand.class);
 	}
 
 	@Override

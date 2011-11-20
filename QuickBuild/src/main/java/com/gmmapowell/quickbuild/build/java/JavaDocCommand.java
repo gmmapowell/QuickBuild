@@ -2,6 +2,7 @@ package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -10,14 +11,13 @@ import com.gmmapowell.collections.CollectionUtils;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.LinePatternMatch;
 import com.gmmapowell.parser.LinePatternParser;
-import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.build.ErrorCase;
-import com.gmmapowell.quickbuild.build.android.AndroidJarCommand;
+import com.gmmapowell.quickbuild.config.AbstractBuildCommand;
 import com.gmmapowell.quickbuild.config.Config;
-import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
+import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.FloatToEnd;
 import com.gmmapowell.quickbuild.core.PendingResource;
@@ -31,25 +31,43 @@ import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
-public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand, Strategem, Tactic, FloatToEnd {
+public class JavaDocCommand extends AbstractBuildCommand implements Strategem, Tactic, FloatToEnd {
 
 	private String overview;
 	private final File rootdir;
+	private String outdir;
 	private File outputdir;
+	private List<String> projects = new ArrayList<String>();
 
+	@SuppressWarnings("unchecked")
 	public JavaDocCommand(TokenizedLine toks) {
 		toks.process(this,
-				new ArgumentDefinition("*.html", Cardinality.OPTION, "overview", "overview"));
+				new ArgumentDefinition("*", Cardinality.OPTION, "outdir", "output directory"));
 		this.rootdir = FileUtils.getCurrentDir();
 	}
 
 
 	@Override
 	public Strategem applyConfig(Config config) {
-		outputdir = new File(rootdir, "javadoc");
+		outputdir = new File(rootdir, outdir);
+		super.handleOptions(config);
 		return this;
 	}
 
+	@Override
+	public boolean handleOption(Config config, ConfigApplyCommand opt)
+	{
+		if (super.handleOption(config, opt))
+			return true;
+		else if (opt instanceof IncludePackageCommand)
+			projects.add(((IncludePackageCommand) opt).pkg);
+		else if (opt instanceof OverviewCommand)
+			overview = ((OverviewCommand) opt).overview;
+		else
+			return false;
+		return true;
+	}
+	
 	@Override
 	public Strategem belongsTo() {
 		return this;
@@ -57,7 +75,7 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 
 	@Override
 	public String toString() {
-		return "Javadoc";
+		return "Javadoc " + outdir;
 	}
 
 	@Override
@@ -75,20 +93,18 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 		}
 		
 		BuildClassPath sourcepath = new BuildClassPath();
-		Set<String> packages = new TreeSet<String>();
-		for (BuildResource br : cxt.getResources(JavaSourceDirResource.class))
+		Set<String> packageNames = new TreeSet<String>();
+		for (String s : projects)
 		{
-			if (br.getBuiltBy() instanceof AndroidJarCommand)
-				continue;
-			File path = ((JavaSourceDirResource)br).getPath();
+			File path = FileUtils.combine(new File(s), "src/main/java");
 			sourcepath.add(path);
 			for (File f : FileUtils.findFilesUnderMatching(path, "*.java"))
-				packages.add(FileUtils.convertToDottedName(f.getParentFile()));
-			cxt.addDependency(this, br, showDebug);
+				packageNames.add(FileUtils.convertToDottedName(f.getParentFile()));
 		}
 		if (sourcepath.empty())
 			return BuildStatus.SKIPPED;
 
+		FileUtils.assertDirectory(outputdir);
 		RunProcess proc = new RunProcess("javadoc");
 		proc.showArgs(showArgs);
 		proc.debug(showDebug);
@@ -107,7 +123,7 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 			proc.arg(overview);
 		}
 		boolean any = false;
-		for (String f : packages)
+		for (String f : packageNames)
 		{
 			proc.arg(f);
 			any = true;
@@ -134,6 +150,7 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 
 		LinePatternParser lppErr = new LinePatternParser();
 		lppErr.match("src/[^/]+/java/(.*): warning - (.*)", "message", "location", "text");
+		lppErr.match("(javadoc: error.*)", "error", "text");
 		for (LinePatternMatch lpm : lppErr.applyTo(new StringReader(proc.getStderr())))
 		{
 			if (lpm.is("message"))
@@ -141,6 +158,13 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 				if (failure == null)
 					failure = cxt.failure(proc.getArgs(), proc.getStdout(), proc.getStderr());
 				failure.addMessage("  " + lpm.get("location") + ": " + lpm.get("text"));
+				cnt++;
+			}
+			else if (lpm.is("error"))
+			{
+				if (failure == null)
+					failure = cxt.failure(proc.getArgs(), proc.getStdout(), proc.getStderr());
+				failure.addMessage("  " + lpm.get("text"));
 				cnt++;
 			}
 			else
@@ -160,7 +184,7 @@ public class JavaDocCommand extends NoChildCommand implements ConfigBuildCommand
 
 	@Override
 	public String identifier() {
-		return "JavaDoc[]";
+		return "JavaDoc[" + outdir + "]";
 	}
 
 	@Override
