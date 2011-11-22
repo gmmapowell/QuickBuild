@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -12,7 +13,8 @@ import java.net.UnknownHostException;
 
 import com.gmmapowell.exceptions.UtilException;
 
-public class Endpoint {
+@SuppressWarnings("serial")
+public class Endpoint implements Serializable {
 	private final InetAddress addr;
 	private final int port;
 
