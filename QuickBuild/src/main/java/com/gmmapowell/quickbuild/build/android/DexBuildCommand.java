@@ -85,7 +85,7 @@ public class DexBuildCommand implements Tactic {
 	
 	private void considerAdding(LinkedHashSet<String> paths, String path) {
 		for (Pattern patt : exclusions)
-			if (patt.matcher(path.toLowerCase()).matches())
+			if (patt.matcher(path.toLowerCase().replaceAll("\\\\", "/")).matches())
 				return;
 		paths.add(path);
 	}
