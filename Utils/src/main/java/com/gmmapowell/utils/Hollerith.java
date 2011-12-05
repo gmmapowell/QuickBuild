@@ -21,4 +21,10 @@ public class Hollerith {
 			fields.put(field, value);
 	}
 
+	public void setToString(String field, Object value) {
+		if (fmt.hasField(field) && value != null)
+			fields.put(field, value.toString());
+		
+	}
+
 }

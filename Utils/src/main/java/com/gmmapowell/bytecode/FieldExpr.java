@@ -16,15 +16,30 @@ public class FieldExpr extends Expr {
 
 	@Override
 	public void spitOutByteCode(MethodCreator meth) {
-		from.spitOutByteCode(meth);
-		meth.getField(clzName, type, fieldName);
+		if (from == null) { // static
+			meth.getStatic(clzName, type, fieldName);
+		}
+		else
+		{
+			from.spitOutByteCode(meth);
+			meth.getField(clzName, type, fieldName);
+		}
 	}
 	
 	public void prepare(MethodCreator meth) {
-		from.spitOutByteCode(meth);
+		if (from != null)
+			from.spitOutByteCode(meth);
 	}
 
 	public void put(MethodCreator meth) {
-		meth.putField(clzName, type, fieldName);
+		if (from == null)
+			meth.putStatic(clzName, type, fieldName);
+		else
+			meth.putField(clzName, type, fieldName);
+	}
+
+	@Override
+	public String getType() {
+		return type;
 	}
 }

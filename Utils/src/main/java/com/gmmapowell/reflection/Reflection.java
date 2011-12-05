@@ -103,22 +103,22 @@ public class Reflection {
 
 	public static <T> T create(Class<T> clz, Object... args) throws Exception {
 		Jimmy<T>[] constructors = wrap(clz.getConstructors());
-		return match(clz, constructors, args).invoke(args);
+		return match(clz, "constructor", constructors, args).invoke(args);
 	}
 
 	public static <O, T> T call(O invokee, String meth, Object... args) throws Exception {
 		@SuppressWarnings("unchecked")
 		Class<O> clz = (Class<O>) invokee.getClass();
 		Jimmy<T>[] methods = wrap(invokee, clz, meth);
-		return match(clz, methods, args).invoke(args);
+		return match(clz, meth, methods, args).invoke(args);
 	}
 
 	public static <O, T> T callStatic(Class<O> clz, String meth, Object... args) throws Exception {
 		Jimmy<T>[] methods = wrap(clz, meth);
-		return match(clz, methods, args).invoke(args);
+		return match(clz, "static " + meth, methods, args).invoke(args);
 	}
 
-	private static <O, T> Jimmy<T> match(Class<O> clz, Jimmy<T>[] jimmies, Object[] args) {
+	private static <O, T> Jimmy<T> match(Class<O> clz, String what, Jimmy<T>[] jimmies, Object[] args) {
 		loop:
 		for (Jimmy<T> j : jimmies)
 		{
@@ -130,7 +130,7 @@ public class Reflection {
 					continue loop;
 			return j;
 		}
-		throw new UtilException("There is no matching jimmy for class " + clz.getName() + " with args " + args.length);
+		throw new UtilException("There is no matching " + what + " for class " + clz.getName() + " with args " + args.length);
 	}
 
 	// All this baloney is here because Java didn't see fit to make

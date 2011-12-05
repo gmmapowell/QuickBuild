@@ -15,24 +15,31 @@ import com.gmmapowell.exceptions.UtilException;
 
 @SuppressWarnings("serial")
 public class Endpoint implements Serializable {
-	private final InetAddress addr;
+	private final String host;
 	private final int port;
 
 	public Endpoint(InetAddress addr, int port) {
-		this.addr = addr;
+		String host = addr.getHostAddress();
+		if (host.equals("0.0.0.0"))
+			try {
+				host = InetAddress.getLocalHost().getHostAddress();
+			} catch (UnknownHostException e) {
+				e.printStackTrace();
+			}
+		this.host = host;
 		this.port = port;
-	}
-
-	public String getHost() {
-		return addr.getHostAddress();
-	}
-
-	public int getPort() {
-		return port;
 	}
 
 	public Endpoint(ServerSocket s) {
 		this(s.getInetAddress(), s.getLocalPort());
+	}
+	
+	public String getHost() {
+		return host;
+	}
+
+	public int getPort() {
+		return port;
 	}
 
 	public static Endpoint parse(String s) {
@@ -58,20 +65,13 @@ public class Endpoint implements Serializable {
 
 	@Override
 	public String toString() {
-		String host = addr.getHostAddress();
-		if (host.equals("0.0.0.0"))
-			try {
-				host = InetAddress.getLocalHost().getHostAddress();
-			} catch (UnknownHostException e) {
-				e.printStackTrace();
-			}
 		return host+":"+port;
 	}
 
 	public void checkExists() {
 		try
 		{
-			Socket socket = new Socket(addr, port);
+			Socket socket = new Socket(host, port);
 			socket.close();
 		}
 		catch (Exception ex)
@@ -83,7 +83,7 @@ public class Endpoint implements Serializable {
 	public EndpointConnection open() {
 		try
 		{
-			Socket socket = new Socket(addr, port);
+			Socket socket = new Socket(host, port);
 			ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 			
 			return new EndpointConnection(socket, oos); 
@@ -120,7 +120,7 @@ public class Endpoint implements Serializable {
 
 	public void send(String string) {
 		try {
-			Socket conn = new Socket(addr, port);
+			Socket conn = new Socket(host, port);
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
 			bw.write(string);
 			bw.flush();

@@ -43,6 +43,7 @@ public class ConfigFactory implements CommandObjectFactory {
 		addCommandExtension("context", LibraryContextCommand.class);
 		addCommandExtension("resource", ResourceCommand.class);
 		addCommandExtension("produces", ProducesCommand.class);
+		addCommandExtension("readsFile", ReadsFileCommand.class);
 
 		// standard build commands
 		addCommandExtension("copydir", CopyDirectoryCommand.class);

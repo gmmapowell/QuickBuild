@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.java.JarBuildCommand;
 import com.gmmapowell.quickbuild.build.java.JarResource;
@@ -53,6 +54,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 	@Override
 	public void addChild(ConfigApplyCommand obj) {
 		// I don't think we need this at the moment
+		throw new UtilException("Cannot handle " + obj);
 	}
 
 	@Override

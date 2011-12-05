@@ -2,6 +2,7 @@ package com.gmmapowell.quickbuild.app;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 
 import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
@@ -12,6 +13,7 @@ import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
+import com.gmmapowell.utils.DateUtils;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 import com.gmmapowell.utils.ProcessArgs;
@@ -34,6 +36,7 @@ public class QuickBuild {
 	
 	public static void main(String[] args)
 	{
+		Date launched = new Date();
 		arguments = new Arguments();
 		ProcessArgs.process(arguments, argumentDefinitions, args);
 		
@@ -91,6 +94,7 @@ public class QuickBuild {
 			
 		boolean buildAll = arguments.buildAll;
 		boolean blankMemory = arguments.blank;
+		System.out.println("Comparing files ...");
 		blankMemory |= GitHelper.checkFiles(true, ofl, new File(conf.getCacheDir(), file.getName()));
 		buildAll |= blankMemory;
 		
@@ -115,7 +119,9 @@ public class QuickBuild {
 			System.out.print(cxt.printableBuildOrder(false));
 			System.out.println();
 		}
-			
+		
+		System.err.println("Pre-build configuration time: " + DateUtils.elapsedTime(launched, new Date(), DateUtils.Format.hhmmss3));
+		
 		new BuildExecutor(cxt, arguments.debug).doBuild();
 	}
 }

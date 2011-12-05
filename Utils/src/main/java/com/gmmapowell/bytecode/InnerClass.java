@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import com.gmmapowell.bytecode.JavaInfo.Access;
 
-public class InnerClass {
+public class InnerClass implements Comparable<InnerClass> {
 	private final Access access;
 	private final int inner;
 	private final int enclosing;
@@ -25,4 +25,29 @@ public class InnerClass {
 		dos.writeShort(access.asByte());
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof InnerClass))
+			return false;
+		InnerClass other = (InnerClass)obj;
+		return inner == other.inner && enclosing == other.enclosing;
+	}
+	
+	@Override
+	public int hashCode() {
+		return inner * enclosing;
+	}
+
+	@Override
+	public int compareTo(InnerClass o) {
+		if (enclosing < o.enclosing)
+			return -1;
+		if (enclosing > o.enclosing)
+			return 1;
+		if (inner < o.inner)
+			return -1;
+		if (inner > o.inner)
+			return 1;
+		return 0;
+	}
 }

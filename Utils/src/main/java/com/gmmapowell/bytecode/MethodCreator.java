@@ -109,12 +109,52 @@ public class MethodCreator extends MethodInfo {
 		return new FieldExpr(this, from, clz, type, named);
 	}
 
+	public Expr as(Expr expr, String newType) {
+		return new UseAsType(this, expr, newType);
+	}
+
 	public AssignExpr assign(Var assignTo, Expr expr) {
 		return new AssignExpr(this, assignTo, expr);
 	}
 
 	public Expr assign(FieldExpr field, Expr expr) {
 		return new AssignExpr(this, field, expr);
+	}
+
+	public Expr callSuper(String returns, Expr obj, String parentClzName, String methodName, Expr... args) {
+		return new MethodInvocation(this, "super", returns, obj, parentClzName, methodName, args);
+	}
+	
+	public Expr callVirtual(String returns, Expr obj, String methodName, Expr... args) {
+		return new MethodInvocation(this, "virtual", returns, obj, null, methodName, args);
+	}
+	
+	public Expr callInterface(String returns, Expr obj, String methodName, Expr... args) {
+		return new MethodInvocation(this, "interface", returns, obj, null, methodName, args);
+	}
+	
+	public ClassConstExpr classConst(String cls) {
+		return new ClassConstExpr(this, cls);
+	}
+
+	public MakeNewExpr makeNew(String ofClz, Expr... args) {
+		return new MakeNewExpr(this, ofClz, args);
+	}
+
+	public Expr returnInt(Expr i) {
+		return new ReturnX(this, "int", i);
+	}
+
+	public Expr returnObject(Expr e) {
+		return new ReturnX(this, "object", e);
+	}
+
+	public StringConstExpr stringConst(String str) {
+		return new StringConstExpr(this, str);
+	}
+
+	public Expr voidExpr(Expr ignoredResult) {
+		return new VoidExpr(this, ignoredResult);
 	}
 
 	public void throwsException(String exception) {

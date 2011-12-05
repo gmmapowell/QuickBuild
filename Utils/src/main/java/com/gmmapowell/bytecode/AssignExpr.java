@@ -30,4 +30,11 @@ public class AssignExpr extends Expr {
 			field.put(meth);
 	}
 
+	@Override
+	public String getType() {
+		if (assignTo != null)
+			return assignTo.getType();
+		return field.getType();
+	}
+
 }

@@ -425,7 +425,7 @@ public class ByteCodeInspector extends ByteCodeFile {
 			else if (attr.equals("Signature") || attr.equals("SourceFile"))
 			{
 				if (len != 2)
-					throw new UtilException("Attribute has incorrect length: " + attr);
+					throw new UtilException("Attribute has incorrect length: " + attr + ": length = " + len);
 				int ai = dis.readUnsignedShort();
 				hexdump.print("[" + type +" " + attr + "]: " + show(ai));
 			}

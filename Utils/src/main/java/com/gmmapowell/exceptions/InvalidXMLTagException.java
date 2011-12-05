@@ -5,9 +5,9 @@ import com.gmmapowell.xml.XMLElement;
 @SuppressWarnings("serial")
 public class InvalidXMLTagException extends XMLUtilException {
 
-	private final XMLElement xe;
-	private final String which;
-	private final Object callbacks;
+	public final XMLElement xe;
+	public final String which;
+	public final Object callbacks;
 
 	public InvalidXMLTagException(XMLElement xe, String which, Object callbacks) {
 		super("The object " + callbacks + " does not have a handler for tag " + which + " in element " + xe);

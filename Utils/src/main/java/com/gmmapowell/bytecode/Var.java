@@ -19,7 +19,8 @@ public abstract class Var extends Expr{
 		this.id = id;
 	}
 	
-	public String javaType() {
+	@Override
+	public String getType() {
 		return clz;
 	}
 

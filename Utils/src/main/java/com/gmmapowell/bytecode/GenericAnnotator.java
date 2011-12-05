@@ -3,6 +3,7 @@ package com.gmmapowell.bytecode;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gmmapowell.bytecode.JavaInfo.Access;
 import com.gmmapowell.exceptions.UtilException;
 
 public class GenericAnnotator {
@@ -38,16 +39,35 @@ public class GenericAnnotator {
 	private List<PendingVar> vars = new ArrayList<PendingVar>();
 
 	// This works for method ...
-	public GenericAnnotator(ByteCodeCreator byteCodeCreator, boolean isStatic, String name) {
+	private GenericAnnotator(ByteCodeCreator byteCodeCreator, boolean isStatic, String name) {
 		this.byteCodeCreator = byteCodeCreator;
 		this.name = name;
 	}
 	
+	// This is for classes
+	private GenericAnnotator(ByteCodeCreator byteCodeCreator) {
+		this.byteCodeCreator = byteCodeCreator;
+		name = null;
+	}
+
 	public static GenericAnnotator newMethod(ByteCodeCreator byteCodeCreator, boolean isStatic, String name) {
 		GenericAnnotator ret = new GenericAnnotator(byteCodeCreator, isStatic, name);
 		ret.sb.append("()");
 		ret.argPointer = 1;
 		return ret;
+	}
+
+	public static GenericAnnotator forClass(ByteCodeCreator bcc) {
+		return new GenericAnnotator(bcc);
+	}
+	
+	public void parentClass(String cls) {
+		parentClass(new JavaType(cls));
+	}
+
+	public void parentClass(JavaType jt) {
+		sb.append(jt.asGeneric());
+		hasGenerics |= jt.isGeneric();
 	}
 
 	public void returns(JavaType jt) {
@@ -74,6 +94,13 @@ public class GenericAnnotator {
 	public MethodCreator done() {
 		if (sb == null)
 			throw new UtilException("You have already completed this class");
+		if (name == null)
+		{
+			 // a class, then
+			if (hasGenerics)
+				byteCodeCreator.signatureAttribute("Signature", sb.toString());
+			return null;
+		}
 		if (returnType == null)
 			throw new UtilException("You have not specified the return type");
 		MethodCreator ret = byteCodeCreator.method(returnType, name);
@@ -104,4 +131,17 @@ public class GenericAnnotator {
 	sb.append(">;)V");
 	meth.addAttribute("Signature", sb.toString());
 	*/
+
+	public static FieldInfo createField(ByteCodeCreator clz, boolean isStatic, Access access, JavaType javaType, String name) {
+		FieldInfo field = clz.field(isStatic, access, javaType.getActual(), name);
+//		StringBuilder sb = new StringBuilder();
+//		sb.append(JavaInfo.map(javaType.));
+//		sb.deleteCharAt(sb.length()-1);
+//		sb.append("<");
+//		sb.append(JavaInfo.map(S.id));
+//		sb.append(JavaInfo.map(S.object));
+//		sb.append(">;");
+		field.attribute("Signature", javaType.asGeneric());
+		return field;
+	}
 }

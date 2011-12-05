@@ -11,6 +11,7 @@ import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.config.ProducesCommand;
+import com.gmmapowell.quickbuild.config.ReadsFileCommand;
 import com.gmmapowell.quickbuild.config.ResourceCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
@@ -39,6 +40,7 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 	private File bashPath;
 	private BashDirectoryCommand dir;
 	private final Set<BuildResource> analysis = new HashSet<BuildResource>();
+	private final Set<File> readsFiles = new HashSet<File>();
 	
 	@SuppressWarnings("unchecked")
 	public BashCommand(TokenizedLine toks) {
@@ -75,6 +77,8 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 			}
 			else if (opt instanceof BashDirectoryCommand)
 				dir = (BashDirectoryCommand) opt;
+			else if (opt instanceof ReadsFileCommand)
+				readsFiles.add(((ReadsFileCommand)opt).getPath());
 			else
 				throw new UtilException("The option " + opt + " is not supported");
 		}
@@ -122,6 +126,8 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 	public OrderedFileList sourceFiles() {
 		OrderedFileList ret = new OrderedFileList();
 		ret.add(new File(scriptName));
+		for (File f : readsFiles)
+			ret.add(f);
 		return ret;
 	}
 

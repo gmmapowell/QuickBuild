@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
@@ -23,13 +25,15 @@ public class DexBuildCommand implements Tactic {
 	private final List<File> jars = new ArrayList<File>();
 	private final File libdir;
 	private final Strategem parent;
+	private final Set<Pattern> exclusions;
 
-	public DexBuildCommand(AndroidContext acxt, Strategem parent, StructureHelper files, File bindir, File libdir, File dexFile) {
+	public DexBuildCommand(AndroidContext acxt, Strategem parent, StructureHelper files, File bindir, File libdir, File dexFile, Set<Pattern> exclusions) {
 		this.acxt = acxt;
 		this.parent = parent;
 		this.bindir = bindir;
 		this.libdir = libdir;
 		this.dexFile = dexFile;
+		this.exclusions = exclusions;
 	}
 
 	public void addJar(File file) {
@@ -53,13 +57,13 @@ public class DexBuildCommand implements Tactic {
 		for (BuildResource br : cxt.getDependencies(parent))
 		{
 			if (br instanceof JarResource)
-				paths.add(br.getPath().getPath());
+				considerAdding(paths, br.getPath().getPath());
 		}
 		
 		for (File f : FileUtils.findFilesMatching(libdir, "*.jar"))
-			paths.add(f.getPath());
+			considerAdding(paths, f.getPath());
 		for (File f : jars)
-			paths.add(f.getPath());
+			considerAdding(paths, f.getPath());
 
 		for (String s : paths)
 			proc.arg(s);
@@ -79,6 +83,13 @@ public class DexBuildCommand implements Tactic {
 		return BuildStatus.BROKEN;
 	}
 	
+	private void considerAdding(LinkedHashSet<String> paths, String path) {
+		for (Pattern patt : exclusions)
+			if (patt.matcher(path.toLowerCase()).matches())
+				return;
+		paths.add(path);
+	}
+
 	@Override
 	public String toString() {
 		return "Create Dex: " + dexFile;

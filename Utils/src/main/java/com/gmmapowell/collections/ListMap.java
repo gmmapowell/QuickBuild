@@ -88,6 +88,18 @@ public class ListMap<K, V> implements Iterable<K> {
 			return;
 		List<V> list = map.get(k);
 		list.remove(v);
+		if (list.isEmpty())
+			map.remove(k);
+	}
+
+	public V removeFirst(K key) {
+		if (!map.containsKey(key))
+			throw new UtilException("There is no key " + key);
+		List<V> list = map.get(key);
+		V ret = list.remove(0);
+		if (list.isEmpty())
+			map.remove(key);
+		return ret;
 	}
 	
 	public Set<Entry<K, List<V>>> entrySet() {

@@ -2,9 +2,14 @@ package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
+import com.gmmapowell.quickbuild.build.java.ExcludeCommand;
 import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
 import com.gmmapowell.quickbuild.build.java.JavaBuildCommand;
 import com.gmmapowell.quickbuild.build.java.JavaNature;
@@ -33,6 +38,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 	private File apkFile;
 	private ResourcePacket<PendingResource> uselibs = new ResourcePacket<PendingResource>();
 	private ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
+	private Set<Pattern> exclusions = new HashSet<Pattern>();
 
 	@SuppressWarnings("unchecked")
 	public AndroidCommand(TokenizedLine toks) {
@@ -58,6 +64,12 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 				uselibs.add(pr);
 				needs.add(pr);
 			}
+			else if (cmd instanceof ExcludeCommand)
+			{
+				exclusions.add(((ExcludeCommand) cmd).getPattern());
+			}
+			else
+				throw new UtilException("Cannot handle " + cmd);
 		}
 
 		return this;
@@ -110,7 +122,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 			ret.add(junitRun);
 		}
 		
-		DexBuildCommand dex = new DexBuildCommand(acxt, this, files, files.getOutput("classes"), files.getRelative("src/android/lib"), dexFile);
+		DexBuildCommand dex = new DexBuildCommand(acxt, this, files, files.getOutput("classes"), files.getRelative("src/android/lib"), dexFile, exclusions);
 		for (PendingResource pr : uselibs)
 			dex.addJar(pr.physicalResource().getPath());
 		ret.add(dex);

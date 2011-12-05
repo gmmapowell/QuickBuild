@@ -13,4 +13,6 @@ public abstract class Expr {
 	}
 	
 	public abstract void spitOutByteCode(MethodCreator meth);
+
+	public abstract String getType();
 }

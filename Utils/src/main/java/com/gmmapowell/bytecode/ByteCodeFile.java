@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.TreeSet;
 
 import com.gmmapowell.bytecode.CPInfo.ClassInfo;
 import com.gmmapowell.bytecode.CPInfo.DoubleEntry;
@@ -65,7 +66,7 @@ public class ByteCodeFile {
 	List<AttributeInfo> attributes = new ArrayList<AttributeInfo>();
 	private final String qualifiedName;
 	private ListMap<AnnotationType, Annotation> annotations = new ListMap<AnnotationType, Annotation>();
-	final List<InnerClass> innerClasses = new ArrayList<InnerClass>();
+	final TreeSet<InnerClass> innerClasses = new TreeSet<InnerClass>();
 
 	public ByteCodeFile(File from, String qualifiedName)
 	{
@@ -169,8 +170,8 @@ public class ByteCodeFile {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(baos);
 			dos.writeShort(innerClasses.size());
-			for (int i=0;i<innerClasses.size();i++)
-				innerClasses.get(i).write(dos);
+			for (InnerClass i : innerClasses)
+				i.write(dos);
 			attributes.add(new AttributeInfo(this, "InnerClasses", baos.toByteArray()));
 		}
 		for (AnnotationType at : annotations)

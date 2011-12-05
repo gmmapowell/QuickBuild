@@ -34,9 +34,14 @@ public class GitHelper {
 			paths.add(path);
 		}
 		proc.execute();
-		boolean dirty = !file.exists();
-		if (dirty)
-			System.out.println("Git cache file " + file + " does not exist");
+
+		boolean dirty = false;
+		boolean nofile = !file.exists();
+		if (nofile)
+		{
+			System.out.println("! No file: " + file);
+			dirty = true;
+		}
 		File newFile = null;
 		try
 		{
@@ -54,30 +59,62 @@ public class GitHelper {
 				fos = new FileOutputStream(file);
 			
 			PrintWriter pw = new PrintWriter(fos);
+			boolean skipO = false;
+			String lastO = null;
 			for (String f : paths)
 			{
 				String s = r.readLine();
 				if (s == null)
 				{
-					System.out.println("Inconsistent number of files and hashes");
+					System.out.println("! Inconsistent number of files and hashes");
 					dirty = true;
 					break;
 				}
 				String nextLine = s + " " + f;
 				pw.println(nextLine);
-				if (old != null)
+				while (true)
 				{
-					String o = old.readLine();
-					if (o == null || !o.equals(nextLine))
+					if (nofile)
+						break;
+					if (skipO)
+						skipO = false;
+					else if (old != null)
+						lastO = old.readLine();
+					if (lastO != null && lastO.equals(nextLine))
+						break;
+					else
 					{
-						System.out.println("Files differ at file " + old.getLineNumber() +":");
-						System.out.println("  " + o);
-						System.out.println("  " + nextLine);
-						old.close();
-						old = null;
 						dirty = true;
+						if (lastO == null)
+						{
+							System.out.println("> " + f);
+							break;
+						}
+						String oldFile = lastO.substring(41);
+						int comp = oldFile.compareToIgnoreCase(f);
+						if (comp == 0)
+						{
+							System.out.println("| " + f);
+							break;
+						}
+						else if (comp < 0)
+						{
+							System.out.println("< " + oldFile);
+							continue;
+						}
+						else if (comp > 0)
+						{
+							System.out.println("> " + f);
+							skipO = true;
+							break;
+						}
 					}
 				}
+			}
+			{
+				String o;
+				while (old != null && (o = old.readLine()) != null)
+					System.out.println("< " + o);
 			}
 			pw.close();
 			fos.close();
