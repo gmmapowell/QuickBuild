@@ -1,19 +1,20 @@
 package com.gmmapowell.bytecode;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+
+import com.gmmapowell.bytecode.CPInfo.Utf8Info;
 
 public class AnnotationArg {
 	private final ByteCodeFile bcf;
 	final String name;
-	final AnnotationTag tag;
-	final Object value;
+	final AnnotationValue value;
 	
-	private AnnotationArg(ByteCodeFile bcf, String name, AnnotationTag tag, Object value)
+	private AnnotationArg(ByteCodeFile bcf, String name, AnnotationValue value)
 	{
 		this.bcf = bcf;
 		this.name = name;
-		this.tag = tag;
 		this.value = value;
 	}
 	
@@ -21,41 +22,50 @@ public class AnnotationArg {
 	{
 		this.bcf = bcf;
 		this.name = name;
-		this.tag = AnnotationTag.TEXT;
-		this.value = strValue;
+		this.value = new AnnotationValue(AnnotationTag.TEXT, strValue);
 	}
 
 	public AnnotationArg(ByteCodeFile bcf, String name, String[] paramValue) {
 		this.bcf = bcf;
 		this.name = name;
-		this.tag = AnnotationTag.ARRAY;
-		AnnotationArg[] arr = new AnnotationArg[paramValue.length];
-		this.value = arr;
+		AnnotationValue[] arr = new AnnotationValue[paramValue.length];
 		for (int i=0;i<paramValue.length;i++)
-			arr[i] = new AnnotationArg(bcf, null, paramValue[i]); 
+			arr[i] = new AnnotationValue(AnnotationTag.TEXT, paramValue[i]); 
+		this.value = new AnnotationValue(AnnotationTag.ARRAY, arr);
 	}
 	
 	public static AnnotationArg classParam(ByteCodeFile bcf, String paramName, String className) {
-		return new AnnotationArg(bcf, paramName, AnnotationTag.CLASS, bcf.requireUtf8(JavaInfo.map(className)));
+		return new AnnotationArg(bcf, paramName, new AnnotationValue(AnnotationTag.CLASS, bcf.requireUtf8(JavaInfo.map(className))));
+	}
+
+	public static AnnotationArg readArg(ByteCodeFile bcf, DataInputStream dis) throws IOException {
+		short nameIdx = dis.readShort();
+		AnnotationValue value = AnnotationValue.parse(bcf, dis);
+		return new AnnotationArg(bcf, ((Utf8Info)bcf.pool[nameIdx]).asString(), value);
 	}
 
 	public static AnnotationArg classArray(ByteCodeFile bcf, String name, String[] classNames)
 	{
-		AnnotationArg[] classStructs = new AnnotationArg[classNames.length];
+		AnnotationValue[] classStructs = new AnnotationValue[classNames.length];
 		for (int i=0;i<classNames.length;i++)
-			classStructs[i] = new AnnotationArg(bcf, null, AnnotationTag.CLASS, bcf.requireUtf8(JavaInfo.map(classNames[i])));
-		return new AnnotationArg(bcf, name, AnnotationTag.ARRAY, classStructs);
+			classStructs[i] = new AnnotationValue(AnnotationTag.CLASS, bcf.requireUtf8(JavaInfo.map(classNames[i])));
+		return new AnnotationArg(bcf, name, new AnnotationValue(AnnotationTag.ARRAY, classStructs));
 	}
 	
 	public static AnnotationArg annArray(ByteCodeFile bcf, String paramName, Annotation[] args) {
-		AnnotationArg[] annStructs = new AnnotationArg[args.length];
+		AnnotationValue[] annStructs = new AnnotationValue[args.length];
 		for (int i=0;i<args.length;i++)
-			annStructs[i] = new AnnotationArg(bcf, null, AnnotationTag.ANNOTATION, args[i]);
-		return new AnnotationArg(bcf, paramName, AnnotationTag.ARRAY, annStructs);
+			annStructs[i] = new AnnotationValue(AnnotationTag.ANNOTATION, args[i]);
+		return new AnnotationArg(bcf, paramName, new AnnotationValue(AnnotationTag.ARRAY, annStructs));
 	}
 	
 	public void write(DataOutputStream dos) throws IOException {
 		dos.writeShort(bcf.requireUtf8(name));
-		tag.write(bcf, dos, value);
+		value.write(bcf, dos);
+	}
+	
+	@Override
+	public String toString() {
+		return name + "=" + value;
 	}
 }

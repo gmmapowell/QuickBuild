@@ -6,7 +6,7 @@ public class XMLNSAttr {
 	private final String namespaceURI;
 	private final String qualifiedName;
 
-	public XMLNSAttr(String namespaceURI, String qualifiedName)
+	XMLNSAttr(String namespaceURI, String qualifiedName)
 	{
 		this.namespaceURI = namespaceURI;
 		this.qualifiedName = qualifiedName;

@@ -1,5 +1,7 @@
 package com.gmmapowell.bytecode;
 
+import java.io.File;
+
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.FileUtils;
 
@@ -45,6 +47,17 @@ public class JavaInfo {
 		return type.substring(0, dims) + mapScalar(type.substring(dims));
 	}
 
+	public static String unmap(String mapped) {
+		if (mapped.startsWith("@"))
+			return unmap(mapped.substring(1));
+		if (mapped.equals("*"))
+			return "?";
+		int dims = 0;
+		while (mapped.charAt(dims) == '[')
+			dims++;
+		return mapped.substring(0, dims) + unmapScalar(mapped.substring(dims));
+	}
+
 	private static String mapScalar(String type)
 	{
 		if (type.equals("void"))
@@ -66,6 +79,29 @@ public class JavaInfo {
 		else if (type.equals("boolean"))
 			return "Z";
 		return "L"+FileUtils.convertDottedToSlashPath(type) +";";
+	}
+
+	private static String unmapScalar(String mapped)
+	{
+		if (mapped.equals("V"))
+			return "void";
+		else if (mapped.equals("I"))
+			return "int";
+		else if (mapped.equals("B"))
+			return "byte";
+		else if (mapped.equals("C"))
+			return "char";
+		else if (mapped.equals("D"))
+			return "double";
+		else if (mapped.equals("F"))
+			return "float";
+		else if (mapped.equals("J"))
+			return "long";
+		else if (mapped.equals("S"))
+			return "short";
+		else if (mapped.equals("Z"))
+			return "boolean";
+		return FileUtils.convertToDottedName(new File(mapped.substring(1, mapped.length()-1)));
 	}
 
 }

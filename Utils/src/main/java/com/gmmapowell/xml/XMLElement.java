@@ -234,16 +234,18 @@ public class XMLElement implements Externalizable {
 		return new XMLElement(inside, child);
 	}
 
-	public void setAttribute(String attr, String value) {
+	public XMLElement setAttribute(String attr, String value) {
 		elt.setAttribute(attr, value);
+		return this;
 	}
 
 	public boolean hasAttribute(String attr) {
 		return elt.hasAttribute(attr);
 	}
 
-	public void setAttribute(XMLNSAttr attr, String value) {
+	public XMLElement setAttribute(XMLNSAttr attr, String value) {
 		attr.applyTo(elt, value);
+		return this;
 	}
 
 	public XMLElement uniqueElement(String string) {

@@ -289,7 +289,13 @@ public class ByteCodeFile {
 			int len = dis.readInt();
 			byte[] bytes = new byte[len];
 			readBytes(dis, bytes);
-			attrs.add(new AttributeInfo(pool, idx, bytes));
+			AttributeInfo attr = new AttributeInfo(pool, idx, bytes);
+			attrs.add(attr);
+			if (attr.hasName("RuntimeVisibleAnnotations"))
+			{
+				for (Annotation ann : Annotation.parse(this, attr))
+					annotations.add(AnnotationType.RuntimeVisibleAnnotations, ann);
+			}
 		}
 		return;
 	}
@@ -390,6 +396,11 @@ public class ByteCodeFile {
 	public void addInterface(String intf) {
 		int idx = requireClass(intf);
 		interfaces.add(idx);
+	}
+
+	public boolean extendsClass(String clzName) {
+		String name = FileUtils.convertDottedToSlashPath(clzName);
+		return name.equals(((ClassInfo)this.pool[this.super_idx]).justName());
 	}
 
 	public boolean implementsInterface(Class<?> class1) {
@@ -541,5 +552,15 @@ public class ByteCodeFile {
 	public Annotation addClassAnnotation(AnnotationType type, Annotation annotation) {
 		annotations.add(type, annotation);
 		return annotation;
+	}
+
+	public Annotation getClassAnnotation(String ann) {
+		for (AnnotationType i : annotations)
+		{
+			for (Annotation j : annotations.get(i))
+				if (j.name.equals(ann))
+					return j;
+		}
+		return null;
 	}
 }

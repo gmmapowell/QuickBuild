@@ -81,9 +81,15 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		File manifest = files.getRelative("src/android/AndroidManifest.xml");
 		File gendir = files.getRelative("src/android/gen");
 		File resdir = files.getRelative("src/android/res");
+		// I increasing think we should be using "raw" ...
 		File assetsDir = files.getRelative("src/android/assets");
 		File dexFile = files.getOutput("classes.dex");
 		File zipfile = files.getOutput(projectName+".ap_");
+		File srcdir = files.getRelative("src/main/java");
+		File bindir = files.getOutput("classes");
+		
+		ManifestBuildCommand mbc1 = new ManifestBuildCommand(this, acxt, manifest, true, srcdir, bindir);
+		ret.add(mbc1);
 		
 		AaptGenBuildCommand gen = new AaptGenBuildCommand(this, acxt, manifest, gendir, resdir);
 		ret.add(gen);
@@ -96,16 +102,23 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		genRes.addToBootClasspath(acxt.getPlatformJar());
 		ret.add(genRes);
 		List<File> srcFiles;
-		File srcdir = files.getRelative("src/main/java");
 		if (srcdir.isDirectory()) {
 			srcFiles = FileUtils.findFilesMatching(srcdir, "*.java");
+			for (int i=0;i<srcFiles.size();)
+				if (srcFiles.get(i).getName().startsWith("."))
+					srcFiles.remove(i);
+				else
+					i++;
 		} else
 			srcFiles = new ArrayList<File>();
 		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", srcFiles, "android");
 		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
 		ret.add(buildSrc);
-		
+
+		ManifestBuildCommand mbc2 = new ManifestBuildCommand(this, acxt, manifest, false, srcdir, bindir);
+		ret.add(mbc2);
+
 		// TODO: I feel it should be possible to compile and run unit tests, but what about that bootclasspath?
 		if (files.getRelative("src/test/java").exists())
 		{

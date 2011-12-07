@@ -13,6 +13,7 @@ public class AndroidContext {
 	private final File platformJar;
 	private final File apk;
 	private final File adb;
+	private final String androidPlatform;
 
 	// TODO: this needs to be cross-platform (somehow)
 	public AndroidContext(Config conf) {
@@ -25,8 +26,8 @@ public class AndroidContext {
 			exe = ".exe";
 		}
 		File androidSDK = conf.getPath("androidsdk");
-		String androidPlatform = conf.getVar("androidplatform");
-		File platformDir = FileUtils.fileConcat(androidSDK.getPath(), "platforms", androidPlatform);
+		androidPlatform = conf.getVar("androidplatform");
+		File platformDir = FileUtils.fileConcat(androidSDK.getPath(), "platforms", getAndroidPlatform());
 		File aapt1 = new File(androidSDK, "platform-tools/aapt" + exe);
 		if (!aapt1.exists())
 			aapt1 = new File(platformDir, "tools/aapt" +exe);
@@ -73,6 +74,10 @@ public class AndroidContext {
 
 	public File getADB() {
 		return adb;
+	}
+
+	public String getAndroidPlatform() {
+		return androidPlatform;
 	}
 
 }
