@@ -41,9 +41,6 @@ public class ManifestBuildCommand implements Tactic {
 	
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
-		if (manifestFile.exists() && justEnough)
-			return BuildStatus.SKIPPED;
-		
 		String packageName = null;
 		String applClass = null;
 		String mainClass = null;
@@ -80,7 +77,9 @@ public class ManifestBuildCommand implements Tactic {
 				applClass = qualifiedName;
 				appOrAct = true;
 			}
-			else if (bcf.extendsClass("android.app.Activity"))
+			// TODO: this should really look all the way up the hierarchy until it finds "android.app.Activity"
+			// but that's too hard right now ... 
+			else if (bcf.extendsClass("android.app.Activity") || bcf.extendsClass("android.preference.PreferenceActivity"))
 			{
 				activities.add(qualifiedName);
 				Annotation mainAnn = bcf.getClassAnnotation("com.gmmapowell.android.MainActivity");
@@ -106,6 +105,9 @@ public class ManifestBuildCommand implements Tactic {
 				Annotation theme = bcf.getClassAnnotation("com.gmmapowell.android.Theme");
 				if (theme != null)
 					opts.theme = theme.getArg("value").asString();
+				Annotation icon = bcf.getClassAnnotation("com.gmmapowell.android.Icon");
+				if (icon != null)
+					opts.icon = icon.getArg("value").asString();
 			}
 			
 			// Any class can request a permission
@@ -169,6 +171,16 @@ public class ManifestBuildCommand implements Tactic {
 					appl.setAttribute(android.attr("label"), appOpts.label);
 				if (appOpts.theme != null)
 					appl.setAttribute(android.attr("theme"), "@style/" + appOpts.theme);
+				if (appOpts.icon != null)
+					appl.setAttribute(android.attr("icon"), "@drawable/" + appOpts.icon);
+			}
+			else if (mainClass != null)
+			{
+				Options appOpts = options.get(mainClass);
+				if (appOpts.theme != null)
+					appl.setAttribute(android.attr("theme"), "@style/" + appOpts.theme);
+				if (appOpts.icon != null)
+					appl.setAttribute(android.attr("icon"), "@drawable/" + appOpts.icon);
 			}
 			if (debuggable)
 				appl.setAttribute(android.attr("debuggable"), "true");
@@ -231,6 +243,7 @@ public class ManifestBuildCommand implements Tactic {
 	}
 
 	public static class Options {
+		public String icon;
 		public String label;
 		public String theme;
 	}
