@@ -78,6 +78,7 @@ public class MethodCreator extends MethodInfo {
 	}
 
 	// @Deprecated // I would like to deprecate this, but can't pay the cost right now
+	// Use argument(type, name) instead ...
 	public Var argument(String type) {
 		return argument(type, "arg" + (arguments.size()-1));
 	}
@@ -99,6 +100,11 @@ public class MethodCreator extends MethodInfo {
 		return new AVar(this, clz, name);
 	}
 	
+
+	public Expr aNull() {
+		return new NullExpr(this);
+	}
+
 	public int argCount() {
 		return arguments.size();
 	}
@@ -133,10 +139,19 @@ public class MethodCreator extends MethodInfo {
 		return new MethodInvocation(this, "interface", returns, obj, null, methodName, args);
 	}
 	
+	public Expr castTo(Var var, String ofType) {
+		return new CastToExpr(this, var, ofType);
+	}
+	
 	public ClassConstExpr classConst(String cls) {
 		return new ClassConstExpr(this, cls);
 	}
 
+	public Expr ifEquals(Expr left, Expr right, Expr then, Expr orelse)
+	{
+		return new IfExpr(this, left, right, then, orelse);
+	}
+	
 	public MakeNewExpr makeNew(String ofClz, Expr... args) {
 		return new MakeNewExpr(this, ofClz, args);
 	}
@@ -153,6 +168,11 @@ public class MethodCreator extends MethodInfo {
 		return new StringConstExpr(this, str);
 	}
 
+	public Expr throwException(String clz, Expr... args)
+	{
+		return new ThrowExpr(this, clz, args);
+	}
+	
 	public Expr voidExpr(Expr ignoredResult) {
 		return new VoidExpr(this, ignoredResult);
 	}
@@ -440,6 +460,12 @@ public class MethodCreator extends MethodInfo {
 
 	public void ireturn() {
 		add(-1, new Instruction(0xac));
+	}
+
+	public Marker jump() {
+		Marker ret = new Marker(instructions, 1);
+		add(0, new Instruction(0xa7, 00, 00));
+		return ret;
 	}
 
 	public void ldcClass(String clz)
