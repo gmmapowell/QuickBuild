@@ -10,6 +10,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
@@ -116,17 +117,26 @@ public class GitHelper {
 				while (old != null && (o = old.readLine()) != null)
 					System.out.println("< " + o);
 			}
+			if (old != null)
+				old.close();
 			pw.close();
 			fos.close();
 			if (doComparison)
 			{
 				if (dirty)
 				{
-					file.delete();
-					newFile.renameTo(file);
+					boolean fd = file.delete();
+					if (!fd)
+						throw new UtilException("Could not delete the file " + file + " when renaming " + newFile);
+					boolean renameWorked = newFile.renameTo(file);
+					if (!renameWorked)
+						throw new UtilException("Could not rename " + newFile + " to " + file);
 				}
 				else
-					newFile.delete(); // by defn, they're the same, so remove the new one
+				{
+					// by defn, they're the same, so remove the new one
+					newFile.delete();
+				}
 			}
 		}
 		catch (IOException ex)

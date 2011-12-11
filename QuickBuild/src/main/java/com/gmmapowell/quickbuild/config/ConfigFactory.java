@@ -13,6 +13,8 @@ import com.gmmapowell.parser.Parent;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.CopyDirectoryCommand;
 import com.gmmapowell.quickbuild.build.CopyResourceCommand;
+import com.gmmapowell.quickbuild.build.ImageMagickConvertCommand;
+import com.gmmapowell.quickbuild.build.ImageMagickLauncherIcon;
 import com.gmmapowell.quickbuild.build.ftp.DistributeCommand;
 import com.gmmapowell.quickbuild.build.ftp.DistributeWrapCommand;
 import com.gmmapowell.quickbuild.core.Nature;
@@ -52,6 +54,8 @@ public class ConfigFactory implements CommandObjectFactory {
 		// this should be in some other nature, but save me now!
 		addCommandExtension("distribute", DistributeCommand.class);
 		addCommandExtension("wrap", DistributeWrapCommand.class);
+		addCommandExtension("images", ImageMagickConvertCommand.class);
+		addCommandExtension("launcher", ImageMagickLauncherIcon.class);
 	}
 
 	@Override
