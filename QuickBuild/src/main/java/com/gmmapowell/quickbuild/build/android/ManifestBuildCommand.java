@@ -25,9 +25,8 @@ import com.gmmapowell.xml.XMLNamespace;
 public class ManifestBuildCommand implements Tactic {
 
 	public class IntentFilterOpts {
-
 		public String action;
-
+		public String[] categories;
 	}
 
 	private final AndroidContext acxt;
@@ -140,7 +139,17 @@ public class ManifestBuildCommand implements Tactic {
 				{
 					IntentFilterOpts opts = new IntentFilterOpts();
 					filters.add(qualifiedName, opts);
-					opts.action = intentFilterAnn.getArg("action").asString();
+					AnnotationValue tmpA = intentFilterAnn.getArg("action");
+					if (tmpA != null)
+						opts.action = tmpA.asString();
+					AnnotationValue tmp1 = intentFilterAnn.getArg("category");
+					if (tmp1 != null)
+					{
+						AnnotationValue[] tmp = tmp1.asArray();
+						opts.categories = new String[tmp.length];
+						for (int i=0;i<tmp.length;i++)
+							opts.categories[i] = tmp[i].asString();
+					}
 				}				
 			}
 			
@@ -275,7 +284,13 @@ public class ManifestBuildCommand implements Tactic {
 			if (o.action != null && o.action.trim().length() > 0)
 				filter.addElement("action").setAttribute(android.attr("name"), o.action);
 			
-//			filter.addElement("category").setAttribute(android.attr("name"), "android.intent.category.LAUNCHER");
+			if (o.categories != null)
+			{
+				for (String s : o.categories)
+				{
+					filter.addElement("category").setAttribute(android.attr("name"), s);
+				}
+			}
 		}
 	}
 
