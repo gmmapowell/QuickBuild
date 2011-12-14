@@ -2,9 +2,7 @@ package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
@@ -28,8 +26,6 @@ public class ImageMagickConvertCommand extends SpecificChildrenParent<ConfigAppl
 	private String project;
 	private final ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
-	private final Map<String, PendingResource> pendings = new HashMap<String, PendingResource>();
-	private final Map<String, BuildResource> buildings = new HashMap<String, BuildResource>();
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private final OrderedFileList sources = new OrderedFileList();
 	private final List<Tactic> tactics = new ArrayList<Tactic>();
@@ -64,6 +60,10 @@ public class ImageMagickConvertCommand extends SpecificChildrenParent<ConfigAppl
 				{
 					sources.add(((ImageMagickLauncherIcon)opt).getSource());
 				}
+				else if (opt instanceof ImageMagickNotificationIcon)
+				{
+					sources.add(((ImageMagickNotificationIcon)opt).getSource());
+				}
 				else
 					throw new UtilException("ImageMagick cannot handle " + opt);
 			}
@@ -90,12 +90,19 @@ public class ImageMagickConvertCommand extends SpecificChildrenParent<ConfigAppl
 			{
 				ImageMagickLauncherIcon launcher = (ImageMagickLauncherIcon) opt;
 				File source = launcher.getSource();
-				String name = source.getName();
+				String name = launcher.getCalled();
 				ret = resizeImage(showArgs, showDebug, ret, source, 96, 96, "xhdpi-v9", name);
 				ret = resizeImage(showArgs, showDebug, ret, source, 72, 72, "hdpi-v9", name);
 				ret = resizeImage(showArgs, showDebug, ret, source, 48, 48, "mdpi-v9", name);
 				ret = resizeImage(showArgs, showDebug, ret, source, 32, 32, "ldpi-v9", name);
 				ret = resizeImage(showArgs, showDebug, ret, source, 32, 32, null, name);
+			}
+			else if (opt instanceof ImageMagickNotificationIcon)
+			{
+				ImageMagickNotificationIcon launcher = (ImageMagickNotificationIcon) opt;
+				File source = launcher.getSource();
+				String name = launcher.getCalled();
+				ret = resizeImage(showArgs, showDebug, ret, source, 25, 25, null, name);
 			}
 		}
 		

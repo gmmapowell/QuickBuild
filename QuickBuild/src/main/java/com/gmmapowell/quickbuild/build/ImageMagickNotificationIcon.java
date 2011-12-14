@@ -10,16 +10,16 @@ import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 
-public class ImageMagickLauncherIcon extends NoChildCommand implements ConfigApplyCommand {
+public class ImageMagickNotificationIcon extends NoChildCommand implements ConfigApplyCommand {
 	private String source;
 	private String called;
 	private final File file;
 	
-	public ImageMagickLauncherIcon(TokenizedLine toks)
+	public ImageMagickNotificationIcon(TokenizedLine toks)
 	{
 		toks.process(this, 
-			new ArgumentDefinition("*", Cardinality.REQUIRED, "source", "source file"),
-			new ArgumentDefinition("*", Cardinality.OPTION, "called", "destination file"));
+				new ArgumentDefinition("*", Cardinality.REQUIRED, "source", "source file"),
+				new ArgumentDefinition("*", Cardinality.OPTION, "called", "destination file"));
 		file = FileUtils.relativePath(source);
 	}
 

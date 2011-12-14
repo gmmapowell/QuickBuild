@@ -15,6 +15,7 @@ import com.gmmapowell.quickbuild.build.CopyDirectoryCommand;
 import com.gmmapowell.quickbuild.build.CopyResourceCommand;
 import com.gmmapowell.quickbuild.build.ImageMagickConvertCommand;
 import com.gmmapowell.quickbuild.build.ImageMagickLauncherIcon;
+import com.gmmapowell.quickbuild.build.ImageMagickNotificationIcon;
 import com.gmmapowell.quickbuild.build.ftp.DistributeCommand;
 import com.gmmapowell.quickbuild.build.ftp.DistributeWrapCommand;
 import com.gmmapowell.quickbuild.core.Nature;
@@ -56,6 +57,7 @@ public class ConfigFactory implements CommandObjectFactory {
 		addCommandExtension("wrap", DistributeWrapCommand.class);
 		addCommandExtension("images", ImageMagickConvertCommand.class);
 		addCommandExtension("launcher", ImageMagickLauncherIcon.class);
+		addCommandExtension("notification", ImageMagickNotificationIcon.class);
 	}
 
 	@Override

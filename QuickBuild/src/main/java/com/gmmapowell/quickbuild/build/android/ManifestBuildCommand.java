@@ -11,6 +11,7 @@ import java.util.TreeSet;
 import com.gmmapowell.bytecode.Annotation;
 import com.gmmapowell.bytecode.AnnotationValue;
 import com.gmmapowell.bytecode.ByteCodeFile;
+import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
@@ -22,6 +23,12 @@ import com.gmmapowell.xml.XMLElement;
 import com.gmmapowell.xml.XMLNamespace;
 
 public class ManifestBuildCommand implements Tactic {
+
+	public class IntentFilterOpts {
+
+		public String action;
+
+	}
 
 	private final AndroidContext acxt;
 	private final File manifestFile;
@@ -45,10 +52,12 @@ public class ManifestBuildCommand implements Tactic {
 		String applClass = null;
 		String mainClass = null;
 		List<String> activities = new ArrayList<String>();
+		List<String> services = new ArrayList<String>();
 		String minpkg = null;
 		Set<String> permissions = new TreeSet<String>();
 		Set<String> supportedScreens = new TreeSet<String>();
 		Map<String, Options> options = new HashMap<String, Options>();
+		ListMap<String, IntentFilterOpts> filters = new ListMap<String, ManifestBuildCommand.IntentFilterOpts>();
 		boolean debuggable = false;
 		for (File f : FileUtils.findFilesUnderMatching(srcdir, "*.java"))
 		{
@@ -66,6 +75,7 @@ public class ManifestBuildCommand implements Tactic {
 			// If the file exists, look for Application & Activity classes
 			ByteCodeFile bcf = new ByteCodeFile(clsFile, qualifiedName);
 			boolean appOrAct = false;
+			boolean appActOrServ = false;
 			if (bcf.extendsClass("android.app.Application"))
 			{
 				if (applClass != null)
@@ -94,9 +104,22 @@ public class ManifestBuildCommand implements Tactic {
 				}
 				appOrAct = true;
 			}
+			else if (bcf.extendsClass("android.app.Service") || bcf.extendsClass("android.app.IntentService"))
+			{
+				services.add(qualifiedName);
+				Options opts = new Options();
+				Annotation ann = bcf.getClassAnnotation("com.gmmapowell.android.Service");
+				if (ann != null)
+					opts.name = ann.getArg("value").asString();
+				else
+					opts.name = qualifiedName.replace(packageName+".", "").replaceAll("service", "");
+				options.put(qualifiedName, opts);
+				appActOrServ = true;
+			}
 			
 			if (appOrAct)
 			{
+				appActOrServ = true;
 				Options opts = new Options();
 				options.put(qualifiedName, opts);
 				Annotation appLabelAnn = bcf.getClassAnnotation("com.gmmapowell.android.Label");
@@ -108,6 +131,17 @@ public class ManifestBuildCommand implements Tactic {
 				Annotation icon = bcf.getClassAnnotation("com.gmmapowell.android.Icon");
 				if (icon != null)
 					opts.icon = icon.getArg("value").asString();
+			}
+			
+			if (appActOrServ)
+			{
+				Annotation intentFilterAnn = bcf.getClassAnnotation("com.gmmapowell.android.IntentFilter");
+				if (intentFilterAnn != null)
+				{
+					IntentFilterOpts opts = new IntentFilterOpts();
+					filters.add(qualifiedName, opts);
+					opts.action = intentFilterAnn.getArg("action").asString();
+				}				
 			}
 			
 			// Any class can request a permission
@@ -196,10 +230,18 @@ public class ManifestBuildCommand implements Tactic {
 					filter.addElement("action").setAttribute(android.attr("name"), "android.intent.action.MAIN");
 					filter.addElement("category").setAttribute(android.attr("name"), "android.intent.category.LAUNCHER");
 				}
+				addOtherIntents(activity, act, filters, android);
 				if (actOpts.label != null)
 					act.setAttribute(android.attr("label"), actOpts.label);
 				if (actOpts.theme != null)
 					act.setAttribute(android.attr("theme"), "@style/" + actOpts.theme);
+			}
+			
+			for (String service : services)
+			{
+				XMLElement s = appl.addElement("service");
+				s.setAttribute(android.attr("name"), service.replace(packageName, ""));
+				addOtherIntents(service, s, filters, android);
 			}
 			
 			XMLElement usesSdk = top.addElement("uses-sdk");
@@ -223,6 +265,20 @@ public class ManifestBuildCommand implements Tactic {
 		return BuildStatus.SUCCESS;
 	}
 
+	private void addOtherIntents(String name, XMLElement node, ListMap<String, IntentFilterOpts> filters, XMLNamespace android) {
+		if (!filters.contains(name))
+			return;
+		
+		for (IntentFilterOpts o : filters.get(name))
+		{
+			XMLElement filter = node.addElement("intent-filter");
+			if (o.action != null && o.action.trim().length() > 0)
+				filter.addElement("action").setAttribute(android.attr("name"), o.action);
+			
+//			filter.addElement("category").setAttribute(android.attr("name"), "android.intent.category.LAUNCHER");
+		}
+	}
+
 	private String stripPkg(String packageName, String applClass) {
 		return applClass.replace(packageName, "");
 	}
@@ -243,6 +299,7 @@ public class ManifestBuildCommand implements Tactic {
 	}
 
 	public static class Options {
+		public String name;
 		public String icon;
 		public String label;
 		public String theme;
