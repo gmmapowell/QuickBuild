@@ -23,7 +23,7 @@ public class ReturnX extends Expr {
 		}
 		if (!retType.equals(value.getType()))
 			throw new UtilException("Mismatched argument types in return: " + retType + " and " + value.getType());
-		if (retType.equals("int"))
+		if (retType.equals("int") || retType.equals("boolean"))
 			meth.ireturn();
 		else
 			throw new UtilException("Can't return " + retType);

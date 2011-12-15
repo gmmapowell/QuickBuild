@@ -156,6 +156,10 @@ public class MethodCreator extends MethodInfo {
 		return new MakeNewExpr(this, ofClz, args);
 	}
 
+	public Expr returnBool(Expr i) {
+		return new ReturnX(this, "boolean", i);
+	}
+
 	public Expr returnInt(Expr i) {
 		return new ReturnX(this, "int", i);
 	}
