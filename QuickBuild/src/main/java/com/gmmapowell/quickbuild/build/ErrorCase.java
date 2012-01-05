@@ -22,6 +22,7 @@ public class ErrorCase {
 	private final File logDir;
 
 	public ErrorCase(File logDir, ItemToBuild itb, List<String> args, String stdout, String stderr) {
+		this.outcome = BuildStatus.SUCCESS;
 		this.logDir = logDir;
 		this.itb = itb;
 		this.args = args;

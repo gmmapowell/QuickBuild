@@ -129,5 +129,15 @@ public class TokenizedLine {
 	public int indent() {
 		return indent;
 	}
+	
+	@Override
+	public String toString() {
+		if (tokens == null)
+			return "<null>";
+		ArrayList<String> ret = new ArrayList<String>();
+		for (String s : tokens)
+			ret.add(s);
+		return ret.toString();
+	}
 
 }
