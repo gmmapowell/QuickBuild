@@ -6,6 +6,7 @@ import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.CloningResource;
 import com.gmmapowell.quickbuild.core.SolidResource;
 import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.utils.FileUtils;
 
 public class ApkResource extends SolidResource {
 
@@ -13,7 +14,7 @@ public class ApkResource extends SolidResource {
 
 	public ApkResource(Strategem parent, File apkFile) {
 		super(parent, apkFile);
-		comparison = "Apk[" + relative + "]";
+		comparison = "Apk[" + FileUtils.posixPath(relative) + "]";
 	}
 
 	@Override
@@ -27,17 +28,7 @@ public class ApkResource extends SolidResource {
 	}
 
 	@Override
-	public int hashCode() {
-		return comparison.hashCode();
-	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		return ((obj instanceof ApkResource) && comparison.equals(((ApkResource)obj).comparison));
-	}
-
-	@Override
 	public String toString() {
-		return "apk: " + relative;
+		return comparison;
 	}
 }

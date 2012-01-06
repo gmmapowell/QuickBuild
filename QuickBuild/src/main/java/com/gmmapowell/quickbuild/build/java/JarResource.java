@@ -24,7 +24,7 @@ public class JarResource extends SolidResource {
 
 	@Override
 	public String toString() {
-		return "Jar["+relative+"]";
+		return compareAs();
 	}
 
 
