@@ -14,7 +14,7 @@ public class LibsCommand extends NoChildCommand implements ConfigApplyCommand {
 
 	public LibsCommand(TokenizedLine toks) {
 		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "libs", "target"));
-		if (libs.equals("-"))
+		if (libs.equals("/"))
 			libsDir = null;
 		else
 			libsDir = new File(libs);
