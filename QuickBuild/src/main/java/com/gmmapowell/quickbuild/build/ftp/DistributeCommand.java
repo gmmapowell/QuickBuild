@@ -187,7 +187,7 @@ public class DistributeCommand extends AbstractBuildCommand implements ConfigBui
 				continue;
 			else
 			{
-				os.putNextEntry(new ZipEntry(wrapIn + f.getPath()));
+				os.putNextEntry(new ZipEntry(wrapIn + FileUtils.posixPath(f)));
 				FileUtils.copyFileToStream(g, os);
 			}
 		}
