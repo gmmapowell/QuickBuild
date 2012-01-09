@@ -19,11 +19,17 @@ public class CLObjectInputStream extends ObjectInputStream {
 	protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException,
 			ClassNotFoundException {
 		logger.finer("Requesting class " + desc.getName());
-		Class<?> ret = loader.loadClass(desc.getName());
-		if (ret != null)
+		try
 		{
-			logger.fine("Returning " + ret);
-			return ret;
+			Class<?> ret = loader.loadClass(desc.getName());
+			if (ret != null)
+			{
+				logger.fine("Returning " + ret);
+				return ret;
+			}
+		}
+		catch (ClassNotFoundException ex)
+		{
 		}
 		return super.resolveClass(desc);
 	}

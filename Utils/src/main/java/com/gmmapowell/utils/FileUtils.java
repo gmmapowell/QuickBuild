@@ -2,6 +2,7 @@ package com.gmmapowell.utils;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -560,6 +561,29 @@ public class FileUtils {
 		}
 	}
 
+	public static byte[] readFileAsBytes(File f) {
+		FileInputStream fis = null;
+		try
+		{
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			fis = new FileInputStream(f);
+			copyStream(fis, baos);
+			return baos.toByteArray();
+		}
+		catch (IOException ex)
+		{
+			throw UtilException.wrap(ex);
+		}
+		finally {
+			if (fis != null)
+				try {
+					fis.close();
+				} catch (IOException ex) {
+					throw UtilException.wrap(ex);
+				}
+		}
+	}
+
 
 	public static String posixPath(File path) {
 		return path.getPath().replaceAll("\\\\", "/");
@@ -578,5 +602,6 @@ public class FileUtils {
 			throw UtilException.wrap(ex);
 		}
 	}
+
 }
 	

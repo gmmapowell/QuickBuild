@@ -321,7 +321,7 @@ public class MethodCreator extends MethodInfo {
 	
 	public void checkCast(String clz)
 	{
-		int idx = bcf.requireClass(clz);
+		int idx = bcf.requireClass(JavaInfo.mapPrimitive(clz));
 		add(0, new Instruction(0xc0, idx>>8, idx &0xff));
 	}
 
@@ -474,7 +474,7 @@ public class MethodCreator extends MethodInfo {
 
 	public void ldcClass(String clz)
 	{
-		add(1, new Instruction(0x12, bcf.requireClass(clz)));
+		add(1, new Instruction(0x12, bcf.requireClass(JavaInfo.mapPrimitive(clz))));
 	}
 
 	public void ldcString(String string) {

@@ -36,7 +36,15 @@ public class JavaInfo {
 		}
 	};
 
+	public static String mapPrimitive(String type) {
+		return mapInternal(type, false);
+	}
+
 	public static String map(String type) {
+		return mapInternal(type, true);
+	}
+
+	private static String mapInternal(String type, boolean mapLongTypes) {
 		if (type.startsWith("@")) // this is my own annotation to allow pre-mapped types to be passed around
 			return type.substring(1);
 		if (type.equals("?"))
@@ -44,7 +52,7 @@ public class JavaInfo {
 		int dims = 0;
 		while (type.charAt(dims) == '[')
 			dims++;
-		return type.substring(0, dims) + mapScalar(type.substring(dims));
+		return type.substring(0, dims) + mapScalar(type.substring(dims), mapLongTypes);
 	}
 
 	public static String unmap(String mapped) {
@@ -58,7 +66,7 @@ public class JavaInfo {
 		return mapped.substring(0, dims) + unmapScalar(mapped.substring(dims));
 	}
 
-	private static String mapScalar(String type)
+	private static String mapScalar(String type, boolean mapLongTypes)
 	{
 		if (type.equals("void"))
 			return "V";
@@ -78,7 +86,10 @@ public class JavaInfo {
 			return "S";
 		else if (type.equals("boolean"))
 			return "Z";
-		return "L"+FileUtils.convertDottedToSlashPath(type) +";";
+		else if (mapLongTypes)
+			return "L"+FileUtils.convertDottedToSlashPath(type) +";";
+		else
+			return type;
 	}
 
 	private static String unmapScalar(String mapped)
