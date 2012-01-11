@@ -316,6 +316,8 @@ public class DependencyManager {
 		Iterable<BuildResource> allChildren = dependencies.allChildren(br);
 		for (BuildResource a : allChildren)
 		{
+			if (ret.contains(a))
+				continue;
 			ret.add(a);
 			findDependencies(ret, a);
 		}
