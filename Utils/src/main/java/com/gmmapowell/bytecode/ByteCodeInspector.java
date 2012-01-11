@@ -171,7 +171,12 @@ public class ByteCodeInspector extends ByteCodeFile {
 				hexdump.print("Access = "  + access);
 			int thisClass = dis.readUnsignedShort(); // this_class
 			if (cleanMode)
-				hexdump.print("class " + ((ClassInfo)pool[thisClass]).justName());
+			{
+				String isA = "class";
+				if ((access & ACC_INTERFACE) == ACC_INTERFACE)
+					isA = "interface";
+				hexdump.print(isA + " " + ((ClassInfo)pool[thisClass]).justName());
+			}
 			else
 				hexdump.print("This = " + show(thisClass));
 			int superClass = dis.readUnsignedShort(); // super_class

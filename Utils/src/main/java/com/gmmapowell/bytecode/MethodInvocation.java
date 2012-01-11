@@ -21,7 +21,8 @@ public class MethodInvocation extends Expr {
 
 	@Override
 	public void spitOutByteCode(MethodCreator meth) {
-		obj.spitOutByteCode(meth);
+		if (obj != null)
+			obj.spitOutByteCode(meth);
 		String[] argTypes = new String[args.length];
 		for (int i=0;i<args.length;i++)
 		{

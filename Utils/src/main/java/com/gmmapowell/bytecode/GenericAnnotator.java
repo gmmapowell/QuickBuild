@@ -57,6 +57,16 @@ public class GenericAnnotator {
 		return ret;
 	}
 
+	public static GenericAnnotator newConstructor(ByteCodeCreator bcc, boolean isStatic) {
+		GenericAnnotator ret;
+		if (isStatic)
+			ret = newMethod(bcc, true, "<clinit>");
+		else
+			ret = newMethod(bcc, false, "<init>");
+		ret.returns(new JavaType("void"));
+		return ret;
+	}
+
 	public static GenericAnnotator forClass(ByteCodeCreator bcc) {
 		return new GenericAnnotator(bcc);
 	}
