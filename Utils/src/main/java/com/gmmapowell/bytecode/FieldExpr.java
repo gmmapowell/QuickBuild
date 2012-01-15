@@ -1,5 +1,7 @@
 package com.gmmapowell.bytecode;
 
+import com.gmmapowell.exceptions.UtilException;
+
 public class FieldExpr extends Expr {
 	private final Var from;
 	private final String clzName;
@@ -8,6 +10,8 @@ public class FieldExpr extends Expr {
 
 	public FieldExpr(MethodCreator meth, Var from, String clzName, String type, String named) {
 		super(meth);
+		if (type == null)
+			throw new UtilException("Type cannot be null");
 		this.from = from;
 		this.clzName = clzName;
 		this.type = type;

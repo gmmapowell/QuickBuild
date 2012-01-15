@@ -115,7 +115,7 @@ public class FileUtils {
 		{
 			File changeTo = new File(root, parentFile.getPath()).getCanonicalFile();
 			if (!changeTo.isDirectory())
-				throw new UtilException("Cannot have " + root + " be the root directory, because it does not exist");
+				throw new UtilException("Cannot have " + changeTo + " be the root directory, because it does not exist");
 			root = changeTo;
 		}
 		catch (Exception ex)

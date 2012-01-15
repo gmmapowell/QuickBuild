@@ -2,7 +2,7 @@ package com.gmmapowell.bytecode;
 
 import com.gmmapowell.exceptions.UtilException;
 
-public abstract class Var extends Expr{
+public abstract class Var extends Expr {
 	protected final int id;
 	protected final String clz;
 	private int argpos = -1;
@@ -24,12 +24,18 @@ public abstract class Var extends Expr{
 		return clz;
 	}
 
+	public Var setArgument(int i) {
+		argpos = i;
+		return this;
+	}
+
 	public int argPos()
 	{
 		if (argpos == -1)
 			throw new UtilException("It was not an argument");
 		return argpos;
 	}
+	
 	public abstract void store();
 	
 	public static class AVar extends Var {
@@ -57,9 +63,46 @@ public abstract class Var extends Expr{
 		}
 	}
 
-	public Var setArgument(int i) {
-		argpos = i;
-		return this;
+	public static class IVar extends Var {
+
+		public IVar(MethodCreator meth, String clz, String name) {
+			super(meth, clz, name);
+		}
+		
+		private IVar(MethodCreator meth) {
+			super(meth, 0, "this");
+		}
+
+		@Override
+		public void spitOutByteCode(MethodCreator meth) {
+			meth.iload(id);
+		}
+		
+		public void store() {
+			meth.istore(id);
+		}
+	}
+
+	public static class DVar extends Var {
+
+		public DVar(MethodCreator meth, String clz, String name) {
+			super(meth, clz, name);
+			meth.nextLocal(); // phantom thing
+		}
+		
+		private DVar(MethodCreator meth) {
+			super(meth, 0, "this");
+			meth.nextLocal(); // phantom thing
+		}
+
+		@Override
+		public void spitOutByteCode(MethodCreator meth) {
+			meth.dload(id);
+		}
+		
+		public void store() {
+			meth.dstore(id);
+		}
 	}
 
 	/*

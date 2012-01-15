@@ -13,6 +13,23 @@ import com.gmmapowell.exceptions.UtilException;
 public class Reflection {
 
 	@SuppressWarnings("unchecked")
+	public static <T> T getStaticField(Class<?> inClz, String fieldName) {
+		try
+		{
+			Field f = inClz.getDeclaredField(fieldName);
+			if (f == null)
+				throw new UtilException("The field '" + fieldName +"' was not defined in " + inClz);
+			f.setAccessible(true);
+	
+			return (T) f.get(null);
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
 	public static <T> T getField(Object target, String fieldName) {
 		try
 		{

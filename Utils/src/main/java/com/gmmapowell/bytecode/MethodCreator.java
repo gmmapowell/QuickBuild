@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.gmmapowell.bytecode.Var.AVar;
+import com.gmmapowell.bytecode.Var.DVar;
+import com.gmmapowell.bytecode.Var.IVar;
 import com.gmmapowell.collections.CollectionUtils;
 import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
@@ -14,7 +16,7 @@ import com.gmmapowell.lambda.FuncR1;
 import com.gmmapowell.lambda.Lambda;
 
 public class MethodCreator extends MethodInfo {
-	private final List<String> arguments = new ArrayList<String>();
+	private final List<Var> arguments = new ArrayList<Var>();
 	private String returnType;
 	protected final List<Instruction> instructions = new ArrayList<Instruction>();
 	private int opdepth = 0;
@@ -48,7 +50,7 @@ public class MethodCreator extends MethodInfo {
 
 	public void setAccess(Access a)
 	{
-		access_flags = a.asByte();
+		access_flags = a.asShort();
 	}
 
 	public void makeFinal() {
@@ -71,16 +73,26 @@ public class MethodCreator extends MethodInfo {
 	}
 	
 	public Var argument(String type, String aname) {
-		// TODO: should consider that the type might be IVar or whatever
-		// Not that it matters right now ...
-		arguments.add(map(type));
-		return avar(type, aname).setArgument(arguments.size()-1);
+		Var ret;
+		if (type.equals("int"))
+			ret = ivar(type, aname);
+		else if (type.equals("double"))
+			ret = dvar(type, aname);
+		else
+			ret = avar(type, aname);
+		ret.setArgument(arguments.size());
+		arguments.add(ret);
+		return ret;
 	}
 
 	// @Deprecated // I would like to deprecate this, but can't pay the cost right now
 	// Use argument(type, name) instead ...
 	public Var argument(String type) {
 		return argument(type, "arg" + (arguments.size()-1));
+	}
+
+	public Var getArgument(int i) {
+		return arguments.get(i);
 	}
 
 	public AVar myThis() {
@@ -100,7 +112,16 @@ public class MethodCreator extends MethodInfo {
 		return new AVar(this, clz, name);
 	}
 	
-
+	public Var ivar(String clz, String name)
+	{
+		return new IVar(this, clz, name);
+	}
+	
+	public Var dvar(String clz, String name)
+	{
+		return new DVar(this, clz, name);
+	}
+	
 	public Expr aNull() {
 		return new NullExpr(this);
 	}
@@ -139,8 +160,12 @@ public class MethodCreator extends MethodInfo {
 		return new MethodInvocation(this, "interface", returns, obj, null, methodName, args);
 	}
 	
-	public Expr castTo(Var var, String ofType) {
-		return new CastToExpr(this, var, ofType);
+	public Expr callStatic(String inClz, String returns, String methodName, Expr...args) {
+		return new MethodInvocation(this, "static", returns, null, inClz, methodName, args);
+	}
+
+	public Expr castTo(Expr expr, String ofType) {
+		return new CastToExpr(this, expr, ofType);
 	}
 	
 	public ClassConstExpr classConst(String cls) {
@@ -250,7 +275,10 @@ public class MethodCreator extends MethodInfo {
 	}
 
 	private String signature() {
-		return signature(returnType, arguments);
+		List<String> mapto = new ArrayList<String>();
+		for (Var v : arguments)
+			mapto.add(JavaInfo.map(v.getType()));
+		return signature(returnType, mapto);
 	}
 
 	public static String signature(String ret, Iterable<String> args) {
@@ -323,6 +351,19 @@ public class MethodCreator extends MethodInfo {
 	{
 		int idx = bcf.requireClass(JavaInfo.mapPrimitive(clz));
 		add(0, new Instruction(0xc0, idx>>8, idx &0xff));
+	}
+
+	public void dload(int i) {
+		// We add 2 to the stack because double is 8 bytes or whatever
+		if (i < 4)
+			add(2, new Instruction(0x26+i));
+		else
+			add(2, new Instruction(0x18, i));
+	}
+
+	public void dreturn() {
+		// We subtract 2 from the stack because double is 8 bytes or whatever
+		add(-2, new Instruction(0xaf));
 	}
 
 	public void dup() {
@@ -408,6 +449,13 @@ public class MethodCreator extends MethodInfo {
 		return ret;
 	}
 
+	public void iload(int i) {
+		if (i < 4)
+			add(1, new Instruction(0x1a+i));
+		else
+			add(1, new Instruction(0x15, i));
+	}
+
 	public void invokeOtherConstructor(String clz,	String... args) {
 		invoke(0xb7, false, clz, "void", "<init>", args);
 	}
@@ -441,6 +489,11 @@ public class MethodCreator extends MethodInfo {
 		int pop = args.length;
 		if (ret.equals("void"))
 			++pop;
+		else if (ret.equals("double"))
+			--pop;
+		for (String s : args)
+			if (s.equals("double"))
+				++pop;
 		if (isStatic)
 			--pop;
 		add(-pop, instruction);
@@ -458,7 +511,9 @@ public class MethodCreator extends MethodInfo {
 	public void invokeInterface(String clz, String ret, String method, String... args) {
 		int idx = invokeIdx(clz, ret, method, ByteCodeFile.CONSTANT_Interfaceref, args);
 		int count = args.length+1;
-		// TODO: double and long values should add to count
+		for (String s : args)
+			if (s.equals("double") || s.equals("long"))
+				count++;
 		addInvoke(new Instruction(0xb9, hi(idx), lo(idx), count, 0), false, ret, args);
 	}
 
@@ -530,5 +585,17 @@ public class MethodCreator extends MethodInfo {
 
 	public String getClassName() {
 		return byteCodeCreator.getCreatedName();
+	}
+
+	public void dstore(int id) {
+		throw new UtilException("Not implemented");
+	}
+
+	public void istore(int id) {
+		throw new UtilException("Not implemented");
+	}
+
+	public Expr concat(Object... args) {
+		return new ConcatExpr(this, args);
 	}
 }

@@ -17,7 +17,7 @@ public class FieldInfo extends JavaInfo {
 
 	public FieldInfo(ByteCodeFile bcf, boolean isFinal, Access access, String type, String var) {
 		this.bcf = bcf;
-		int flags = access.asByte();
+		int flags = access.asShort();
 		if (isFinal)
 			flags |= ByteCodeFile.ACC_FINAL;
 		access_flags = flags;

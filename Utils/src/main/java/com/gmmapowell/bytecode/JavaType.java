@@ -3,7 +3,10 @@ package com.gmmapowell.bytecode;
 import com.gmmapowell.exceptions.UtilException;
 
 public class JavaType extends JavaInfo {
-	public static JavaType string = new JavaType("java.lang.String");
+	public static final JavaType date = new JavaType("java.util.Date");
+	public static final JavaType double_ = new JavaType("double");
+	public static final JavaType int_ = new JavaType("int");
+	public static final JavaType string = new JavaType("java.lang.String");
 	private final String actual;
 	private final String[] generics;
 

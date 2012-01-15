@@ -22,7 +22,7 @@ public class InnerClass implements Comparable<InnerClass> {
 		dos.writeShort(inner);
 		dos.writeShort(enclosing);
 		dos.writeShort(innerName);
-		dos.writeShort(access.asByte());
+		dos.writeShort(access.asShort());
 	}
 
 	@Override

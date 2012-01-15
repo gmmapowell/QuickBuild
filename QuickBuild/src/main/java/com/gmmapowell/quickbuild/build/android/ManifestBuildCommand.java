@@ -88,7 +88,7 @@ public class ManifestBuildCommand implements Tactic {
 			}
 			// TODO: this should really look all the way up the hierarchy until it finds "android.app.Activity"
 			// but that's too hard right now ... 
-			else if (bcf.extendsClass("android.app.Activity") || bcf.extendsClass("android.preference.PreferenceActivity"))
+			else if (bcf.extendsClass("android.app.Activity") || bcf.extendsClass("android.preference.PreferenceActivity") || bcf.extendsClass("android.app.FragmentActivity") || bcf.extendsClass("android.support.v4.app.FragmentActivity"))
 			{
 				activities.add(qualifiedName);
 				Annotation mainAnn = bcf.getClassAnnotation("com.gmmapowell.android.MainActivity");
@@ -157,7 +157,8 @@ public class ManifestBuildCommand implements Tactic {
 			Annotation usesPerm = bcf.getClassAnnotation("com.gmmapowell.android.UsesPermission");
 			if (usesPerm != null)
 			{
-				permissions.add(usesPerm.getArg("value").asString());
+				for (AnnotationValue av : usesPerm.getArg("value").asArray())
+					permissions.add(av.asString());
 			}
 			
 			Annotation screens = bcf.getClassAnnotation("com.gmmapowell.android.SupportsScreen");

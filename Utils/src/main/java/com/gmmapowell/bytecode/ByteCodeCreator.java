@@ -79,11 +79,11 @@ public class ByteCodeCreator {
 		return createAnyMethod(true, "void", "<clinit>");
 	}
 
-	public MethodCreator method(String returns, String name)
+	public MethodCreator method(boolean isStatic, String returns, String name)
 	{
 		if (name.contains("."))
 			throw new UtilException("Cannot create method name: " + name);
-		return createAnyMethod(false, returns, name);
+		return createAnyMethod(isStatic, returns, name);
 	}
 	
 	public String getSuperClass() {

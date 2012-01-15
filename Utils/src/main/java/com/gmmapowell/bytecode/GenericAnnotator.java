@@ -37,16 +37,19 @@ public class GenericAnnotator {
 	private final ByteCodeCreator byteCodeCreator;
 	private final String name;
 	private List<PendingVar> vars = new ArrayList<PendingVar>();
+	private final boolean isStatic;
 
 	// This works for method ...
 	private GenericAnnotator(ByteCodeCreator byteCodeCreator, boolean isStatic, String name) {
 		this.byteCodeCreator = byteCodeCreator;
+		this.isStatic = isStatic;
 		this.name = name;
 	}
 	
 	// This is for classes
 	private GenericAnnotator(ByteCodeCreator byteCodeCreator) {
 		this.byteCodeCreator = byteCodeCreator;
+		isStatic = false;
 		name = null;
 	}
 
@@ -80,6 +83,10 @@ public class GenericAnnotator {
 		hasGenerics |= jt.isGeneric();
 	}
 
+	public void returns(String str) {
+		returns(new JavaType(str));
+	}
+
 	public void returns(JavaType jt) {
 		if (returnType != null)
 			throw new UtilException("You cannot specify more than one return type");
@@ -90,6 +97,10 @@ public class GenericAnnotator {
 		hasGenerics |= jt.isGeneric();
 	}
 	
+	public PendingVar argument(String cs, String name) {
+		return argument(new JavaType(cs), name);
+	}
+
 	public PendingVar argument(JavaType jt, String name) {
 		if (sb  == null)
 			throw new UtilException("You cannot continue to use annotator after completion");
@@ -113,7 +124,7 @@ public class GenericAnnotator {
 		}
 		if (returnType == null)
 			throw new UtilException("You have not specified the return type");
-		MethodCreator ret = byteCodeCreator.method(returnType, name);
+		MethodCreator ret = byteCodeCreator.method(isStatic, returnType, name);
 		for (PendingVar p : vars)
 			p.apply(ret);
 		if (hasGenerics)

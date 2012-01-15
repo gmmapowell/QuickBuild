@@ -9,12 +9,14 @@ public class MethodInvocation extends Expr {
 	private final Expr obj;
 	private final String methodName;
 	private final Expr[] args;
+	private final String parentClzName;
 
 	public MethodInvocation(MethodCreator methodCreator, String type, String returns, Expr obj, String parentClzName, String methodName, Expr[] args) {
 		super(methodCreator);
 		this.type = type;
 		this.returns = returns;
 		this.obj = obj;
+		this.parentClzName = parentClzName;
 		this.methodName = methodName;
 		this.args = args;
 	}
@@ -36,6 +38,8 @@ public class MethodInvocation extends Expr {
 			meth.invokeInterface(obj.getType(), returns, methodName, argTypes);
 		else if (type.equals("super"))
 			meth.invokeParentMethod(returns, methodName, argTypes);
+		else if (type.equals("static"))
+			meth.invokeStatic(parentClzName, returns, methodName, argTypes);
 		else
 			throw new UtilException("Can't handle method type " + type);
 			

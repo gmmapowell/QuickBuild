@@ -2,6 +2,7 @@ package com.gmmapowell.bytecode;
 
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -141,10 +142,15 @@ public class ByteCodeInspector extends ByteCodeFile {
 			writer.close();
 			FileUtils.cat(new File("dumpClass.txt"));
 		}
-		catch (Exception ex)
+		catch (FileNotFoundException ex)
 		{
 			ex.printStackTrace(System.out);
 			System.exit(1);
+		}
+		catch (Exception ex)
+		{
+			ex.printStackTrace(System.out);
+			System.exit(2);
 		}
 	}
 		
@@ -342,7 +348,12 @@ public class ByteCodeInspector extends ByteCodeFile {
 			sb.append("transient ");
 			access &= ~ByteCodeFile.ACC_TRANSIENT;
 		}
-
+		if ((access & ByteCodeFile.ACC_ACCESSMETH) != 0)
+		{
+			sb.append("access ");
+			access &= ~ByteCodeFile.ACC_ACCESSMETH;
+		}
+		
 		if (access != 0)
 		{
 			sb.append(" !!!! [" + access + "]");
@@ -590,11 +601,27 @@ public class ByteCodeInspector extends ByteCodeFile {
 			hexdump.print("iload " + reg);
 			return 2;
 		}
+		case 0x18:
+		{
+			int reg = dis.readUnsignedByte();
+			hexdump.print("dload " + reg);
+			return 2;
+		}
 		case 0x19:
 		{
 			int reg = dis.readUnsignedByte();
 			hexdump.print("aload "+ reg);
 			return 2;
+		}
+		case 0x1a: case 0x1b: case 0x1c: case 0x1d:
+		{
+			hexdump.print("iload_"+(opcode-0x1a));
+			return 1;
+		}
+		case 0x26: case 0x27: case 0x28: case 0x29:
+		{
+			hexdump.print("dload_"+(opcode-0x26));
+			return 1;
 		}
 		case 0x2a: case 0x2b: case 0x2c: case 0x2d:
 		{
@@ -666,6 +693,11 @@ public class ByteCodeInspector extends ByteCodeFile {
 		case 0xac:
 		{
 			hexdump.print("ireturn");
+			return 1;
+		}
+		case 0xaf:
+		{
+			hexdump.print("dreturn");
 			return 1;
 		}
 		case 0xb0:
