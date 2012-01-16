@@ -132,8 +132,12 @@ public class MethodCreator extends MethodInfo {
 
 	// TODO: this shouldn't be so hard.  We should have a "field object" that
 	// we can ask for its "getter"
-	public FieldExpr field(Var from, String clz, String type, String named) {
+	public FieldExpr field(Expr from, String clz, String type, String named) {
 		return new FieldExpr(this, from, clz, type, named);
+	}
+
+	public Expr staticField(String clz, String type, String named) {
+		return new FieldExpr(this, null, clz, type, named);
 	}
 
 	public Expr as(Expr expr, String newType) {
@@ -176,7 +180,11 @@ public class MethodCreator extends MethodInfo {
 	{
 		return new IfExpr(this, left, right, then, orelse);
 	}
-	
+
+	public IfExpr ifBoolean(Expr expr, Expr then, Expr orelse) {
+		return new IfExpr(this, expr, then, orelse);
+	}
+
 	public MakeNewExpr makeNew(String ofClz, Expr... args) {
 		return new MakeNewExpr(this, ofClz, args);
 	}
@@ -551,7 +559,10 @@ public class MethodCreator extends MethodInfo {
 		int sigIdx = bcf.requireUtf8(map(type));
 		int ntIdx = bcf.requireNT(fieldIdx, sigIdx);
 		int idx = bcf.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
-		add(-2, new Instruction(0xb5, idx>>8, idx&0xff));
+		int pop = -2;
+		if (type.equals("double"))
+			pop = -3;
+		add(pop, new Instruction(0xb5, idx>>8, idx&0xff));
 	}
 
 	public void putStatic(String clz, String type, String var) {
@@ -560,7 +571,10 @@ public class MethodCreator extends MethodInfo {
 		int sigIdx = bcf.requireUtf8(map(type));
 		int ntIdx = bcf.requireNT(fieldIdx, sigIdx);
 		int idx = bcf.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
-		add(-1, new Instruction(0xb3, idx>>8, idx&0xff));
+		int pop = -1;
+		if (type.equals("double"))
+			pop = -2;
+		add(pop, new Instruction(0xb3, idx>>8, idx&0xff));
 	}
 
 	public void returnVoid() {

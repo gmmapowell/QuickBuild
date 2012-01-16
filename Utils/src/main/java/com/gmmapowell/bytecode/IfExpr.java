@@ -8,8 +8,12 @@ public class IfExpr extends Expr {
 	private final Expr orelse;
 
 	public IfExpr(MethodCreator meth, Expr left, Expr right, Expr then, Expr orelse) {
+		this(meth, new EqualsExpr(meth, left, right), then, orelse);
+	}
+
+	public IfExpr(MethodCreator meth, Expr test, Expr then, Expr orelse) {
 		super(meth);
-		test = new EqualsExpr(meth, left, right);
+		this.test = test;
 		this.then = then;
 		this.orelse = orelse;
 	}

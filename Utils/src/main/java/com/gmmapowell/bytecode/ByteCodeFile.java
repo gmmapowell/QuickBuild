@@ -43,6 +43,7 @@ public class ByteCodeFile {
 	public final static short ACC_ABSTRACT     = 0x0400;
 	public final static short ACC_STRICT       = 0x0800;
 	public final static short ACC_ACCESSMETH   = 0x1000;
+	public final static short ACC_ENUM         = 0x4000;
 
 	public final static byte CONSTANT_UTF8         = 1;
 	public final static byte CONSTANT_Integer      = 3;

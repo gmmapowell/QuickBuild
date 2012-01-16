@@ -353,6 +353,11 @@ public class ByteCodeInspector extends ByteCodeFile {
 			sb.append("access ");
 			access &= ~ByteCodeFile.ACC_ACCESSMETH;
 		}
+		if ((access & ByteCodeFile.ACC_ENUM) != 0)
+		{
+			sb.append("enum ");
+			access &= ~ByteCodeFile.ACC_ENUM;
+		}
 		
 		if (access != 0)
 		{
