@@ -414,12 +414,21 @@ public class ByteCodeFile {
 	}
 
 	public boolean nestedExtendsClass(JavaRuntimeReplica jrr, String clzName) {
-		if (extendsClass(clzName))
-			return true;
-		String parentName = FileUtils.convertToDottedName(new File(((ClassInfo)this.pool[this.super_idx]).justName()));
-		if (parentName.equals("java.lang.Object"))
-			return false;
-		return jrr.getClass(parentName).nestedExtendsClass(jrr, clzName);
+		try
+		{
+			if (extendsClass(clzName))
+				return true;
+			String parentName = FileUtils.convertToDottedName(new File(((ClassInfo)this.pool[this.super_idx]).justName()));
+			if (parentName.equals("java.lang.Object"))
+				return false;
+			return jrr.getClass(parentName).nestedExtendsClass(jrr, clzName);
+		}
+		catch (UtilException ex)
+		{
+			if (ex.getMessage().startsWith("JRR cannot"))
+				return false;
+			throw ex;
+		}
 	}
 
 	public boolean implementsInterface(Class<?> class1) {
