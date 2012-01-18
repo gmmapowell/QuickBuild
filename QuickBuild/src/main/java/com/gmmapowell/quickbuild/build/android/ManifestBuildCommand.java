@@ -47,6 +47,7 @@ public class ManifestBuildCommand implements Tactic {
 	
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
+		parent.configureJRR(cxt);
 		String packageName = null;
 		String applClass = null;
 		String mainClass = null;
@@ -75,7 +76,7 @@ public class ManifestBuildCommand implements Tactic {
 			ByteCodeFile bcf = new ByteCodeFile(clsFile, qualifiedName);
 			boolean appOrAct = false;
 			boolean appActOrServ = false;
-			if (bcf.extendsClass("android.app.Application"))
+			if (bcf.nestedExtendsClass(parent.jrr, "android.app.Application") && bcf.isConcrete())
 			{
 				if (applClass != null)
 				{
@@ -86,9 +87,7 @@ public class ManifestBuildCommand implements Tactic {
 				applClass = qualifiedName;
 				appOrAct = true;
 			}
-			// TODO: this should really look all the way up the hierarchy until it finds "android.app.Activity"
-			// but that's too hard right now ... 
-			else if (bcf.extendsClass("android.app.Activity") || bcf.extendsClass("android.preference.PreferenceActivity") || bcf.extendsClass("android.app.FragmentActivity") || bcf.extendsClass("android.support.v4.app.FragmentActivity"))
+			else if (bcf.nestedExtendsClass(parent.jrr, "android.app.Activity") && bcf.isConcrete())
 			{
 				activities.add(qualifiedName);
 				Annotation mainAnn = bcf.getClassAnnotation("com.gmmapowell.android.MainActivity");
@@ -157,8 +156,14 @@ public class ManifestBuildCommand implements Tactic {
 			Annotation usesPerm = bcf.getClassAnnotation("com.gmmapowell.android.UsesPermission");
 			if (usesPerm != null)
 			{
-				for (AnnotationValue av : usesPerm.getArg("value").asArray())
-					permissions.add(av.asString());
+				AnnotationValue arg = usesPerm.getArg("value");
+				if (arg.isString())
+					permissions.add(arg.asString());
+				else if (arg.isArray())
+				{
+					for (AnnotationValue av : arg.asArray())
+						permissions.add(av.asString());
+				}
 			}
 			
 			Annotation screens = bcf.getClassAnnotation("com.gmmapowell.android.SupportsScreen");

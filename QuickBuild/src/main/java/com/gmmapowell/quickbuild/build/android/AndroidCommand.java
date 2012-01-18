@@ -7,10 +7,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import com.gmmapowell.bytecode.JavaRuntimeReplica;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
+import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.java.ExcludeCommand;
 import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
+import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.build.java.JavaBuildCommand;
 import com.gmmapowell.quickbuild.build.java.JavaNature;
 import com.gmmapowell.quickbuild.config.Config;
@@ -39,11 +42,16 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 	private ResourcePacket<PendingResource> uselibs = new ResourcePacket<PendingResource>();
 	private ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
 	private Set<Pattern> exclusions = new HashSet<Pattern>();
+	final JavaRuntimeReplica jrr;
+	private ArrayList<Tactic> tactics;
+	private boolean jrrConfigured = false;
+	private File bindir;
 
 	@SuppressWarnings("unchecked")
 	public AndroidCommand(TokenizedLine toks) {
 		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
 		rootDir = FileUtils.findDirectoryNamed(projectName);
+		this.jrr = new JavaRuntimeReplica();
 	}
 
 	@Override
@@ -77,7 +85,10 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 
 	@Override
 	public List<? extends Tactic> tactics() {
-		List<Tactic> ret = new ArrayList<Tactic>();
+		if (tactics != null)
+			return tactics;
+		
+		tactics = new ArrayList<Tactic>();
 		File manifest = files.getRelative("src/android/AndroidManifest.xml");
 		File gendir = files.getRelative("src/android/gen");
 		File resdir = files.getRelative("src/android/res");
@@ -86,13 +97,13 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		File dexFile = files.getOutput("classes.dex");
 		File zipfile = files.getOutput(projectName+".ap_");
 		File srcdir = files.getRelative("src/main/java");
-		File bindir = files.getOutput("classes");
+		bindir = files.getOutput("classes");
 		
 		ManifestBuildCommand mbc1 = new ManifestBuildCommand(this, acxt, manifest, true, srcdir, bindir);
-		ret.add(mbc1);
+		tactics.add(mbc1);
 		
 		AaptGenBuildCommand gen = new AaptGenBuildCommand(this, acxt, manifest, gendir, resdir);
-		ret.add(gen);
+		tactics.add(gen);
 		List<File> genFiles;
 		if (gendir.isDirectory())
 			genFiles = FileUtils.findFilesMatching(gendir, "*.java");
@@ -100,7 +111,8 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 			genFiles = new ArrayList<File>();
 		JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", "gen", genFiles, "android");
 		genRes.addToBootClasspath(acxt.getPlatformJar());
-		ret.add(genRes);
+		jrr.add(acxt.getPlatformJar());
+		tactics.add(genRes);
 		List<File> srcFiles;
 		if (srcdir.isDirectory()) {
 			srcFiles = FileUtils.findFilesMatching(srcdir, "*.java");
@@ -114,10 +126,10 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", srcFiles, "android");
 		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
-		ret.add(buildSrc);
+		tactics.add(buildSrc);
 
 		ManifestBuildCommand mbc2 = new ManifestBuildCommand(this, acxt, manifest, false, srcdir, bindir);
-		ret.add(mbc2);
+		tactics.add(mbc2);
 
 		// TODO: I feel it should be possible to compile and run unit tests, but what about that bootclasspath?
 		if (files.getRelative("src/test/java").exists())
@@ -125,25 +137,29 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 			JavaBuildCommand buildTests = new JavaBuildCommand(this, files, "src/test/java", "test-classes", "test", FileUtils.findFilesMatching(files.getRelative("src/test/java"), "*.java"), "android");
 			buildTests.addToClasspath(new File(files.getOutputDir(), "classes"));
 			buildTests.addToBootClasspath(acxt.getPlatformJar());
-			ret.add(buildTests);
+			tactics.add(buildTests);
 			
 			buildTests.addToClasspath(files.getRelative("src/main/resources"));
 			buildTests.addToClasspath(files.getRelative("src/test/resources"));
 			
 			JUnitRunCommand junitRun = new JUnitRunCommand(this, files, buildTests);
 			junitRun.addToBootClasspath(acxt.getPlatformJar());
-			ret.add(junitRun);
+			tactics.add(junitRun);
 		}
 		
 		DexBuildCommand dex = new DexBuildCommand(acxt, this, files, files.getOutput("classes"), files.getRelative("src/android/lib"), dexFile, exclusions);
 		for (PendingResource pr : uselibs)
-			dex.addJar(pr.physicalResource().getPath());
-		ret.add(dex);
+		{
+			File path = pr.physicalResource().getPath();
+			dex.addJar(path);
+			jrr.add(path);
+		}
+		tactics.add(dex);
 		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(this, acxt, manifest, zipfile, resdir, assetsDir);
-		ret.add(pkg);
+		tactics.add(pkg);
 		ApkBuildCommand apk = new ApkBuildCommand(this, acxt, zipfile, dexFile, apkFile, apkResource);
-		ret.add(apk);
-		return ret;
+		tactics.add(apk);
+		return tactics;
 	}
 
 	@Override
@@ -198,5 +214,17 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 	@Override
 	public boolean analyzeExports() {
 		return true;
+	}
+
+	public void configureJRR(BuildContext cxt) {
+		if (jrrConfigured)
+			return;
+		jrr.add(bindir);
+		for (BuildResource br : cxt.getDependencies(this))
+		{
+			if (br instanceof JarResource)
+				jrr.add(((JarResource)br).getPath());
+		}
+		jrrConfigured = true;
 	}
 }

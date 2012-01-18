@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gmmapowell.bytecode.IfExpr.IfCond;
 import com.gmmapowell.bytecode.Var.AVar;
 import com.gmmapowell.bytecode.Var.DVar;
 import com.gmmapowell.bytecode.Var.IVar;
@@ -73,13 +74,7 @@ public class MethodCreator extends MethodInfo {
 	}
 	
 	public Var argument(String type, String aname) {
-		Var ret;
-		if (type.equals("int"))
-			ret = ivar(type, aname);
-		else if (type.equals("double"))
-			ret = dvar(type, aname);
-		else
-			ret = avar(type, aname);
+		Var ret = varOfType(type, aname);
 		ret.setArgument(arguments.size());
 		arguments.add(ret);
 		return ret;
@@ -95,6 +90,16 @@ public class MethodCreator extends MethodInfo {
 		return arguments.get(i);
 	}
 
+	public Var varOfType(String type, String aname) {
+		// NOTE: internally, the JVM uses integers for booleans, so I'm copying that
+		if (type.equals("int") || type.equals("boolean"))
+			return ivar(type, aname);
+		else if (type.equals("double"))
+			return dvar(type, aname);
+		else
+			return avar(type, aname);
+	}
+	
 	public AVar myThis() {
 		if (isStatic)
 			throw new UtilException("Static methods don't have 'this'");
@@ -102,7 +107,7 @@ public class MethodCreator extends MethodInfo {
 	}
 
 	public Var saveAslocal(String clz, String name) {
-		Var ret = avar(clz, name);
+		Var ret = varOfType(clz, name);
 		ret.store();
 		return ret;
 	}
@@ -152,6 +157,11 @@ public class MethodCreator extends MethodInfo {
 		return new AssignExpr(this, field, expr);
 	}
 
+	/** Group a collection of expressions as a block */
+	public Expr block(Expr... exprs) {
+		return new BlockExpr(this, exprs);
+	}
+
 	public Expr callSuper(String returns, Expr obj, String parentClzName, String methodName, Expr... args) {
 		return new MethodInvocation(this, "super", returns, obj, parentClzName, methodName, args);
 	}
@@ -176,14 +186,28 @@ public class MethodCreator extends MethodInfo {
 		return new ClassConstExpr(this, cls);
 	}
 
-	public Expr ifEquals(Expr left, Expr right, Expr then, Expr orelse)
-	{
-		return new IfExpr(this, left, right, then, orelse);
+	public Expr concat(Object... args) {
+		return new ConcatExpr(this, args);
 	}
 
 	public IfExpr ifBoolean(Expr expr, Expr then, Expr orelse) {
 		return new IfExpr(this, expr, then, orelse);
 	}
+
+	public Expr ifEquals(Expr left, Expr right, Expr then, Expr orelse)
+	{
+		return new IfExpr(this, new EqualsExpr(this, left, right), then, orelse);
+	}
+
+	public Expr ifNull(Expr test, Expr then, Expr orelse)
+	{
+		return new IfExpr(this, test, then, orelse, IfCond.NULL);
+	}
+
+	private IntConstExpr intConst(int i) {
+		return new IntConstExpr(this, i);
+	}
+
 
 	public MakeNewExpr makeNew(String ofClz, Expr... args) {
 		return new MakeNewExpr(this, ofClz, args);
@@ -208,6 +232,10 @@ public class MethodCreator extends MethodInfo {
 	public Expr throwException(String clz, Expr... args)
 	{
 		return new ThrowExpr(this, clz, args);
+	}
+
+	public Expr trueConst() {
+		return as(intConst(1), "boolean");
 	}
 	
 	public Expr voidExpr(Expr ignoredResult) {
@@ -350,7 +378,7 @@ public class MethodCreator extends MethodInfo {
 		if (i >= locals)
 			locals = i+1;
 	}
-	
+
 	public void athrow() {
 		add(-1, new Instruction(0xbf));
 	}
@@ -372,6 +400,15 @@ public class MethodCreator extends MethodInfo {
 	public void dreturn() {
 		// We subtract 2 from the stack because double is 8 bytes or whatever
 		add(-2, new Instruction(0xaf));
+	}
+
+	public void dstore(int i) {
+		if (i < 4)
+			add(-2, new Instruction(0x47+i));
+		else
+			add(-2, new Instruction(0x39, i));
+		if (i >= locals)
+			locals = i+1;
 	}
 
 	public void dup() {
@@ -462,6 +499,15 @@ public class MethodCreator extends MethodInfo {
 			add(1, new Instruction(0x1a+i));
 		else
 			add(1, new Instruction(0x15, i));
+	}
+
+	public void istore(int i) {
+		if (i < 4)
+			add(-1, new Instruction(0x3b+i));
+		else
+			add(-1, new Instruction(0x36, i));
+		if (i >= locals)
+			locals = i+1;
 	}
 
 	public void invokeOtherConstructor(String clz,	String... args) {
@@ -599,17 +645,5 @@ public class MethodCreator extends MethodInfo {
 
 	public String getClassName() {
 		return byteCodeCreator.getCreatedName();
-	}
-
-	public void dstore(int id) {
-		throw new UtilException("Not implemented");
-	}
-
-	public void istore(int id) {
-		throw new UtilException("Not implemented");
-	}
-
-	public Expr concat(Object... args) {
-		return new ConcatExpr(this, args);
 	}
 }

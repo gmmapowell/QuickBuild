@@ -42,4 +42,12 @@ public class AnnotationValue {
 	public AnnotationValue[] asArray() {
 		return (AnnotationValue[]) value;
 	}
+
+	public boolean isString() {
+		return tag == AnnotationTag.TEXT || tag == AnnotationTag.ENUM;
+	}
+
+	public boolean isArray() {
+		return tag == AnnotationTag.ARRAY;
+	}
 }

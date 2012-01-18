@@ -139,6 +139,14 @@ public class ByteCodeFile {
 		access_flags = ACC_PUBLIC | ACC_ABSTRACT;
 	}
 
+	public String getName() {
+		return ((ClassInfo)pool[this_idx]).justName();
+	}
+
+	public boolean isConcrete() {
+		return (access_flags & (ACC_ABSTRACT | ACC_INTERFACE)) == 0;
+	}
+
 	public void write(DataOutputStream dos) throws IOException {
 		if (access_flags == -1)
 			access_flags = ACC_SUPER | ACC_PUBLIC;
@@ -403,6 +411,15 @@ public class ByteCodeFile {
 	public boolean extendsClass(String clzName) {
 		String name = FileUtils.convertDottedToSlashPath(clzName);
 		return name.equals(((ClassInfo)this.pool[this.super_idx]).justName());
+	}
+
+	public boolean nestedExtendsClass(JavaRuntimeReplica jrr, String clzName) {
+		if (extendsClass(clzName))
+			return true;
+		String parentName = FileUtils.convertToDottedName(new File(((ClassInfo)this.pool[this.super_idx]).justName()));
+		if (parentName.equals("java.lang.Object"))
+			return false;
+		return jrr.getClass(parentName).nestedExtendsClass(jrr, clzName);
 	}
 
 	public boolean implementsInterface(Class<?> class1) {

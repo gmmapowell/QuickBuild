@@ -291,6 +291,12 @@ public class FileUtils {
 		return fileConcat(convertDottedToPath(spl[0]).getPath(), spl[1], spl[3], spl[1]+"-"+spl[3]+"."+spl[2]);
 	}
 
+
+	public static File convertDottedToPathWithExtension(String clz, String ext) {
+		File wo = convertDottedToPath(clz);
+		return combine(wo.getParentFile(), wo.getName() + ext);
+	}
+
 	public static File convertDottedToPath(String pkg) {
 		String[] spl = pkg.split("\\.");
 		return fileConcat(spl);
