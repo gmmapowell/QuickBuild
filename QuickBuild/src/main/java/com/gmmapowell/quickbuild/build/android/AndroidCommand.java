@@ -11,6 +11,7 @@ import com.gmmapowell.bytecode.JavaRuntimeReplica;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.DeferredFileList;
 import com.gmmapowell.quickbuild.build.java.ExcludeCommand;
 import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
 import com.gmmapowell.quickbuild.build.java.JarResource;
@@ -104,11 +105,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		
 		AaptGenBuildCommand gen = new AaptGenBuildCommand(this, acxt, manifest, gendir, resdir);
 		tactics.add(gen);
-		List<File> genFiles;
-		if (gendir.isDirectory())
-			genFiles = FileUtils.findFilesMatching(gendir, "*.java");
-		else
-			genFiles = new ArrayList<File>();
+		List<File> genFiles = new DeferredFileList(gendir, "*.java");
 		JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", "gen", genFiles, "android");
 		genRes.addToBootClasspath(acxt.getPlatformJar());
 		jrr.add(acxt.getPlatformJar());
