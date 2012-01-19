@@ -111,4 +111,9 @@ public class DeferredTactic extends BandElement {
 	public boolean isNotApplicable() {
 		return fromES.isNotApplicable();
 	}
+
+	@Override
+	public void fail() {
+		fromES.fail();
+	}
 }

@@ -1,6 +1,11 @@
 package com.gmmapowell.utils;
 
+import java.io.LineNumberReader;
+import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
+
+import com.gmmapowell.exceptions.UtilException;
 
 public class StringUtil {
 
@@ -65,5 +70,21 @@ public class StringUtil {
 
 	public static String decapitalize(String s) {
 		return Character.toLowerCase(s.charAt(0)) + s.substring(1);
+	}
+
+	public static Iterable<String> lines(String stderr) {
+		try
+		{
+			List<String> ret = new ArrayList<String>();
+			LineNumberReader lnr = new LineNumberReader(new StringReader(stderr));
+			String s;
+			while ((s = lnr.readLine()) != null)
+				ret.add(s);
+			return ret;
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
 	}
 }

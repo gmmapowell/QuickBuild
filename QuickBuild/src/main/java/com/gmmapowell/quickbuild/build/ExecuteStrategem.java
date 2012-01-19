@@ -1,5 +1,9 @@
 package com.gmmapowell.quickbuild.build;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import com.gmmapowell.git.GitRecord;
 import com.gmmapowell.quickbuild.config.AbstractBuildCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Strategem;
@@ -13,6 +17,7 @@ public class ExecuteStrategem extends BandElement {
 	private boolean clean = true;
 	private Strategem strat;
 	private boolean needsLocalBuild = false;
+	private final Set<GitRecord> gittxs = new HashSet<GitRecord>();
 
 	public ExecuteStrategem(String which) {
 		this.which = which;
@@ -147,4 +152,21 @@ public class ExecuteStrategem extends BandElement {
 			return !((AbstractBuildCommand) strat).isApplicable();
 		return false;
 	}
+
+	public void addGitTx(GitRecord tx) {
+		gittxs.add(tx);
+	}
+
+	public void commitAll() {
+		for (GitRecord gr : gittxs)
+			gr.commit();
+	}
+
+	@Override
+	public void fail() {
+		for (GitRecord gr : gittxs)
+			gr.setError();
+	}
+	
+	
 }

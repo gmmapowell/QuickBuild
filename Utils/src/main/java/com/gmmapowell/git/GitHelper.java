@@ -10,14 +10,13 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
 public class GitHelper {
 
-	public static boolean checkFiles(boolean doComparison, OrderedFileList files, File file) {
+	public static GitRecord checkFiles(boolean doComparison, OrderedFileList files, File file) {
 		RunProcess proc = new RunProcess("git");
 //		proc.debug(); 
 		proc.executeInDir(FileUtils.getCurrentDir());
@@ -36,12 +35,12 @@ public class GitHelper {
 		}
 		proc.execute();
 
-		boolean dirty = false;
+		GitRecord gittx = new GitRecord(file);
 		boolean nofile = !file.exists();
-		if (nofile)
+		if (!gittx.sourceExists())
 		{
 			System.out.println("! No file: " + file);
-			dirty = true;
+			gittx.setDirty();
 		}
 		File newFile = null;
 		try
@@ -49,15 +48,11 @@ public class GitHelper {
 			doComparison &= file.exists();
 			LineNumberReader r = new LineNumberReader(new StringReader(proc.getStdout()));
 			LineNumberReader old = null;
-			FileOutputStream fos;
+			newFile = new File(file.getParentFile(), file.getName() + ".new");
+			gittx.generates(newFile);
+			FileOutputStream fos = new FileOutputStream(newFile);
 			if (doComparison)
-			{
-				newFile = new File(file.getParentFile(), file.getName() + ".new");
-				fos = new FileOutputStream(newFile);
 				old = new LineNumberReader(new FileReader(file));
-			}
-			else
-				fos = new FileOutputStream(file);
 			
 			PrintWriter pw = new PrintWriter(fos);
 			boolean skipO = false;
@@ -68,7 +63,7 @@ public class GitHelper {
 				if (s == null)
 				{
 					System.out.println("! Inconsistent number of files and hashes");
-					dirty = true;
+					gittx.setDirty();
 					break;
 				}
 				String nextLine = s + " " + f;
@@ -85,7 +80,7 @@ public class GitHelper {
 						break;
 					else
 					{
-						dirty = true;
+						gittx.setDirty();
 						if (lastO == null)
 						{
 							System.out.println("> " + f);
@@ -121,34 +116,14 @@ public class GitHelper {
 				old.close();
 			pw.close();
 			fos.close();
-			if (doComparison)
-			{
-				if (dirty)
-				{
-					boolean fd = file.delete();
-					if (!fd)
-						throw new UtilException("Could not delete the file " + file + " when renaming " + newFile);
-					boolean renameWorked = newFile.renameTo(file);
-					if (!renameWorked)
-						throw new UtilException("Could not rename " + newFile + " to " + file);
-				}
-				else
-				{
-					// by defn, they're the same, so remove the new one
-					newFile.delete();
-				}
-			}
 		}
 		catch (IOException ex)
 		{
 			System.out.println("Exception encountered in git checking: " + ex.getMessage());
 			System.out.println("Returning dirty status");
-			dirty = true; // just call it dirty
-			file.delete();
-			if (newFile != null)
-				newFile.delete();
+			gittx.setError();
 		}
-		return dirty;
+		return gittx;
 	}
 
 }

@@ -10,6 +10,7 @@ import java.util.Set;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.git.GitHelper;
+import com.gmmapowell.git.GitRecord;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.DependencyFloat;
 import com.gmmapowell.quickbuild.core.FloatToEnd;
@@ -61,6 +62,7 @@ public class BuildOrder {
 	private final BuildContext cxt;
 	private DependencyManager dependencies;
 	private final Set<BuildResource> dirtyUnbuilt = new HashSet<BuildResource>();
+	private final Set<GitRecord> ubtxs = new HashSet<GitRecord>();
 
 	public BuildOrder(BuildContext cxt, boolean buildAll, boolean debug)
 	{
@@ -234,9 +236,10 @@ public class BuildOrder {
 		{
 			File f = br.getPath();
 			OrderedFileList ofl = new OrderedFileList(f);
-			boolean checkFiles = GitHelper.checkFiles(!buildAll, ofl, cxt.getGitCacheFile("Unbuilt_"+f.getName(), ""));
-			if (checkFiles)
-				dirtyUnbuilt .add(br);
+			GitRecord ubtx = GitHelper.checkFiles(!buildAll, ofl, cxt.getGitCacheFile("Unbuilt_"+f.getName(), ""));
+			ubtxs.add(ubtx);
+			if (ubtx.isDirty())
+				dirtyUnbuilt.add(br);
 		}
 		for (ExecutionBand b : bands)
 		{
@@ -276,7 +279,9 @@ public class BuildOrder {
 		}
 		else
 		{
-			isDirty |= GitHelper.checkFiles(strat.isClean() && !buildAll, files, cxt.getGitCacheFile(strat.name(), ""));
+			GitRecord gittx = GitHelper.checkFiles(strat.isClean() && !buildAll, files, cxt.getGitCacheFile(strat.name(), ""));
+			strat.addGitTx(gittx);
+			isDirty |= gittx.isDirty();
 			if (!wasDirty && isDirty && debug)
 				System.out.println("Marking " + strat + " dirty due to git hash-object");
 		}
@@ -322,7 +327,11 @@ public class BuildOrder {
 		OrderedFileList ancillaries = strat.ancillaryFiles();
 		boolean ancDirty = false;
 		if (ancillaries != null && !ancillaries.isEmpty())
-			ancDirty = GitHelper.checkFiles(strat.isClean() && !buildAll, ancillaries, cxt.getGitCacheFile(strat.name(), ".anc"));
+		{
+			 GitRecord ancTx = GitHelper.checkFiles(strat.isClean() && !buildAll, ancillaries, cxt.getGitCacheFile(strat.name(), ".anc"));
+			 strat.addGitTx(ancTx);
+			 ancDirty = ancTx.isDirty();
+		}
 
 		if (isDirty || buildAll)
 		{
@@ -573,5 +582,13 @@ public class BuildOrder {
 
 	public int count(int band) {
 		return bands.get(band).size();
+	}
+	
+	public void commitAll()
+	{
+		for (GitRecord gr : ubtxs)
+			gr.commit();
+		for (ExecuteStrategem es : mapping.values())
+			es.commitAll();
 	}
 }

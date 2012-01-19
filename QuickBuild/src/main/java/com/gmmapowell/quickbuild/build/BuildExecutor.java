@@ -76,6 +76,7 @@ public class BuildExecutor {
 		manager.saveDependencies();
 		buildOrder.saveBuildOrder();
 		showAnyErrors();
+		buildOrder.commitAll();
 	}
 
 	public ItemToBuild next() {
@@ -225,12 +226,8 @@ public class BuildExecutor {
 		if (itb.lastTactic() && itb.strat instanceof ExecuteStrategem)
 			rm.stratComplete(ret, ((ExecuteStrategem)itb.strat).getStrat());
 		if (ret.needsRebuild())
-			forceRebuild(itb);
+			itb.strat.fail();
 		
 		return ret;
-	}
-	
-	public void forceRebuild(ItemToBuild itb) {
-		cxt.getGitCacheFile(itb.name(), "").delete();
 	}
 }

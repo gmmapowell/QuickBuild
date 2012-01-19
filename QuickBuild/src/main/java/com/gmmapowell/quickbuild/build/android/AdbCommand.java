@@ -15,6 +15,7 @@ import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
+import com.gmmapowell.utils.StringUtil;
 
 
 /* Other commands that may come in useful:
@@ -88,6 +89,15 @@ public class AdbCommand implements Tactic {
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
+			// It doesn't always return an error code .. eg. "INSTALL_FAILED_DEXOPT"
+			for (String s : StringUtil.lines(proc.getStderr()))
+			{
+				if (s.trim().isEmpty())
+					continue;
+				if (s.contains(" KB/s "))
+					continue;
+				System.out.println(s);
+			}
 			return BuildStatus.SUCCESS;
 		}
 		else if (proc.getStderr().contains("error: device not found"))

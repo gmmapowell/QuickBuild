@@ -137,8 +137,13 @@ public class MethodCreator extends MethodInfo {
 
 	// TODO: this shouldn't be so hard.  We should have a "field object" that
 	// we can ask for its "getter"
+	@Deprecated
 	public FieldExpr field(Expr from, String clz, String type, String named) {
 		return new FieldExpr(this, from, clz, type, named);
+	}
+
+	public Expr getField(String name) {
+		return byteCodeCreator.getField(this, name);
 	}
 
 	public Expr staticField(String clz, String type, String named) {

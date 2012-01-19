@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Date;
 
 import com.gmmapowell.git.GitHelper;
+import com.gmmapowell.git.GitRecord;
 import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildExecutor;
@@ -95,8 +96,9 @@ public class QuickBuild {
 		boolean buildAll = arguments.buildAll;
 		boolean blankMemory = arguments.blank;
 		System.out.println("Comparing files ...");
-		blankMemory |= GitHelper.checkFiles(true, ofl, new File(conf.getCacheDir(), file.getName()));
-		buildAll |= blankMemory;
+		GitRecord mainFiles = GitHelper.checkFiles(true, ofl, new File(conf.getCacheDir(), file.getName()));
+		blankMemory |= mainFiles.isDirty();
+		buildAll |= mainFiles.isDirty();
 		
 		// now we need to read back anything we've cached ...
 		BuildContext cxt = new BuildContext(conf, configFactory, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor);
@@ -123,5 +125,6 @@ public class QuickBuild {
 		System.err.println("Pre-build configuration time: " + DateUtils.elapsedTime(launched, new Date(), DateUtils.Format.hhmmss3));
 		
 		new BuildExecutor(cxt, arguments.debug).doBuild();
+		mainFiles.commit();
 	}
 }

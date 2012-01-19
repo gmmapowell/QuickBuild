@@ -5,6 +5,8 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
@@ -19,6 +21,7 @@ public class ByteCodeCreator {
 	private final File file;
 	private String superclass;
 	private final String qualifiedName;
+	private final Map<String, FieldObject> fields = new HashMap<String, FieldObject>();
 
 	public ByteCodeCreator(String qualifiedName) {
 		this.qualifiedName = qualifiedName;
@@ -136,5 +139,19 @@ public class ByteCodeCreator {
 
 	public void addInnerClassReference(Access access, String parentClass, String inner) {
 		bcf.innerClasses.add(new InnerClass(bcf, access, parentClass+"$"+inner, parentClass, inner));
+	}
+
+	// This is to help MethodCreator out
+	public void defineField(String type, String name) {
+		fields.put(name, new FieldObject(getCreatedName(), type, name));
+	}
+	
+	// TODO: we need others for statics & inherited members
+	
+	public FieldExpr getField(MethodCreator meth, String name)
+	{
+		if (!fields.containsKey(name))
+			throw new UtilException("There is no field " + name + " in " + getCreatedName());
+		return fields.get(name).use(meth);
 	}
 }
