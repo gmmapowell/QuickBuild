@@ -118,27 +118,55 @@ public class Reflection {
 		}
 	}
 	
-	public static <T> T create(String cls, Object... args) throws Exception {
-		@SuppressWarnings("unchecked")
-		Class<T> clz = (Class<T>) Class.forName(cls);
-		return create(clz, args);
+	public static <T> T create(String cls, Object... args) {
+		try
+		{
+			@SuppressWarnings("unchecked")
+			Class<T> clz = (Class<T>) Class.forName(cls);
+			return create(clz, args);
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
 	}
 
-	public static <T> T create(Class<T> clz, Object... args) throws Exception {
-		Jimmy<T>[] constructors = wrap(clz.getConstructors());
-		return match(clz, "constructor", constructors, args).invoke(args);
+	public static <T> T create(Class<T> clz, Object... args) {
+		try
+		{
+			Jimmy<T>[] constructors = wrap(clz.getConstructors());
+			return match(clz, "constructor", constructors, args).invoke(args);
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
 	}
 
-	public static <O, T> T call(O invokee, String meth, Object... args) throws Exception {
-		@SuppressWarnings("unchecked")
-		Class<O> clz = (Class<O>) invokee.getClass();
-		Jimmy<T>[] methods = wrap(invokee, clz, meth);
-		return match(clz, meth, methods, args).invoke(args);
+	public static <O, T> T call(O invokee, String meth, Object... args) {
+		try
+		{
+			@SuppressWarnings("unchecked")
+			Class<O> clz = (Class<O>) invokee.getClass();
+			Jimmy<T>[] methods = wrap(invokee, clz, meth);
+			return match(clz, meth, methods, args).invoke(args);
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
 	}
 
-	public static <O, T> T callStatic(Class<O> clz, String meth, Object... args) throws Exception {
-		Jimmy<T>[] methods = wrap(clz, meth);
-		return match(clz, "static " + meth, methods, args).invoke(args);
+	public static <O, T> T callStatic(Class<O> clz, String meth, Object... args) {
+		try
+		{
+			Jimmy<T>[] methods = wrap(clz, meth);
+			return match(clz, "static " + meth, methods, args).invoke(args);
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
 	}
 
 	private static <O, T> Jimmy<T> match(Class<O> clz, String what, Jimmy<T>[] jimmies, Object[] args) {

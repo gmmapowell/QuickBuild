@@ -1,5 +1,6 @@
 package com.gmmapowell.graphs;
 
+import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,8 +34,18 @@ public class Node<N> {
 	public void addLinkFrom(Link<N> link)
 	{
 		linksFrom.add(link);
-		span.addAll(link.to.span);
-		span.add(link.to);
+		try
+		{
+			span.addAll(link.to.span);
+			span.add(link.to);
+		}
+		catch (ConcurrentModificationException ex)
+		{
+			ex.printStackTrace();
+			System.out.println("This was while trying to link from " + link + " to " + this);
+			System.out.println("That link was from " + link.from + " to " + link.to);
+			System.out.println("This is quite possibly some kind of circular dependency");
+		}
 	}
 	
 	public Set<N> span()

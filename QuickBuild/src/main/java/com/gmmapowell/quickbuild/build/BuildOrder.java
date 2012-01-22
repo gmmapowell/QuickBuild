@@ -588,7 +588,5 @@ public class BuildOrder {
 	{
 		for (GitRecord gr : ubtxs)
 			gr.commit();
-		for (ExecuteStrategem es : mapping.values())
-			es.commitAll();
 	}
 }

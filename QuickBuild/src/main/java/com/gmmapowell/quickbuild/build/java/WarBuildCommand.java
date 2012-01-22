@@ -1,8 +1,13 @@
 package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 import java.util.regex.Pattern;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
@@ -15,7 +20,6 @@ import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
 public class WarBuildCommand implements Tactic {
@@ -23,7 +27,6 @@ public class WarBuildCommand implements Tactic {
 	private final WarCommand parent;
 	private final File warfile;
 	private final StructureHelper files;
-	private final List<File> dirsToJar = new ArrayList<File>();
 	private final List<PendingResource> warlibs;
 	private final List<Pattern> warexcl;
 	private final WarResource warResource;
@@ -37,10 +40,6 @@ public class WarBuildCommand implements Tactic {
 		this.warfile = new File(files.getOutputDir(), targetName);
 	}
 
-	public void add(File file) {
-		dirsToJar.add(file);
-	}
-	
 	@Override
 	public Strategem belongsTo() {
 		return parent;
@@ -48,81 +47,60 @@ public class WarBuildCommand implements Tactic {
 
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
-		File tmp = files.getOutput("WebRoot");
-		File tmpClasses = files.getOutput("WebRoot/WEB-INF/classes");
-		File jarsToDir = files.getOutput("WebRoot/WEB-INF/lib");
-		File xapsToDir = files.getOutput("WebRoot");
-		FileUtils.cleanDirectory(tmp);
-		FileUtils.assertDirectory(tmp);
-
-		// Figure out dependent projects ...
-		List<Strategem> str = new ArrayList<Strategem>();
-		str.add(parent);
-		for (PendingResource r : warlibs)
+		try
 		{
-			copyLib(r, jarsToDir, xapsToDir);
-			if (r.getBuiltBy() != null)
-				str.add(r.getBuiltBy());
-		}
-		for (Strategem s : str)
-		{
-			for (BuildResource r : cxt.getDependencies(s))
+			System.out.println("Opening file " + warfile);
+			JarOutputStream jos = new JarOutputStream(new FileOutputStream(warfile.getPath()));
+	
+			// Copy the local items - WebRoot, classes and resources
+			boolean worthIt = addOurFiles(jos, files.getRelative("WebRoot"), "", false);
+			worthIt |= addOurFiles(jos, files.getRelative("src/main/resources"), "WEB-INF/", worthIt);
+			worthIt |= addOurFiles(jos, files.getRelative("qbout/classes"), "WEB-INF/classes/", worthIt);
+			
+			// Now find all the dependencies
+			List<Strategem> str = new ArrayList<Strategem>();
+			str.add(parent); // add this project
+			
+			// Now look at all the dependent resources
+			TreeSet<LibEntry> libs = new TreeSet<LibEntry>();
+			for (PendingResource r : warlibs)
 			{
-				copyLib(r, jarsToDir, xapsToDir);
+				addLibs(libs, r);
+				if (r.getBuiltBy() != null)
+					str.add(r.getBuiltBy());
 			}
-		}
-		
-		File root = files.getRelative("WebRoot");
-		File classes = files.getRelative("WebRoot/WEB-INF/classes");
-		File lib = files.getRelative("WebRoot/WEB-INF/lib");
-		boolean worthIt = false;
-		for (File f : FileUtils.findFilesMatching(files.getRelative("WebRoot"), "*"))
-		{
-			if (!f.exists() || f.isDirectory())
-				continue;
-			if (FileUtils.isUnder(f, classes) || FileUtils.isUnder(f, lib))
-				continue;
-			if (!FileUtils.isUnder(f, root))
-				continue;
-			FileUtils.copyAssertingDirs(f, FileUtils.moveRelativeRoot(f, root, tmp));
-			worthIt = true;
-		}
-		
-		for (File dir : dirsToJar)
-		{
-			for (File f : FileUtils.findFilesMatching(dir, "*"))
+			for (Strategem s : str)
 			{
-				if (f.isDirectory())
-					continue;
-
-				FileUtils.copyAssertingDirs(f, FileUtils.moveRelativeRoot(f, dir, tmpClasses));
-				worthIt = true;
+				for (BuildResource r : cxt.getDependencies(s))
+				{
+					addLibs(libs, r);
+				}
 			}
-		}
-
-
-		if (!worthIt)
-			return BuildStatus.SKIPPED;
-		
-		RunProcess proc = new RunProcess("jar");
-		proc.showArgs(showArgs);
-		proc.debug(showDebug);
-		proc.arg("cf");
-		proc.arg(warfile.getPath());
-		proc.arg("-C");
-		proc.arg(tmp.getPath());
-		proc.arg(".");
-
-		proc.execute();
-		if (proc.getExitCode() == 0)
-		{
+	
+			for (LibEntry le : libs)
+			{
+				le.writeTo(jos);
+			}
+			
+			if (!worthIt)
+			{
+				// this can throw an error if nothing was written - so catch it
+				try { jos.close(); } catch (Exception ex) { }
+				return BuildStatus.SKIPPED;
+			}
+			
+			jos.close();
 			cxt.builtResource(warResource);
 			return BuildStatus.SUCCESS;
 		}
-		return BuildStatus.BROKEN;
+		catch (Exception ex)
+		{
+			ex.printStackTrace();
+			return BuildStatus.BROKEN;
+		}
 	}
 
-	private void copyLib(BuildResource r, File jarsToDir, File xapsToDir) {
+	private void addLibs(TreeSet<LibEntry> libs, BuildResource r) {
 		if (r instanceof PendingResource)
 			r = ((PendingResource)r).physicalResource();
 		if (r instanceof JarResource)
@@ -130,17 +108,40 @@ public class WarBuildCommand implements Tactic {
 			for (Pattern p : warexcl)
 				if (p.matcher(r.getPath().getName().toLowerCase()).matches())
 					return;
-			FileUtils.copyAssertingDirs(r.getPath(), new File(jarsToDir, r.getPath().getName()));
+			libs.add(new LibEntry("WEB-INF/lib/" + r.getPath().getName(), r.getPath()));
 		}
 		else if (r instanceof XAPResource)
 		{
 			for (Pattern p : warexcl)
 				if (p.matcher(r.getPath().getName().toLowerCase()).matches())
 					return;
-			FileUtils.copyAssertingDirs(r.getPath(), new File(xapsToDir, r.getPath().getName()));
+			libs.add(new LibEntry(r.getPath().getName(), r.getPath()));
 		}
 		else
 			throw new QuickBuildException("Do not know how to include " + r +" of type " + r.getClass() + " inside a WAR");
+		
+	}
+
+	private boolean addOurFiles(JarOutputStream jos, File root, String prefix, boolean worthIt)
+			throws IOException {
+		for (File f : FileUtils.findFilesMatching(root, "*"))
+		{
+			if (!f.exists() || f.isDirectory())
+				continue;
+			if (!FileUtils.isUnder(f, root))
+				continue;
+			if (f.getName().startsWith("."))
+				continue;
+			writeToJar(jos, f, prefix, FileUtils.makeRelativeTo(f, root));
+			worthIt = true;
+		}
+		return worthIt;
+	}
+
+	private void writeToJar(JarOutputStream jos, File f, String prefix, File relative) throws IOException {
+		JarEntry je = new JarEntry(prefix + relative.getPath().replaceAll("\\\\", "/"));
+		jos.putNextEntry(je);
+		FileUtils.copyFileToStream(f, jos);
 	}
 
 	@Override
@@ -152,4 +153,25 @@ public class WarBuildCommand implements Tactic {
 	public String identifier() {
 		return BuildOrder.tacticIdentifier(parent, "war");
 	}
+
+	class LibEntry implements Comparable<LibEntry> {
+		private File from;
+		private final File relative;
+
+		public LibEntry(String entry, File path) {
+			this.relative = new File(entry);
+			from = path;
+		}
+
+		public void writeTo(JarOutputStream jos) throws IOException {
+			writeToJar(jos, from, "", relative);
+		}
+
+		@Override
+		public int compareTo(LibEntry o) {
+			return relative.getPath().compareTo(o.relative.getPath());
+		}
+	}
 }
+
+

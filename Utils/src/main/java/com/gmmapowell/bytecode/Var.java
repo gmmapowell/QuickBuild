@@ -13,12 +13,19 @@ public abstract class Var extends Expr {
 		this.clz = clz;
 	}
 
+	public Var(MethodCreator meth, JavaType clz, String name) {
+		super(meth);
+		id = meth.nextLocal();
+		this.clz = clz.getActual();
+	}
+
 	protected Var(MethodCreator meth, int id, String name) {
 		super(meth);
 		this.clz = meth.getClassName();
 		this.id = id;
 	}
 	
+
 	@Override
 	public String getType() {
 		return clz;
@@ -41,6 +48,10 @@ public abstract class Var extends Expr {
 	public static class AVar extends Var {
 
 		public AVar(MethodCreator meth, String clz, String name) {
+			super(meth, clz, name);
+		}
+		
+		public AVar(MethodCreator meth, JavaType clz, String name) {
 			super(meth, clz, name);
 		}
 		

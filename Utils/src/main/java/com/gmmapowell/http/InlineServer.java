@@ -29,11 +29,18 @@ public class InlineServer {
 
 	private boolean doLoop;
 
+	private Exception failure;
+
 	public InlineServer(int port, String servletClass) {
 		this.port = port;
 		this.servletClass = servletClass;
 	}
 
+	public Exception getFailure()
+	{
+		return failure;
+	}
+	
 	public void setContextPath(String path) {
 		servletContext().setContextPath(path);
 	}
@@ -88,6 +95,7 @@ public class InlineServer {
 			}
 			logger.info("Server exiting");
 		} catch (Exception ex) {
+			failure = ex;
 			ex.printStackTrace();
 		}
 	}

@@ -8,18 +8,86 @@ import com.gmmapowell.exceptions.UtilException;
 
 public class GenericAnnotator {
 
+	public static class AnnArg {
+
+		private final String name;
+		private final String string;
+		private final String[] args;
+		
+		public AnnArg(String name, String value) {
+			this.name = name;
+			this.string = value;
+			this.args = null;
+		}
+
+		public AnnArg(String name, String[] args) {
+			this.name = name;
+			this.string = null;
+			this.args = args;
+		}
+
+	}
+
+	public static class GenAnnotation {
+		protected final String attrClass;
+		protected final List<AnnArg> args = new ArrayList<AnnArg>();
+
+		public GenAnnotation(String attrClass) {
+			this.attrClass = attrClass;
+		}
+
+		public void addParam(String string, String value) {
+			args.add(new AnnArg(string, value));
+		}
+
+		public void addParam(String string, String... strings) {
+			args.add(new AnnArg(string, strings));
+		}
+
+		public void applyTo(MethodCreator meth) {
+			handleArgs(meth.addRTVAnnotation(attrClass));
+		}
+
+		protected void handleArgs(Annotation methAnn) {
+			for (AnnArg aa : args)
+			{
+				if (aa.string != null)
+					methAnn.addParam(aa.name, aa.string);
+				else
+					methAnn.addParam(aa.name, aa.args);
+			}
+		}
+
+	}
+
+	public static class ArgAnnotation extends GenAnnotation {
+
+		public ArgAnnotation(String pathparam) {
+			super(pathparam);
+		}
+
+		public void applyTo(MethodCreator meth, int pos) {
+			handleArgs(meth.addRTVPAnnotation(attrClass, pos));
+		}
+	}
+
 	public static class PendingVar {
 		private final JavaType type;
 		private final String name;
 		private Var var;
+		private List<ArgAnnotation> anns = new ArrayList<ArgAnnotation>();
+		private final int pos;
 
-		public PendingVar(JavaType type, String name) {
+		public PendingVar(JavaType type, String name, int pos) {
 			this.type = type;
 			this.name = name;
+			this.pos = pos;
 		}
 		
 		public void apply(MethodCreator meth) {
 			var = meth.argument(type.getActual(), name);
+			for (ArgAnnotation aa : anns)
+				aa.applyTo(meth, pos);
 		}
 		
 		public Var getVar()
@@ -27,6 +95,12 @@ public class GenericAnnotator {
 			if (var == null)
 				throw new UtilException("Must apply before get()");
 			return var;
+		}
+
+		public ArgAnnotation addRTVPAnnotation(String pathparam) {
+			ArgAnnotation ret = new ArgAnnotation(pathparam);
+			anns.add(ret);
+			return ret;
 		}
 	}
 
@@ -38,6 +112,7 @@ public class GenericAnnotator {
 	private final String name;
 	private List<PendingVar> vars = new ArrayList<PendingVar>();
 	private final boolean isStatic;
+	private List<GenAnnotation> anns = new ArrayList<GenAnnotation>();
 
 	// This works for method ...
 	private GenericAnnotator(ByteCodeCreator byteCodeCreator, boolean isStatic, String name) {
@@ -107,7 +182,7 @@ public class GenericAnnotator {
 		hasGenerics |= jt.isGeneric();
 		sb.insert(argPointer, jt.asGeneric());
 		argPointer += jt.asGeneric().length();
-		PendingVar ret = new PendingVar(jt, name);
+		PendingVar ret = new PendingVar(jt, name, vars.size());
 		vars.add(ret);
 		return ret;
 	}
@@ -125,13 +200,17 @@ public class GenericAnnotator {
 		if (returnType == null)
 			throw new UtilException("You have not specified the return type");
 		MethodCreator ret = byteCodeCreator.method(isStatic, returnType, name);
-		for (PendingVar p : vars)
-			p.apply(ret);
 		if (hasGenerics)
 		{
 			ret.addAttribute("Signature", sb.toString());
 		}
 		sb = null;
+		
+		// Done includes spitting out any captured annotations
+		for (GenAnnotation ann : anns)
+			ann.applyTo(ret);
+		for (PendingVar p : vars)
+			p.apply(ret);
 		return ret;
 	}
 	
@@ -164,5 +243,11 @@ public class GenericAnnotator {
 //		sb.append(">;");
 		field.attribute("Signature", javaType.asGeneric());
 		return field;
+	}
+
+	public GenAnnotation addRTVAnnotation(String operation) {
+		GenAnnotation ret = new GenAnnotation(operation);
+		anns.add(ret);
+		return ret;
 	}
 }

@@ -112,6 +112,11 @@ public class MethodCreator extends MethodInfo {
 		return ret;
 	}
 
+
+	public Var avar(JavaType clz, String name) {
+		return new AVar(this, clz, name);
+	}
+
 	public Var avar(String clz, String name)
 	{
 		return new AVar(this, clz, name);
@@ -202,6 +207,11 @@ public class MethodCreator extends MethodInfo {
 	public Expr ifEquals(Expr left, Expr right, Expr then, Expr orelse)
 	{
 		return new IfExpr(this, new EqualsExpr(this, left, right), then, orelse);
+	}
+
+
+	public Expr ifNotNull(Expr test, Expr then,Expr orelse) {
+		return new IfExpr(this, test, then, orelse, IfCond.NOTNULL);
 	}
 
 	public Expr ifNull(Expr test, Expr then, Expr orelse)

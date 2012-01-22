@@ -65,7 +65,8 @@ public class ResourceManager implements ResourceListener {
 		for (BuildResource br : p.buildsResources())
 			if (ofCls.isInstance(br))
 				return (T)br;
-		throw new QuickBuildException("There is no resource of type " + ofCls + " produced by " + p.identifier());
+		return null;
+//		throw new QuickBuildException("There is no resource of type " + ofCls + " produced by " + p.identifier());
 	}
 
 	public Iterable<BuildResource> getResources(Class<? extends BuildResource> ofType)
@@ -81,8 +82,9 @@ public class ResourceManager implements ResourceListener {
 		return availableResources.contains(br);
 	}
 
-	public void stratComplete(BuildStatus ret, Strategem strat)
+	public void stratComplete(BuildStatus ret, ExecuteStrategem es)
 	{
+		Strategem strat = es.getStrat();
 		// Test the contract when the strategem comes to an end
 		if (ret.builtResources())
 		{
@@ -96,6 +98,8 @@ public class ResourceManager implements ResourceListener {
 				throw new QuickBuildException("The strategem " + strat + " failed in its contract to build " + fails);
 			}
 		}
+		if (ret.isGood())
+			es.commitAll();
 	}
 
 	public void exportAll(ExecuteStrategem strat) {

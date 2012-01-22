@@ -154,8 +154,10 @@ public class JavaNature implements Nature, BuildContextAware {
 			boolean didSomething = false;
 			for (Strategem p : projectPackages.get(needsJavaPackage))
 			{
+				if (p.equals(dependent))
+					continue;
 				JarResource jr = cxt.getBuiltResource(p, JarResource.class);
-				if (conf.matchesContext(jr, context))
+				if (jr != null && conf.matchesContext(jr, context))
 					didSomething |= cxt.addDependency(dependent, jr, debug);
 			}
 			return didSomething;

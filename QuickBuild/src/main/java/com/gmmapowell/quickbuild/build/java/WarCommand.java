@@ -53,8 +53,6 @@ public class WarCommand extends JarCommand {
 			}
 		warResource = new WarResource(this, files.getOutput(targetName));
 		WarBuildCommand cmd = new WarBuildCommand(this, files, warResource, targetName, warlibs, warexcl);
-		cmd.add(new File(files.getOutputDir(), "classes"));
-		cmd.add(files.getRelative("src/main/resources"));
 		tactics.add(cmd);
 		jarResource = null;
 		willProvide.add(warResource);

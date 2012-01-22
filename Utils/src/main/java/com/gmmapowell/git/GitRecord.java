@@ -61,7 +61,7 @@ public class GitRecord {
 	}
 
 	boolean sourceExists() {
-		return source != null;
+		return source.exists();
 	}
 
 	void setDirty() {

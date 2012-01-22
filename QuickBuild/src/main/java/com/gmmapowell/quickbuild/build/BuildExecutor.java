@@ -224,7 +224,7 @@ public class BuildExecutor {
 			ex.printStackTrace(System.out);
 		}
 		if (itb.lastTactic() && itb.strat instanceof ExecuteStrategem)
-			rm.stratComplete(ret, ((ExecuteStrategem)itb.strat).getStrat());
+			rm.stratComplete(ret, ((ExecuteStrategem)itb.strat));
 		if (ret.needsRebuild())
 			itb.strat.fail();
 		

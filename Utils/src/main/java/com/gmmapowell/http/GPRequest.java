@@ -24,7 +24,7 @@ import com.gmmapowell.exceptions.UtilException;
 
 public class GPRequest implements HttpServletRequest {
 
-	private static final Logger logger = Logger.getLogger("InlineServerRq");
+	private static final Logger logger = Logger.getLogger("InlineServer");
 	private final String method;
 	private final URI uri;
 	private final ListMap<String, String> headers = new ListMap<String, String>();

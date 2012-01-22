@@ -181,6 +181,8 @@ public class ByteCodeInspector extends ByteCodeFile {
 				String isA = "class";
 				if ((access & ACC_INTERFACE) == ACC_INTERFACE)
 					isA = "interface";
+				else if ((access & ACC_ABSTRACT) == ACC_ABSTRACT)
+					isA = "abstract class";
 				hexdump.print(isA + " " + ((ClassInfo)pool[thisClass]).justName());
 			}
 			else

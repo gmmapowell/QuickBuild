@@ -352,7 +352,19 @@ public class DependencyManager {
 			throw new QuickBuildException("No Way!");
 		if (debug || wantDebug)
 			System.out.println("Added dependency from " + br + " on " + resource);
-		dependencies.ensureLink(br, resource);
+		if (br.equals(resource))
+		{
+			try
+			{
+				throw new UtilException("Some fool is trying to link " + br + " to " + resource + " and they're the same!");
+			}
+			catch (UtilException ex)
+			{
+				ex.printStackTrace();
+			}
+		}
+		else
+			dependencies.ensureLink(br, resource);
 		buildOrder.reject(br.getBuiltBy());
 		
 		// TODO: this could be more subtle
