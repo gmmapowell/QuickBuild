@@ -10,6 +10,7 @@ public class Arguments {
 	public boolean blank;
 	public boolean configOnly;
 	public boolean debug;
+	public boolean quiet;
 	public String file;
 	public String cachedir;
 	public List<String> showArgsFor = new ArrayList<String>();

@@ -29,9 +29,12 @@ public class BuildContext {
 
 	private final boolean blankMemory;
 
-	public BuildContext(Config conf, ConfigFactory configFactory, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor) {
+	private final boolean quiet;
+
+	public BuildContext(Config conf, ConfigFactory configFactory, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet) {
 		this.conf = conf;
 		this.blankMemory = blankMemory;
+		this.quiet = quiet;
 		rm = new ResourceManager(conf);
 		buildOrder = new BuildOrder(this, buildAll, debug);
 		manager = new DependencyManager(conf, rm, buildOrder, debug);
@@ -63,6 +66,11 @@ public class BuildContext {
 		return rm;
 	}
 
+	public boolean quietMode()
+	{
+		return quiet;
+	}
+	
 	public void configure()
 	{
 		rm.configure(strats);

@@ -214,13 +214,11 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 
 	public void configureJRR(BuildContext cxt) {
 		jrr.add(bindir);
-		System.out.println("Adding " + bindir);
 		for (BuildResource br : cxt.getDependencies(this))
 		{
 			if (br instanceof JarResource)
 			{
 				jrr.add(((JarResource)br).getPath());
-				System.out.println("Adding " + br);
 			}
 		}
 	}

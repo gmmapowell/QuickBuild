@@ -22,13 +22,14 @@ import com.gmmapowell.utils.ProcessArgs;
 public class QuickBuild {
 	private static ArgumentDefinition[] argumentDefinitions = new ArgumentDefinition[] {
 		new ArgumentDefinition("*.qb", Cardinality.REQUIRED, "file", "configuration file"),
+		new ArgumentDefinition("--args", Cardinality.LIST, "showArgsFor", null),
+		new ArgumentDefinition("--blank", Cardinality.OPTION, "blank", "blank memory"),
+		new ArgumentDefinition("--build-all", Cardinality.OPTION, "buildAll", null),
 		new ArgumentDefinition("--cache", Cardinality.OPTION, "cachedir", "Cache directory"),
 		new ArgumentDefinition("--config-only", Cardinality.OPTION, "configOnly", null),
-		new ArgumentDefinition("--build-all", Cardinality.OPTION, "buildAll", null),
-		new ArgumentDefinition("--args", Cardinality.LIST, "showArgsFor", null),
 		new ArgumentDefinition("--debug", Cardinality.LIST, "showDebugFor", null),
 		new ArgumentDefinition("--debugInternals", Cardinality.LIST, "debug", null),
-		new ArgumentDefinition("--blank", Cardinality.OPTION, "blank", "blank memory")
+		new ArgumentDefinition("--quiet", Cardinality.LIST, "quiet", "super quiet mode")
 	};
 
 	private static Arguments arguments;
@@ -95,15 +96,18 @@ public class QuickBuild {
 			
 		boolean buildAll = arguments.buildAll;
 		boolean blankMemory = arguments.blank;
-		System.out.println("Comparing files ...");
+		if (!arguments.quiet)
+			System.out.println("Comparing files ...");
 		GitRecord mainFiles = GitHelper.checkFiles(true, ofl, new File(conf.getCacheDir(), file.getName()));
 		blankMemory |= mainFiles.isDirty();
 		buildAll |= mainFiles.isDirty();
 		
 		// now we need to read back anything we've cached ...
-		BuildContext cxt = new BuildContext(conf, configFactory, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor);
+		BuildContext cxt = new BuildContext(conf, configFactory, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet);
 		cxt.configure();
-		System.out.println();
+		
+		if (!arguments.quiet)
+			System.out.println();
 
 		if (arguments.configOnly)
 		{
@@ -122,7 +126,8 @@ public class QuickBuild {
 			System.out.println();
 		}
 		
-		System.err.println("Pre-build configuration time: " + DateUtils.elapsedTime(launched, new Date(), DateUtils.Format.hhmmss3));
+		if (!arguments.quiet)
+			System.err.println("Pre-build configuration time: " + DateUtils.elapsedTime(launched, new Date(), DateUtils.Format.hhmmss3));
 		
 		new BuildExecutor(cxt, arguments.debug).doBuild();
 		mainFiles.commit();

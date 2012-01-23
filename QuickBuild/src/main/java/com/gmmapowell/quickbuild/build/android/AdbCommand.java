@@ -44,11 +44,13 @@ public class AdbCommand implements Tactic {
 	private List<Command> commands = new ArrayList<Command>();
 	private final BuildResource apk;
 	private final Strategem parent;
+	private final BuildResource builds;
 
-	public AdbCommand(AndroidContext acxt, Strategem parent, StructureHelper files, BuildResource apk) {
+	public AdbCommand(AndroidContext acxt, Strategem parent, StructureHelper files, BuildResource apk, BuildResource builds) {
 		this.acxt = acxt;
 		this.parent = parent;
 		this.apk = apk;
+		this.builds = builds;
 	}
 
 	public void reinstall()
@@ -114,6 +116,7 @@ public class AdbCommand implements Tactic {
 				if (s.contains("Fail"))
 					return BuildStatus.BROKEN;
 			}
+			cxt.builtResource(builds);
 			return BuildStatus.SUCCESS;
 		}
 		else if (proc.getStderr().contains("error: device not found"))

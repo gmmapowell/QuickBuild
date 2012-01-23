@@ -36,7 +36,8 @@ public class BuildExecutor {
 	}
 
 	public void doBuild() {
-		System.out.println("Building ...");
+		if (!cxt.quietMode())
+			System.out.println("Building ...");
 		ItemToBuild itb;
 		while ((itb = next())!= null)
 		{
@@ -184,24 +185,32 @@ public class BuildExecutor {
 
 	
 	public BuildStatus execute(ItemToBuild itb) {
-		if (itb.firstTactic())
-			System.out.println(itb.name());
-		if (itb.needsBuild == BuildStatus.NOTAPPLICABLE) 
-			System.out.print("v");
-		else if (itb.needsBuild == BuildStatus.SKIPPED)  // defer now, do later ...
-			System.out.print("-");
-		else if (itb.needsBuild == BuildStatus.SUCCESS) // normal build
-			System.out.print("*");
-		else if (itb.needsBuild == BuildStatus.DEFERRED) // was deferred, do now ...
-			System.out.print("+");
-		else if (itb.needsBuild == BuildStatus.RETRY) // just literally failed ... retrying
-			System.out.print("!");
-		else if (itb.needsBuild == BuildStatus.CLEAN) // is clean, that's OK
-			System.out.print(" ");
+		if (cxt.quietMode())
+		{
+			if (itb.needsBuild.needsBuild())
+				System.out.println("* " + itb.name());
+		}
 		else
-			throw new RuntimeException("Cannot handle status " + itb.needsBuild);
-		
-		System.out.println(" " + itb.id + ": " + itb.label);
+		{
+			if (itb.firstTactic())
+				System.out.println(itb.name());
+			if (itb.needsBuild == BuildStatus.NOTAPPLICABLE) 
+				System.out.print("v");
+			else if (itb.needsBuild == BuildStatus.SKIPPED)  // defer now, do later ...
+				System.out.print("-");
+			else if (itb.needsBuild == BuildStatus.SUCCESS) // normal build
+				System.out.print("*");
+			else if (itb.needsBuild == BuildStatus.DEFERRED) // was deferred, do now ...
+				System.out.print("+");
+			else if (itb.needsBuild == BuildStatus.RETRY) // just literally failed ... retrying
+				System.out.print("!");
+			else if (itb.needsBuild == BuildStatus.CLEAN) // is clean, that's OK
+				System.out.print(" ");
+			else
+				throw new RuntimeException("Cannot handle status " + itb.needsBuild);
+			
+			System.out.println(" " + itb.id + ": " + itb.label);
+		}
 		if (!itb.needsBuild.needsBuild())
 		{
 			if (itb.lastTactic() && itb.strat instanceof ExecuteStrategem)

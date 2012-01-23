@@ -29,6 +29,8 @@ public class AdbInstallCommand extends AbstractBuildCommand implements ConfigBui
 	private File rootDir;
 	private final ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
+	private List<Tactic> tactics;
+	private AdbInstalledResource buildsInstalled;
 
 	@SuppressWarnings("unchecked")
 	public AdbInstallCommand(TokenizedLine toks) {
@@ -45,18 +47,22 @@ public class AdbInstallCommand extends AbstractBuildCommand implements ConfigBui
 		acxt = config.getAndroidContext();
 		apk = new PendingResource(resource);
 		needs.add(apk);
-		builds.add(new AdbInstalledResource(this, resource));
+		buildsInstalled = new AdbInstalledResource(this, resource);
+		builds.add(buildsInstalled);
 		return this;
 	}
 	
 
 	@Override
 	public List<? extends Tactic> tactics() {
-		List<Tactic> ret = new ArrayList<Tactic>();
-		AdbCommand cmd = new AdbCommand(acxt, this, files, apk);
-		cmd.reinstall();
-		ret.add(cmd);
-		return ret;
+		if (tactics == null)
+		{
+			tactics = new ArrayList<Tactic>();
+			AdbCommand cmd = new AdbCommand(acxt, this, files, apk, buildsInstalled);
+			cmd.reinstall();
+			tactics.add(cmd);
+		}
+		return tactics;
 	}
 
 	@Override
