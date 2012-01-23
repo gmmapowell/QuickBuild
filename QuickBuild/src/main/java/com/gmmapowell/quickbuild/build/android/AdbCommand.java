@@ -97,6 +97,22 @@ public class AdbCommand implements Tactic {
 				if (s.contains(" KB/s "))
 					continue;
 				System.out.println(s);
+				if (s.contains("Fail"))
+					return BuildStatus.BROKEN;
+			}
+			for (String s : StringUtil.lines(proc.getStdout()))
+			{
+				if (s.trim().isEmpty())
+					continue;
+				if (s.contains(" KB/s "))
+					continue;
+				if (s.contains("pkg: "))
+					continue;
+				if (s.contains("Success"))
+					continue;
+				System.out.println(s);
+				if (s.contains("Fail"))
+					return BuildStatus.BROKEN;
 			}
 			return BuildStatus.SUCCESS;
 		}

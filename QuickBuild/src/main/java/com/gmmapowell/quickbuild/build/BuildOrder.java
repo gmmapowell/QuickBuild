@@ -586,6 +586,10 @@ public class BuildOrder {
 	
 	public void commitAll()
 	{
+		for (ExecutionBand eb : this.bands)
+			for (BandElement es : eb)
+				if (es instanceof ExecuteStrategem)
+					((ExecuteStrategem)es).commitAll();
 		for (GitRecord gr : ubtxs)
 			gr.commit();
 	}

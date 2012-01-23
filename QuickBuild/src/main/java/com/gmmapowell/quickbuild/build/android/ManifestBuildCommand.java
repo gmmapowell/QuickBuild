@@ -64,7 +64,11 @@ public class ManifestBuildCommand implements Tactic {
 			// Try and figure out a minimal package name for 1st pass analysis
 			String pkg = FileUtils.getPackage(f);
 			if (packageName == null && (minpkg == null || pkg.length() < minpkg.length()))
+			{
 				minpkg = pkg;
+				if (showDebug)
+					System.out.println("Selecting package name " + minpkg);
+			}
 
 			// Now try and find actual class file for detailed (2nd pass) analysis
 			String qualifiedName = FileUtils.convertToDottedNameDroppingExtension(f);
@@ -78,6 +82,8 @@ public class ManifestBuildCommand implements Tactic {
 			boolean appActOrServ = false;
 			if (bcf.nestedExtendsClass(parent.jrr, "android.app.Application") && bcf.isConcrete())
 			{
+				if (showDebug)
+					System.out.println("Found application class " + bcf.getName());
 				if (applClass != null)
 				{
 					System.out.println("More than one Application class");
@@ -89,10 +95,14 @@ public class ManifestBuildCommand implements Tactic {
 			}
 			else if (bcf.nestedExtendsClass(parent.jrr, "android.app.Activity") && bcf.isConcrete())
 			{
+				if (showDebug)
+					System.out.println("Found activity class " + bcf.getName());
 				activities.add(qualifiedName);
 				Annotation mainAnn = bcf.getClassAnnotation("com.gmmapowell.android.MainActivity");
 				if (mainAnn != null)
 				{
+					if (showDebug)
+						System.out.println("Found main activity class " + bcf.getName());
 					if (mainClass != null)
 					{
 						System.out.println("More than one class annotated @MainActivity");

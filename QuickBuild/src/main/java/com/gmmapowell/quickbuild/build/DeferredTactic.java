@@ -7,6 +7,7 @@ import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.DependencyFloat;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.quickbuild.exceptions.CantRunDeferredTacticYetException;
 import com.gmmapowell.utils.PrettyPrinter;
 
 public class DeferredTactic extends BandElement {
@@ -27,8 +28,14 @@ public class DeferredTactic extends BandElement {
 	}
 
 	public Tactic getTactic() {
+		// For what it's worth, I think probably the easiest thing to do in this situation is to throw a (typed) exception here which
+		// can be caught somewhere where someone can do something (I'm seeing this in BuildExecutor/next calling BuildOrder/get)
+		// and they can then:
+		//  first check that the thing this is dependent on is back in the well and not built
+		//  secondly blow away both ends of this DeferredTactic (the deferring and the executing)
+		//    - if it needs splitting, that will happen
 		if (tactic == null)
-			throw new RuntimeException("Something went wrong in the wiring up of deferred tactic " + this);
+			throw new CantRunDeferredTacticYetException("Deferred tactic " + id + " was never bound.  Having analyzed this, I have decided the problem is that this is not dependent (enough) on the thing it was deferred from.  So if that is rejected at some point, then this may need to be rejected (and possibly re-assimilated) at some point");
 		return tactic;
 	}
 
