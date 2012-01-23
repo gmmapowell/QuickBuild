@@ -8,7 +8,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -57,9 +56,8 @@ public class ByteCodeFile {
 	public final static byte CONSTANT_Interfaceref = 11;
 	public final static byte CONSTANT_NameAndType  = 12;
 	
-	protected CPInfo[] pool;
+	protected ConstPool pool;
 	protected List<Integer> interfaces = new ArrayList<Integer>();
-	private int nextPoolEntry = 1;
 	private int access_flags = -1;
 	private int this_idx = -1;
 	private int super_idx = -1;
@@ -69,6 +67,18 @@ public class ByteCodeFile {
 	private final String qualifiedName;
 	private ListMap<AnnotationType, Annotation> annotations = new ListMap<AnnotationType, Annotation>();
 	final TreeSet<InnerClass> innerClasses = new TreeSet<InnerClass>();
+
+
+	protected ByteCodeFile()
+	{
+		this((String)null);
+	}
+	
+	protected ByteCodeFile(String qualifiedName)
+	{
+		this.qualifiedName = qualifiedName;
+		pool = new ConstPool();
+	}
 
 	public ByteCodeFile(File from, String qualifiedName)
 	{
@@ -120,16 +130,6 @@ public class ByteCodeFile {
 		}
 	}
 
-	protected ByteCodeFile(String qualifiedName)
-	{
-		this.qualifiedName = qualifiedName;
-	}
-
-	protected ByteCodeFile()
-	{
-		qualifiedName = null;
-	}
-	
 	public void makeInterface()
 	{
 		access_flags = ACC_PUBLIC | ACC_INTERFACE | ACC_ABSTRACT;
@@ -140,7 +140,7 @@ public class ByteCodeFile {
 	}
 
 	public String getName() {
-		return ((ClassInfo)pool[this_idx]).justName();
+		return ((ClassInfo)pool.get(this_idx)).justName();
 	}
 
 	public boolean isConcrete() {
@@ -153,7 +153,7 @@ public class ByteCodeFile {
 		if (this_idx == -1)
 			throw new UtilException("You must specify a this class");
 		if (super_idx == -1)
-			super_idx = requireClass("java/lang/Object");
+			super_idx = pool.requireClass("java/lang/Object");
 
 		for (FieldInfo fi : fields)
 			fi.complete();
@@ -164,7 +164,7 @@ public class ByteCodeFile {
 		dos.writeInt(javaMagic);
 		dos.writeShort(0);
 		dos.writeShort(50);
-		writeConstantPool(dos);
+		pool.writeConstantPool(dos);
 		dos.writeShort(access_flags);
 		dos.writeShort(this_idx);
 		dos.writeShort(super_idx);
@@ -175,6 +175,17 @@ public class ByteCodeFile {
 	}
 
 	private void complete() throws IOException {
+		for (int i=0;i<methods.size();i++)
+		{
+			MethodInfo first = methods.get(i);
+			for (int j=i+1;j<methods.size();j++)
+			{
+				MethodInfo second = methods.get(j);
+				if (first.getName().equals(second.getName()) && first.getSignature().equals(second.getSignature()))
+					throw new UtilException("Duplicate method: " + first.getName() + " in class " + getName());
+			}
+		}
+
 		if (!innerClasses.isEmpty())
 		{
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -193,42 +204,15 @@ public class ByteCodeFile {
 
 	private void readConstantPool(DataInputStream dis) throws IOException {
 		int poolCount = dis.readUnsignedShort();
-		pool = new CPInfo[poolCount];
+		pool = new ConstPool(poolCount);
 
 		// This is weird offsetting ...
 		for (int idx=1;idx<poolCount;idx++)
 		{
-			pool[idx] = readPoolEntry(dis);
-			if (pool[idx] instanceof DoubleEntry)
+			pool.setPoolEntry(idx, readPoolEntry(dis));
+			if (pool.get(idx) instanceof DoubleEntry)
 				idx++; // skip the second entry
-//				System.out.println(idx + " = " + pool[idx]);
-		}
-	}
-
-	public short addPoolEntry(CPInfo entry)
-	{
-		if (pool == null)
-			pool = new CPInfo[10];
-		else if (nextPoolEntry >= pool.length)
-		{
-			pool = Arrays.copyOf(pool, pool.length*2);
-		}
-		short ret = (short) nextPoolEntry;
-		pool[nextPoolEntry++] = entry;
-		if (entry instanceof DoubleEntry)
-			nextPoolEntry++;
-		return ret;
-	}
-
-	private void writeConstantPool(DataOutputStream dos) throws IOException {
-		dos.writeShort(nextPoolEntry);
-		for (int idx=1;idx<nextPoolEntry;idx++)
-		{
-			if (pool[idx] == null)
-				continue;
-			pool[idx].writeEntry(dos);
-			if (pool[idx] instanceof DoubleEntry)
-				idx++;
+//				System.out.println(idx + " = " + pool.get(idx));
 		}
 	}
 
@@ -253,7 +237,7 @@ public class ByteCodeFile {
 			dis.readUnsignedShort(); // access_flags
 			@SuppressWarnings("unused")
 			int name = dis.readUnsignedShort(); // name idx
-//			System.out.println("Reading field " + pool[name]);
+//			System.out.println("Reading field " + pool.get(name));
 			dis.readUnsignedShort(); // descriptor idx
 			readAttributes(dis, fi.attributes);
 		}
@@ -348,7 +332,7 @@ public class ByteCodeFile {
 		{
 			/*
 			for (int i=0;i<pool.length;i++)
-				System.out.println(i + ": " + pool[i]);
+				System.out.println(i + ": " + pool.get(i));
 				*/
 			throw new UtilException("There is no handler for tag " + tag);
 		}
@@ -404,13 +388,13 @@ public class ByteCodeFile {
 	}
 
 	public void addInterface(String intf) {
-		int idx = requireClass(intf);
+		int idx = pool.requireClass(intf);
 		interfaces.add(idx);
 	}
 
 	public boolean extendsClass(String clzName) {
 		String name = FileUtils.convertDottedToSlashPath(clzName);
-		return name.equals(((ClassInfo)this.pool[this.super_idx]).justName());
+		return name.equals(((ClassInfo)this.pool.get(this.super_idx)).justName());
 	}
 
 	public boolean nestedExtendsClass(JavaRuntimeReplica jrr, String clzName) {
@@ -418,13 +402,14 @@ public class ByteCodeFile {
 		{
 			if (extendsClass(clzName))
 				return true;
-			String parentName = FileUtils.convertToDottedName(new File(((ClassInfo)this.pool[this.super_idx]).justName()));
+			String parentName = FileUtils.convertToDottedName(new File(((ClassInfo)this.pool.get(this.super_idx)).justName()));
 			if (parentName.equals("java.lang.Object"))
 				return false;
 			return jrr.getClass(parentName).nestedExtendsClass(jrr, clzName);
 		}
 		catch (UtilException ex)
 		{
+			ex.printStackTrace();
 			if (ex.getMessage().startsWith("JRR cannot"))
 				return false;
 			throw ex;
@@ -435,7 +420,7 @@ public class ByteCodeFile {
 		String name = FileUtils.convertDottedToSlashPath(class1.getCanonicalName());
 		for (int idx : interfaces)
 		{
-			ClassInfo c = (ClassInfo)pool[idx];
+			ClassInfo c = (ClassInfo)pool.get(idx);
 			if (c.equals(name))
 				return true;
 		}
@@ -454,13 +439,13 @@ public class ByteCodeFile {
 	public void thisClass(String name) {
 		if (this_idx != -1)
 			throw new UtilException("Cannot define 'this' class twice");
-		this_idx = requireClass(name);
+		this_idx = pool.requireClass(name);
 	}
 
 	public void superClass(String name) {
 		if (super_idx != -1)
 			throw new UtilException("Cannot define 'super' class twice");
-		super_idx = requireClass(name);
+		super_idx = pool.requireClass(name);
 	}
 
 	public void addField(FieldInfo field) {
@@ -471,84 +456,6 @@ public class ByteCodeFile {
 		methods.add(ret);
 	}
 
-	int requireClass(String string) {
-		String s = FileUtils.convertDottedToSlashPath(string);
-		int utf8Idx = 0;
-		for (int i=1;i<nextPoolEntry;i++)
-			if (pool[i] != null && pool[i] instanceof CPInfo.Utf8Info && ((CPInfo.Utf8Info)pool[i]).asString().equals(s))
-			{
-				utf8Idx = i;
-				break;
-			}
-		if (utf8Idx > 0)
-		{
-			for (int i=1;i<nextPoolEntry;i++)
-				if (pool[i] != null && pool[i] instanceof CPInfo.ClassInfo && ((CPInfo.ClassInfo)pool[i]).idx == utf8Idx)
-					return i;
-		}
-		else
-			utf8Idx = nextPoolEntry+1;
-		int clzIdx = nextPoolEntry;
-		addPoolEntry(new CPInfo.ClassInfo(pool, utf8Idx));
-		addPoolEntry(new CPInfo.Utf8Info(s));
-		return clzIdx;
-	}
-
-	public short requireUtf8(String name) {
-		if (name == null)
-			throw new UtilException("Cannot have null name");
-		for (short i=1;i<nextPoolEntry;i++)
-			if (pool[i] != null && pool[i] instanceof CPInfo.Utf8Info && ((CPInfo.Utf8Info)pool[i]).asString().equals(name))
-			{
-				return i;
-			}
-		return addPoolEntry(new CPInfo.Utf8Info(name));
-	}
-	
-	public int requireNT(int methIdx, int sigIdx) {
-		for (short i=1;i<nextPoolEntry;i++)
-			if (pool[i] != null && pool[i] instanceof CPInfo.NTInfo)
-			{
-				CPInfo.NTInfo nt = (CPInfo.NTInfo)pool[i];
-				if (nt.isA(methIdx, sigIdx))
-					return i;
-			}
-		return addPoolEntry(new CPInfo.NTInfo(pool, methIdx, sigIdx));
-	}
-
-	public int requireRef(int refType, int clzIdx, int ntIdx) {
-		for (short i=1;i<nextPoolEntry;i++)
-			if (pool[i] != null && pool[i] instanceof CPInfo.RefInfo)
-			{
-				CPInfo.RefInfo r = (CPInfo.RefInfo)pool[i];
-				if (r.isA(refType, clzIdx, ntIdx))
-					return i;
-			}
-		return addPoolEntry(new CPInfo.RefInfo(pool, clzIdx, ntIdx, refType));
-	}
-
-	public int requireString(String s) {
-		int utf8Idx = 0;
-		for (int i=1;i<nextPoolEntry;i++)
-			if (pool[i] != null && pool[i] instanceof CPInfo.Utf8Info && ((CPInfo.Utf8Info)pool[i]).asString().equals(s))
-			{
-				utf8Idx = i;
-				break;
-			}
-		if (utf8Idx > 0)
-		{
-			for (int i=1;i<nextPoolEntry;i++)
-				if (pool[i] != null && pool[i] instanceof CPInfo.StringInfo && ((CPInfo.StringInfo)pool[i]).idx == utf8Idx)
-					return i;
-		}
-		else
-			utf8Idx = nextPoolEntry+1;
-		int strIdx = nextPoolEntry;
-		addPoolEntry(new CPInfo.StringInfo(pool, utf8Idx));
-		addPoolEntry(new CPInfo.Utf8Info(s));
-		return strIdx;
-	}
-	
 	@Override
 	public String toString() {
 		if (qualifiedName != null)
@@ -574,7 +481,7 @@ public class ByteCodeFile {
 	}
 
 	public AttributeInfo newAttribute(String named, byte[] data) {
-		return new AttributeInfo(pool, requireUtf8(named), data);
+		return new AttributeInfo(pool, pool.requireUtf8(named), data);
 	}
 
 	public Annotation addClassAnnotation(AnnotationType type, Annotation annotation) {

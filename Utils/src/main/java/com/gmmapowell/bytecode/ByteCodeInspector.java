@@ -171,7 +171,7 @@ public class ByteCodeInspector extends ByteCodeFile {
 				hexdump.print("Version: " + majorVersion + "-" + minorVersion);
 			readConstantPool(dis);
 			if (showPool)
-				showPool();
+				pool.showPool(hexdump);
 			int access = dis.readUnsignedShort(); // access_flags
 			if (!cleanMode)
 				hexdump.print("Access = "  + access);
@@ -183,13 +183,13 @@ public class ByteCodeInspector extends ByteCodeFile {
 					isA = "interface";
 				else if ((access & ACC_ABSTRACT) == ACC_ABSTRACT)
 					isA = "abstract class";
-				hexdump.print(isA + " " + ((ClassInfo)pool[thisClass]).justName());
+				hexdump.print(isA + " " + ((ClassInfo)pool.get(thisClass)).justName());
 			}
 			else
 				hexdump.print("This = " + show(thisClass));
 			int superClass = dis.readUnsignedShort(); // super_class
 			if (cleanMode)
-				hexdump.print("  extends " + ((ClassInfo)pool[superClass]).justName());
+				hexdump.print("  extends " + ((ClassInfo)pool.get(superClass)).justName());
 			else
 				hexdump.print("Super = " + show(superClass));
 			readInterfaces(dis);
@@ -212,33 +212,22 @@ public class ByteCodeInspector extends ByteCodeFile {
 
 	private void readConstantPool(DataInputStream dis) throws IOException {
 		int poolCount = dis.readUnsignedShort();
-		pool = new CPInfo[poolCount];
+		pool = new ConstPool(poolCount);
 		if (!cleanMode)
 			hexdump.print("pool has " + poolCount + " entries, including #0");
 
 		// This is weird offsetting ...
 		for (int idx=1;idx<poolCount;idx++)
 		{
-			pool[idx] = readPoolEntry(dis);
+			pool.setPoolEntry(idx,  readPoolEntry(dis));
 			if (!cleanMode)
-				hexdump.print(idx +" => " + pool[idx]);
-			if (pool[idx] instanceof DoubleEntry)
+				hexdump.print(idx +" => " + pool.get(idx));
+			if (pool.get(idx) instanceof DoubleEntry)
 			{
 				if (!cleanMode)
 					hexdump.print("****");
 				idx++; // skip the second entry
 			}
-		}
-	}
-
-	private void showPool() {
-		List<String> output = new ArrayList<String>();
-		for (int idx=1;idx<pool.length;idx++)
-			output.add(pool[idx].asClean());
-		Collections.sort(output);
-		for (String s : output)
-		{
-			hexdump.print(s);
 		}
 	}
 
@@ -250,7 +239,7 @@ public class ByteCodeInspector extends ByteCodeFile {
 		{
 			int idx = dis.readUnsignedShort();
 			interfaces.add(idx);
-			ClassInfo intf = (ClassInfo) pool[idx];
+			ClassInfo intf = (ClassInfo) pool.get(idx);
 			if (cleanMode)
 				hexdump.print("  implements " + intf.justName());
 			else
@@ -266,7 +255,7 @@ public class ByteCodeInspector extends ByteCodeFile {
 		{
 			int access = dis.readUnsignedShort(); // access_flags
 			int name = dis.readUnsignedShort(); // name idx
-//			System.out.println("Reading field " + pool[name]);
+//			System.out.println("Reading field " + pool.get(name));
 			int descriptor = dis.readUnsignedShort(); // descriptor idx
 			hexdump.print("Field" + flags(access) + show(descriptor) + " " + show(name));
 			readAttributes(dis, "Field");
@@ -371,8 +360,8 @@ public class ByteCodeInspector extends ByteCodeFile {
 
 	private String show(int name) {
 		if (cleanMode)
-			return pool[name].asClean();
-		return pool[name].toString();
+			return pool.get(name).asClean();
+		return pool.get(name).toString();
 	}
 
 	private String show(CPInfo info) {
@@ -392,10 +381,10 @@ public class ByteCodeInspector extends ByteCodeFile {
 			if (len > 5000)
 				throw new RuntimeException("What? Attribute Len > 5000");
 			if (!cleanMode)
-				hexdump.print("idx = " + idx + ": " + pool[idx] + " len=" + len);
-			if (pool[idx] == null || !(pool[idx] instanceof CPInfo.Utf8Info))
+				hexdump.print("idx = " + idx + ": " + pool.get(idx) + " len=" + len);
+			if (pool.get(idx) == null || !(pool.get(idx) instanceof CPInfo.Utf8Info))
 				throw new UtilException("Invalid attribute: " + idx);
-			String attr = ((CPInfo.Utf8Info)pool[idx]).asString();
+			String attr = ((CPInfo.Utf8Info)pool.get(idx)).asString();
 			if (attr.equals("Code"))
 			{
 				/*
@@ -459,7 +448,7 @@ public class ByteCodeInspector extends ByteCodeFile {
 				for (int j=2;j<data.length;j+=2)
 				{
 					int ex = getDataShort(data, j);
-					hexdump.print("throws exception " + pool[ex].asClean());
+					hexdump.print("throws exception " + pool.get(ex).asClean());
 				}
 			}
 			else if (attr.equals("RuntimeVisibleAnnotations")) {
@@ -510,7 +499,7 @@ public class ByteCodeInspector extends ByteCodeFile {
 				byte[] bytes = new byte[len];
 				readBytes(dis, bytes);
 				if (cleanMode)
-					hexdump.print(type + " attribute " + pool[idx].asClean() + "[" + len + "]");
+					hexdump.print(type + " attribute " + pool.get(idx).asClean() + "[" + len + "]");
 				else
 					hexdump.print("");
 			}
@@ -519,13 +508,13 @@ public class ByteCodeInspector extends ByteCodeFile {
 
 	private void readAnnotation(DataInputStream dis) throws IOException {
 		int a = dis.readUnsignedShort();
-		hexdump.print("@" + pool[a].asClean());
+		hexdump.print("@" + pool.get(a).asClean());
 		int nvp = dis.readUnsignedShort();
 		hexdump.print(nvp + " arguments");
 		for (int rvp=0;rvp<nvp;rvp++)
 		{
 			int n = dis.readUnsignedShort();
-			hexdump.append("  " + pool[n].asClean() + "=");
+			hexdump.append("  " + pool.get(n).asClean() + "=");
 			readElementValue(dis);
 		}
 	}
@@ -536,13 +525,13 @@ public class ByteCodeInspector extends ByteCodeFile {
 		case 'c': // class
 		{
 			int offset = dis.readUnsignedShort();
-			hexdump.print(pool[offset].asClean() + ".class");
+			hexdump.print(pool.get(offset).asClean() + ".class");
 			break;
 		}
 		case 's': // utf8
 		{
 			int offset = dis.readUnsignedShort();
-			hexdump.print('"' + pool[offset].asClean() + '"');
+			hexdump.print('"' + pool.get(offset).asClean() + '"');
 			break;
 		}
 		case '[': // array
@@ -744,28 +733,28 @@ public class ByteCodeInspector extends ByteCodeFile {
 		case 0xb6:
 		{
 			int idx = dis.readUnsignedShort();
-			CPInfo info = pool[idx];
+			CPInfo info = pool.get(idx);
 			hexdump.print("invokevirtual " + show(info));
 			return 3;
 		}
 		case 0xb7:
 		{
 			int idx = dis.readUnsignedShort();
-			CPInfo info = pool[idx];
+			CPInfo info = pool.get(idx);
 			hexdump.print("invokespecial " + show(info));
 			return 3;
 		}
 		case 0xb8:
 		{
 			int idx = dis.readUnsignedShort();
-			CPInfo info = pool[idx];
+			CPInfo info = pool.get(idx);
 			hexdump.print("invokestatic " + show(info));
 			return 3;
 		}
 		case 0xb9:
 		{
 			int idx = dis.readUnsignedShort();
-			CPInfo info = pool[idx];
+			CPInfo info = pool.get(idx);
 			int count = dis.readUnsignedByte();
 			dis.readUnsignedByte(); // always zero
 			hexdump.print("invokeinterface " + show(info) + ", " + count);
@@ -774,14 +763,14 @@ public class ByteCodeInspector extends ByteCodeFile {
 		case 0xbb:
 		{
 			int idx = dis.readUnsignedShort();
-			CPInfo info = pool[idx];
+			CPInfo info = pool.get(idx);
 			hexdump.print("new " + show(info));
 			return 3;
 		}
 		case 0xbd:
 		{
 			int idx = dis.readUnsignedShort();
-			CPInfo info = pool[idx];
+			CPInfo info = pool.get(idx);
 			hexdump.print("anewarray " + show(info));
 			return 3;
 		}
@@ -793,7 +782,7 @@ public class ByteCodeInspector extends ByteCodeFile {
 		case 0xc0:
 		{
 			int idx = dis.readUnsignedShort();
-			CPInfo info = pool[idx];
+			CPInfo info = pool.get(idx);
 			hexdump.print("checkcast " + show(info));
 			return 3;
 		}
@@ -843,7 +832,7 @@ public class ByteCodeInspector extends ByteCodeFile {
 		{
 			/*
 			for (int i=0;i<pool.length;i++)
-				System.out.println(i + ": " + pool[i]);
+				System.out.println(i + ": " + pool.get(i));
 				*/
 			throw new UtilException("There is no handler for tag " + tag);
 		}

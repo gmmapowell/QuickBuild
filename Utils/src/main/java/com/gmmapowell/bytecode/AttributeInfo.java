@@ -3,11 +3,11 @@ package com.gmmapowell.bytecode;
 import com.gmmapowell.bytecode.CPInfo.Utf8Info;
 
 public class AttributeInfo {
-	private final CPInfo[] pool;
+	private final ConstPool pool;
 	final int nameIdx;
 	private final byte[] bytes;
 
-	public AttributeInfo(CPInfo[] pool, int nameIdx, byte[] bytes) {
+	public AttributeInfo(ConstPool pool, int nameIdx, byte[] bytes) {
 		this.pool = pool;
 		this.nameIdx = nameIdx;
 		this.bytes = bytes;
@@ -15,7 +15,7 @@ public class AttributeInfo {
 
 	public AttributeInfo(ByteCodeFile bcf, String attrClass, byte[] bytes) {
 		pool = bcf.pool;
-		nameIdx = bcf.requireUtf8(attrClass);
+		nameIdx = pool.requireUtf8(attrClass);
 		this.bytes = bytes;
 	}
 
@@ -25,11 +25,11 @@ public class AttributeInfo {
 
 	public boolean hasName(String s)
 	{
-		return s.equals(((Utf8Info)pool[nameIdx]).asString());
+		return s.equals(((Utf8Info)pool.get(nameIdx)).asString());
 	}
 	
 	@Override
 	public String toString() {
-		return "AttrInfo[" + pool[nameIdx] + ":" + bytes.length + "]";
+		return "AttrInfo[" + pool.get(nameIdx) + ":" + bytes.length + "]";
 	}
 }

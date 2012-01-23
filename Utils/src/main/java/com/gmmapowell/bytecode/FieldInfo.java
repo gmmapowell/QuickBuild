@@ -21,8 +21,8 @@ public class FieldInfo extends JavaInfo {
 		if (isFinal)
 			flags |= ByteCodeFile.ACC_FINAL;
 		access_flags = flags;
-		this.name_idx = bcf.requireUtf8(var);
-		this.descriptor_idx = bcf.requireUtf8(map(type));
+		this.name_idx = bcf.pool.requireUtf8(var);
+		this.descriptor_idx = bcf.pool.requireUtf8(map(type));
 	}
 
 	public FieldInfo(ByteCodeFile bcf) {
@@ -50,7 +50,7 @@ public class FieldInfo extends JavaInfo {
 	}
 
 	public void attribute(String named, String text) {
-		short ptr = bcf.requireUtf8(text);
+		short ptr = bcf.pool.requireUtf8(text);
 		byte[] data = new byte[2];
 		data[0] = (byte)(ptr>>8);
 		data[1] = (byte)(ptr&0xff);

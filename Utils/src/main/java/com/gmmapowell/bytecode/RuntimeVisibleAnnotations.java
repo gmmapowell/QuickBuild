@@ -52,7 +52,7 @@ public class RuntimeVisibleAnnotations {
 			for (int i=0;i<cnt;i++)
 			{
 				int nameIdx = dis.readUnsignedShort();
-				Annotation annotation = new Annotation(bcf, ((Utf8Info)bcf.pool[nameIdx]).asString());
+				Annotation annotation = new Annotation(bcf, ((Utf8Info)bcf.pool.get(nameIdx)).asString());
 				annotations.add(annotation);
 				int nargs = dis.readUnsignedShort();
 				for (int j=0;j<nargs;j++)

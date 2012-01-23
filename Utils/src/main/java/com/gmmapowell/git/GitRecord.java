@@ -9,6 +9,7 @@ public class GitRecord {
 	private File generates;
 	private boolean dirty;
 	private boolean error;
+	private boolean committed = false;
 
 	GitRecord(File file) {
 		this.source = file;
@@ -25,6 +26,8 @@ public class GitRecord {
 	 */
 	public void commit()
 	{
+		if (committed)
+			return;
 		// handle the error case first
 		if (error)
 		{
@@ -58,6 +61,7 @@ public class GitRecord {
 		}
 		else
 			throw new UtilException("I don't think this case should be able to happen");
+		committed = true;
 	}
 
 	boolean sourceExists() {

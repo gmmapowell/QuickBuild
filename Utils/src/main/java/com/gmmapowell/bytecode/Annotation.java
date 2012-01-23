@@ -59,7 +59,7 @@ public class Annotation
 			for (int i=0;i<cnt;i++)
 			{
 				short idx = dis.readShort();
-				String name = JavaInfo.unmap(((Utf8Info)bcf.pool[idx]).asString());
+				String name = JavaInfo.unmap(((Utf8Info)bcf.pool.get(idx)).asString());
 				int argcnt = dis.readShort();
 				List<AnnotationArg> args = new ArrayList<AnnotationArg>();
 				for (int j=0;j<argcnt;j++)
@@ -75,7 +75,7 @@ public class Annotation
 	}
 
 	public void write(DataOutputStream dos) throws IOException {
-		dos.writeShort(bcf.requireUtf8(JavaInfo.map(name))); 
+		dos.writeShort(bcf.pool.requireUtf8(JavaInfo.map(name))); 
 		dos.writeShort(args.size());
 		for (AnnotationArg a : args)
 			a.write(dos);

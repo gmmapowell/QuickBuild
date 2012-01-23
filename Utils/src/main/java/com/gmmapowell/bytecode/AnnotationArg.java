@@ -35,20 +35,20 @@ public class AnnotationArg {
 	}
 	
 	public static AnnotationArg classParam(ByteCodeFile bcf, String paramName, String className) {
-		return new AnnotationArg(bcf, paramName, new AnnotationValue(AnnotationTag.CLASS, bcf.requireUtf8(JavaInfo.map(className))));
+		return new AnnotationArg(bcf, paramName, new AnnotationValue(AnnotationTag.CLASS, bcf.pool.requireUtf8(JavaInfo.map(className))));
 	}
 
 	public static AnnotationArg readArg(ByteCodeFile bcf, DataInputStream dis) throws IOException {
 		short nameIdx = dis.readShort();
 		AnnotationValue value = AnnotationValue.parse(bcf, dis);
-		return new AnnotationArg(bcf, ((Utf8Info)bcf.pool[nameIdx]).asString(), value);
+		return new AnnotationArg(bcf, ((Utf8Info)bcf.pool.get(nameIdx)).asString(), value);
 	}
 
 	public static AnnotationArg classArray(ByteCodeFile bcf, String name, String[] classNames)
 	{
 		AnnotationValue[] classStructs = new AnnotationValue[classNames.length];
 		for (int i=0;i<classNames.length;i++)
-			classStructs[i] = new AnnotationValue(AnnotationTag.CLASS, bcf.requireUtf8(JavaInfo.map(classNames[i])));
+			classStructs[i] = new AnnotationValue(AnnotationTag.CLASS, bcf.pool.requireUtf8(JavaInfo.map(classNames[i])));
 		return new AnnotationArg(bcf, name, new AnnotationValue(AnnotationTag.ARRAY, classStructs));
 	}
 	
@@ -60,7 +60,7 @@ public class AnnotationArg {
 	}
 	
 	public void write(DataOutputStream dos) throws IOException {
-		dos.writeShort(bcf.requireUtf8(name));
+		dos.writeShort(bcf.pool.requireUtf8(name));
 		value.write(bcf, dos);
 	}
 	

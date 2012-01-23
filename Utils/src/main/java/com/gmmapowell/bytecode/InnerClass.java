@@ -13,9 +13,9 @@ public class InnerClass implements Comparable<InnerClass> {
 
 	public InnerClass(ByteCodeFile bcf, Access access, String projClz, String enclosingClass, String innerName) {
 		this.access = access;
-		inner = bcf.requireClass(projClz);
-		enclosing = bcf.requireClass(enclosingClass);
-		this.innerName = bcf.requireUtf8(innerName);
+		inner = bcf.pool.requireClass(projClz);
+		enclosing = bcf.pool.requireClass(enclosingClass);
+		this.innerName = bcf.pool.requireUtf8(innerName);
 	}
 
 	public void write(DataOutputStream dos) throws IOException {

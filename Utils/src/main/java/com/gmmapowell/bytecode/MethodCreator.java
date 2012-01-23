@@ -42,7 +42,7 @@ public class MethodCreator extends MethodInfo {
 		this.name = name;
 		this.returnType = map(returnType);
 		this.byteCodeCreator = byteCodeCreator;
-		nameIdx = bcf.requireUtf8(name);
+		nameIdx = bcf.pool.requireUtf8(name);
 		if (!isStatic)
 		{
 			locals = 1;
@@ -59,7 +59,7 @@ public class MethodCreator extends MethodInfo {
 	}
 	
 	public void addAttribute(String named, String text) {
-		short ptr = bcf.requireUtf8(text);
+		short ptr = bcf.pool.requireUtf8(text);
 		byte[] data = new byte[2];
 		data[0] = (byte)(ptr>>8);
 		data[1] = (byte)(ptr&0xff);
@@ -279,7 +279,7 @@ public class MethodCreator extends MethodInfo {
 				DataOutputStream dos = new DataOutputStream(baos);
 				dos.writeShort(exceptions.size());
 				for (String s : exceptions)
-					dos.writeShort(bcf.requireClass(s));
+					dos.writeShort(bcf.pool.requireClass(s));
 				attributes.add(bcf.newAttribute("Exceptions", baos.toByteArray()));
 			}
 			catch (Exception ex)
@@ -322,7 +322,7 @@ public class MethodCreator extends MethodInfo {
 				}
 			}
 		}
-		descriptorIdx = bcf.requireUtf8(signature());
+		descriptorIdx = bcf.pool.requireUtf8(signature());
 	}
 
 	private String signature() {
@@ -377,7 +377,7 @@ public class MethodCreator extends MethodInfo {
 	
 	public void anewarray(String clz)
 	{
-		int idx = bcf.requireClass(clz);
+		int idx = bcf.pool.requireClass(clz);
 		add(0, new Instruction(0xbd, hi(idx), lo(idx)));
 	}
 
@@ -400,7 +400,7 @@ public class MethodCreator extends MethodInfo {
 	
 	public void checkCast(String clz)
 	{
-		int idx = bcf.requireClass(JavaInfo.mapPrimitive(clz));
+		int idx = bcf.pool.requireClass(JavaInfo.mapPrimitive(clz));
 		add(0, new Instruction(0xc0, idx>>8, idx &0xff));
 	}
 
@@ -431,20 +431,20 @@ public class MethodCreator extends MethodInfo {
 	}
 
 	public void getField(String clz, String type, String var) {
-		int clzIdx = bcf.requireClass(clz);
-		int fieldIdx = bcf.requireUtf8(var);
-		int sigIdx = bcf.requireUtf8(map(type));
-		int ntIdx = bcf.requireNT(fieldIdx, sigIdx);
-		int idx = bcf.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
+		int clzIdx = bcf.pool.requireClass(clz);
+		int fieldIdx = bcf.pool.requireUtf8(var);
+		int sigIdx = bcf.pool.requireUtf8(map(type));
+		int ntIdx = bcf.pool.requireNT(fieldIdx, sigIdx);
+		int idx = bcf.pool.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
 		add(0, new Instruction(0xb4, hi(idx), lo(idx)));
 	}
 
 	public void getStatic(String clz, String type, String var) {
-		int clzIdx = bcf.requireClass(clz);
-		int fieldIdx = bcf.requireUtf8(var);
-		int sigIdx = bcf.requireUtf8(map(type));
-		int ntIdx = bcf.requireNT(fieldIdx, sigIdx);
-		int idx = bcf.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
+		int clzIdx = bcf.pool.requireClass(clz);
+		int fieldIdx = bcf.pool.requireUtf8(var);
+		int sigIdx = bcf.pool.requireUtf8(map(type));
+		int ntIdx = bcf.pool.requireNT(fieldIdx, sigIdx);
+		int idx = bcf.pool.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
 		add(1, new Instruction(0xb2, hi(idx), lo(idx)));
 	}
 
@@ -546,11 +546,11 @@ public class MethodCreator extends MethodInfo {
 	}
 
 	private int invokeIdx(String clz, String ret, String meth, byte refType, String... args) {
-		int clzIdx = bcf.requireClass(clz);
-		int methIdx = bcf.requireUtf8(meth);
-		int sigIdx = bcf.requireUtf8(signature(map(ret), Lambda.map(mapType, CollectionUtils.listOf(args))));
-		int ntIdx = bcf.requireNT(methIdx, sigIdx);
-		int idx = bcf.requireRef(refType, clzIdx, ntIdx);
+		int clzIdx = bcf.pool.requireClass(clz);
+		int methIdx = bcf.pool.requireUtf8(meth);
+		int sigIdx = bcf.pool.requireUtf8(signature(map(ret), Lambda.map(mapType, CollectionUtils.listOf(args))));
+		int ntIdx = bcf.pool.requireNT(methIdx, sigIdx);
+		int idx = bcf.pool.requireRef(refType, clzIdx, ntIdx);
 		return idx;
 	}
 	
@@ -598,15 +598,23 @@ public class MethodCreator extends MethodInfo {
 
 	public void ldcClass(String clz)
 	{
-		add(1, new Instruction(0x12, bcf.requireClass(JavaInfo.mapPrimitive(clz))));
+		int idx = bcf.pool.requireClass(JavaInfo.mapPrimitive(clz));
+		if (idx < 256)
+			add(1, new Instruction(0x12, idx));
+		else
+			add(1, new Instruction(0x13, hi(idx), lo(idx)));
 	}
 
 	public void ldcString(String string) {
-		add(1, new Instruction(0x12, bcf.requireString(string)));
+		int idx = bcf.pool.requireString(string);
+		if (idx < 256)
+			add(1, new Instruction(0x12, idx));
+		else
+			add(1, new Instruction(0x13, hi(idx), lo(idx)));
 	}
 	
 	public void newObject(String clz) {
-		int idx = bcf.requireClass(clz);
+		int idx = bcf.pool.requireClass(clz);
 		add(1, new Instruction(0xbb, idx>>8,idx&0xff));
 	}
 
@@ -615,11 +623,11 @@ public class MethodCreator extends MethodInfo {
 	}
 
 	public void putField(String clz, String type, String var) {
-		int clzIdx = bcf.requireClass(clz);
-		int fieldIdx = bcf.requireUtf8(var);
-		int sigIdx = bcf.requireUtf8(map(type));
-		int ntIdx = bcf.requireNT(fieldIdx, sigIdx);
-		int idx = bcf.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
+		int clzIdx = bcf.pool.requireClass(clz);
+		int fieldIdx = bcf.pool.requireUtf8(var);
+		int sigIdx = bcf.pool.requireUtf8(map(type));
+		int ntIdx = bcf.pool.requireNT(fieldIdx, sigIdx);
+		int idx = bcf.pool.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
 		int pop = -2;
 		if (type.equals("double"))
 			pop = -3;
@@ -627,11 +635,11 @@ public class MethodCreator extends MethodInfo {
 	}
 
 	public void putStatic(String clz, String type, String var) {
-		int clzIdx = bcf.requireClass(clz);
-		int fieldIdx = bcf.requireUtf8(var);
-		int sigIdx = bcf.requireUtf8(map(type));
-		int ntIdx = bcf.requireNT(fieldIdx, sigIdx);
-		int idx = bcf.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
+		int clzIdx = bcf.pool.requireClass(clz);
+		int fieldIdx = bcf.pool.requireUtf8(var);
+		int sigIdx = bcf.pool.requireUtf8(map(type));
+		int ntIdx = bcf.pool.requireNT(fieldIdx, sigIdx);
+		int idx = bcf.pool.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
 		int pop = -1;
 		if (type.equals("double"))
 			pop = -2;

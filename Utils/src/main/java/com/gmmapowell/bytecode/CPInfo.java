@@ -10,7 +10,7 @@ public abstract class CPInfo {
 
 	}
 
-	protected final CPInfo[] pool;
+	protected final ConstPool pool;
 	protected final int idx;
 
 	public CPInfo()
@@ -19,7 +19,7 @@ public abstract class CPInfo {
 		idx = 0;
 	}
 	
-	public CPInfo(CPInfo[] pool, int idx) {
+	public CPInfo(ConstPool pool, int idx) {
 		this.pool = pool;
 		this.idx = idx;
 	}
@@ -161,13 +161,13 @@ public abstract class CPInfo {
 
 	public static class ClassInfo extends CPInfo {
 
-		public ClassInfo(CPInfo[] pool, int idx) {
+		public ClassInfo(ConstPool pool, int idx) {
 			super(pool, idx);
 		}
 		
 		@Override
 		public String toString() {
-			return "ClassInfo[" + idx + "{" + pool[idx] + "}]";
+			return "ClassInfo[" + idx + "{" + pool.get(idx) + "}]";
 		}
 		
 		@Override
@@ -178,7 +178,7 @@ public abstract class CPInfo {
 			}
 			else if (obj instanceof String)
 			{
-				return ((Utf8Info)super.pool[idx]).utf8.equals(obj);
+				return ((Utf8Info)super.pool.get(idx)).utf8.equals(obj);
 			}
 			return super.equals(obj);
 		}
@@ -195,20 +195,20 @@ public abstract class CPInfo {
 		}
 
 		public String justName() {
-			return ((Utf8Info)pool[idx]).asClean();
+			return ((Utf8Info)pool.get(idx)).asClean();
 		}
 
 	}
 
 	public static class StringInfo extends CPInfo {
 
-		public StringInfo(CPInfo[] pool, int idx) {
+		public StringInfo(ConstPool pool, int idx) {
 			super(pool, idx);
 		}
 
 		@Override
 		public String asClean() {
-			return '"' + pool[idx].asClean() + '"';
+			return '"' + pool.get(idx).asClean() + '"';
 		}
 
 		@Override
@@ -226,7 +226,7 @@ public abstract class CPInfo {
 		private final int clz;
 		private final int nt;
 
-		public RefInfo(CPInfo[] pool, int clz, int nt, int tag) {
+		public RefInfo(ConstPool pool, int clz, int nt, int tag) {
 			super(pool, 0);
 			this.clz = clz;
 			this.nt = nt;
@@ -237,16 +237,16 @@ public abstract class CPInfo {
 		public String asClean() {
 			if (tag == 9)
 			{
-				NTInfo cpInfo = (NTInfo) pool[nt];
-				return "F" + pool[clz].asClean() + "." + pool[cpInfo.name].asClean() + "{" + pool[cpInfo.descriptor].asClean() + "}";  
+				NTInfo cpInfo = (NTInfo) pool.get(nt);
+				return "F" + pool.get(clz).asClean() + "." + pool.get(cpInfo.name).asClean() + "{" + pool.get(cpInfo.descriptor).asClean() + "}";  
 			}
 			else if (tag == 10 || tag == 11)
 			{
 				String cm = "M";
 				if (tag == 11)
 					cm = "I";
-				NTInfo cpInfo = (NTInfo) pool[nt];
-				return cm + pool[clz].asClean() + "." + pool[cpInfo.name].asClean() + " " + pool[cpInfo.descriptor].asClean(); 
+				NTInfo cpInfo = (NTInfo) pool.get(nt);
+				return cm + pool.get(clz).asClean() + "." + pool.get(cpInfo.name).asClean() + " " + pool.get(cpInfo.descriptor).asClean(); 
 			}
 			else
 				throw new UtilException("No");
@@ -254,10 +254,10 @@ public abstract class CPInfo {
 
 		@Override
 		public String toString() {
-			String s = tagAsString() + getClass().getSimpleName() + "[" + super.hex(clz) + "," + super.hex(nt) + "] {" + pool[clz] + " " + pool[nt] + "}";
-//			s += "{" +super.pool[clz] + "} [" + super.pool[nt] + "]";
-//			if (super.pool != null && super.pool[super.idx] != null)
-//				return + idx + "/" + Integer.toHexString(idx) + "]> " + pool[idx].toString();
+			String s = tagAsString() + getClass().getSimpleName() + "[" + super.hex(clz) + "," + super.hex(nt) + "] {" + pool.get(clz) + " " + pool.get(nt) + "}";
+//			s += "{" +super.pool.get(clz) + "} [" + super.pool.get(nt) + "]";
+//			if (super.pool != null && super.pool.get(super.idx) != null)
+//				return + idx + "/" + Integer.toHexString(idx) + "]> " + pool.get(idx).toString();
 			return s;
 		}
 
@@ -292,7 +292,7 @@ public abstract class CPInfo {
 		private final int name;
 		private final int descriptor;
 
-		public NTInfo(CPInfo[] pool, int name, int descriptor) {
+		public NTInfo(ConstPool pool, int name, int descriptor) {
 			super(pool, 0);
 			this.name = name;
 			this.descriptor = descriptor;
@@ -300,9 +300,9 @@ public abstract class CPInfo {
 
 		@Override
 		public String toString() {
-			String s = getClass().getSimpleName() + "[" + super.hex(name) + "," + super.hex(descriptor) + "] {" + pool[name] + " " + pool[descriptor] + "}"; 
-//			if (super.pool != null && super.pool[super.idx] != null)
-//				return + idx + "/" + Integer.toHexString(idx) + "]> " + pool[idx].toString();
+			String s = getClass().getSimpleName() + "[" + super.hex(name) + "," + super.hex(descriptor) + "] {" + pool.get(name) + " " + pool.get(descriptor) + "}"; 
+//			if (super.pool != null && super.pool.get(super.idx) != null)
+//				return + idx + "/" + Integer.toHexString(idx) + "]> " + pool.get(idx).toString();
 			return s;
 		}
 
@@ -331,8 +331,8 @@ public abstract class CPInfo {
 
 	@Override
 	public String toString() {
-		if (pool != null && pool[idx] != null)
-			return getClass().getSimpleName() + "[" + hex(idx) + "] " + pool[idx].toString();
+		if (pool != null && pool.get(idx) != null)
+			return getClass().getSimpleName() + "[" + hex(idx) + "] " + pool.get(idx).toString();
 		return super.toString();
 	}
 

@@ -37,14 +37,14 @@ public enum AnnotationTag {
 		{
 			dos.writeByte('e');
 			String[] typeValue = (String[])value;
-			dos.writeShort(bcf.requireUtf8((String)typeValue[0]));
-			dos.writeShort(bcf.requireUtf8((String)typeValue[1]));
+			dos.writeShort(bcf.pool.requireUtf8((String)typeValue[0]));
+			dos.writeShort(bcf.pool.requireUtf8((String)typeValue[1]));
 			break;
 		}
 		case TEXT:
 		{
 			dos.writeByte('s');
-			dos.writeShort(bcf.requireUtf8((String)value));
+			dos.writeShort(bcf.pool.requireUtf8((String)value));
 			break;
 		}
 		default:
@@ -91,13 +91,13 @@ public enum AnnotationTag {
 		}
 		case ENUM:
 		{
-			String type = ((Utf8Info) bcf.pool[dis.readShort()]).asString();
-			String constant = ((Utf8Info) bcf.pool[dis.readShort()]).asString();
+			String type = ((Utf8Info) bcf.pool.get(dis.readShort())).asString();
+			String constant = ((Utf8Info) bcf.pool.get(dis.readShort())).asString();
 			return new String[] { type, constant };
 		}
 		case TEXT:
 		{
-			return ((Utf8Info) bcf.pool[dis.readShort()]).asString();
+			return ((Utf8Info) bcf.pool.get(dis.readShort())).asString();
 		}
 		default:
 			throw new UtilException("Cannot handle " + this);

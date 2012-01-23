@@ -117,7 +117,7 @@ public class ByteCodeCreator {
 	}
 	
 	public void signatureAttribute(String name, String sig) {
-		int u8 = bcf.requireUtf8(sig);
+		int u8 = bcf.pool.requireUtf8(sig);
 		byte[] data = new byte[2];
 		data[0] = (byte) ((u8>>8)&0xff);
 		data[1] = (byte) (u8&0xff);
