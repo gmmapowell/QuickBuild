@@ -38,15 +38,20 @@ public class JavaDocCommand extends AbstractBuildCommand implements Strategem, T
 	private String outdir;
 	private File outputdir;
 	private List<String> projects = new ArrayList<String>();
+	private BuildClassPath bootclasspath;
 
 	@SuppressWarnings("unchecked")
 	public JavaDocCommand(TokenizedLine toks) {
 		toks.process(this,
 				new ArgumentDefinition("*", Cardinality.OPTION, "outdir", "output directory"));
 		this.rootdir = FileUtils.getCurrentDir();
+		this.bootclasspath = new BuildClassPath();
 	}
 
-
+	public void addToBootClasspath(File file) {
+		bootclasspath.add(FileUtils.relativePath(file));
+	}
+	
 	@Override
 	public Strategem applyConfig(Config config) {
 		outputdir = new File(rootdir, outdir);
@@ -63,6 +68,8 @@ public class JavaDocCommand extends AbstractBuildCommand implements Strategem, T
 			projects.add(((IncludePackageCommand) opt).pkg);
 		else if (opt instanceof OverviewCommand)
 			overview = ((OverviewCommand) opt).overview;
+		else if (opt instanceof BootClassPathCommand)
+			addToBootClasspath(((BootClassPathCommand)opt).getFile());
 		else
 			return false;
 		return true;
@@ -111,6 +118,11 @@ public class JavaDocCommand extends AbstractBuildCommand implements Strategem, T
 		proc.captureStdout();
 		proc.captureStderr();
 	
+		if (!bootclasspath.empty())
+		{
+			proc.arg("-bootclasspath");
+			proc.arg(bootclasspath.toString());
+		}
 		proc.arg("-d");
 		proc.arg(outputdir.getPath());
 		proc.arg("-sourcepath");

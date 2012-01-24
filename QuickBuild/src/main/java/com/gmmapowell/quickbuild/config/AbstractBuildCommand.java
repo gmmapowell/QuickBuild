@@ -22,6 +22,7 @@ public abstract class AbstractBuildCommand extends SpecificChildrenParent<Config
 	public void handleOptions(Config config) {
 		for (ConfigApplyCommand opt : options)
 		{
+			opt.applyTo(config);
 			if (handleOption(config, opt))
 				continue;
 			throw new UtilException("The option " + opt + " is not supported");

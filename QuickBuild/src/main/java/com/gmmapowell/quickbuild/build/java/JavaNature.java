@@ -13,6 +13,7 @@ import com.gmmapowell.exceptions.GPJarException;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildContextAware;
+import com.gmmapowell.quickbuild.config.BuildIfCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
@@ -46,6 +47,7 @@ public class JavaNature implements Nature, BuildContextAware {
 		config.addCommandExtension("package", IncludePackageCommand.class);
 		config.addCommandExtension("target", SpecifyTargetCommand.class);
 		config.addCommandExtension("war", WarCommand.class);
+		config.addCommandExtension("boot", BootClassPathCommand.class);
 	}
 
 	public JavaNature(Config conf)
