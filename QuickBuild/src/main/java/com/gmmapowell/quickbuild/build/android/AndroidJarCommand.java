@@ -34,6 +34,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 	private StructureHelper files;
 	private File srcdir;
 	private JarResource androidJar;
+	private List<Tactic> tactics;
 
 	@SuppressWarnings("unchecked")
 	public AndroidJarCommand(TokenizedLine toks) {
@@ -59,13 +60,15 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 
 	@Override
 	public List<? extends Tactic> tactics() {
-		List<Tactic> ret = new ArrayList<Tactic>();
-
+		if (tactics != null)
+			return tactics;
+		tactics = new ArrayList<Tactic>();
+		
 		// Hasten, hasten ... cutten and pasten from AndroidCommand
 		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", FileUtils.findFilesMatching(files.getRelative("src/main/java"), "*.java"), "android");
 		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
-		ret.add(buildSrc);
+		tactics.add(buildSrc);
 		
 		File resdir = files.getRelative("src/main/resources");
 		/* I think this is a bad idea ...
@@ -90,9 +93,9 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 		jar.add(files.getOutput("classes"));
 		if (resdir.exists())
 			jar.add(resdir);
-		ret.add(jar);
+		tactics.add(jar);
 
-		return ret;
+		return tactics;
 	}
 
 	@Override

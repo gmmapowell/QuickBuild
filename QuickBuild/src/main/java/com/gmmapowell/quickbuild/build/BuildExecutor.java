@@ -187,7 +187,7 @@ public class BuildExecutor {
 	public BuildStatus execute(ItemToBuild itb) {
 		if (cxt.quietMode())
 		{
-			if (itb.needsBuild.needsBuild())
+			if (itb.firstTactic() && itb.needsBuild.needsBuild())
 				System.out.println("* " + itb.name());
 		}
 		else
