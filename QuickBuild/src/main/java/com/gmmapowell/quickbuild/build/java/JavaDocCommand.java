@@ -65,7 +65,7 @@ public class JavaDocCommand extends AbstractBuildCommand implements Strategem, T
 		if (super.handleOption(config, opt))
 			return true;
 		else if (opt instanceof IncludePackageCommand)
-			projects.add(((IncludePackageCommand) opt).pkg);
+			projects.add(((IncludePackageCommand) opt).getPackage());
 		else if (opt instanceof OverviewCommand)
 			overview = ((OverviewCommand) opt).overview;
 		else if (opt instanceof BootClassPathCommand)

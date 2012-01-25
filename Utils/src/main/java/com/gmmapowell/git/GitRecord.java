@@ -64,7 +64,7 @@ public class GitRecord {
 				throw new UtilException("Could not rename " + generates + " to " + source);
 		}
 		else
-			throw new UtilException("I don't think this case should be able to happen");
+			throw new UtilException("I don't think this case should be able to happen: " + source + " " + generates);
 		committed = true;
 	}
 

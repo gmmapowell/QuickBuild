@@ -15,4 +15,9 @@ case `uname -s` in
      ;;
 esac
 
-java -cp "$CLASSPATH$SEP$ROOTDIR/QuickBuild.jar$SEP$ROOTDIR/Utils.jar$SEP$ROOTDIR/../qb/libs/jsch-0.1.41.jar" com.gmmapowell.quickbuild.app.QuickBuild "$@"
+CLASSPATH="$CLASSPATH$SEP$ROOTDIR/QuickBuild.jar$SEP$ROOTDIR/Utils.jar"
+for i in $ROOTDIR/../qb/libs/* ; do
+  CLASSPATH="$CLASSPATH$SEP$i"
+done
+
+java -cp "$CLASSPATH" com.gmmapowell.quickbuild.app.QuickBuild "$@"

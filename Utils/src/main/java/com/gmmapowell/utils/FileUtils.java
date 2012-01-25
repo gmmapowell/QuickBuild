@@ -357,6 +357,42 @@ public class FileUtils {
 		}
 	}
 
+	public static File copyStreamToTempFile(InputStream is) {
+		try
+		{
+			File tmp = File.createTempFile("copy", "out");
+			tmp.deleteOnExit();
+			copyStreamToFile(is, tmp);
+			return tmp;
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
+	}
+	
+	public static void copyStreamToFile(InputStream is, File outFile) {
+		try
+		{
+			FileOutputStream to = null;
+			try
+			{
+				to = new FileOutputStream(outFile);
+				copyStream(is, to);
+			}
+			finally
+			{
+				if (to != null)
+					to.close();
+			}
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
+	}
+
+
 	public static void copyStream(InputStream inputStream, OutputStream to) throws IOException {
 		byte[] bs = new byte[500];
 		int cnt = 0;

@@ -3,6 +3,7 @@ package com.gmmapowell.quickbuild.build.java;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -39,6 +40,8 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 	private final List<Tactic> tactics = new ArrayList<Tactic>();
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
+	private final List<ResourceCommand> resources = new ArrayList<ResourceCommand>();
+	private MainClassCommand mainClass;
 
 	@SuppressWarnings("unchecked")
 	public JarJarCommand(TokenizedLine toks) {
@@ -66,6 +69,12 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 			{
 				addResource((ResourceCommand)opt);
 			}
+			else if (opt instanceof MainClassCommand)
+			{
+				if (mainClass != null)
+					throw new UtilException("You cannot specify more than one main class");
+				mainClass = (MainClassCommand) opt;
+			}
 			else
 				throw new UtilException("The option " + opt + " is not valid for JarCommand");
 		}
@@ -74,6 +83,7 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 
 	private void addResource(ResourceCommand opt) {
 		needs.add(opt.getPendingResource());
+		resources .add(opt);
 	}
 
 	@Override
@@ -118,14 +128,16 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
-		JarOutputStream jf = null;
+		JarOutputStream jos = null;
 		try {
 			FileUtils.assertDirectory(new File(outputTo).getParentFile());
-			jf = new JarOutputStream(new FileOutputStream(FileUtils.relativePath(outputTo)));
+			jos = new JarOutputStream(new FileOutputStream(FileUtils.relativePath(outputTo)));
 			// TODO: should write META-INF/MANIFEST.MF
 			Set<String> entries = new HashSet<String>();
-			for (PendingResource pr : needs)
+			writeManifest(jos);
+			for (ResourceCommand rc : resources)
 			{
+				PendingResource pr = rc.getPendingResource();
 				BuildResource actual = pr.physicalResource();
 				if (!(actual instanceof JarResource))
 					throw new UtilException(pr + " is not a jar resource");
@@ -133,19 +145,25 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 				for (GPJarEntry je : gpj)
 				{
 					String name = je.getName();
-					if (name.equals("META-INF/MANIFEST.MF") || name.startsWith(".git"))
+					if (name.equals("META-INF/"))
+						continue;
+					else if (name.equals("META-INF/MANIFEST.MF"))
+						continue;
+					else if (name.startsWith(".git"))
 						continue;
 					else if (name.endsWith("/") && entries.contains(name))
 						continue;
 					else if (name.startsWith("META-INF/") && entries.contains(name))
 						continue;
-					jf.putNextEntry(new JarEntry(je.getJava()));
-					FileUtils.copyStream(je.asStream(), jf);
+					else if (!rc.includes(name))
+						continue;
+					jos.putNextEntry(new JarEntry(je.getJava()));
+					FileUtils.copyStream(je.asStream(), jos);
 					entries.add(name);
 				}
 			}
-			jf.close();
-			jf = null;
+			jos.close();
+			jos = null;
 			builds.provide(cxt, false);
 			return BuildStatus.SUCCESS;
 		} catch (Exception ex) {
@@ -155,8 +173,8 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 		}
 		finally {
 			try {
-				if (jf != null)
-					jf.close();
+				if (jos != null)
+					jos.close();
 			}
 			catch (IOException ex)
 			{
@@ -164,6 +182,14 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 			}
 		}
 
+	}
+
+	private void writeManifest(JarOutputStream jos) throws IOException {
+		jos.putNextEntry(new JarEntry("META-INF/MANIFEST.MF"));
+		PrintWriter pw = new PrintWriter(jos);
+		if (mainClass != null)
+			pw.println("Main-Class: " + mainClass.getName());
+		pw.flush();
 	}
 
 	@Override

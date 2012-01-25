@@ -8,8 +8,8 @@ import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 
 public class IncludePackageCommand extends NoChildCommand implements ConfigApplyCommand {
-	boolean exclude;
-	String pkg;
+	private boolean exclude;
+	private String pkg;
 	
 	public IncludePackageCommand(TokenizedLine toks)
 	{
@@ -23,6 +23,14 @@ public class IncludePackageCommand extends NoChildCommand implements ConfigApply
 		
 	}
 	
+	public boolean isExclude() {
+		return exclude;
+	}
+
+	public String getPackage() {
+		return pkg;
+	}
+
 	@Override
 	public String toString() {
 		return "IncludePackage[" + /* name + */ "]";

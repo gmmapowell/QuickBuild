@@ -131,13 +131,13 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	}
 
 	private void includePackage(IncludePackageCommand ipc) {
-		if (ipc.exclude)
+		if (ipc.isExclude())
 		{
 			if (includePackages != null)
 				throw new UtilException("Cannot request both include and exclude packages for " + this);
 			if (excludePackages == null)
 				excludePackages = new ArrayList<File>();
-			excludePackages.add(FileUtils.convertDottedToPath(ipc.pkg));
+			excludePackages.add(FileUtils.convertDottedToPath(ipc.getPackage()));
 		}
 		else
 		{
@@ -145,7 +145,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 				throw new UtilException("Cannot request both include and exclude packages for " + this);
 			if (includePackages == null)
 				includePackages = new ArrayList<File>();
-			includePackages.add(FileUtils.convertDottedToPath(ipc.pkg));
+			includePackages.add(FileUtils.convertDottedToPath(ipc.getPackage()));
 		}
 	}
 
