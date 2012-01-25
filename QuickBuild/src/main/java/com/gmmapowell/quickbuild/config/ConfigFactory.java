@@ -17,6 +17,7 @@ import com.gmmapowell.quickbuild.build.ImageMagickConvertCommand;
 import com.gmmapowell.quickbuild.build.ImageMagickLauncherIcon;
 import com.gmmapowell.quickbuild.build.ImageMagickNotificationIcon;
 import com.gmmapowell.quickbuild.build.ftp.DistributeCommand;
+import com.gmmapowell.quickbuild.build.ftp.DistributeSeparatelyCommand;
 import com.gmmapowell.quickbuild.build.ftp.DistributeWrapCommand;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
@@ -55,6 +56,7 @@ public class ConfigFactory implements CommandObjectFactory {
 		// this should be in some other nature, but save me now!
 		addCommandExtension("distribute", DistributeCommand.class);
 		addCommandExtension("wrap", DistributeWrapCommand.class);
+		addCommandExtension("separately", DistributeSeparatelyCommand.class);
 		addCommandExtension("images", ImageMagickConvertCommand.class);
 		addCommandExtension("launcher", ImageMagickLauncherIcon.class);
 		addCommandExtension("notification", ImageMagickNotificationIcon.class);

@@ -44,6 +44,9 @@ public class WriteThruStream {
 			}
 		}
 
+		public void cancel() {
+			WriteThruStream.this.cancel();
+		}
 		
 		/* I would like to do this, but it feels hard to get all the numbers right...
 		@Override
@@ -85,7 +88,10 @@ public class WriteThruStream {
 				return ret&0xff;
 			}
 		}
-
+		
+		public void cancel() {
+			WriteThruStream.this.cancel();
+		}
 		/* I would like to do this, but it feels hard to get all the numbers right...
 		@Override
 		public int read(byte[] b, int off, int len) throws IOException {

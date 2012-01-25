@@ -54,6 +54,7 @@ public class DistributeCommand extends AbstractBuildCommand implements ConfigBui
 	private String method;
 	private String bucket;
 	private boolean fullyConfigured;
+	private boolean separately;
 
 	@SuppressWarnings("unchecked")
 	public DistributeCommand(TokenizedLine toks) {
@@ -133,6 +134,10 @@ public class DistributeCommand extends AbstractBuildCommand implements ConfigBui
 			if (!wrapIn.endsWith("/"))
 				wrapIn += "/";
 		}
+		else if (opt instanceof DistributeSeparatelyCommand)
+		{
+			separately  = true;
+		}
 		else
 			return false;
 		return true;
@@ -190,36 +195,68 @@ public class DistributeCommand extends AbstractBuildCommand implements ConfigBui
 			System.out.println("Skipping distribute because not fully configured");
 			return BuildStatus.SKIPPED;
 		}
-		ZipOutputStream os = null;
-		try
-		{
-			WriteThruStream wts = new WriteThruStream();
-			os = new ZipOutputStream(wts.getOutputEnd());
-			SenderThread thr;
-			if (method.equals("sftp"))
-				thr = new SftpSenderThread(wts);
-			else if (method.equals("s3"))
-				thr = new S3SenderThread(wts);
-			else
-				throw new UtilException("Unrecognized distribute method: " + method);
-			thr.start();
-			sendFilesTo(os);
-			os.close();
-			thr.join();
-			builds.provide(cxt, false);
-			if (thr.broken)
-				return BuildStatus.BROKEN;
-		}
-		catch (Exception ex)
+		if (separately)
 		{
 			try
 			{
-				if (os != null)
-					os.close();
+				if (method.equals("s3"))
+				{
+					AmazonS3 s3 = new AmazonS3Client(new PropertiesCredentials(privateKeyPath));
+					for (File f : FileUtils.findFilesUnderMatching(fromdir, "*"))
+					{
+						File g = FileUtils.relativePath(fromdir, f.getPath());
+	//					System.out.println("Sending " + g + " => " + g.isDirectory());
+						if (g.isDirectory())
+							continue;
+						else
+						{
+							s3.putObject(bucket, saveAs + f.getPath(), g);
+						}
+					}
+				}
+				else
+				{
+					throw new UtilException("Sending separate files to sftp is not yet implemented");
+				}
 			}
-			catch (Exception e2) { } 
-			ex.printStackTrace();
-			return BuildStatus.BROKEN;
+			catch (Exception ex)
+			{
+				throw UtilException.wrap(ex);
+			}
+		}
+		else
+		{
+			ZipOutputStream os = null;
+			try
+			{
+				WriteThruStream wts = new WriteThruStream();
+				os = new ZipOutputStream(wts.getOutputEnd());
+				SenderThread thr;
+				if (method.equals("sftp"))
+					thr = new SftpSenderThread(wts);
+				else if (method.equals("s3"))
+					thr = new S3SenderThread(wts);
+				else
+					throw new UtilException("Unrecognized distribute method: " + method);
+				thr.start();
+				sendFilesTo(os);
+				os.close();
+				thr.join();
+				builds.provide(cxt, false);
+				if (thr.broken)
+					return BuildStatus.BROKEN;
+			}
+			catch (Exception ex)
+			{
+				try
+				{
+					if (os != null)
+						os.close();
+				}
+				catch (Exception e2) { } 
+				ex.printStackTrace();
+				return BuildStatus.BROKEN;
+			}
 		}
 		return BuildStatus.SUCCESS;
 	}

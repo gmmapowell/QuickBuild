@@ -13,7 +13,6 @@ import com.gmmapowell.exceptions.GPJarException;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildContextAware;
-import com.gmmapowell.quickbuild.config.BuildIfCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
