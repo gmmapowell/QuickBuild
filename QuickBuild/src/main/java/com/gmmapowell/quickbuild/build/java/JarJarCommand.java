@@ -132,7 +132,6 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 		try {
 			FileUtils.assertDirectory(new File(outputTo).getParentFile());
 			jos = new JarOutputStream(new FileOutputStream(FileUtils.relativePath(outputTo)));
-			// TODO: should write META-INF/MANIFEST.MF
 			Set<String> entries = new HashSet<String>();
 			writeManifest(jos);
 			for (ResourceCommand rc : resources)
