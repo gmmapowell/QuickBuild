@@ -31,7 +31,7 @@ public class GitRecord {
 		// handle the error case first
 		if (error)
 		{
-			System.out.println("Error - removing " + source + " and " + generates);
+//			System.out.println("Error - removing " + source + " and " + generates);
 			if (source.exists())
 				source.delete();
 			if (generates.exists())
@@ -41,7 +41,7 @@ public class GitRecord {
 		{
 			if (dirty)
 			{ // they are different, move ...
-				System.out.println("Built - moving " + generates + " to " + source);
+//				System.out.println("Built - moving " + generates + " to " + source);
 				boolean fd = source.delete();
 				if (!fd)
 					throw new UtilException("Could not delete the file " + source + " when renaming " + generates);
@@ -51,14 +51,14 @@ public class GitRecord {
 			}
 			else
 			{
-				System.out.println("No change - removing " +generates);
+//				System.out.println("No change - removing " +generates);
 				// they're the same, the new one is uninteresting
 				generates.delete();
 			}
 		}
 		else if (!source.exists() && generates.exists()) // we didn't have a comparison file
 		{
-			System.out.println("Clean build - saving " + generates + " as " + source);
+//			System.out.println("Clean build - saving " + generates + " as " + source);
 			boolean renameWorked = generates.renameTo(source);
 			if (!renameWorked)
 				throw new UtilException("Could not rename " + generates + " to " + source);

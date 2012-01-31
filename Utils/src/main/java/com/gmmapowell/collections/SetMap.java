@@ -37,7 +37,7 @@ public class SetMap<K, V> implements Iterable<K> {
 		return map.get(k);
 	}
 
-	public boolean contains(String key) {
+	public boolean contains(K key) {
 		return map.containsKey(key);
 	}
 	
