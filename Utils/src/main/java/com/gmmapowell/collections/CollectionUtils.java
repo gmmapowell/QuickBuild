@@ -32,4 +32,11 @@ public class CollectionUtils {
 			ret.add(x);
 		return ret;
 	}
+
+	public static <T> ArrayList<T> array(Iterator<T> it) {
+		ArrayList<T> ret = new ArrayList<T>();
+		while (it.hasNext())
+			ret.add(it.next());
+		return ret;
+	}
 }

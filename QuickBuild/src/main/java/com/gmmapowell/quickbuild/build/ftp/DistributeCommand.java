@@ -223,6 +223,7 @@ public class DistributeCommand extends AbstractBuildCommand implements ConfigBui
 			{
 				throw UtilException.wrap(ex);
 			}
+			builds.provide(cxt, false);
 		}
 		else
 		{

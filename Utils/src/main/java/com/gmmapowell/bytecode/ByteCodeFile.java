@@ -409,7 +409,7 @@ public class ByteCodeFile {
 		}
 		catch (UtilException ex)
 		{
-			ex.printStackTrace();
+			System.out.println("Error: " + ex.getMessage());
 			if (ex.getMessage().startsWith("JRR cannot"))
 				return false;
 			throw ex;

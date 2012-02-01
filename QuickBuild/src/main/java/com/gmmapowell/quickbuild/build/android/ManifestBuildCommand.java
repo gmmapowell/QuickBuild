@@ -124,7 +124,7 @@ public class ManifestBuildCommand implements Tactic {
 				options.put(qualifiedName, opts);
 				appActOrServ = true;
 			}
-			
+		
 			if (appOrAct)
 			{
 				appActOrServ = true;
