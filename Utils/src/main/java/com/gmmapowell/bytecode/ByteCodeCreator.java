@@ -98,10 +98,24 @@ public class ByteCodeCreator {
 		return "Creating " + qualifiedName;
 	}
 
-	public FieldInfo field(boolean isFinal, Access access, String type, String var) {
-		FieldInfo field = new FieldInfo(bcf, isFinal, access, type, var);
+	public void defineField(boolean isFinal, Access access, String type, String name) {
+		defineField(isFinal, access, new JavaType(type), name);
+	}
+	
+	public void defineField(boolean isFinal, Access access, JavaType type, String name) {
+		fields.put(name, new FieldObject(access.isStatic(), getCreatedName(), type, name));
+		FieldInfo field = new FieldInfo(bcf, isFinal, access, type.getActual(), name);
 		bcf.addField(field);
-		return field;
+		GenericAnnotator.annotateField(field, type);
+	}
+	
+	// TODO: we need others for statics & inherited members
+	
+	public FieldExpr getField(MethodCreator meth, String name)
+	{
+		if (!fields.containsKey(name))
+			throw new UtilException("There is no field " + name + " in " + getCreatedName());
+		return fields.get(name).use(meth);
 	}
 
 	public void makeAbstract() {
@@ -139,19 +153,5 @@ public class ByteCodeCreator {
 
 	public void addInnerClassReference(Access access, String parentClass, String inner) {
 		bcf.innerClasses.add(new InnerClass(bcf, access, parentClass+"$"+inner, parentClass, inner));
-	}
-
-	// This is to help MethodCreator out
-	public void defineField(String type, String name) {
-		fields.put(name, new FieldObject(getCreatedName(), type, name));
-	}
-	
-	// TODO: we need others for statics & inherited members
-	
-	public FieldExpr getField(MethodCreator meth, String name)
-	{
-		if (!fields.containsKey(name))
-			throw new UtilException("There is no field " + name + " in " + getCreatedName());
-		return fields.get(name).use(meth);
 	}
 }

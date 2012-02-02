@@ -147,7 +147,7 @@ public class MethodCreator extends MethodInfo {
 		return new FieldExpr(this, from, clz, type, named);
 	}
 
-	public Expr getField(String name) {
+	public FieldExpr getField(String name) {
 		return byteCodeCreator.getField(this, name);
 	}
 
@@ -165,6 +165,10 @@ public class MethodCreator extends MethodInfo {
 
 	public Expr assign(FieldExpr field, Expr expr) {
 		return new AssignExpr(this, field, expr);
+	}
+
+	public BoolConstExpr boolConst(boolean b) {
+		return new BoolConstExpr(this, b);
 	}
 
 	/** Group a collection of expressions as a block */
@@ -219,7 +223,7 @@ public class MethodCreator extends MethodInfo {
 		return new IfExpr(this, test, then, orelse, IfCond.NULL);
 	}
 
-	private IntConstExpr intConst(int i) {
+	public IntConstExpr intConst(int i) {
 		return new IntConstExpr(this, i);
 	}
 

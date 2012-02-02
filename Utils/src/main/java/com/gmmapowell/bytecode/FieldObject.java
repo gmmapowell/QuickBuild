@@ -3,13 +3,13 @@ package com.gmmapowell.bytecode;
 public class FieldObject {
 	private final boolean isStatic;
 	private final String inClz;
-	private final String type;
+	private final JavaType type;
 	private final String name;
 
-	public FieldObject(String inClz, String type, String name) {
-		this.isStatic = false;
+	public FieldObject(boolean isStatic, String inClz, JavaType javaType, String name) {
+		this.isStatic = isStatic;
 		this.inClz = inClz;
-		this.type = type;
+		this.type = javaType;
 		this.name = name;
 	}
 

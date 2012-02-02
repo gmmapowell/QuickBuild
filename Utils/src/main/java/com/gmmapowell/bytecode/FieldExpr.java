@@ -5,10 +5,14 @@ import com.gmmapowell.exceptions.UtilException;
 public class FieldExpr extends Expr {
 	private final Expr from;
 	private final String clzName;
-	private final String type;
+	private final JavaType type;
 	private final String fieldName;
 
 	public FieldExpr(MethodCreator meth, Expr from, String clzName, String type, String named) {
+		this(meth, from, clzName, new JavaType(type), named);
+	}
+
+	public FieldExpr(MethodCreator meth, Expr from, String clzName, JavaType type, String named) {
 		super(meth);
 		if (type == null)
 			throw new UtilException("Type cannot be null");
@@ -21,12 +25,12 @@ public class FieldExpr extends Expr {
 	@Override
 	public void spitOutByteCode(MethodCreator meth) {
 		if (from == null) { // static
-			meth.getStatic(clzName, type, fieldName);
+			meth.getStatic(clzName, type.getActual(), fieldName);
 		}
 		else
 		{
 			from.spitOutByteCode(meth);
-			meth.getField(clzName, type, fieldName);
+			meth.getField(clzName, type.getActual(), fieldName);
 		}
 	}
 	
@@ -37,13 +41,13 @@ public class FieldExpr extends Expr {
 
 	public void put(MethodCreator meth) {
 		if (from == null)
-			meth.putStatic(clzName, type, fieldName);
+			meth.putStatic(clzName, type.getActual(), fieldName);
 		else
-			meth.putField(clzName, type, fieldName);
+			meth.putField(clzName, type.getActual(), fieldName);
 	}
 
 	@Override
 	public String getType() {
-		return type;
+		return type.getActual();
 	}
 }

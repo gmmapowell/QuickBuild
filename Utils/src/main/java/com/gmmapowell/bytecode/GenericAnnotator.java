@@ -215,34 +215,12 @@ public class GenericAnnotator {
 	}
 	
 	public static void annotateField(FieldInfo fi, JavaType jt) {
-		fi.attribute("Signature", jt.asGeneric());
-		// TODO Auto-generated method stub
-		
+		if (jt.isGeneric())
+			fi.attribute("Signature", jt.asGeneric());
 	}
-	/*
-	StringBuilder sb = new StringBuilder();
-	sb.append("(");
-	if (s != null)
-		sb.append(JavaInfo.map(S.string));
-	sb.append(JavaInfo.map(type));
-	sb.deleteCharAt(sb.length()-1);
-	sb.append("<");
-	sb.append(JavaInfo.map(type));
-	sb.append(">;)V");
-	meth.addAttribute("Signature", sb.toString());
-	*/
 
-	public static FieldInfo createField(ByteCodeCreator clz, boolean isStatic, Access access, JavaType javaType, String name) {
-		FieldInfo field = clz.field(isStatic, access, javaType.getActual(), name);
-//		StringBuilder sb = new StringBuilder();
-//		sb.append(JavaInfo.map(javaType.));
-//		sb.deleteCharAt(sb.length()-1);
-//		sb.append("<");
-//		sb.append(JavaInfo.map(S.id));
-//		sb.append(JavaInfo.map(S.object));
-//		sb.append(">;");
-		field.attribute("Signature", javaType.asGeneric());
-		return field;
+	public static void createField(ByteCodeCreator clz, boolean isStatic, Access access, JavaType javaType, String name) {
+		clz.defineField(isStatic, access, javaType, name);
 	}
 
 	public GenAnnotation addRTVAnnotation(String operation) {

@@ -40,6 +40,10 @@ public class JavaInfo {
 				throw new UtilException("Invalid access");
 			}
 		}
+
+		public boolean isStatic() {
+			return this == PRIVATESTATIC || this == DEFAULTSTATIC || this == PUBLICSTATIC;
+		}
 	};
 
 	public static String mapPrimitive(String type) {
