@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
+import com.gmmapowell.quickbuild.build.DeferredFileList;
 import com.gmmapowell.quickbuild.build.java.JarBuildCommand;
 import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.build.java.JavaBuildCommand;
@@ -65,12 +66,34 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 		tactics = new ArrayList<Tactic>();
 		
 		// Hasten, hasten ... cutten and pasten from AndroidCommand
+		File manifest = files.getRelative("src/android/AndroidManifest.xml");
+		File gendir = files.getRelative("src/android/gen");
+		File resdir = files.getRelative("src/android/res");
+		if (resdir.exists())
+		{
+			AaptGenBuildCommand gen = new AaptGenBuildCommand(this, acxt, manifest, gendir, resdir);
+			tactics.add(gen);
+			List<File> genFiles = new DeferredFileList(gendir, "*.java");
+			JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", "gen", genFiles, "android");
+			genRes.addToBootClasspath(acxt.getPlatformJar());
+//			jrr.add(acxt.getPlatformJar());
+			tactics.add(genRes);
+			List<File> srcFiles;
+			if (srcdir.isDirectory()) {
+				srcFiles = FileUtils.findFilesMatching(srcdir, "*.java");
+				for (int i=0;i<srcFiles.size();)
+					if (srcFiles.get(i).getName().startsWith("."))
+						srcFiles.remove(i);
+					else
+						i++;
+			} else
+				srcFiles = new ArrayList<File>();
+		}
 		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", FileUtils.findFilesMatching(files.getRelative("src/main/java"), "*.java"), "android");
 		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
 		tactics.add(buildSrc);
 		
-		File resdir = files.getRelative("src/main/resources");
 		/* I think this is a bad idea ...
 		 * It's not so much a bad idea, as by definition this isn't using the JDK ...
 		if (project.getRelative("src/test/java").exists())

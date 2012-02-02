@@ -16,9 +16,9 @@ public class AaptGenBuildCommand implements Tactic {
 	private final File gendir;
 	private final File manifestFile;
 	private final File resdir;
-	private final AndroidCommand parent;
+	private final Strategem parent;
 
-	public AaptGenBuildCommand(AndroidCommand parent, AndroidContext acxt, File manifest, File gendir, File resdir) {
+	public AaptGenBuildCommand(Strategem parent, AndroidContext acxt, File manifest, File gendir, File resdir) {
 		this.parent = parent;
 		this.acxt = acxt;
 		this.gendir = gendir;
