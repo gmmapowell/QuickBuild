@@ -121,9 +121,7 @@ public class GPResponse implements HttpServletResponse {
 
 	@Override
 	public void setContentLength(int arg0) {
-		// TODO Auto-generated method stub
-
-		throw new UtilException("Not Implemented");
+		addIntHeader("Content-Length", arg0);
 	}
 
 	@Override
@@ -161,9 +159,7 @@ public class GPResponse implements HttpServletResponse {
 
 	@Override
 	public void addIntHeader(String arg0, int arg1) {
-		// TODO Auto-generated method stub
-
-		throw new UtilException("Not Implemented");
+		addHeader(arg0, Integer.toString(arg1));
 	}
 
 	@Override
