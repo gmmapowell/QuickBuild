@@ -82,7 +82,7 @@ public class WriteThruStream {
 				WriteThruStream.this.notifyAll();
 				if (readPtr >= bytes.length)
 				{
-					System.out.print(".");
+//					System.out.print(".");
 					readPtr = 0;
 				}
 				return ret&0xff;
