@@ -45,4 +45,9 @@ public class SetMap<K, V> implements Iterable<K> {
 	public String toString() {
 		return map.toString();
 	}
+
+	public void addAll(K k, Iterable<V> vals) {
+		for (V v : vals)
+			add(k,  v);
+	}
 }

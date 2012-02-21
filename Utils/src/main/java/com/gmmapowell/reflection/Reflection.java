@@ -7,6 +7,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import com.gmmapowell.exceptions.UtilException;
 
@@ -153,6 +154,15 @@ public class Reflection {
 		}
 		catch (Exception ex)
 		{
+			throw UtilException.wrap(ex);
+		}
+	}
+
+
+	public static Map<String, Object> callStatic(String clz, String meth, String applName) {
+		try {
+			return callStatic(Class.forName(clz), meth, applName);
+		} catch (ClassNotFoundException ex) {
 			throw UtilException.wrap(ex);
 		}
 	}
