@@ -18,13 +18,22 @@ public class Endpoint implements Serializable {
 	private final String host;
 	private final int port;
 
+	public static Endpoint forPort(int port)
+	{
+		try {
+			return new Endpoint(InetAddress.getLocalHost(), port);
+		} catch (UnknownHostException e) {
+			throw UtilException.wrap(e);
+		}
+	}
+	
 	public Endpoint(InetAddress addr, int port) {
 		String host = addr.getHostAddress();
 		if (host.equals("0.0.0.0"))
 			try {
 				host = InetAddress.getLocalHost().getHostAddress();
 			} catch (UnknownHostException e) {
-				e.printStackTrace();
+				throw UtilException.wrap(e);
 			}
 		this.host = host;
 		this.port = port;
