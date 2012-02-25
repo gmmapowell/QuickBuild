@@ -73,14 +73,14 @@ public class ResourceCommand extends SpecificChildrenParent<ConfigApplyCommand> 
 		else if (includePackages != null)
 		{
 			for (File s : includePackages)
-				if (name.startsWith(s.getPath()))
+				if (name.startsWith(FileUtils.posixPath(s)))
 					return true;
 			return false;
 		}
 		else // check excludePackages
 		{
 			for (File s : excludePackages)
-				if (name.startsWith(s.getPath()))
+				if (name.startsWith(FileUtils.posixPath(s)))
 					return false;
 			return true;
 		}

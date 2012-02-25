@@ -140,10 +140,14 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 				BuildResource actual = pr.physicalResource();
 				if (!(actual instanceof JarResource))
 					throw new UtilException(pr + " is not a jar resource");
+				if (showDebug)
+					System.out.println("Considering resource " + actual.getPath());
 				GPJarFile gpj = new GPJarFile(actual.getPath());
 				for (GPJarEntry je : gpj)
 				{
 					String name = je.getName();
+					if (showDebug)
+						System.out.println("  Looking at path " + name);
 					if (name.equals("META-INF/"))
 						continue;
 					else if (name.equals("META-INF/MANIFEST.MF"))
@@ -155,7 +159,13 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 					else if (name.startsWith("META-INF/") && entries.contains(name))
 						continue;
 					else if (!rc.includes(name))
+					{
+						if (showDebug)
+							System.out.println("    not included");
 						continue;
+					}
+					if (showDebug)
+						System.out.println("    adding as " + je.getJava());
 					jos.putNextEntry(new JarEntry(je.getJava()));
 					FileUtils.copyStream(je.asStream(), jos);
 					entries.add(name);
