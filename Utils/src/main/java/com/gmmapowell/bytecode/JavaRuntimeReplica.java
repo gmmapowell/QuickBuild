@@ -49,7 +49,7 @@ public class JavaRuntimeReplica {
 
 		@Override
 		public ByteCodeFile read(String clz, File clzpath) {
-			GPJarEntry e = jar.get(clzpath.getPath());
+			GPJarEntry e = jar.get(FileUtils.posixPath(clzpath));
 			if (e != null)
 				return new ByteCodeFile(e.asStream());
 			return null;
