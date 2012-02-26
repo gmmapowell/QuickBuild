@@ -78,7 +78,6 @@ public class GPJarFile implements Iterable<GPJarEntry> {
 
 	public GPJarEntry get(String name) {
 		ZipEntry ret = jf.getEntry(name);
-		System.out.println("Looking for " + name + " in " + this);
 		if (ret == null || !(ret instanceof JarEntry))
 			return null;
 		return new GPJarEntry(this, (JarEntry) ret);

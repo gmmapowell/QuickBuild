@@ -45,7 +45,6 @@ public class JavaRuntimeReplica {
 
 		public JRRJarChecker(File path) {
 			jar = new GPJarFile(path);
-			System.out.println("Considering jar " + jar);
 		}
 
 		@Override
