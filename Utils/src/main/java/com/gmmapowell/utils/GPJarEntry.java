@@ -51,4 +51,8 @@ public class GPJarEntry {
 	public JarEntry getJava() {
 		return entry;
 	}
+
+	public File getFile() {
+		return new File(getName());
+	}
 }

@@ -23,8 +23,8 @@ public class GPHttpSession implements HttpSession {
 	}
 
 	@Override
-	public Object getAttribute(String arg0) {
-		throw new UtilException("Not Implemented");
+	public Object getAttribute(String name) {
+		return attributes.get(name);
 	}
 
 	@Override

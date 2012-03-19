@@ -10,31 +10,25 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.logging.Logger;
 
 import com.gmmapowell.exceptions.UtilException;
 
 @SuppressWarnings("serial")
 public class Endpoint implements Serializable {
+	private static final Logger logger = Logger.getLogger("Endpoint");
 	private final String host;
 	private final int port;
 
 	public static Endpoint forPort(int port)
 	{
-		try {
-			return new Endpoint(InetAddress.getLocalHost(), port);
-		} catch (UnknownHostException e) {
-			throw UtilException.wrap(e);
-		}
+		return new Endpoint(getLocalHostAddr(), port);
 	}
 	
 	public Endpoint(InetAddress addr, int port) {
 		String host = addr.getHostAddress();
 		if (host.equals("0.0.0.0"))
-			try {
-				host = InetAddress.getLocalHost().getHostAddress();
-			} catch (UnknownHostException e) {
-				throw UtilException.wrap(e);
-			}
+			host = getLocalHostAddr();
 		this.host = host;
 		this.port = port;
 	}
@@ -43,12 +37,41 @@ public class Endpoint implements Serializable {
 		this(s.getInetAddress(), s.getLocalPort());
 	}
 	
+	public Endpoint(String host, int port) {
+		this.host = host;
+		this.port = port;
+	}
+
 	public String getHost() {
 		return host;
 	}
 
 	public int getPort() {
 		return port;
+	}
+
+	private static String getLocalHostAddr() {
+		try {
+			String host = null;
+			InetAddress in = InetAddress.getLocalHost();
+			logger.fine("Considering addresses for host " + in.getHostName());
+			InetAddress[] all = InetAddress.getAllByName(in.getHostName());
+			for (int i=0;i<all.length;i++)
+			{
+				logger.finer("resolving local address:" + all[i] + " " + all[i].isSiteLocalAddress() + " " + all[i].isLoopbackAddress());
+				if (!all[i].isLoopbackAddress())
+				{
+					host = all[i].getHostAddress();
+					break;
+				}
+			}
+			if (host == null)
+				throw new UtilException("Could not find any local site address");
+			logger.info("Identifying local host as " + host);
+			return host;
+		} catch (UnknownHostException e) {
+			throw UtilException.wrap(e);
+		}
 	}
 
 	public static Endpoint parse(String s) {
@@ -137,5 +160,18 @@ public class Endpoint implements Serializable {
 		} catch (IOException e) {
 			throw UtilException.wrap(e);
 		}
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof Endpoint))
+			return false;
+		Endpoint other = (Endpoint) obj;
+		return other.host.equals(host) && other.port == port;
+	}
+	
+	@Override
+	public int hashCode() {
+		return host.hashCode() ^ port;
 	}
 }

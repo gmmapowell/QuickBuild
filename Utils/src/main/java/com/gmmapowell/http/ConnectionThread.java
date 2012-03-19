@@ -22,6 +22,7 @@ public class ConnectionThread extends Thread {
 	@Override
 	public void run()
 	{
+		GPResponse response = null;
 		try {
 			GPServletContext servletContext = (GPServletContext) inlineServer.config.getServletContext();
 			String s;
@@ -38,7 +39,7 @@ public class ConnectionThread extends Thread {
 				throw new UtilException("There was no incoming request");
 			request.endHeaders();
 			
-			GPResponse response = new GPResponse(request, os);
+			response = new GPResponse(request, os);
 			if (request.isForServlet())
 				inlineServer.service(request, response);
 			else {
@@ -51,11 +52,33 @@ public class ConnectionThread extends Thread {
 				else
 					response.setStatus(404);
 			}
-			response.commit();
-			response.getWriter().flush();
-			os.close();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+		finally
+		{
+			if (response != null)
+			{
+				if (response.getStatus() == 0)
+					response.setStatus(500, "Internal Server Error");
+				response.commit();
+				try
+				{
+					response.getWriter().flush();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+			}
+			try
+			{
+				os.close();
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
 		}
 	}
 

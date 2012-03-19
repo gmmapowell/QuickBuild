@@ -7,7 +7,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -34,6 +37,8 @@ public class GPRequest implements HttpServletRequest {
 	private final InputStream is;
 	private GPServletInputStream servletInputStream;
 	private GPHttpSession session;
+	private final List<Cookie> cookies = new ArrayList<Cookie>();
+	private Cookie[] cookieArr;
 
 	public GPRequest(GPServletContext context, String s, InputStream is) throws URISyntaxException {
 		this.context = context;
@@ -49,7 +54,19 @@ public class GPRequest implements HttpServletRequest {
 		int colon = s.indexOf(":");
 		if (colon == -1)
 			return;
-		headers.add(s.substring(0, colon).toLowerCase(), s.substring(colon+1).trim());
+		String hdr = s.substring(0, colon).toLowerCase();
+		String value = s.substring(colon+1).trim();
+		headers.add(hdr, value);
+		if (hdr.equals("cookie"))
+		{
+			for (String c : value.split(";")) {
+				String[] c1 = c.trim().split("=");
+				Cookie cookie = new Cookie(c1[0], c1[1]);
+				cookies.add(cookie);
+				if (cookie.getName().equals("JSESSIONID"))
+					session = context.getSession(cookie.getValue());
+			}
+		}
 	}
 	
 	public void endHeaders() {
@@ -130,7 +147,28 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public Map<String, String> getParameterMap() {
-		throw new UtilException("Not implemented");
+		// TODO: do we need to decode the %xx notation?
+		Map<String,String> ret = new HashMap<String, String>();
+		String q = uri.getQuery();
+		int k=0;
+		while (k < q.length())
+		{
+			int p = k;
+			while (k < q.length() && q.charAt(k) != '=' && q.charAt(k) != '&')
+				k++;
+			String s = q.substring(p, k);
+			if (k == q.length() || q.charAt(k) == '&')
+			{
+				ret.put(s, "");
+				continue;
+			}
+			int v = ++k; // skip the =
+			while (k < q.length() && q.charAt(k) != '&')
+				k++;
+			ret.put(s, q.substring(v, k));
+			k++; // skip the &
+		}
+		return ret;
 	}
 
 	@Override
@@ -226,7 +264,11 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public Cookie[] getCookies() {
-		throw new UtilException("Not implemented");
+		if (cookieArr == null)
+		{
+			cookieArr = cookies.toArray(new Cookie[cookies.size()]);
+		}
+		return cookieArr;
 	}
 
 	@Override
@@ -297,7 +339,10 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public StringBuffer getRequestURL() {
-		return new StringBuffer(getRequestURI());
+		StringBuffer ret = new StringBuffer(getRequestURI());
+		// OpenId4Java needs this ... I'm not sure if it should be here or URI ...
+		ret.insert(0, "http://" + headers.get("host").get(0));
+		return ret;
 	}
 
 	@Override

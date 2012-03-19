@@ -204,6 +204,21 @@ public class GPServletContext implements ServletContext {
 	}
 
 	public void deleteSession(GPHttpSession gpHttpSession) {
-		
+		loop:
+			while (true)
+			{
+				for (String s : sessions.keySet())
+					if (sessions.get(s).equals(gpHttpSession))
+					{
+						sessions.remove(s);
+						continue loop;
+					}
+				return;
+			}
+	}
+	
+	public GPHttpSession getSession(String fromCookieValue)
+	{
+		return sessions.get(fromCookieValue);
 	}
 }

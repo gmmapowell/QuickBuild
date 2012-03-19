@@ -289,4 +289,8 @@ public class GPResponse implements HttpServletResponse {
 		}
 	}
 
+	public int getStatus() {
+		return status;
+	}
+
 }
