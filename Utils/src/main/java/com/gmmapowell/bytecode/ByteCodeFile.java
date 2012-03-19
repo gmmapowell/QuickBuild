@@ -182,7 +182,7 @@ public class ByteCodeFile {
 			{
 				MethodInfo second = methods.get(j);
 				if (first.getName().equals(second.getName()) && first.getSignature().equals(second.getSignature()))
-					throw new UtilException("Duplicate method: " + first.getName() + " in class " + getName());
+					throw new UtilException("Duplicate method: " + first.getName() + first.getSignature() + " in class " + getName());
 			}
 		}
 
