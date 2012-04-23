@@ -13,19 +13,20 @@ import com.gmmapowell.exceptions.UtilException;
 public class SignificantWhiteSpaceFileReader {
 	private final LineNumberReader lnr;
 	private TokenizedLine nextLine;
-	private final CommandObjectFactory factory;
-	private Parent<?> top;
+	private final CommandObjectFactory rootFactory;
+	private final Parent<?> top;
 	private String prompt;
 	private final boolean interactive;
 
 	private SignificantWhiteSpaceFileReader(CommandObjectFactory factory, File f) throws FileNotFoundException {
-		this.factory = factory;
+		this.rootFactory = factory;
+		this.top = null;
 		lnr = new LineNumberReader(new InputStreamReader(new FileInputStream(f)));
 		this.interactive = false;
 	}
 	
 	public <U, T extends Parent<U>> SignificantWhiteSpaceFileReader(CommandObjectFactory factory, T parent, InputStream in) {
-		this.factory = factory;
+		this.rootFactory = factory;
 		this.top = parent;
 		this.lnr = new LineNumberReader(new InputStreamReader(in));
 		this.interactive = true;
@@ -41,7 +42,7 @@ public class SignificantWhiteSpaceFileReader {
 		}
 	}
 	
-	private <T> void readBlock(Parent<T> parent, int ind) throws Exception {
+	private <T> void readBlock(CommandObjectFactory factory, Parent<T> parent, int ind) throws Exception {
 		TokenizedLine s;
 		T curr = null;
 		while ((s = nextLine()) != null)
@@ -60,27 +61,23 @@ public class SignificantWhiteSpaceFileReader {
 			{
 				if (curr == null)
 					throw new UtilException("I think actually this can only happen if the initial indent is non-zero");
-				readBlock((Parent<?>) curr, s.indent);
+				readBlock((curr instanceof CommandObjectFactory)?((CommandObjectFactory)curr):factory, (Parent<?>) curr, s.indent);
 			}
 			else
 			{
-				curr = processCurrentLine(parent, s);
+				curr = processCurrentLine(factory, parent, s);
 			}
 		}
 	}
 
-	protected <T> T processCurrentLine(Parent<T> ret, TokenizedLine s) {
+	protected <T> T processCurrentLine(CommandObjectFactory factory, Parent<T> ret, TokenizedLine s) {
 		@SuppressWarnings("unchecked")
-		T tmp = (T) createObject(s.cmd(), s);
+		T tmp = (T) factory.create(s.cmd(), s);
 		if (tmp == null)
 			throw new UtilException("No object was created for '" + s.cmd() + "' on line " + lnr.getLineNumber());
 		ret.addChild(tmp);
 		accept();
 		return tmp;
-	}
-
-	private Parent<?> createObject(String cmd, TokenizedLine toks) {
-		return factory.create(cmd, toks);
 	}
 
 	private TokenizedLine nextLine() throws IOException {
@@ -121,7 +118,7 @@ public class SignificantWhiteSpaceFileReader {
 		SignificantWhiteSpaceFileReader fr = null;
 		try {
 			fr = new SignificantWhiteSpaceFileReader(factory, f);
-			fr.readBlock(parent, 0);
+			fr.readBlock(factory, parent, 0);
 			if (fr.nextLine() != null)
 				fr.inconsistentIndentation(0);
 		} catch (Exception e) {
@@ -154,9 +151,9 @@ public class SignificantWhiteSpaceFileReader {
 				return true;
 			}
 			if (line.tokens[line.tokens.length-1].equals("\\"))
-				readBlock(top, 0);
+				readBlock(rootFactory, top, 0);
 			else
-				processCurrentLine(top, line);
+				processCurrentLine(rootFactory, top, line);
 			return true;
 		}
 		catch (Exception ex)
