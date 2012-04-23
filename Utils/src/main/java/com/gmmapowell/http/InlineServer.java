@@ -36,6 +36,11 @@ public class InlineServer {
 		this.servletClass = servletClass;
 	}
 
+	public void addFailure(Exception ex) {
+		if (failure == null)
+			failure = ex;
+	}
+
 	public Exception getFailure()
 	{
 		return failure;

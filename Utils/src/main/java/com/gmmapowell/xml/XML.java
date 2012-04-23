@@ -146,7 +146,7 @@ public class XML {
 		{
 			FileUtils.assertDirectory(file.getParentFile());
 			FileOutputStream fos = new FileOutputStream(file);
-			write(fos);
+			write(fos, false);
 			fos.close();
 		}
 		catch (Exception ex)
@@ -161,7 +161,7 @@ public class XML {
 		{
 			XML xml = XML.fromString(s);
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			xml.write(baos);
+			xml.write(baos, false);
 			return new String(baos.toByteArray());
 		}
 		catch (XMLParseException ex)
@@ -175,16 +175,30 @@ public class XML {
 		}
 	}
 	
-	public void write(OutputStream fos) throws IOException {
+	public void write(OutputStream fos, boolean omitDeclaration) throws IOException {
 		OutputFormat of = new OutputFormat("XML", "ISO-8859-1", true);
 		of.setVersion(version);
 		of.setIndent(1);
 		of.setIndenting(true);
+		of.setOmitXMLDeclaration(omitDeclaration);
 		XMLSerializer serializer = new XMLSerializer(fos, of);
 		serializer.asDOMSerializer();
 		serializer.serialize(doc);
 	}
 
+	public String asString(boolean omitDeclaration) {
+		try
+		{
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			write(baos, omitDeclaration);
+			return new String(baos.toByteArray());
+		}
+		catch (IOException ex)
+		{
+			throw UtilException.wrap(ex);
+		}
+	}
+	
 	public XMLElement addElement(String tag) {
 		return top.addElement(tag);
 	}

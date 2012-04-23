@@ -189,13 +189,11 @@ public class GPResponse implements HttpServletResponse {
 	@Override
 	public String encodeUrl(String arg0) {
 		throw new UtilException("Not Implemented");
-		// TODO Auto-generated method stub
 	}
 
 	@Override
 	public void sendError(int arg0) throws IOException {
-		status = arg0;
-		statusMsg = null;
+		setStatus(arg0);
 	}
 
 	@Override
@@ -234,7 +232,19 @@ public class GPResponse implements HttpServletResponse {
 
 	@Override
 	public void setStatus(int arg0) {
-		setStatus(arg0, "OK");
+		status = arg0;
+		if (arg0 >= 500 && arg0 < 600)
+			statusMsg = "Internal Server Error";
+		else if (arg0 == 404)
+			statusMsg = "Not Found";
+		else if (arg0 >= 400)
+			statusMsg = "Denied";
+		else if (arg0 >= 300)
+			statusMsg = "Moved";
+		else if (arg0 >= 200)
+			statusMsg = "OK";
+		else
+			statusMsg = null;
 	}
 
 	@Override

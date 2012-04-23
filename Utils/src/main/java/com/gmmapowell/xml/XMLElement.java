@@ -234,6 +234,15 @@ public class XMLElement implements Externalizable {
 		return new XMLElement(inside, child);
 	}
 
+	public XMLElement addElement(XMLElement xe) {
+		XMLElement ret = addElement(xe.tag());
+		for (String attr : xe.attributes())
+			ret.setAttribute(attr, xe.get(attr));
+		for (XMLElement elt : xe.elementChildren())
+			ret.addElement(elt);
+		return ret;
+	}
+
 	public XMLElement setAttribute(String attr, String value) {
 		elt.setAttribute(attr, value);
 		return this;
