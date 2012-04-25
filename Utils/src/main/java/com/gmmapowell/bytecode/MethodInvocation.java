@@ -11,7 +11,7 @@ public class MethodInvocation extends Expr {
 	private final Expr[] args;
 	private final String parentClzName;
 
-	public MethodInvocation(MethodCreator methodCreator, String type, String returns, Expr obj, String parentClzName, String methodName, Expr[] args) {
+	public MethodInvocation(MethodDefiner methodCreator, String type, String returns, Expr obj, String parentClzName, String methodName, Expr[] args) {
 		super(methodCreator);
 		this.type = type;
 		this.returns = returns;
@@ -22,7 +22,7 @@ public class MethodInvocation extends Expr {
 	}
 
 	@Override
-	public void spitOutByteCode(MethodCreator meth) {
+	public void spitOutByteCode(MethodDefiner meth) {
 		if (obj != null)
 			obj.spitOutByteCode(meth);
 		String[] argTypes = new String[args.length];

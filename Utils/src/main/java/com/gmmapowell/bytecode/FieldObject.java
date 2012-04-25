@@ -13,11 +13,16 @@ public class FieldObject {
 		this.name = name;
 	}
 
-	public FieldExpr use(MethodCreator meth)
+	public FieldExpr use(NewMethodDefiner meth)
 	{
 		if (!isStatic)
 			return new FieldExpr(meth, meth.myThis(), inClz, type, name);
 		else
 			return new FieldExpr(meth, null, inClz, type, name);
+	}
+	
+	public FieldExpr useOn(NewMethodDefiner meth, Expr obj)
+	{
+		return new FieldExpr(meth, obj, inClz, type, name);
 	}
 }

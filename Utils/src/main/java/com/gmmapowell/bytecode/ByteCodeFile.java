@@ -158,7 +158,7 @@ public class ByteCodeFile {
 		for (FieldInfo fi : fields)
 			fi.complete();
 		for (MethodInfo mi : methods)
-			((MethodCreator)mi).complete();
+			((MethodDefiner)mi).complete();
 		complete();
 		
 		dos.writeInt(javaMagic);
@@ -453,6 +453,10 @@ public class ByteCodeFile {
 	}
 
 	public void addMethod(MethodCreator ret) {
+		// TODO: it would be good if we could spot duplicate methods here,
+		// but at the moment we can't because we can't be guaranteed that any given method
+		// creator has a signature.  When we fully move over to using GenAnnotation, then we can
+		// do that.
 		methods.add(ret);
 	}
 

@@ -13,15 +13,15 @@ public class IfExpr extends Expr {
 	private final Expr orelse;
 	private final IfCond cond;
 
-	public IfExpr(MethodCreator meth, Expr left, Expr right, Expr then, Expr orelse) {
+	public IfExpr(MethodDefiner meth, Expr left, Expr right, Expr then, Expr orelse) {
 		this(meth, new EqualsExpr(meth, left, right), then, orelse, IfCond.TRUE);
 	}
 
-	public IfExpr(MethodCreator meth, Expr test, Expr then, Expr orelse) {
+	public IfExpr(MethodDefiner meth, Expr test, Expr then, Expr orelse) {
 		this(meth, test, then, orelse, IfCond.TRUE);
 	}
 	
-	public IfExpr(MethodCreator meth, Expr test, Expr then, Expr orelse, IfCond cond) {
+	public IfExpr(MethodDefiner meth, Expr test, Expr then, Expr orelse, IfCond cond) {
 		super(meth);
 		this.test = test;
 		this.then = then;
@@ -30,7 +30,7 @@ public class IfExpr extends Expr {
 	}
 
 	@Override
-	public void spitOutByteCode(MethodCreator meth) {
+	public void spitOutByteCode(MethodDefiner meth) {
 		test.spitOutByteCode(meth);
 		Marker m1;
 		switch (cond)
@@ -50,10 +50,12 @@ public class IfExpr extends Expr {
 		default:
 			throw new UtilException("There is no case " + cond);
 		}
+		int depth = meth.stackDepth();
 		if (then != null)
 			then.spitOutByteCode(meth);
 		if (orelse != null)
 		{
+			meth.resetStack(depth);
 			Marker m2 = meth.jump();
 			m1.setHere();
 			orelse.spitOutByteCode(meth);

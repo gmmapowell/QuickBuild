@@ -9,7 +9,7 @@ public class ConcatExpr extends Expr {
 
 	private final List<Expr> args = new ArrayList<Expr>();
 
-	public ConcatExpr(MethodCreator meth, Object[] args) {
+	public ConcatExpr(MethodDefiner meth, Object[] args) {
 		super(meth);
 		for (Object o : args)
 		{
@@ -23,7 +23,7 @@ public class ConcatExpr extends Expr {
 	}
 
 	@Override
-	public void spitOutByteCode(MethodCreator meth) {
+	public void spitOutByteCode(MethodDefiner meth) {
 		String string = "java.lang.String";
 		String stringBuilder = "java.lang.StringBuilder";
 		meth.newObject(stringBuilder);

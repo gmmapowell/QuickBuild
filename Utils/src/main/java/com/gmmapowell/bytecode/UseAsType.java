@@ -4,14 +4,14 @@ public class UseAsType extends Expr {
 	private final Expr expr;
 	private final String newType;
 
-	public UseAsType(MethodCreator meth, Expr expr, String newType) {
+	public UseAsType(MethodDefiner meth, Expr expr, String newType) {
 		super(meth);
 		this.expr = expr;
 		this.newType = newType;
 	}
 
 	@Override
-	public void spitOutByteCode(MethodCreator meth) {
+	public void spitOutByteCode(MethodDefiner meth) {
 		expr.spitOutByteCode(meth);
 	}
 

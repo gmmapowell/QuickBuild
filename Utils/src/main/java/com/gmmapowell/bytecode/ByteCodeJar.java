@@ -16,13 +16,17 @@ public class ByteCodeJar implements ByteCodeHolder {
 		// sort out something about the manifest
 	}
 
-	public ByteCodeCreator newEntry(String string) {
-		for (ByteCodeCreator bcc : files)
-			if (bcc.getCreatedName().equals(string))
-				throw new UtilException("Duplicated JAR entry: " + string);
-		ByteCodeCreator ret = new ByteCodeCreator(string);
-		files.add(ret);
+	public ByteCodeSink newEntry(String className, int destinations) {
+		ByteCodeCreator ret = new ByteCodeCreator(className);
+		addEntry(className, ret);
 		return ret;
+	}
+
+	public void addEntry(String className, ByteCodeCreator ret) {
+		for (ByteCodeCreator bcc : files)
+			if (bcc.getCreatedName().equals(className))
+				throw new UtilException("Duplicated JAR entry: " + className);
+		files.add(ret);
 	}
 
 	public void write(File writeTo) {

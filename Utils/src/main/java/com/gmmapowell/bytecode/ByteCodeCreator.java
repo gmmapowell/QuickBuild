@@ -14,7 +14,7 @@ import com.gmmapowell.bytecode.JavaInfo.Access;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.FileUtils;
 
-public class ByteCodeCreator {
+public class ByteCodeCreator implements ByteCodeSink {
 	private ByteCodeFile bcf;
 //	private String name;
 //	private String pkg;
@@ -33,10 +33,18 @@ public class ByteCodeCreator {
 		bcf.thisClass(FileUtils.convertToDottedNameDroppingExtension(file));
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#getCreatedName()
+	 */
+	@Override
 	public String getCreatedName() {
 		return qualifiedName;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#superclass(java.lang.String)
+	 */
+	@Override
 	public void superclass(String string) {
 		this.superclass = string;
 		bcf.superClass(string);
@@ -52,6 +60,10 @@ public class ByteCodeCreator {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#generate()
+	 */
+	@Override
 	public byte[] generate() {
 		try {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -68,40 +80,67 @@ public class ByteCodeCreator {
 		dos.flush();
 	}
 
-	private MethodCreator createAnyMethod(boolean isStatic, String returnType, String string) {
+	private MethodDefiner createAnyMethod(boolean isStatic, String returnType, String string) {
 		MethodCreator ret = new MethodCreator(this, bcf, isStatic, returnType, string);
 		bcf.addMethod(ret);
 		return ret;
 	}
 
-	public MethodCreator ctor() {
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#ctor()
+	 */
+	@Override
+	public MethodDefiner ctor() {
 		return createAnyMethod(false, "void", "<init>");
 	}
 
-	public MethodCreator sctor() {
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#sctor()
+	 */
+	@Override
+	public MethodDefiner sctor() {
 		return createAnyMethod(true, "void", "<clinit>");
 	}
 
-	public MethodCreator method(boolean isStatic, String returns, String name)
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#method(boolean, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public MethodDefiner method(boolean isStatic, String returns, String name)
 	{
 		if (name.contains("."))
 			throw new UtilException("Cannot create method name: " + name);
 		return createAnyMethod(isStatic, returns, name);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#getSuperClass()
+	 */
+	@Override
 	public String getSuperClass() {
 		return superclass;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#toString()
+	 */
 	@Override
 	public String toString() {
 		return "Creating " + qualifiedName;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#defineField(boolean, com.gmmapowell.bytecode.JavaInfo.Access, java.lang.String, java.lang.String)
+	 */
+	@Override
 	public void defineField(boolean isFinal, Access access, String type, String name) {
 		defineField(isFinal, access, new JavaType(type), name);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#defineField(boolean, com.gmmapowell.bytecode.JavaInfo.Access, com.gmmapowell.bytecode.JavaType, java.lang.String)
+	 */
+	@Override
 	public void defineField(boolean isFinal, Access access, JavaType type, String name) {
 		fields.put(name, new FieldObject(access.isStatic(), getCreatedName(), type, name));
 		FieldInfo field = new FieldInfo(bcf, isFinal, access, type.getActual(), name);
@@ -111,25 +150,65 @@ public class ByteCodeCreator {
 	
 	// TODO: we need others for statics & inherited members
 	
-	public FieldExpr getField(MethodCreator meth, String name)
+	@Override
+	public FieldExpr getField(NewMethodDefiner meth, String name)
 	{
 		if (!fields.containsKey(name))
 			throw new UtilException("There is no field " + name + " in " + getCreatedName());
 		return fields.get(name).use(meth);
 	}
+	
+	public FieldExpr getInheritedField(NewMethodDefiner meth, String ofType, String name)
+	{
+//		if (fields.containsKey(name))
+//			return getField(meth, name);
+		return new FieldExpr(meth, meth.myThis(), getCreatedName(), ofType, name);
+	}
 
+	@Override
+	public FieldExpr getField(NewMethodDefiner meth, Expr obj, String name)
+	{
+		if (!fields.containsKey(name))
+			throw new UtilException("There is no field " + name + " in " + getCreatedName());
+		return fields.get(name).useOn(meth, obj);
+	}
+
+	public FieldExpr getInheritedField(NewMethodDefiner meth, Expr obj, String ofType, String name)
+	{
+//		if (fields.containsKey(name))
+//			return getField(meth, name);
+		return new FieldExpr(meth, obj, obj.getType(), ofType, name);
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#makeAbstract()
+	 */
+	@Override
 	public void makeAbstract() {
 		bcf.makeAbstract();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#makeInterface()
+	 */
+	@Override
 	public void makeInterface() {
 		bcf.makeInterface();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#implementsInterface(java.lang.String)
+	 */
+	@Override
 	public void implementsInterface(String intf) {
 		bcf.addInterface(intf);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#signatureAttribute(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public void signatureAttribute(String name, String sig) {
 		int u8 = bcf.pool.requireUtf8(sig);
 		byte[] data = new byte[2];
@@ -138,19 +217,35 @@ public class ByteCodeCreator {
 		addAttribute(name, data);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#addAttribute(java.lang.String, byte[])
+	 */
+	@Override
 	public void addAttribute(String name, byte[] data) {
 		AttributeInfo attr = bcf.newAttribute(name, data);
 		bcf.attributes.add(attr);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#addRTVAnnotation(java.lang.String)
+	 */
+	@Override
 	public Annotation addRTVAnnotation(String attrClass) {
 		return bcf.addClassAnnotation(AnnotationType.RuntimeVisibleAnnotations, new Annotation(bcf, attrClass));
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#newAnnotation(java.lang.String)
+	 */
+	@Override
 	public Annotation newAnnotation(String attrClass) {
 		return new Annotation(bcf, attrClass);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gmmapowell.bytecode.ByteCodeSink#addInnerClassReference(com.gmmapowell.bytecode.JavaInfo.Access, java.lang.String, java.lang.String)
+	 */
+	@Override
 	public void addInnerClassReference(Access access, String parentClass, String inner) {
 		bcf.innerClasses.add(new InnerClass(bcf, access, parentClass+"$"+inner, parentClass, inner));
 	}

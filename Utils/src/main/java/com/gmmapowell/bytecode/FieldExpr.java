@@ -8,11 +8,11 @@ public class FieldExpr extends Expr {
 	private final JavaType type;
 	private final String fieldName;
 
-	public FieldExpr(MethodCreator meth, Expr from, String clzName, String type, String named) {
+	public FieldExpr(NewMethodDefiner meth, Expr from, String clzName, String type, String named) {
 		this(meth, from, clzName, new JavaType(type), named);
 	}
 
-	public FieldExpr(MethodCreator meth, Expr from, String clzName, JavaType type, String named) {
+	public FieldExpr(NewMethodDefiner meth, Expr from, String clzName, JavaType type, String named) {
 		super(meth);
 		if (type == null)
 			throw new UtilException("Type cannot be null");
@@ -23,7 +23,7 @@ public class FieldExpr extends Expr {
 	}
 
 	@Override
-	public void spitOutByteCode(MethodCreator meth) {
+	public void spitOutByteCode(MethodDefiner meth) {
 		if (from == null) { // static
 			meth.getStatic(clzName, type.getActual(), fieldName);
 		}
@@ -34,12 +34,12 @@ public class FieldExpr extends Expr {
 		}
 	}
 	
-	public void prepare(MethodCreator meth) {
+	public void prepare(MethodDefiner meth) {
 		if (from != null)
 			from.spitOutByteCode(meth);
 	}
 
-	public void put(MethodCreator meth) {
+	public void put(MethodDefiner meth) {
 		if (from == null)
 			meth.putStatic(clzName, type.getActual(), fieldName);
 		else

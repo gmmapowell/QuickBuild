@@ -1,10 +1,10 @@
 package com.gmmapowell.bytecode;
 
 public abstract class Expr {
-	protected final MethodCreator meth;
+	protected final MethodDefiner meth;
 
-	public Expr(MethodCreator meth) {
-		this.meth = meth;
+	public Expr(NewMethodDefiner meth) {
+		this.meth = (MethodDefiner) meth;
 	}
 
 	public void flush()
@@ -12,7 +12,7 @@ public abstract class Expr {
 		spitOutByteCode(meth);
 	}
 	
-	public abstract void spitOutByteCode(MethodCreator meth);
+	public abstract void spitOutByteCode(MethodDefiner meth);
 
 	public abstract String getType();
 }

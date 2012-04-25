@@ -5,14 +5,14 @@ public class MakeNewExpr extends Expr {
 	private final String ofClz;
 	private final Expr[] args;
 
-	public MakeNewExpr(MethodCreator meth, String ofClz, Expr... args) {
+	public MakeNewExpr(MethodDefiner meth, String ofClz, Expr... args) {
 		super(meth);
 		this.ofClz = ofClz;
 		this.args = args;
 	}
 
 	@Override
-	public void spitOutByteCode(MethodCreator meth) {
+	public void spitOutByteCode(MethodDefiner meth) {
 		meth.newObject(ofClz);
 		meth.dup();
 		String[] argTypes = new String[args.length];

@@ -44,7 +44,7 @@ public class GenericAnnotator {
 			args.add(new AnnArg(string, strings));
 		}
 
-		public void applyTo(MethodCreator meth) {
+		public void applyTo(MethodDefiner meth) {
 			handleArgs(meth.addRTVAnnotation(attrClass));
 		}
 
@@ -66,7 +66,7 @@ public class GenericAnnotator {
 			super(pathparam);
 		}
 
-		public void applyTo(MethodCreator meth, int pos) {
+		public void applyTo(MethodDefiner meth, int pos) {
 			handleArgs(meth.addRTVPAnnotation(attrClass, pos));
 		}
 	}
@@ -84,7 +84,7 @@ public class GenericAnnotator {
 			this.pos = pos;
 		}
 		
-		public void apply(MethodCreator meth) {
+		public void apply(MethodDefiner meth) {
 			var = meth.argument(type.getActual(), name);
 			for (ArgAnnotation aa : anns)
 				aa.applyTo(meth, pos);
@@ -108,34 +108,34 @@ public class GenericAnnotator {
 	private StringBuilder sb = new StringBuilder();
 	private int argPointer;
 	private boolean hasGenerics;
-	private final ByteCodeCreator byteCodeCreator;
+	private final ByteCodeSink byteCodeCreator;
 	private final String name;
 	private List<PendingVar> vars = new ArrayList<PendingVar>();
 	private final boolean isStatic;
 	private List<GenAnnotation> anns = new ArrayList<GenAnnotation>();
 
 	// This works for method ...
-	private GenericAnnotator(ByteCodeCreator byteCodeCreator, boolean isStatic, String name) {
-		this.byteCodeCreator = byteCodeCreator;
+	private GenericAnnotator(ByteCodeSink projectionClass, boolean isStatic, String name) {
+		this.byteCodeCreator = projectionClass;
 		this.isStatic = isStatic;
 		this.name = name;
 	}
 	
 	// This is for classes
-	private GenericAnnotator(ByteCodeCreator byteCodeCreator) {
-		this.byteCodeCreator = byteCodeCreator;
+	private GenericAnnotator(ByteCodeSink projectionClass) {
+		this.byteCodeCreator = projectionClass;
 		isStatic = false;
 		name = null;
 	}
 
-	public static GenericAnnotator newMethod(ByteCodeCreator byteCodeCreator, boolean isStatic, String name) {
-		GenericAnnotator ret = new GenericAnnotator(byteCodeCreator, isStatic, name);
+	public static GenericAnnotator newMethod(ByteCodeSink projectionClass, boolean isStatic, String name) {
+		GenericAnnotator ret = new GenericAnnotator(projectionClass, isStatic, name);
 		ret.sb.append("()");
 		ret.argPointer = 1;
 		return ret;
 	}
 
-	public static GenericAnnotator newConstructor(ByteCodeCreator bcc, boolean isStatic) {
+	public static GenericAnnotator newConstructor(ByteCodeSink bcc, boolean isStatic) {
 		GenericAnnotator ret;
 		if (isStatic)
 			ret = newMethod(bcc, true, "<clinit>");
@@ -145,8 +145,8 @@ public class GenericAnnotator {
 		return ret;
 	}
 
-	public static GenericAnnotator forClass(ByteCodeCreator bcc) {
-		return new GenericAnnotator(bcc);
+	public static GenericAnnotator forClass(ByteCodeSink projectionClass) {
+		return new GenericAnnotator(projectionClass);
 	}
 	
 	public void parentClass(String cls) {
@@ -187,7 +187,7 @@ public class GenericAnnotator {
 		return ret;
 	}
 
-	public MethodCreator done() {
+	public MethodDefiner done() {
 		if (sb == null)
 			throw new UtilException("You have already completed this class");
 		if (name == null)
@@ -199,7 +199,7 @@ public class GenericAnnotator {
 		}
 		if (returnType == null)
 			throw new UtilException("You have not specified the return type");
-		MethodCreator ret = byteCodeCreator.method(isStatic, returnType, name);
+		MethodDefiner ret = byteCodeCreator.method(isStatic, returnType, name);
 		if (hasGenerics)
 		{
 			ret.addAttribute("Signature", sb.toString());
@@ -219,8 +219,8 @@ public class GenericAnnotator {
 			fi.attribute("Signature", jt.asGeneric());
 	}
 
-	public static void createField(ByteCodeCreator clz, boolean isStatic, Access access, JavaType javaType, String name) {
-		clz.defineField(isStatic, access, javaType, name);
+	public static void createField(ByteCodeSink projectionClass, boolean isStatic, Access access, JavaType javaType, String name) {
+		projectionClass.defineField(isStatic, access, javaType, name);
 	}
 
 	public GenAnnotation addRTVAnnotation(String operation) {

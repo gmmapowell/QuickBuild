@@ -4,13 +4,13 @@ public class StringConstExpr extends Expr {
 
 	private final String str;
 
-	public StringConstExpr(MethodCreator meth, String str) {
+	public StringConstExpr(MethodDefiner meth, String str) {
 		super(meth);
 		this.str = str;
 	}
 
 	@Override
-	public void spitOutByteCode(MethodCreator meth) {
+	public void spitOutByteCode(MethodDefiner meth) {
 		meth.ldcString(str);
 	}
 

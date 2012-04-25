@@ -6,13 +6,13 @@ public class VoidExpr extends Expr {
 
 	private final Expr cls;
 
-	public VoidExpr(MethodCreator meth, Expr ignoredResult) {
+	public VoidExpr(MethodDefiner meth, Expr ignoredResult) {
 		super(meth);
 		this.cls = ignoredResult;
 	}
 
 	@Override
-	public void spitOutByteCode(MethodCreator meth) {
+	public void spitOutByteCode(MethodDefiner meth) {
 		cls.spitOutByteCode(meth);
 		if (!cls.getType().equals("void"))
 			meth.pop();

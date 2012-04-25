@@ -7,14 +7,19 @@ public class ReturnX extends Expr {
 	private final String retType;
 	private final Expr value;
 
-	public ReturnX(MethodCreator methodCreator, String retType, Expr value) {
+	public ReturnX(MethodDefiner methodCreator, String retType, Expr value) {
 		super(methodCreator);
 		this.retType = retType;
 		this.value = value;
 	}
 
 	@Override
-	public void spitOutByteCode(MethodCreator meth) {
+	public void spitOutByteCode(MethodDefiner meth) {
+		if (retType.equals("void"))
+		{
+			meth.vreturn();
+			return;
+		}
 		this.value.spitOutByteCode(meth);
 		if (retType.equals("object"))
 		{

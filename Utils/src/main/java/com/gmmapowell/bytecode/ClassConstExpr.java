@@ -4,13 +4,13 @@ public class ClassConstExpr extends Expr {
 
 	private final String cls;
 
-	public ClassConstExpr(MethodCreator meth, String cls) {
+	public ClassConstExpr(MethodDefiner meth, String cls) {
 		super(meth);
 		this.cls = cls;
 	}
 
 	@Override
-	public void spitOutByteCode(MethodCreator meth) {
+	public void spitOutByteCode(MethodDefiner meth) {
 		meth.ldcClass(cls);
 	}
 

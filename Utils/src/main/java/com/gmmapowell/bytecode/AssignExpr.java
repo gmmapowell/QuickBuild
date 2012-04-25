@@ -5,14 +5,14 @@ public class AssignExpr extends Expr {
 	private final FieldExpr field;
 	private final Expr expr;
 
-	public AssignExpr(MethodCreator meth, Var assignTo, Expr expr) {
+	public AssignExpr(MethodDefiner meth, Var assignTo, Expr expr) {
 		super(meth);
 		this.assignTo = assignTo;
 		this.field = null;
 		this.expr = expr;
 	}
 
-	public AssignExpr(MethodCreator meth, FieldExpr field, Expr expr) {
+	public AssignExpr(MethodDefiner meth, FieldExpr field, Expr expr) {
 		super(meth);
 		this.assignTo = null;
 		this.field = field;
@@ -20,7 +20,7 @@ public class AssignExpr extends Expr {
 	}
 
 	@Override
-	public void spitOutByteCode(MethodCreator meth) {
+	public void spitOutByteCode(MethodDefiner meth) {
 		if (field != null)
 			field.prepare(meth);
 		expr.spitOutByteCode(meth);

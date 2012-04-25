@@ -4,13 +4,13 @@ public class IntConstExpr extends Expr {
 
 	private final int value;
 
-	public IntConstExpr(MethodCreator meth, int i) {
+	public IntConstExpr(MethodDefiner meth, int i) {
 		super(meth);
 		this.value = i;
 	}
 
 	@Override
-	public void spitOutByteCode(MethodCreator meth) {
+	public void spitOutByteCode(MethodDefiner meth) {
 		meth.iconst(value);
 	}
 

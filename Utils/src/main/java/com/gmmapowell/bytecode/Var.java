@@ -7,19 +7,19 @@ public abstract class Var extends Expr {
 	protected final String clz;
 	private int argpos = -1;
 
-	protected Var(MethodCreator meth, String clz, String name) {
+	protected Var(MethodDefiner meth, String clz, String name) {
 		super(meth);
 		id = meth.nextLocal();
 		this.clz = clz;
 	}
 
-	public Var(MethodCreator meth, JavaType clz, String name) {
+	public Var(MethodDefiner meth, JavaType clz, String name) {
 		super(meth);
 		id = meth.nextLocal();
 		this.clz = clz.getActual();
 	}
 
-	protected Var(MethodCreator meth, int id, String name) {
+	protected Var(MethodDefiner meth, int id, String name) {
 		super(meth);
 		this.clz = meth.getClassName();
 		this.id = id;
@@ -47,25 +47,25 @@ public abstract class Var extends Expr {
 	
 	public static class AVar extends Var {
 
-		public AVar(MethodCreator meth, String clz, String name) {
+		public AVar(MethodDefiner meth, String clz, String name) {
 			super(meth, clz, name);
 		}
 		
-		public AVar(MethodCreator meth, JavaType clz, String name) {
+		public AVar(MethodDefiner meth, JavaType clz, String name) {
 			super(meth, clz, name);
 		}
 		
-		private AVar(MethodCreator meth) {
+		private AVar(MethodDefiner meth) {
 			super(meth, 0, "this");
 		}
 
-		public static AVar myThis(MethodCreator meth)
+		public static AVar myThis(MethodDefiner meth)
 		{
 			return new AVar(meth); 
 		}
 		
 		@Override
-		public void spitOutByteCode(MethodCreator meth) {
+		public void spitOutByteCode(MethodDefiner meth) {
 			meth.aload(id);
 		}
 		
@@ -76,16 +76,16 @@ public abstract class Var extends Expr {
 
 	public static class IVar extends Var {
 
-		public IVar(MethodCreator meth, String clz, String name) {
+		public IVar(MethodDefiner meth, String clz, String name) {
 			super(meth, clz, name);
 		}
 		
-		private IVar(MethodCreator meth) {
+		private IVar(MethodDefiner meth) {
 			super(meth, 0, "this");
 		}
 
 		@Override
-		public void spitOutByteCode(MethodCreator meth) {
+		public void spitOutByteCode(MethodDefiner meth) {
 			meth.iload(id);
 		}
 		
@@ -96,18 +96,18 @@ public abstract class Var extends Expr {
 
 	public static class DVar extends Var {
 
-		public DVar(MethodCreator meth, String clz, String name) {
+		public DVar(MethodDefiner meth, String clz, String name) {
 			super(meth, clz, name);
 			meth.nextLocal(); // phantom thing
 		}
 		
-		private DVar(MethodCreator meth) {
+		private DVar(MethodDefiner meth) {
 			super(meth, 0, "this");
 			meth.nextLocal(); // phantom thing
 		}
 
 		@Override
-		public void spitOutByteCode(MethodCreator meth) {
+		public void spitOutByteCode(MethodDefiner meth) {
 			meth.dload(id);
 		}
 		

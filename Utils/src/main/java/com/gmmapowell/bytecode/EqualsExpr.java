@@ -4,14 +4,14 @@ public class EqualsExpr extends Expr {
 	private final Expr left;
 	private final Expr right;
 
-	public EqualsExpr(MethodCreator meth, Expr left, Expr right) {
+	public EqualsExpr(MethodDefiner meth, Expr left, Expr right) {
 		super(meth);
 		this.left = left;
 		this.right = right;
 	}
 
 	@Override
-	public void spitOutByteCode(MethodCreator meth) {
+	public void spitOutByteCode(MethodDefiner meth) {
 		left.spitOutByteCode(meth);
 		right.spitOutByteCode(meth);
 		meth.invokeVirtualMethod("java.lang.Object", "boolean", "equals", "java.lang.Object");
