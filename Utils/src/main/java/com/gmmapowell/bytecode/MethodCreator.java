@@ -217,8 +217,8 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 	}
 
 	@Override
-	public Expr callSuper(String returns, Expr obj, String parentClzName, String methodName, Expr... args) {
-		return new MethodInvocation(this, "super", returns, obj, parentClzName, methodName, args);
+	public Expr callSuper(String returns, String parentClzName, String methodName, Expr... args) {
+		return new MethodInvocation(this, "super", returns, myThis(), parentClzName, methodName, args);
 	}
 	
 	@Override

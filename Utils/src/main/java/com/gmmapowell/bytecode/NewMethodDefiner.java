@@ -44,8 +44,8 @@ public interface NewMethodDefiner {
 	/** Group a collection of expressions as a block */
 	Expr block(Expr... exprs);
 
-	Expr callSuper(String returns, Expr obj, String parentClzName,
-			String methodName, Expr... args);
+	Expr callSuper(String returns, String parentClzName, String methodName,
+			Expr... args);
 
 	Expr callVirtual(String returns, Expr obj, String methodName, Expr... args);
 
