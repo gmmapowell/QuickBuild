@@ -40,14 +40,12 @@ public class UnboxExpr extends Expr {
 		expr.spitOutByteCode(meth);
 		if (expr.getType().equals(inType))
 			meth.invokeVirtualMethod(inType, outType, convMethod);
-//		if (type == Type.INT)
-//			method.invokeStatic(S.integer, S.integer, "valueOf", S.int_);
-//		if (type == Type.DOUBLE)
-//			method.invokeStatic(S.boxedDouble, S.boxedDouble, "valueOf", S.double_);
 	}
 
 	@Override
 	public String getType() {
+		if (outType == null)
+			return expr.getType();
 		return outType;
 	}
 
