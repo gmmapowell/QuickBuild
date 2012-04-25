@@ -402,7 +402,7 @@ public class BuildOrder {
 				if (reject != null)
 				{
 					if (debug)
-						System.out.println("  Rejecting 'deferred' because its parent has not built");
+						System.out.println("  Rejecting " + p.name() + "because its parent has not built");
 					continue;
 				}
 			}
@@ -455,7 +455,39 @@ public class BuildOrder {
 				System.out.println(printOut(false));
 			return true;
 		}
-
+		System.out.println("There is nothing in the well that can be added!");
+		System.out.println("Well contents:");
+		for (BandElement p : pending)
+		{
+			System.out.println("  Band " + p.name() + " drift: " + getDrift(p));
+			if (p instanceof DeferredTactic)
+			{
+				BuildResource reject = null;
+				for (BuildResource sr : p.getStrat().buildsResources())
+					if (isBuilt(sr) < 0)
+						reject = sr;
+				if (reject != null)
+				{
+					System.out.println("    Rejecting " + p.name() + "because its parent has not built");
+					continue;
+				}
+			}
+			int maxBuilt = -1;
+			boolean hasDependency = false;
+			for (BuildResource pr : p.getDependencies(dependencies))
+			{
+				int builtAt = isBuilt(pr);
+				if (builtAt == -2)
+				{
+					System.out.println("    Rejecting because " + pr + " is not built");
+					hasDependency = true;
+					continue;
+				}
+				else if (hasDependency)
+					continue;
+				maxBuilt = Math.max(maxBuilt, builtAt);
+			}
+		}
 		throw new UtilException("There is no way to build everything");
 	}
 
