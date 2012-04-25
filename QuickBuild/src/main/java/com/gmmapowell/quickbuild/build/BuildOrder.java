@@ -615,14 +615,18 @@ public class BuildOrder {
 	public int count(int band) {
 		return bands.get(band).size();
 	}
-	
+
+	public void commitUnbuilt()
+	{
+		for (GitRecord gr : ubtxs)
+			gr.commit();
+	}
+
 	public void commitAll()
 	{
 		for (ExecutionBand eb : this.bands)
 			for (BandElement es : eb)
 				if (es instanceof ExecuteStrategem)
 					((ExecuteStrategem)es).commitAll();
-		for (GitRecord gr : ubtxs)
-			gr.commit();
 	}
 }

@@ -74,6 +74,7 @@ public class GitRecord {
 
 	void setDirty() {
 		dirty = true;
+		source.delete();
 	}
 
 	void generates(File newFile) {

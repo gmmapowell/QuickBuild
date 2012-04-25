@@ -129,7 +129,8 @@ public class QuickBuild {
 		if (!arguments.quiet)
 			System.err.println("Pre-build configuration time: " + DateUtils.elapsedTime(launched, new Date(), DateUtils.Format.hhmmss3));
 		
-		new BuildExecutor(cxt, arguments.debug).doBuild();
 		mainFiles.commit();
+		cxt.getBuildOrder().commitUnbuilt();
+		new BuildExecutor(cxt, arguments.debug).doBuild();
 	}
 }
