@@ -730,8 +730,13 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 	}
 
 	@Override
-	public void pop() {
-		add(-1, new Instruction(0x57));
+	public void pop(String type) {
+		if (type.equals("void"))
+			return;
+		if (type.equals("double") || type.equals("long"))
+			add(-2, new Instruction(0x58));
+		else
+			add(-1, new Instruction(0x57));
 	}
 
 	@Override
@@ -742,7 +747,7 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 		int ntIdx = bcf.pool.requireNT(fieldIdx, sigIdx);
 		int idx = bcf.pool.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
 		int pop = -2;
-		if (type.equals("double"))
+		if (type.equals("double") || type.equals("long"))
 			pop = -3;
 		add(pop, new Instruction(0xb5, idx>>8, idx&0xff));
 	}

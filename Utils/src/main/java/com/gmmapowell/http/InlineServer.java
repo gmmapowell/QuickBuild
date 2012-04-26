@@ -98,6 +98,7 @@ public class InlineServer {
 					// this is perfectly normal ... continue (or not)
 				}
 			}
+			s.close();
 			logger.info("Server exiting");
 		} catch (Exception ex) {
 			failure = ex;

@@ -14,8 +14,7 @@ public class VoidExpr extends Expr {
 	@Override
 	public void spitOutByteCode(MethodDefiner meth) {
 		cls.spitOutByteCode(meth);
-		if (!cls.getType().equals("void"))
-			meth.pop();
+			meth.pop(cls.getType());
 	}
 
 	@Override

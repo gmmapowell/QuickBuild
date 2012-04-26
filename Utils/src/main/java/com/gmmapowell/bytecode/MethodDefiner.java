@@ -95,7 +95,7 @@ public interface MethodDefiner extends NewMethodDefiner {
 
 	void newObject(String clz);
 
-	void pop();
+	void pop(String type);
 
 	void putField(String clz, String type, String var);
 
