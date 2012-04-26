@@ -1,6 +1,8 @@
 package com.gmmapowell.quickbuild.build;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.gmmapowell.git.GitRecord;
@@ -18,6 +20,7 @@ public class ExecuteStrategem extends BandElement {
 	private Strategem strat;
 	private boolean needsLocalBuild = false;
 	private final Set<GitRecord> gittxs = new HashSet<GitRecord>();
+	private List<DeferredTactic> deferredComplete = new ArrayList<DeferredTactic>();
 
 	public ExecuteStrategem(String which) {
 		this.which = which;
@@ -158,6 +161,8 @@ public class ExecuteStrategem extends BandElement {
 	}
 
 	public void commitAll() {
+		if (deferredComplete.size() < deferred.size())
+			return;
 		for (GitRecord gr : gittxs)
 			gr.commit();
 	}
@@ -166,6 +171,10 @@ public class ExecuteStrategem extends BandElement {
 	public void fail() {
 		for (GitRecord gr : gittxs)
 			gr.setError();
+	}
+
+	public void deferredComplete(DeferredTactic deferredTactic) {
+		deferredComplete.add(deferredTactic);
 	}
 	
 	

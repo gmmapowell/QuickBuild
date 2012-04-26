@@ -59,6 +59,10 @@ public class DeferredTactic extends BandElement {
 		return fromES.isClean();
 	}
 
+	public boolean isCompletelyClean() {
+		return fromES.isCompletelyClean();
+	}
+
 	@Override
 	public int size() {
 		return 1;
@@ -122,5 +126,9 @@ public class DeferredTactic extends BandElement {
 	@Override
 	public void fail() {
 		fromES.fail();
+	}
+
+	public void complete() {
+		fromES.deferredComplete(this);
 	}
 }

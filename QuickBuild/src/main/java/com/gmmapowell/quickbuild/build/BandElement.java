@@ -47,14 +47,10 @@ public abstract class BandElement {
 	public abstract void print(PrettyPrinter pp, boolean withTactics);
 
 	public abstract boolean isClean();
-
+	public abstract boolean isCompletelyClean();
 
 	public abstract boolean isFirstTactic(Tactic tactic);
 	public abstract boolean isLastTactic(Tactic tactic);
-
-	public boolean isCompletelyClean() {
-		return isClean();
-	}
 	
 	public void dependsOn(Strategem mustHaveBuilt) {
 		if (mustHaveBuilt == null)

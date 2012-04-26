@@ -368,7 +368,7 @@ public class BuildOrder {
 			bs = BuildStatus.SKIPPED;
 		else if (be instanceof DeferredTactic) {
 			bs = BuildStatus.DEFERRED;
-			if (((DeferredTactic)be).isClean())
+			if (((DeferredTactic)be).isCompletelyClean())
 				bs = BuildStatus.CLEAN;
 		}
 		if (be.isCompletelyClean())

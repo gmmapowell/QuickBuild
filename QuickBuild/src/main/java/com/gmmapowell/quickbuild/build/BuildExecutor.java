@@ -232,10 +232,13 @@ public class BuildExecutor {
 		{
 			ex.printStackTrace(System.out);
 		}
-		if (itb.lastTactic() && itb.strat instanceof ExecuteStrategem)
-			rm.stratComplete(ret, ((ExecuteStrategem)itb.strat));
 		if (ret.needsRebuild())
 			itb.strat.fail();
+		if (itb.lastTactic())
+			if (itb.strat instanceof ExecuteStrategem)
+				rm.stratComplete(ret, ((ExecuteStrategem)itb.strat));
+			else
+				((DeferredTactic)itb.strat).complete();
 		
 		return ret;
 	}
