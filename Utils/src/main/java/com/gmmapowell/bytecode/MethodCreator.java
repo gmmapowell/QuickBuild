@@ -10,6 +10,7 @@ import com.gmmapowell.bytecode.IfExpr.IfCond;
 import com.gmmapowell.bytecode.Var.AVar;
 import com.gmmapowell.bytecode.Var.DVar;
 import com.gmmapowell.bytecode.Var.IVar;
+import com.gmmapowell.bytecode.Var.LVar;
 import com.gmmapowell.collections.CollectionUtils;
 import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
@@ -103,6 +104,8 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 		// NOTE: internally, the JVM uses integers for booleans, so I'm copying that
 		if (type.equals("int") || type.equals("boolean"))
 			return ivar(type, aname);
+		else if (type.equals("long"))
+			return lvar(type, name);
 		else if (type.equals("double"))
 			return dvar(type, aname);
 		else
@@ -141,6 +144,12 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 		return new IVar(this, clz, name);
 	}
 	
+	@Override
+	public Var lvar(String clz, String name)
+	{
+		return new LVar(this, clz, name);
+	}
+
 	@Override
 	public Var dvar(String clz, String name)
 	{
@@ -662,10 +671,10 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 		int pop = args.length;
 		if (ret.equals("void"))
 			++pop;
-		else if (ret.equals("double"))
+		else if (ret.equals("double") || ret.equals("long"))
 			--pop;
 		for (String s : args)
-			if (s.equals("double"))
+			if (s.equals("double") || s.equals("long"))
 				++pop;
 		if (isStatic)
 			--pop;
@@ -722,7 +731,30 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 		else
 			add(1, new Instruction(0x13, hi(idx), lo(idx)));
 	}
+
+	@Override
+	public void lload(int i) {
+		if (i < 4)
+			add(2, new Instruction(0x1e+i));
+		else
+			add(2, new Instruction(0x16, i));
+	}
+
+	@Override
+	public void lreturn() {
+		add(-2, new Instruction(0xad));
+	}
 	
+	@Override
+	public void lstore(int i) {
+		if (i < 4)
+			add(-2, new Instruction(0x3f+i));
+		else
+			add(-2, new Instruction(0x37, i));
+		if (i >= locals)
+			locals = i+1;
+	}
+
 	@Override
 	public void newObject(String clz) {
 		int idx = bcf.pool.requireClass(clz);
@@ -760,7 +792,7 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 		int ntIdx = bcf.pool.requireNT(fieldIdx, sigIdx);
 		int idx = bcf.pool.requireRef(ByteCodeFile.CONSTANT_Fieldref, clzIdx, ntIdx);
 		int pop = -1;
-		if (type.equals("double"))
+		if (type.equals("double") || type.equals("long"))
 			pop = -2;
 		add(pop, new Instruction(0xb3, idx>>8, idx&0xff));
 	}

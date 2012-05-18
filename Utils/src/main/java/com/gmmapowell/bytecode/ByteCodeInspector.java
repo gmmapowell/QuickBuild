@@ -614,6 +614,11 @@ public class ByteCodeInspector extends ByteCodeFile {
 			hexdump.print("iload_"+(opcode-0x1a));
 			return 1;
 		}
+		case 0x1e: case 0x1f: case 0x20: case 0x21:
+		{
+			hexdump.print("lload_"+(opcode-0x1e));
+			return 1;
+		}
 		case 0x26: case 0x27: case 0x28: case 0x29:
 		{
 			hexdump.print("dload_"+(opcode-0x26));
@@ -689,6 +694,11 @@ public class ByteCodeInspector extends ByteCodeFile {
 		case 0xac:
 		{
 			hexdump.print("ireturn");
+			return 1;
+		}
+		case 0xad:
+		{
+			hexdump.print("lreturn");
 			return 1;
 		}
 		case 0xaf:

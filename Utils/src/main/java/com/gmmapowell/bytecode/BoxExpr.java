@@ -14,6 +14,8 @@ public class BoxExpr extends Expr {
 			outType = "java.lang.Double";
 		else if (expr.getType().equals("int"))
 			outType = "java.lang.Integer";
+		else if (expr.getType().equals("long"))
+			outType = "java.lang.Long";
 		else
 			outType = null;
 		if (outType != null)

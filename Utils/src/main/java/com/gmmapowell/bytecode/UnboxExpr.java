@@ -24,6 +24,11 @@ public class UnboxExpr extends Expr {
 			outType = "int";
 			convMethod = "intValue";
 		}
+		else if (expr.getType().equals("java.lang.Long"))
+		{
+			outType = "long";
+			convMethod = "longValue";
+		}
 		else
 		{
 			outType = null;

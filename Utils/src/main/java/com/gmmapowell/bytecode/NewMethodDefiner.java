@@ -22,6 +22,8 @@ public interface NewMethodDefiner {
 
 	Var ivar(String clz, String name);
 
+	Var lvar(String clz, String name);
+
 	Var dvar(String clz, String name);
 
 	Expr aNull();

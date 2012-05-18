@@ -94,6 +94,28 @@ public abstract class Var extends Expr {
 		}
 	}
 
+	public static class LVar extends Var {
+
+		public LVar(MethodDefiner meth, String clz, String name) {
+			super(meth, clz, name);
+			meth.nextLocal(); // phantom thing
+		}
+		
+		private LVar(MethodDefiner meth) {
+			super(meth, 0, "this");
+			meth.nextLocal(); // phantom thing
+		}
+
+		@Override
+		public void spitOutByteCode(MethodDefiner meth) {
+			meth.lload(id);
+		}
+		
+		public void store() {
+			meth.lstore(id);
+		}
+	}
+
 	public static class DVar extends Var {
 
 		public DVar(MethodDefiner meth, String clz, String name) {

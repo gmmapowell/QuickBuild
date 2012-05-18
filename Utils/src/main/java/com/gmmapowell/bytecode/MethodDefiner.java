@@ -86,12 +86,18 @@ public interface MethodDefiner extends NewMethodDefiner {
 	void invokeInterface(String clz, String ret, String method, String... args);
 
 	void ireturn();
-
+	
 	Marker jump();
 
 	void ldcClass(String clz);
 
 	void ldcString(String string);
+
+	void lload(int i);
+	
+	void lreturn();
+
+	void lstore(int id);
 
 	void newObject(String clz);
 
@@ -114,5 +120,4 @@ public interface MethodDefiner extends NewMethodDefiner {
 	int stackDepth();
 
 	void resetStack(int to);
-
 }
