@@ -163,6 +163,7 @@ public class JavaDocCommand extends AbstractBuildCommand implements Strategem, T
 		LinePatternParser lppErr = new LinePatternParser();
 		lppErr.match("src/[^/]+/java/(.*): warning - (.*)", "message", "location", "text");
 		lppErr.match("(javadoc: error.*)", "error", "text");
+		lppErr.match("(error: .*)", "error", "text");
 		for (LinePatternMatch lpm : lppErr.applyTo(new StringReader(proc.getStderr())))
 		{
 			if (lpm.is("message"))
