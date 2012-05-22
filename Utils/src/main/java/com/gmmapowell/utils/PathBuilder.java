@@ -6,9 +6,12 @@ public class PathBuilder {
 	private StringBuilder sb = new StringBuilder();
 	
 	public void add(File f) {
-		if (sb.length() > 0)
-			sb.append(File.pathSeparatorChar);
-		sb.append(f.getPath());
+		if (f.exists() && f.length() > 0)
+		{
+			if (sb.length() > 0)
+				sb.append(File.pathSeparatorChar);
+			sb.append(f.getPath());
+		}
 	}
 	
 	@Override
