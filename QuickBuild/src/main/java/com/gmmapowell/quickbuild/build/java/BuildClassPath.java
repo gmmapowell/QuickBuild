@@ -10,7 +10,8 @@ public class BuildClassPath {
 	private Set<File> files = new HashSet<File>();
 
 	public void add(File file) {
-		files.add(file);
+		if (file.exists() && file.length() > 0)
+			files.add(file);
 	}
 
 	public String toString()
