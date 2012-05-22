@@ -59,7 +59,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 
 		JarBuildCommand jar = new JarBuildCommand(this, files, jarResource, includePackages, excludePackages);
 		tactics = new ArrayList<Tactic>();
-		addJavaBuild(tactics, jar, "src/main/java", "classes", "main");
+		JavaBuildCommand java = addJavaBuild(tactics, jar, "src/main/java", "classes", "main");
 		JavaBuildCommand junit = addJavaBuild(tactics, null, "src/test/java", "test-classes", "test");
 		if (junit != null)
 		{
@@ -76,6 +76,12 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 
 		if (jarResource != null)
 			willProvide.add(jarResource);
+		else if (junit != null)
+		{
+			JUnitResource jur = new JUnitResource(this, files.getOutput(FileUtils.ensureExtension(targetName, ".junr")));
+			willProvide.add(jur);
+			junit.writeTo(jur);
+		}
 
 		return this;
 	}

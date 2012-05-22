@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
@@ -49,6 +50,32 @@ public class JarBuildCommand implements Tactic {
 		proc.redirectStderr(System.out);
 		proc.arg("cvf");
 		proc.arg(jarfile.getPath());
+		boolean hasFiles = hasFiles(proc);
+		if (!hasFiles)
+		{
+			// we didn't actually build it, but it wants reassurance ...
+			try
+			{
+				if (jar != null)
+					jar.getFile().createNewFile();
+				cxt.builtResource(jar, false);
+			}
+			catch (Exception ex)
+			{
+				throw UtilException.wrap(ex);
+			}
+			return BuildStatus.SKIPPED;
+		}
+		proc.execute();
+		if (proc.getExitCode() == 0)
+		{
+			cxt.builtResource(jar);
+			return BuildStatus.SUCCESS;
+		}
+		return BuildStatus.BROKEN;
+	}
+
+	boolean hasFiles(RunProcess proc) {
 		boolean hasFiles = false;
 		for (File dir : dirsToJar)
 		{
@@ -60,21 +87,16 @@ public class JarBuildCommand implements Tactic {
 					continue;
 				if (f.getName().startsWith(".git"))
 					continue;
-				proc.arg("-C");
-				proc.arg(dir.getPath());
-				proc.arg(f.getPath());
+				if (proc != null)
+				{
+					proc.arg("-C");
+					proc.arg(dir.getPath());
+					proc.arg(f.getPath());
+				}
 				hasFiles = true;
 			}
 		}
-		if (!hasFiles)
-			return BuildStatus.SKIPPED;
-		proc.execute();
-		if (proc.getExitCode() == 0)
-		{
-			cxt.builtResource(jar);
-			return BuildStatus.SUCCESS;
-		}
-		return BuildStatus.BROKEN;
+		return hasFiles;
 	}
 
 	private boolean blockedByFilters(File f) {
