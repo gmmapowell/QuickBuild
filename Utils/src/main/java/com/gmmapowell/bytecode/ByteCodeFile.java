@@ -67,6 +67,7 @@ public class ByteCodeFile {
 	private final String qualifiedName;
 	private ListMap<AnnotationType, Annotation> annotations = new ListMap<AnnotationType, Annotation>();
 	final TreeSet<InnerClass> innerClasses = new TreeSet<InnerClass>();
+	private boolean completed = false;
 
 
 	protected ByteCodeFile()
@@ -148,18 +149,21 @@ public class ByteCodeFile {
 	}
 
 	public void write(DataOutputStream dos) throws IOException {
-		if (access_flags == -1)
-			access_flags = ACC_SUPER | ACC_PUBLIC;
-		if (this_idx == -1)
-			throw new UtilException("You must specify a this class");
-		if (super_idx == -1)
-			super_idx = pool.requireClass("java/lang/Object");
-
-		for (FieldInfo fi : fields)
-			fi.complete();
-		for (MethodInfo mi : methods)
-			((MethodDefiner)mi).complete();
-		complete();
+		if (!completed)
+		{
+			if (access_flags == -1)
+				access_flags = ACC_SUPER | ACC_PUBLIC;
+			if (this_idx == -1)
+				throw new UtilException("You must specify a this class");
+			if (super_idx == -1)
+				super_idx = pool.requireClass("java/lang/Object");
+	
+			for (FieldInfo fi : fields)
+				fi.complete();
+			for (MethodInfo mi : methods)
+				((MethodDefiner)mi).complete();
+			complete();
+		}
 		
 		dos.writeInt(javaMagic);
 		dos.writeShort(0);
@@ -200,6 +204,7 @@ public class ByteCodeFile {
 			at.addTo(this, attributes, annotations.get(at), -1);
 		}
 		
+		this.completed  = true;
 	}
 
 	private void readConstantPool(DataInputStream dis) throws IOException {
@@ -457,6 +462,8 @@ public class ByteCodeFile {
 		// but at the moment we can't because we can't be guaranteed that any given method
 		// creator has a signature.  When we fully move over to using GenAnnotation, then we can
 		// do that.
+		if (methods.contains(ret))
+			throw new UtilException("Cannot add the same method twice");
 		methods.add(ret);
 	}
 

@@ -347,6 +347,10 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 
 	@Override
 	public void complete() throws IOException {
+		for (AttributeInfo a : attributes)
+			if (a.hasName("Code"))
+				throw new UtilException("Cannot complete a method that already has a Code attribute");
+
 		if (access_flags == -1)
 			access_flags = ByteCodeFile.ACC_PUBLIC;
 		if (isStatic)
@@ -834,5 +838,10 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 	public void resetStack(int to)
 	{
 		opdepth = to;
+	}
+	
+	@Override
+	public String toString() {
+		return "Method[" + returnType + " " + getClassName() + "::" + this.name + "]";
 	}
 }

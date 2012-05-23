@@ -36,6 +36,9 @@ public class MethodInfo extends JavaInfo {
 
 	@Override
 	public String toString() {
-		return "Method[" + bcf.pool.get(nameIdx) + bcf.pool.get(descriptorIdx) +"]";
+		if (nameIdx != -1 && descriptorIdx != -1)
+			return "Method[" + bcf.pool.get(nameIdx) + bcf.pool.get(descriptorIdx) +"]";
+		else
+			return "Method[?,?]";
 	}
 }

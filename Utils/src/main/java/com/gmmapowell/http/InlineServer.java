@@ -71,9 +71,10 @@ public class InlineServer {
 	}
 
 	public void run(boolean wantLoop) {
+		ServerSocket s = null;
 		try {
 			this.doLoop = wantLoop;
-			ServerSocket s = new ServerSocket(port);
+			s = new ServerSocket(port);
 			s.setSoTimeout(1000);
 			logger.info("Listening on port " + s.getLocalPort());
 			Class<?> forName = Class.forName(servletClass);
@@ -101,8 +102,16 @@ public class InlineServer {
 			s.close();
 			logger.info("Server exiting");
 		} catch (Exception ex) {
-			failure = ex;
 			ex.printStackTrace();
+			failure = ex;
+			if (s != null)
+			{
+				try {
+					s.close();
+				} catch (Exception e2) {
+					e2.printStackTrace();
+				}
+			}
 		}
 	}
 
