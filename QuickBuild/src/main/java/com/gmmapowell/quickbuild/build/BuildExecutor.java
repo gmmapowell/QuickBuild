@@ -2,6 +2,7 @@ package com.gmmapowell.quickbuild.build;
 
 import java.util.Date;
 
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.DateUtils;
 
@@ -44,6 +45,8 @@ public class BuildExecutor {
 			ehandler.currentCmd(itb);
 			if (debug)
 			{
+				for (Tactic t : itb.strat.getStrat().tactics())
+					System.out.println(t);
 				System.out.print(new Date().toString()+" ");
 			}
 			BuildStatus outcome = execute(itb);
