@@ -88,7 +88,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		if (tactics != null)
 			return tactics;
 		
-		tactics = new ArrayList<Tactic>();
+		ArrayList<Tactic> tactics = new ArrayList<Tactic>();
 		File manifest = files.getRelative("src/android/AndroidManifest.xml");
 		File gendir = files.getRelative("src/android/gen");
 		File resdir = files.getRelative("src/android/res");
@@ -159,6 +159,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		tactics.add(pkg);
 		ApkBuildCommand apk = new ApkBuildCommand(this, acxt, zipfile, dexFile, apkFile, apkResource);
 		tactics.add(apk);
+		this.tactics = tactics;
 		return tactics;
 	}
 
