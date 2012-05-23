@@ -1,6 +1,7 @@
 package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -147,12 +148,18 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 			}
 		}
 		
-		DexBuildCommand dex = new DexBuildCommand(acxt, this, files, files.getOutput("classes"), files.getRelative("src/android/lib"), dexFile, exclusions);
+		DexBuildCommand dex = new DexBuildCommand(acxt, this, files, files.getOutput("classes"), files.getRelative("src/android/lib"), dexFile, exclusions, uselibs);
 		for (PendingResource pr : uselibs)
 		{
-			File path = pr.physicalResource().getPath();
-			dex.addJar(path);
-			jrr.add(path);
+			try
+			{
+				File path = pr.physicalResource().getPath();
+				jrr.add(path);
+			}
+			catch (Exception ex)
+			{
+				System.out.println("Could not add " + pr + " to jrr path because it did not exist");
+			}
 		}
 		tactics.add(dex);
 		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(this, acxt, manifest, zipfile, resdir, assetsDir);

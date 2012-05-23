@@ -12,6 +12,8 @@ import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.PendingResource;
+import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -26,19 +28,20 @@ public class DexBuildCommand implements Tactic {
 	private final File libdir;
 	private final Strategem parent;
 	private final Set<Pattern> exclusions;
+	private ResourcePacket<PendingResource> uselibs;
 
-	public DexBuildCommand(AndroidContext acxt, Strategem parent, StructureHelper files, File bindir, File libdir, File dexFile, Set<Pattern> exclusions) {
+	public DexBuildCommand(AndroidContext acxt, Strategem parent, StructureHelper files, File bindir, File libdir, File dexFile, Set<Pattern> exclusions, ResourcePacket<PendingResource> uselibs) {
 		this.acxt = acxt;
 		this.parent = parent;
 		this.bindir = bindir;
 		this.libdir = libdir;
 		this.dexFile = dexFile;
 		this.exclusions = exclusions;
+		this.uselibs = uselibs;
 	}
 
 	public void addJar(File file) {
 		jars.add(file);
-		
 	}
 
 	@Override
@@ -48,6 +51,16 @@ public class DexBuildCommand implements Tactic {
 		proc.captureStderr();
 		proc.showArgs(showArgs);
 		proc.debug(showDebug);
+		
+		if (uselibs != null)
+		{
+			for (PendingResource pr : uselibs)
+			{
+				File path = pr.physicalResource().getPath();
+				addJar(path);
+			}
+			uselibs = null;
+		}
 		
 		proc.arg("--dex");
 		proc.arg("--output="+dexFile.getPath());
