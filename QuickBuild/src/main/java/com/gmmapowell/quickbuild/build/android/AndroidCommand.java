@@ -130,17 +130,21 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		// TODO: I feel it should be possible to compile and run unit tests, but what about that bootclasspath?
 		if (files.getRelative("src/test/java").exists())
 		{
-			JavaBuildCommand buildTests = new JavaBuildCommand(this, files, "src/test/java", "test-classes", "test", FileUtils.findFilesMatching(files.getRelative("src/test/java"), "*.java"), "android");
-			buildTests.addToClasspath(new File(files.getOutputDir(), "classes"));
-			buildTests.addToBootClasspath(acxt.getPlatformJar());
-			tactics.add(buildTests);
-			
-			buildTests.addToClasspath(files.getRelative("src/main/resources"));
-			buildTests.addToClasspath(files.getRelative("src/test/resources"));
-			
-			JUnitRunCommand junitRun = new JUnitRunCommand(this, files, buildTests);
-			junitRun.addToBootClasspath(acxt.getPlatformJar());
-			tactics.add(junitRun);
+			List<File> testSources = FileUtils.findFilesMatching(files.getRelative("src/test/java"), "*.java");
+			if (testSources.size() > 0)
+			{
+				JavaBuildCommand buildTests = new JavaBuildCommand(this, files, "src/test/java", "test-classes", "test", testSources, "android");
+				buildTests.addToClasspath(new File(files.getOutputDir(), "classes"));
+				buildTests.addToBootClasspath(acxt.getPlatformJar());
+				tactics.add(buildTests);
+				
+				buildTests.addToClasspath(files.getRelative("src/main/resources"));
+				buildTests.addToClasspath(files.getRelative("src/test/resources"));
+				
+				JUnitRunCommand junitRun = new JUnitRunCommand(this, files, buildTests);
+				junitRun.addToBootClasspath(acxt.getPlatformJar());
+				tactics.add(junitRun);
+			}
 		}
 		
 		DexBuildCommand dex = new DexBuildCommand(acxt, this, files, files.getOutput("classes"), files.getRelative("src/android/lib"), dexFile, exclusions);
