@@ -36,6 +36,15 @@ public class WriteOnce<T> {
 		return value;
 	}
 
+	/** Generic test if it has already been set
+	 * 
+	 * @return true if it has been set, false otherwise.
+	 */
+	public boolean alreadySet()  
+	{
+		return isSet;
+	}
+	
 	/** After all other initialization logic is complete, calling this will ensure
 	 * that if no other value has been set, the member will be set to null.
 	 * 
@@ -48,6 +57,4 @@ public class WriteOnce<T> {
 			isSet = true;
 		}
 	}
-
-
 }
