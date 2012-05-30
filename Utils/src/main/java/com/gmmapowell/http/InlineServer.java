@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.serialization.Endpoint;
 
 public class InlineServer {
@@ -29,19 +30,22 @@ public class InlineServer {
 
 	private boolean doLoop;
 
-	private Exception failure;
+	private Throwable failure;
+
+	private Thread inThread;
 
 	public InlineServer(int port, String servletClass) {
 		this.port = port;
 		this.servletClass = servletClass;
+		inThread = Thread.currentThread();
 	}
 
-	public void addFailure(Exception ex) {
+	public void addFailure(Throwable ex) {
 		if (failure == null)
 			failure = ex;
 	}
 
-	public Exception getFailure()
+	public Throwable getFailure()
 	{
 		return failure;
 	}
@@ -71,11 +75,14 @@ public class InlineServer {
 	}
 
 	public void run(boolean wantLoop) {
+		if (inThread != Thread.currentThread())
+			throw new UtilException("Cannot run in different thread to creation thread");
+		int timeout = 10;
 		ServerSocket s = null;
 		try {
 			this.doLoop = wantLoop;
 			s = new ServerSocket(port);
-			s.setSoTimeout(1000);
+			s.setSoTimeout(timeout);
 			logger.info("Listening on port " + s.getLocalPort());
 			Class<?> forName = Class.forName(servletClass);
 			servletImpl = (HttpServlet) forName.newInstance();
@@ -97,6 +104,12 @@ public class InlineServer {
 				catch (SocketTimeoutException ex)
 				{
 					// this is perfectly normal ... continue (or not)
+					if (timeout < 2000)
+					{
+						timeout *= 2;
+						s.setSoTimeout(timeout);
+						logger.info("Timeout now = " + timeout);
+					}
 				}
 			}
 			s.close();
@@ -126,5 +139,6 @@ public class InlineServer {
 
 	public void pleaseExit() {
 		doLoop = false;
+		inThread.interrupt();
 	}
 }
