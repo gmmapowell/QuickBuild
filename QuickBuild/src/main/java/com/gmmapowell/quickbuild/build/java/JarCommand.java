@@ -67,7 +67,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		}
 		addResources(jar, junit, "src/main/resources");
 		addResources(null, junit, "src/test/resources");
-		addJUnitRun(tactics, junit);
+		JUnitRunCommand jrun = addJUnitRun(tactics, junit);
 		if (tactics.size() == 0)
 			throw new QuickBuildException("None of the required source directories exist (or have source files) to build " + targetName);
 		tactics.add(jar);
@@ -80,7 +80,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		{
 			JUnitResource jur = new JUnitResource(this, files.getOutput(FileUtils.ensureExtension(targetName, ".junr")));
 			willProvide.add(jur);
-			junit.writeTo(jur);
+			jrun.writeTo(jur);
 		}
 
 		return this;
@@ -224,13 +224,15 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		}
 	}
 
-	private void addJUnitRun(List<Tactic> ret, JavaBuildCommand jbc) {
+	private JUnitRunCommand addJUnitRun(List<Tactic> ret, JavaBuildCommand jbc) {
 		if (runJunit && jbc != null)
 		{
 			JUnitRunCommand cmd = new JUnitRunCommand(this, files, jbc);
 			cmd.addLibs(junitLibs);
 			ret.add(cmd);
+			return cmd;
 		}
+		return null;
 	}
 
 	// Certainly the idea is that this is the "static" resouces this guy needs

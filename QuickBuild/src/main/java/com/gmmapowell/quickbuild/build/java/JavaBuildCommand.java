@@ -29,7 +29,6 @@ public class JavaBuildCommand implements Tactic {
 	private List<File> sources;
 	private final String label;
 	private final String context;
-	private JUnitResource writeTo;
 
 	public JavaBuildCommand(Strategem parent, StructureHelper files, String src, String bin, String label, List<File> sources, String context) {
 		this.parent = parent;
@@ -66,8 +65,6 @@ public class JavaBuildCommand implements Tactic {
 	
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
-		if (writeTo != null)
-			writeTo.getFile().delete();
 		JavaNature nature = cxt.getNature(JavaNature.class);
 		if (nature == null)
 			throw new UtilException("There is no JavaNature installed (huh?)");
@@ -112,15 +109,6 @@ public class JavaBuildCommand implements Tactic {
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
-			try
-			{
-				if (writeTo != null)
-					writeTo.getFile().createNewFile();
-			}
-			catch (Exception ex)
-			{
-				throw UtilException.wrap(ex);
-			}
 			// TODO: cxt.addClassDirForProject(project, bindir);
 			return BuildStatus.SUCCESS;
 		}
@@ -191,9 +179,5 @@ public class JavaBuildCommand implements Tactic {
 	@Override
 	public String identifier() {
 		return BuildOrder.tacticIdentifier(parent, label);
-	}
-
-	public void writeTo(JUnitResource jur) {
-		this.writeTo = jur;
 	}
 }

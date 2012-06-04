@@ -5,6 +5,7 @@ import java.io.StringReader;
 import java.util.List;
 
 import com.gmmapowell.bytecode.ByteCodeFile;
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.LinePatternMatch;
 import com.gmmapowell.parser.LinePatternParser;
 import com.gmmapowell.quickbuild.build.BuildContext;
@@ -33,6 +34,7 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 	private final JavaBuildCommand jbc;
 	private ResourcePacket<PendingResource> addlResources = new ResourcePacket<PendingResource>();
 	private final StructureHelper files;
+	private JUnitResource writeTo;
 
 
 	public JUnitRunCommand(Strategem parent, StructureHelper files, JavaBuildCommand jbc) {
@@ -46,6 +48,8 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
+		if (writeTo != null)
+			writeTo.getFile().delete();
 		RunClassPath classpath = new RunClassPath(jbc);
 		if (addlResources != null)
 			for (BuildResource r : addlResources)
@@ -76,15 +80,34 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 			}
 		}
 		if (!any)
+		{
+			reportSuccess(cxt);
 			return BuildStatus.SKIPPED;
+		}
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
+			reportSuccess(cxt);
 			return BuildStatus.SUCCESS;
 		}
 //		System.out.println(" !! JUnit Test Errors will be presented at end");
 		
 		return handleFailure(cxt, proc);
+	}
+
+	private void reportSuccess(BuildContext cxt) {
+		try
+		{
+			if (writeTo != null)
+			{
+				writeTo.getFile().createNewFile();
+				cxt.builtResource(writeTo);
+			}
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
 	}
 
 	private BuildStatus handleFailure(BuildContext cxt, RunProcess proc) {
@@ -151,6 +174,10 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 	@Override
 	public String identifier() {
 		return BuildOrder.tacticIdentifier(parent, "junit");
+	}
+
+	public void writeTo(JUnitResource jur) {
+		this.writeTo = jur;
 	}
 
 }
