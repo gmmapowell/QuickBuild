@@ -632,11 +632,11 @@ public class FileUtils {
 	}
 
 
-	public static void createFile(File file, String stdout) {
+	public static void createFile(File file, String contents) {
 		try
 		{
 			FileOutputStream fos = new FileOutputStream(file);
-			ByteArrayInputStream bais = new ByteArrayInputStream(stdout.getBytes());
+			ByteArrayInputStream bais = new ByteArrayInputStream(contents.getBytes());
 			copyStream(bais, fos);
 		}
 		catch (IOException ex)

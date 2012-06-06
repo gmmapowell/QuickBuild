@@ -3,23 +3,34 @@ package com.gmmapowell.http;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Vector;
 import java.util.logging.Logger;
 
+import javax.servlet.AsyncContext;
+import javax.servlet.DispatcherType;
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
 
 import com.gmmapowell.collections.IteratorEnumerator;
 import com.gmmapowell.collections.ListMap;
@@ -39,6 +50,11 @@ public class GPRequest implements HttpServletRequest {
 	private GPHttpSession session;
 	private final List<Cookie> cookies = new ArrayList<Cookie>();
 	private Cookie[] cookieArr;
+	private Map<String, Object> attributes = new HashMap<String, Object>();
+	private GPAsyncContext async;
+	private HashMap<String, String[]> parameterMap;
+	private String encoding = "iso-8859-1";
+	private BufferedReader reader = null;
 
 	public GPRequest(GPServletContext context, String s, InputStream is) throws URISyntaxException {
 		this.context = context;
@@ -47,7 +63,7 @@ public class GPRequest implements HttpServletRequest {
 		method = command[0];
 		rawUri = command[1];
 		uri = new URI(rawUri);
-		logger.fine("Received " + method + " request for " + rawUri);
+		logger.fine(Thread.currentThread().getName()+ ": " + "Received " + method + " request for " + rawUri);
 	}
 
 	public void addHeader(String s) {
@@ -64,7 +80,11 @@ public class GPRequest implements HttpServletRequest {
 				Cookie cookie = new Cookie(c1[0], c1[1]);
 				cookies.add(cookie);
 				if (cookie.getName().equals("JSESSIONID"))
+				{
 					session = context.getSession(cookie.getValue());
+					if (session != null)
+						session.accessed();
+				}
 			}
 		}
 	}
@@ -75,18 +95,28 @@ public class GPRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public Object getAttribute(String arg0) {
-		throw new UtilException("Not implemented");
+	public Object getAttribute(String key) {
+		return attributes.get(key);
 	}
 
 	@Override
 	public Enumeration<String> getAttributeNames() {
-		throw new UtilException("Not implemented");
+		return new IteratorEnumerator<String>(attributes.keySet().iterator());
+	}
+
+	@Override
+	public void removeAttribute(String key) {
+		attributes.remove(key);
+	}
+
+	@Override
+	public void setAttribute(String key, Object value) {
+		attributes.put(key, value);
 	}
 
 	@Override
 	public String getCharacterEncoding() {
-		throw new UtilException("Not implemented");
+		return encoding;
 	}
 
 	@Override
@@ -125,7 +155,7 @@ public class GPRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public Enumeration<String> getLocales() {
+	public Enumeration<Locale> getLocales() {
 		throw new UtilException("Not implemented");
 	}
 
@@ -146,39 +176,53 @@ public class GPRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public Map<String, String> getParameterMap() {
+	public Map<String, String[]> getParameterMap() {
 		// TODO: do we need to decode the %xx notation?
-		Map<String,String> ret = new HashMap<String, String>();
+		if (parameterMap != null)
+			return parameterMap;
 		String q = uri.getQuery();
-		int k=0;
-		while (k < q.length())
+		ListMap<String, String> tmp = new ListMap<String, String>();
+		if (q != null)
 		{
-			int p = k;
-			while (k < q.length() && q.charAt(k) != '=' && q.charAt(k) != '&')
-				k++;
-			String s = q.substring(p, k);
-			if (k == q.length() || q.charAt(k) == '&')
+			int k=0;
+			while (k < q.length())
 			{
-				ret.put(s, "");
-				continue;
+				int p = k;
+				while (k < q.length() && q.charAt(k) != '=' && q.charAt(k) != '&')
+					k++;
+				String s = q.substring(p, k);
+				if (k == q.length() || q.charAt(k) == '&')
+				{
+					tmp.add(s, "");
+					continue;
+				}
+				int v = ++k; // skip the =
+				while (k < q.length() && q.charAt(k) != '&')
+					k++;
+				tmp.add(s, q.substring(v, k));
+				k++; // skip the &
 			}
-			int v = ++k; // skip the =
-			while (k < q.length() && q.charAt(k) != '&')
-				k++;
-			ret.put(s, q.substring(v, k));
-			k++; // skip the &
 		}
-		return ret;
+		parameterMap = new HashMap<String, String[]>();
+		for (String s : tmp.keySet())
+		{
+			List<String> list = tmp.get(s);
+			parameterMap.put(s, list.toArray(new String[list.size()]));
+		}
+		return parameterMap;
 	}
 
 	@Override
 	public Enumeration<String> getParameterNames() {
-		throw new UtilException("Not implemented");
+		return new IteratorEnumerator<String>(getParameterMap().keySet().iterator());
 	}
 
 	@Override
 	public String[] getParameterValues(String arg0) {
-		throw new UtilException("Not implemented");
+		getParameterMap();
+		if (!parameterMap.containsKey(arg0))
+			return null;
+		return parameterMap.get(arg0);
 	}
 
 	@Override
@@ -188,7 +232,9 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public BufferedReader getReader() throws IOException {
-		throw new UtilException("Not implemented");
+		if (reader == null)
+			reader = new BufferedReader(new InputStreamReader(servletInputStream, encoding));
+		return reader;
 	}
 
 	@Override
@@ -237,16 +283,6 @@ public class GPRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public void removeAttribute(String arg0) {
-		throw new UtilException("Not implemented");
-	}
-
-	@Override
-	public void setAttribute(String arg0, Object arg1) {
-		throw new UtilException("Not implemented");
-	}
-
-	@Override
 	public void setCharacterEncoding(String arg0)
 			throws UnsupportedEncodingException {
 		throw new UtilException("Not implemented");
@@ -277,8 +313,10 @@ public class GPRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public String getHeader(String arg0) {
-		throw new UtilException("Not implemented");
+	public String getHeader(String s) {
+		if (!headers.contains(s.toLowerCase()))
+			return null;
+		return headers.get(s.toLowerCase()).get(0);
 	}
 
 	@Override
@@ -288,7 +326,9 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public Enumeration<String> getHeaders(String s) {
-		return new IteratorEnumerator<String>(headers.get(s).iterator());
+		if (!headers.contains(s.toLowerCase()))
+			return new Vector<String>().elements();
+		return new IteratorEnumerator<String>(headers.get(s.toLowerCase()).iterator());
 	}
 
 	@Override
@@ -306,7 +346,8 @@ public class GPRequest implements HttpServletRequest {
 	@Override
 	public String getPathInfo() {
 		String up = uri.getPath();
-		String ret = up.replace(getContextPath()+getServletPath(), "");
+		String ret = up.replace(getContextPath(), "");
+		ret = ret.replace(getServletPath(), "");
 		int idx = ret.indexOf("?");
 		if (idx >= 0)
 			ret = ret.substring(0, idx);
@@ -357,7 +398,7 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public HttpSession getSession() {
-		return getSession(false);
+		return getSession(true);
 	}
 
 	@Override
@@ -410,7 +451,71 @@ public class GPRequest implements HttpServletRequest {
 		return getRequestURI().startsWith(getContextPath()+getServletPath());
 	}
 
-	public InputStream getStaticResource() {
-		return context.getResourceAsStream(getPathInfo()); 
+	public GPStaticResource getStaticResource() {
+		return context.staticResource(getPathInfo()); 
+	}
+
+	@Override
+	public AsyncContext getAsyncContext() {
+		throw new UtilException("Not implemented");
+	}
+
+	@Override
+	public DispatcherType getDispatcherType() {
+		throw new UtilException("Not implemented");
+	}
+
+	@Override
+	public ServletContext getServletContext() {
+		throw new UtilException("Not implemented");
+	}
+
+	@Override
+	public boolean isAsyncStarted() {
+		return async != null;
+	}
+
+	@Override
+	public boolean isAsyncSupported() {
+		throw new UtilException("Not implemented");
+	}
+
+	@Override
+	public AsyncContext startAsync() {
+		return startAsync(null, null);
+	}
+
+	@Override
+	public AsyncContext startAsync(ServletRequest arg0, ServletResponse arg1) {
+		async = new GPAsyncContext(arg0, arg1);
+		return async;
+	}
+
+	@Override
+	public boolean authenticate(HttpServletResponse arg0) throws IOException,
+			ServletException {
+		throw new UtilException("Not implemented");
+	}
+
+	@Override
+	public Part getPart(String arg0) throws IOException, IllegalStateException,
+			ServletException {
+		throw new UtilException("Not implemented");
+	}
+
+	@Override
+	public Collection<Part> getParts() throws IOException,
+			IllegalStateException, ServletException {
+		throw new UtilException("Not implemented");
+	}
+
+	@Override
+	public void login(String arg0, String arg1) throws ServletException {
+		throw new UtilException("Not implemented");
+	}
+
+	@Override
+	public void logout() throws ServletException {
+		throw new UtilException("Not implemented");
 	}
 }

@@ -12,6 +12,8 @@ public class ConnectionThread extends Thread {
 	private final InputStream is;
 	private final OutputStream os;
 	private final InlineServer inlineServer;
+	private boolean closeConnection;
+	private boolean isWebSocket;
 
 	public ConnectionThread(InlineServer inlineServer, Socket conn) throws IOException {
 		this.inlineServer = inlineServer;
@@ -23,54 +25,51 @@ public class ConnectionThread extends Thread {
 	public void run()
 	{
 		GPResponse response = null;
+		closeConnection = true;
+		isWebSocket = false;
+		InlineServer.logger.fine(Thread.currentThread().getName()+ ": " + "Processing Incoming Request");
 		try {
-			GPServletContext servletContext = (GPServletContext) inlineServer.config.getServletContext();
-			String s;
-			GPRequest request = null;
-			while ((s = readLine()) != null && s.trim().length() > 0)
-			{
-				InlineServer.logger.fine("Header - " + s);
-				if (request == null)
-					request = new GPRequest(servletContext, s, is);
-				else
-					request.addHeader(s);
-			}
-			if (request == null)
-				throw new UtilException("There was no incoming request");
-			request.endHeaders();
-			
-			response = new GPResponse(request, os);
-			if (request.isForServlet())
-				inlineServer.service(request, response);
-			else {
-				InputStream staticResource = request.getStaticResource();
-				if (staticResource != null)
+			for (;;) {
+				try
 				{
-					response.setStatus(200);
-					FileUtils.copyStream(staticResource, response.getOutputStream());
+					response = handleOneRequest();
+					if (closeConnection)
+						break;
 				}
-				else
-					response.setStatus(404);
+				finally
+				{
+					if (response != null)
+					{
+						if (response.getStatus() == 0)
+						{
+							if (isWebSocket)
+								response.setStatus(101, "Web Socket Protocol Handshake");
+							else if (closeConnection)
+								response.setStatus(200, "OK");
+						}
+						// This is an attempt to handle "suspended" connections ... but what is the right way to do it?
+						// i.e. how should we tell?
+						if (response.getStatus() != 0)
+						{
+							response.commit();
+							try
+							{
+								response.getWriter().flush();
+							}
+							catch (Exception e)
+							{
+								e.printStackTrace();
+							}
+						}
+					}
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		finally
 		{
-			if (response != null)
-			{
-				if (response.getStatus() == 0)
-					response.setStatus(500, "Internal Server Error");
-				response.commit();
-				try
-				{
-					response.getWriter().flush();
-				}
-				catch (Exception e)
-				{
-					e.printStackTrace();
-				}
-			}
+			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Closing Connection");
 			try
 			{
 				os.close();
@@ -80,6 +79,67 @@ public class ConnectionThread extends Thread {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	private GPResponse handleOneRequest() throws Exception {
+		GPResponse response;
+		GPServletContext servletContext = (GPServletContext) inlineServer.config.getServletContext();
+		String s;
+		GPRequest request = null;
+		while ((s = readLine()) != null && s.trim().length() > 0)
+		{
+			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Header - " + s);
+			if (request == null)
+				request = new GPRequest(servletContext, s, is);
+			else
+				request.addHeader(s);
+		}
+		if (request == null)
+			throw new UtilException(Thread.currentThread().getName()+ ": " + "There was no incoming request");
+		InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Done Headers");
+		request.endHeaders();
+		
+		String connhdr;
+		{
+			connhdr = request.getHeader("connection");
+			if (connhdr == null)
+				connhdr = "close";
+			else if (connhdr.equalsIgnoreCase("keep-alive"))
+				closeConnection = false;
+			else if (connhdr.equalsIgnoreCase("upgrade"))
+				closeConnection = false;
+			else if (connhdr.equalsIgnoreCase("close"))
+				closeConnection = true;
+		}
+		{
+			String upghdr = request.getHeader("upgrade");
+			if (upghdr != null && (upghdr.equalsIgnoreCase("websocket")))
+				isWebSocket = true;
+		}
+		response = new GPResponse(request, os, connhdr);
+		if (request.isForServlet())
+		{
+			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Handling through servlet");
+			inlineServer.service(request, response);
+			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Finished servlet handling");
+		}
+		else {
+			GPStaticResource staticResource = request.getStaticResource();
+			if (staticResource != null)
+			{
+				InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Found static resource");
+				response.setStatus(200);
+				response.setContentLength((int)staticResource.len);
+				FileUtils.copyStream(staticResource.stream, response.getOutputStream());
+				staticResource.close();
+			}
+			else
+			{
+				InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"404: Not found - " + request.getPathInfo());
+				response.setStatus(404);
+			}
+		}
+		return response;
 	}
 
 	private String readLine() throws IOException {

@@ -1,5 +1,6 @@
 package com.gmmapowell.http;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -15,13 +16,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.serialization.Endpoint;
+import com.gmmapowell.utils.FileUtils;
 
 public class InlineServer {
 	public static final Logger logger = Logger.getLogger("InlineServer");
 
 	private final int port;
 	private final String servletClass;
-	protected final GPServletConfig config = new GPServletConfig();
+	protected final GPServletConfig config = new GPServletConfig(this);
+	private final List<File> staticPaths = new ArrayList<File>();
 
 	private HttpServlet servletImpl;
 	private Endpoint alertEP;
@@ -58,7 +61,7 @@ public class InlineServer {
 		servletContext().setServletPath(path);
 	}
 
-	private GPServletContext servletContext() {
+	public GPServletContext servletContext() {
 		return ((GPServletContext) config.getServletContext());
 	}
 
@@ -108,7 +111,7 @@ public class InlineServer {
 					{
 						timeout *= 2;
 						s.setSoTimeout(timeout);
-						logger.info("Timeout now = " + timeout);
+						logger.finest("Timeout now = " + timeout);
 					}
 				}
 			}
@@ -140,5 +143,15 @@ public class InlineServer {
 	public void pleaseExit() {
 		doLoop = false;
 		inThread.interrupt();
+	}
+
+	public void addStaticDir(File file) {
+		staticPaths.add(file);
+	}
+
+	public List<File> staticPaths() {
+		if (staticPaths.isEmpty())
+			staticPaths.add(FileUtils.getCurrentDir().getAbsoluteFile());
+		return staticPaths;
 	}
 }

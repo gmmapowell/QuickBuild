@@ -2,9 +2,12 @@ package com.gmmapowell.http;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -23,13 +26,15 @@ public class GPResponse implements HttpServletResponse {
 	private String statusMsg;
 	private final ListMap<String, String> headers = new ListMap<String, String>();
 	private final ServletOutputStream sos;
-	private final PrintWriter pw;
+	private PrintWriter pw;
 	private boolean committed;
 	private SimpleDateFormat dateFormat;
+	private final String connectionState;
+	private String encoding = "iso-8859-1";
 
-	public GPResponse(GPRequest request, OutputStream os) {
+	public GPResponse(GPRequest request, OutputStream os, String connhdr) {
+		this.connectionState = connhdr;
 		request.setResponse(this);
-		pw = new PrintWriter(os);
 		sos = new GPServletOutputStream(os);
 		dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
 		dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -41,9 +46,7 @@ public class GPResponse implements HttpServletResponse {
 
 	@Override
 	public void flushBuffer() throws IOException {
-		// TODO Auto-generated method stub
-
-		throw new UtilException("Not Implemented");
+		sos.flush();
 	}
 
 	@Override
@@ -54,14 +57,12 @@ public class GPResponse implements HttpServletResponse {
 
 	@Override
 	public String getCharacterEncoding() {
-		// TODO Auto-generated method stub
-		throw new UtilException("Not Implemented");
+		return encoding;
 	}
 
 	@Override
 	public String getContentType() {
-		// TODO Auto-generated method stub
-		throw new UtilException("Not Implemented");
+		return getHeader("Content-Type");
 	}
 
 	@Override
@@ -78,11 +79,15 @@ public class GPResponse implements HttpServletResponse {
 
 
 	private void reply(String string) {
+		InlineServer.logger.fine(Thread.currentThread().getName()+ ": Response: " + string);
 		pw.print(string +"\r\n");
 	}
 
 	@Override
 	public PrintWriter getWriter() throws IOException {
+		if (pw == null) {
+			commit();
+		}
 		return pw;
 	}
 
@@ -114,9 +119,7 @@ public class GPResponse implements HttpServletResponse {
 
 	@Override
 	public void setCharacterEncoding(String arg0) {
-		// TODO Auto-generated method stub
-
-		throw new UtilException("Not Implemented");
+		encoding = arg0;
 	}
 
 	@Override
@@ -126,9 +129,7 @@ public class GPResponse implements HttpServletResponse {
 
 	@Override
 	public void setContentType(String arg0) {
-		// TODO Auto-generated method stub
-
-		throw new UtilException("Not Implemented");
+		addHeader("Content-Type", arg0);
 	}
 
 	@Override
@@ -140,16 +141,12 @@ public class GPResponse implements HttpServletResponse {
 
 	@Override
 	public void addCookie(Cookie arg0) {
-		// TODO Auto-generated method stub
-
-		throw new UtilException("Not Implemented");
+		addHeader("Set-Cookie", arg0.toString());
 	}
 
 	@Override
 	public void addDateHeader(String arg0, long arg1) {
-		// TODO Auto-generated method stub
-
-		throw new UtilException("Not Implemented");
+		addHeader(arg0, Long.toString(arg1));
 	}
 
 	@Override
@@ -164,8 +161,7 @@ public class GPResponse implements HttpServletResponse {
 
 	@Override
 	public boolean containsHeader(String arg0) {
-		// TODO Auto-generated method stub
-		throw new UtilException("Not Implemented");
+		return headers.contains(arg0);
 	}
 
 	@Override
@@ -198,8 +194,7 @@ public class GPResponse implements HttpServletResponse {
 
 	@Override
 	public void sendError(int arg0, String arg1) throws IOException {
-		status = arg0;
-		statusMsg = arg1;
+		setStatus(arg0, arg1);
 	}
 
 	@Override
@@ -211,46 +206,43 @@ public class GPResponse implements HttpServletResponse {
 
 	@Override
 	public void setDateHeader(String arg0, long arg1) {
-		// TODO Auto-generated method stub
-
-		throw new UtilException("Not Implemented");
+		setHeader(arg0, Long.toString(arg1));
 	}
 
 	@Override
 	public void setHeader(String arg0, String arg1) {
-		// TODO Auto-generated method stub
-
-		throw new UtilException("Not Implemented");
+		headers.removeAll(arg0);
+		headers.add(arg0, arg1);
 	}
 
 	@Override
 	public void setIntHeader(String arg0, int arg1) {
-		// TODO Auto-generated method stub
-
-		throw new UtilException("Not Implemented");
+		setHeader(arg0, Integer.toString(arg1));
 	}
 
 	@Override
 	public void setStatus(int arg0) {
-		status = arg0;
+		String message;
 		if (arg0 >= 500 && arg0 < 600)
-			statusMsg = "Internal Server Error";
+			message = "Internal Server Error";
 		else if (arg0 == 404)
-			statusMsg = "Not Found";
+			message = "Not Found";
 		else if (arg0 >= 400)
-			statusMsg = "Denied";
+			message = "Denied";
 		else if (arg0 >= 300)
-			statusMsg = "Moved";
+			message = "Moved";
 		else if (arg0 >= 200)
-			statusMsg = "OK";
+			message = "OK";
 		else
-			statusMsg = null;
+			message = null;
+		setStatus(arg0, message);
 	}
 
 	@Override
 	public void setStatus(int arg0, String arg1) {
 		status = arg0;
 		statusMsg = arg1;
+		InlineServer.logger.fine("Setting status to " + status());
 	}
 
 	private List<String> sendHeaders() {
@@ -285,17 +277,26 @@ public class GPResponse implements HttpServletResponse {
 	}
 
 	public void commit() {
-		if (!committed)
-		{
-			reply(status());
-			reply("Server: InlineServer/1.1");
-			reply("Date: " + dateFormat.format(new Date())); /* Sat, 18 Jun 2011 21:52:27 GMT */
-			reply("Connection: close");
-			for (String r : sendHeaders())
-				reply(r);
-			reply("");
-			pw.flush();
-			committed = true;
+		try {
+			if (!committed)
+			{
+				pw = new PrintWriter(new OutputStreamWriter(sos, encoding));
+				InlineServer.logger.info(Thread.currentThread().getName() + " Writing to " + sos);
+				if (status == 0)
+					setStatus(200, "OK");
+				reply(status());
+				reply("Server: InlineServer/1.1");
+				reply("Date: " + dateFormat.format(new Date())); /* Sat, 18 Jun 2011 21:52:27 GMT */
+				reply("Connection: " + connectionState);
+				for (String r : sendHeaders())
+					reply(r);
+				reply("");
+				pw.flush();
+				committed = true;
+		}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
@@ -303,4 +304,22 @@ public class GPResponse implements HttpServletResponse {
 		return status;
 	}
 
+	@Override
+	public String getHeader(String arg0) {
+		if (!headers.contains(arg0))
+			return null;
+		return headers.get(arg0).get(0);
+	}
+
+	@Override
+	public Collection<String> getHeaderNames() {
+		return headers.keySet();
+	}
+
+	@Override
+	public Collection<String> getHeaders(String arg0) {
+		if (!headers.contains(arg0))
+			return null;
+		return headers.get(arg0);
+	}
 }

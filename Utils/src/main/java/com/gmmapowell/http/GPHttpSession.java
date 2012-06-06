@@ -1,5 +1,6 @@
 package com.gmmapowell.http;
 
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +17,8 @@ public class GPHttpSession implements HttpSession {
 	final String cookie;
 	private Map<String,Object> attributes = new HashMap<String, Object>();
 	private final GPServletContext context;
+	private int maxInactive;
+	private long lastAccess;
 
 	public GPHttpSession(GPServletContext context, String cookie) {
 		this.context = context;
@@ -44,12 +47,12 @@ public class GPHttpSession implements HttpSession {
 
 	@Override
 	public long getLastAccessedTime() {
-		throw new UtilException("Not Implemented");
+		return lastAccess;
 	}
 
 	@Override
 	public int getMaxInactiveInterval() {
-		throw new UtilException("Not Implemented");
+		return maxInactive;
 	}
 
 	@Override
@@ -104,6 +107,11 @@ public class GPHttpSession implements HttpSession {
 
 	@Override
 	public void setMaxInactiveInterval(int arg0) {
+		maxInactive = arg0;
+	}
+
+	public void accessed() {
+		lastAccess = new Date().getTime();
 	}
 
 }
