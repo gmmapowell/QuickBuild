@@ -17,14 +17,26 @@ public class ProcessArgs {
 		List<String> errors = new ArrayList<String>();
 		
 		int i = -1;
+		ArgumentDefinition pendingField = null;
 		loop:
 		while (++i < args.length)
 		{
+			if (pendingField != null) {
+				applyArgument(config, argcount, pendingField, args[i]);
+				pendingField = null;
+				continue loop;
+			}
 			if (args[i].startsWith("--"))
 			{
 				for (ArgumentDefinition ad : argumentDefinitions)
 					if (ad.text.equals(args[i]))
 					{
+						Class<?> type = Reflection.getFieldVar(config.getClass(), ad.toVar).getType();
+						if (!type.equals(Boolean.class) && !type.equals(boolean.class))
+						{
+							pendingField = ad;
+							continue loop;
+						}
 						Reflection.setField(config, ad.toVar, true);
 						argcount.op(ad, 1, new FuncR1<Integer, Integer>() {
 							@Override
@@ -41,14 +53,7 @@ public class ProcessArgs {
 					for (ArgumentDefinition ad : argumentDefinitions)
 						if (ad.text.equals(key))
 						{
-							for (String s : val.split(","))
-								if (s != null && s.length() > 0)
-									Reflection.setField(config, ad.toVar, s); // append to collection
-							argcount.op(ad, 1, new FuncR1<Integer, Integer>() {
-								@Override
-								public Integer apply(Integer arg) {
-									return arg+1;
-								}});
+							applyArgument(config, argcount, ad, val);
 							continue loop;
 						}
 				}
@@ -104,6 +109,11 @@ public class ProcessArgs {
 				errors.add("There was no variable to handle " + args[i]);
 			}
 		}
+
+		if (pendingField != null)
+		{
+			error(errors, pendingField, "did not have a value provided");
+		}
 		
 		// Check all required args were specified
 		for (ArgumentDefinition ad : argumentDefinitions)
@@ -115,6 +125,19 @@ public class ProcessArgs {
 		
 		if (errors.size() > 0)
 			throw new UsageException(errors);
+	}
+
+	private static void applyArgument(Object config,
+			StateMap<ArgumentDefinition, Integer> argcount, ArgumentDefinition ad,
+			String val) {
+		for (String s : val.split(ad.splitChar))
+			if (s != null && s.length() > 0)
+				Reflection.setField(config, ad.toVar, s); // append to collection
+		argcount.op(ad, 1, new FuncR1<Integer, Integer>() {
+			@Override
+			public Integer apply(Integer arg) {
+				return arg+1;
+			}});
 	}
 
 	private static void error(List<String> errors, ArgumentDefinition ad, String msg) {
