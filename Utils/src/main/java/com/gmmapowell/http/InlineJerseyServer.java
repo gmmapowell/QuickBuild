@@ -1,7 +1,5 @@
 package com.gmmapowell.http;
 
-import java.io.File;
-
 public class InlineJerseyServer extends InlineServer {
 
 	public InlineJerseyServer(int port, String appClz) {

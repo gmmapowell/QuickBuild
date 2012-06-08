@@ -29,7 +29,6 @@ import javax.servlet.descriptor.JspConfigDescriptor;
 
 import com.gmmapowell.collections.IteratorEnumerator;
 import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.utils.FileUtils;
 
 public class GPServletContext implements ServletContext {
 	private final GPServletConfig config;
