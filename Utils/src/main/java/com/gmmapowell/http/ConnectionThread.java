@@ -29,12 +29,18 @@ public class ConnectionThread extends Thread {
 		isWebSocket = false;
 		InlineServer.logger.fine(Thread.currentThread().getName()+ ": " + "Processing Incoming Request");
 		try {
+			boolean keptAlive = false;
 			for (;;) {
 				try
 				{
-					response = handleOneRequest();
+					response = handleOneRequest(keptAlive);
+					if (response == null)
+						closeConnection = true;
+					else if (!isWebSocket && response.getHeader("Content-Length").equals("-1"))
+						closeConnection = true;
 					if (closeConnection)
 						break;
+					keptAlive = true;
 				}
 				finally
 				{
@@ -81,7 +87,7 @@ public class ConnectionThread extends Thread {
 		}
 	}
 
-	private GPResponse handleOneRequest() throws Exception {
+	private GPResponse handleOneRequest(boolean keptAlive) throws Exception {
 		GPResponse response;
 		GPServletContext servletContext = (GPServletContext) inlineServer.config.getServletContext();
 		String s;
@@ -95,7 +101,11 @@ public class ConnectionThread extends Thread {
 				request.addHeader(s);
 		}
 		if (request == null)
+		{
+			if (keptAlive)
+				return null;
 			throw new UtilException(Thread.currentThread().getName()+ ": " + "There was no incoming request");
+		}
 		InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Done Headers");
 		request.endHeaders();
 		

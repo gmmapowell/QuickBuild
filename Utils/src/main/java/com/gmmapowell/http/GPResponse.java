@@ -73,6 +73,8 @@ public class GPResponse implements HttpServletResponse {
 
 	@Override
 	public ServletOutputStream getOutputStream() throws IOException {
+		if (!headers.contains("Content-Length"))
+			setContentLength(-1);
 		commit();
 		return sos;
 	}
@@ -290,6 +292,8 @@ public class GPResponse implements HttpServletResponse {
 				reply("Connection: " + connectionState);
 				for (String r : sendHeaders())
 					reply(r);
+				if (!headers.contains("Content-Length"))
+					reply("Content-Length: 0");
 				reply("");
 				pw.flush();
 				committed = true;
