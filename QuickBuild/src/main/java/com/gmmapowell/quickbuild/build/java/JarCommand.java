@@ -120,7 +120,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 				throw new UtilException("The option " + opt + " is not valid for JarCommand");
 		}
 		if (targetName == null)
-			targetName = projectName + ".jar";
+			targetName = new File(projectName).getName() + ".jar";
 	}
 
 	protected boolean processOption(ConfigApplyCommand opt) {

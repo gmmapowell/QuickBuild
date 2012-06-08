@@ -23,12 +23,22 @@ import com.gmmapowell.utils.GPJarEntry;
 import com.gmmapowell.utils.GPJarFile;
 
 public class JavaNature implements Nature, BuildContextAware {
+	private static class LibDir {
+		private final File from;
+		private final List<ExcludeCommand> exclusions;
+
+		public LibDir(File from, List<ExcludeCommand> exclusions) {
+			this.from = from;
+			this.exclusions = exclusions;
+		}
+	}
+
 	private final List<String> loadedLibs = new ArrayList<String>();
 	private final SetMap<String, JarResource> availablePackages = new SetMap<String, JarResource>();
 	private final Set<String> duplicates = new HashSet<String>();
 	private final ListMap<String, Strategem> projectPackages = new ListMap<String, Strategem>();
 	private BuildContext cxt;
-	private List<File> libdirs = new ArrayList<File>();
+	private List<LibDir> libdirs = new ArrayList<LibDir>();
 	private final Config conf;
 	private final List<String> reportedDuplicates = new ArrayList<String>();
 
@@ -56,7 +66,7 @@ public class JavaNature implements Nature, BuildContextAware {
 		File libdir = conf.getQuickBuildDir();
 		if (libdir == null)
 			libdir = FileUtils.getCurrentDir();
-		libdirs.add(new File(libdir, "libs"));
+		libdirs.add(new LibDir(new File(libdir, "libs"), new ArrayList<ExcludeCommand>()));
 	}
 	
 	@Override
@@ -180,13 +190,20 @@ public class JavaNature implements Nature, BuildContextAware {
 
 	@Override
 	public void done() {
-		for (File libdir : libdirs)
+		for (LibDir libdir : libdirs)
 			try {
-				libdir = libdir.getCanonicalFile();
-				if (libdir.isDirectory())
+				File dir = libdir.from.getCanonicalFile();
+				if (dir.isDirectory())
 				{
-					for (File f : FileUtils.findFilesMatching(libdir, "*.jar"))
+					searching:
+					for (File f : FileUtils.findFilesMatching(dir, "*.jar"))
 					{
+						for (ExcludeCommand excl : libdir.exclusions)
+							if (excl.getPattern().matcher(f.getName()).matches())
+							{
+								System.out.println("Excluding " + f.getName() + " from " + dir);
+								continue searching;
+							}
 						loadedLibs.add(f.getName());
 						conf.resourceAvailable(new JarResource(null, f));
 					}
@@ -208,8 +225,8 @@ public class JavaNature implements Nature, BuildContextAware {
 		cxt.tellMeAbout(this, JavaSourceDirResource.class);
 	}
 
-	public void addLib(File libsDir) {
-		libdirs.add(libsDir);
+	public void addLib(File libsDir, List<ExcludeCommand> exclusions) {
+		libdirs.add(new LibDir(libsDir, exclusions));
 	}
 	
 	public void cleanLibDirs()
