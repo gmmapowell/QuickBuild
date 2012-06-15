@@ -38,7 +38,7 @@ import com.gmmapowell.exceptions.UtilException;
 
 public class GPRequest implements HttpServletRequest {
 
-	private static final Logger logger = Logger.getLogger("InlineServer");
+	static final Logger logger = Logger.getLogger("InlineServer");
 	private final String method;
 	private final URI uri;
 	private final ListMap<String, String> headers = new ListMap<String, String>();
@@ -51,10 +51,11 @@ public class GPRequest implements HttpServletRequest {
 	private final List<Cookie> cookies = new ArrayList<Cookie>();
 	private Cookie[] cookieArr;
 	private Map<String, Object> attributes = new HashMap<String, Object>();
-	private GPAsyncContext async;
+//	private GPAsyncContext async;
 	private HashMap<String, String[]> parameterMap;
 	private String encoding = "iso-8859-1";
 	private BufferedReader reader = null;
+	InlineServerWebSocketHandler wshandler;
 
 	public GPRequest(GPServletContext context, String s, InputStream is) throws URISyntaxException {
 		this.context = context;
@@ -90,8 +91,10 @@ public class GPRequest implements HttpServletRequest {
 	}
 	
 	public void endHeaders() {
-		// getIntHeader is a little fragile for something so important ...
-		servletInputStream = new GPServletInputStream(is, getIntHeader("Content-Length"));
+		if (headers.contains("Content-Length"))
+			servletInputStream = new GPServletInputStream(is, getIntHeader("Content-Length"));
+		else
+			servletInputStream = new GPServletInputStream(is, -1);
 	}
 
 	@Override
@@ -458,6 +461,9 @@ public class GPRequest implements HttpServletRequest {
 	@Override
 	public AsyncContext getAsyncContext() {
 		throw new UtilException("Not implemented");
+//		if (async == null)
+//			throw new UtilException("There is no async context");
+//		return async;
 	}
 
 	@Override
@@ -472,7 +478,8 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public boolean isAsyncStarted() {
-		return async != null;
+		throw new UtilException("Not implemented");
+//		return async != null;
 	}
 
 	@Override
@@ -482,13 +489,16 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public AsyncContext startAsync() {
-		return startAsync(null, null);
+		throw new UtilException("Not implemented");
+//		return startAsync(null, null);
 	}
 
 	@Override
 	public AsyncContext startAsync(ServletRequest arg0, ServletResponse arg1) {
-		async = new GPAsyncContext(arg0, arg1);
-		return async;
+		throw new UtilException("Not implemented");
+//		logger.info(Thread.currentThread().getName()+ ": " + "Starting Async request");
+//		async = new GPAsyncContext(arg0, arg1);
+//		return async;
 	}
 
 	@Override
@@ -517,5 +527,9 @@ public class GPRequest implements HttpServletRequest {
 	@Override
 	public void logout() throws ServletException {
 		throw new UtilException("Not implemented");
+	}
+
+	public void setWebSocketHandler(InlineServerWebSocketHandler wshandler) {
+		this.wshandler = wshandler;
 	}
 }

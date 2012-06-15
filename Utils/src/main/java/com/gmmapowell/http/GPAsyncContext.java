@@ -1,9 +1,11 @@
 package com.gmmapowell.http;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.AsyncContext;
+import javax.servlet.AsyncEvent;
 import javax.servlet.AsyncListener;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -16,7 +18,7 @@ public class GPAsyncContext implements AsyncContext {
 
 	private final ServletRequest request;
 	private final ServletResponse response;
-	private final List<GPAsyncListener> listeners = new ArrayList<GPAsyncListener>();
+	private final List<AsyncListener> listeners = new ArrayList<AsyncListener>();
 	private long timeout;
 
 	public GPAsyncContext(ServletRequest arg0, ServletResponse arg1) {
@@ -26,7 +28,8 @@ public class GPAsyncContext implements AsyncContext {
 
 	@Override
 	public void addListener(AsyncListener arg0) {
-		listeners.add(new GPAsyncListener(arg0, request, response));
+		GPRequest.logger.info(Thread.currentThread().getName()+ ": " + "Adding listener " + arg0); 
+		listeners.add(arg0);
 	}
 
 	@Override
@@ -89,6 +92,16 @@ public class GPAsyncContext implements AsyncContext {
 	@Override
 	public void start(Runnable arg0) {
 		throw new UtilException("Not implemented");
+	}
+
+	public void tellListenersNewData() {
+		AsyncEvent ev = new AsyncEvent(this);
+		for (AsyncListener l : listeners)
+			try {
+				l.onStartAsync(ev);
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
 	}
 
 }

@@ -5,8 +5,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
+import javax.servlet.ServletInputStream;
+
+import sun.misc.BASE64Encoder;
+
 import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.utils.Crypto;
 import com.gmmapowell.utils.FileUtils;
+import com.gmmapowell.utils.StringUtil;
 
 public class ConnectionThread extends Thread {
 	private final InputStream is;
@@ -36,7 +42,7 @@ public class ConnectionThread extends Thread {
 					response = handleOneRequest(keptAlive);
 					if (response == null)
 						closeConnection = true;
-					else if (!isWebSocket && response.getHeader("Content-Length").equals("-1"))
+					else if (response.getHeader("Content-Length") != null && response.getHeader("Content-Length").equals("-1"))
 						closeConnection = true;
 					if (closeConnection)
 						break;
@@ -46,26 +52,16 @@ public class ConnectionThread extends Thread {
 				{
 					if (response != null)
 					{
-						if (response.getStatus() == 0)
+						if (response.getStatus() == 0 && closeConnection)
+							response.setStatus(200, "OK");
+						response.commit();
+						try
 						{
-							if (isWebSocket)
-								response.setStatus(101, "Web Socket Protocol Handshake");
-							else if (closeConnection)
-								response.setStatus(200, "OK");
+							response.getWriter().flush();
 						}
-						// This is an attempt to handle "suspended" connections ... but what is the right way to do it?
-						// i.e. how should we tell?
-						if (response.getStatus() != 0)
+						catch (Exception e)
 						{
-							response.commit();
-							try
-							{
-								response.getWriter().flush();
-							}
-							catch (Exception e)
-							{
-								e.printStackTrace();
-							}
+							e.printStackTrace();
 						}
 					}
 				}
@@ -121,17 +117,37 @@ public class ConnectionThread extends Thread {
 			else if (connhdr.equalsIgnoreCase("close"))
 				closeConnection = true;
 		}
+		response = new GPResponse(request, os, connhdr);
 		{
 			String upghdr = request.getHeader("upgrade");
 			if (upghdr != null && (upghdr.equalsIgnoreCase("websocket")))
+			{
 				isWebSocket = true;
+				response.setWebSocket(true);
+			}
 		}
-		response = new GPResponse(request, os, connhdr);
 		if (request.isForServlet())
 		{
 			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Handling through servlet");
 			inlineServer.service(request, response);
 			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Finished servlet handling");
+			if (isWebSocket)
+			{
+				if (response.getStatus() == 0)
+					response.setStatus(101, "Web Socket Protocol Handshake");
+				response.commit();
+				try
+				{
+					response.getWriter().flush();
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
+				dealWithWebsocket(request, response);
+				return null;
+			}
 		}
 		else {
 			GPStaticResource staticResource = request.getStaticResource();
@@ -150,6 +166,77 @@ public class ConnectionThread extends Thread {
 			}
 		}
 		return response;
+	}
+
+	private void dealWithWebsocket(GPRequest request, GPResponse response) {
+		try {
+			ServletInputStream is = request.getInputStream();
+			request.wshandler.onOpen(response);
+			for (;;)
+			{
+				GPFrame frame = readFrame(is);
+				InlineServer.logger.info("Read " + frame + " telling listener");
+				if (frame.opcode == 0x1)
+					request.wshandler.onTextMessage(new String(frame.data));
+				else if (frame.opcode == 0x2)
+					request.wshandler.onBinaryMessage(frame.data);
+				else if (frame.opcode == 0x8)
+				{
+					request.wshandler.onClose((frame.data[0]&0xff)<<8|(frame.data[1]&0xff));
+					break;
+				}
+				else
+					throw new UtilException("Can't handle " + frame.opcode);
+			}
+			InlineServer.logger.info(Thread.currentThread().getName()+ ": " + "End of async stream");
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+	}
+
+	private GPFrame readFrame(ServletInputStream is2) throws IOException {
+		int b1 = is.read();
+		boolean fin = (b1&0x80) != 0;
+		int rsv = (b1&0x70);
+		if (rsv != 0)
+			throw new UtilException("RSV must be 0");
+		int opcode = b1&0xf;
+		int b2 = is.read();
+		boolean isMasked = (b2&0x80) != 0;
+		if (!isMasked)
+			throw new UtilException("Client must mask frames");
+		long len = (b2&0x7f);
+		if (len == 126) {
+			int b3 = is.read() & 0xff;
+			int b4 = is.read() & 0xff;
+			len = (b3 << 8) | b4;
+		} else if (len == 127) {
+			len = 0;
+			for (int i=0;i<8;i++) {
+				int bl = is.read() & 0xff;
+				len = (len << 8) | bl;
+			}
+		}
+		byte[] mask = new byte[4];
+		is.read(mask);
+		
+		System.out.println("Read " + fin + ":" + opcode + " (" + len + " bytes)");
+		System.out.println("Mask: " + StringUtil.hex(mask));
+		
+		byte[] data = new byte[(int)len];
+		is.read(data);
+		
+		for (int i=0;i<data.length;i++)
+		{
+			data[i] ^= mask[i%4];
+		}
+		System.out.println("Data: " + StringUtil.hex(data));
+//		System.out.println("String: " + new String(data));
+		
+		if (opcode == 0x8)
+			return null;
+		return new GPFrame(opcode, data);
 	}
 
 	private String readLine() throws IOException {

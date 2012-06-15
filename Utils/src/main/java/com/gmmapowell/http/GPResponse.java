@@ -30,6 +30,7 @@ public class GPResponse implements HttpServletResponse {
 	private SimpleDateFormat dateFormat;
 	private final String connectionState;
 	private String encoding = "iso-8859-1";
+	private boolean isWebSocket;
 
 	public GPResponse(GPRequest request, OutputStream os, String connhdr) {
 		this.connectionState = connhdr;
@@ -78,6 +79,10 @@ public class GPResponse implements HttpServletResponse {
 		return sos;
 	}
 
+	private void reply(List<String> sendHeaders) {
+		for (String s : sendHeaders)
+			reply(s);
+	}
 
 	private void reply(String string) {
 		InlineServer.logger.fine(Thread.currentThread().getName()+ ": Response: " + string);
@@ -249,32 +254,42 @@ public class GPResponse implements HttpServletResponse {
 	private List<String> sendHeaders() {
 		List<String> ret = new ArrayList<String>();
 		for (String s : headers.keySet()) {
-			if (s.equals("Set-Cookie"))
-			{
-				for (String v : headers.get(s))
-				{
-					StringBuilder buf = new StringBuilder();
-					buf.append(s);
-					buf.append(": ");
-					buf.append(v);
-					ret.add(buf.toString());
-				}
-			}
-			else
+			addHeader(ret, s);
+		}
+		return ret;
+	}
+
+	private List<String> sendHeaders(String s) {
+		List<String> ret = new ArrayList<String>();
+		addHeader(ret, s);
+		return ret;
+	}
+
+	private void addHeader(List<String> ret, String s) {
+		if (s.equals("Set-Cookie"))
+		{
+			for (String v : headers.get(s))
 			{
 				StringBuilder buf = new StringBuilder();
 				buf.append(s);
-				String sep = ": ";
-				for (String v : headers.get(s))
-				{
-					buf.append(sep);
-					buf.append(v);
-					sep = ", ";
-				}
+				buf.append(": ");
+				buf.append(v);
 				ret.add(buf.toString());
 			}
 		}
-		return ret;
+		else
+		{
+			StringBuilder buf = new StringBuilder();
+			buf.append(s);
+			String sep = ": ";
+			for (String v : headers.get(s))
+			{
+				buf.append(sep);
+				buf.append(v);
+				sep = ", ";
+			}
+			ret.add(buf.toString());
+		}
 	}
 
 	public void commit() {
@@ -286,12 +301,19 @@ public class GPResponse implements HttpServletResponse {
 				if (status == 0)
 					setStatus(200, "OK");
 				reply(status());
+				if (headers.contains("Upgrade"))
+					reply(sendHeaders("Upgrade"));
+				if (headers.contains("Connection"))
+					reply(sendHeaders("Connection"));
+				else
+					reply("Connection: " + connectionState);
+				
 				reply("Server: InlineServer/1.1");
 				reply("Date: " + dateFormat.format(new Date())); /* Sat, 18 Jun 2011 21:52:27 GMT */
-				reply("Connection: " + connectionState);
 				for (String r : sendHeaders())
-					reply(r);
-				if (!headers.contains("Content-Length"))
+					if (!r.toLowerCase().startsWith("upgrade") && !r.toLowerCase().startsWith("connection"))
+						reply(r);
+				if (!isWebSocket && !headers.contains("Content-Length"))
 					reply("Content-Length: 0");
 				reply("");
 				pw.flush();
@@ -324,5 +346,49 @@ public class GPResponse implements HttpServletResponse {
 		if (!headers.contains(arg0))
 			return null;
 		return headers.get(arg0);
+	}
+
+	public void setWebSocket(boolean b) {
+		isWebSocket = b;
+	}
+
+	public void writeTextMessage(String data) {
+		byte[] bytes = data.getBytes();
+		write(0x1, bytes, 0, bytes.length);
+	}
+
+	public void writeBinaryMessage(byte[] data, int offset, int length) {
+		write(0x2, data, offset, length);
+	}
+	
+	private void write(int opcode, byte[] data, int offset, int length) {
+		try {
+			sos.write(0x80|opcode);
+			if (length < 126)
+				sos.write(length);
+			else if (length < 65536)
+			{
+				sos.write(126);
+				sos.write((length>>8)&0xff);
+				sos.write(length&0xff);
+			}
+			else
+				throw new UtilException("Message too long");
+			sos.write(data, offset, length);
+		} catch (Exception ex) {
+			throw UtilException.wrap(ex);
+		}
+	}
+
+	public void flush() {
+		try {
+			sos.flush();
+		} catch (Exception ex) {
+			throw UtilException.wrap(ex);
+		}
+	}
+
+	public void close() {
+		throw new UtilException("Not Implemented");
 	}
 }
