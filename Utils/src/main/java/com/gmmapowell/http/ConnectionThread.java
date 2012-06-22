@@ -6,11 +6,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 
 import javax.servlet.ServletInputStream;
-
-import sun.misc.BASE64Encoder;
-
 import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.utils.Crypto;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.StringUtil;
 
@@ -98,9 +94,10 @@ public class ConnectionThread extends Thread {
 		}
 		if (request == null)
 		{
-			if (keptAlive)
-				return null;
-			throw new UtilException(Thread.currentThread().getName()+ ": " + "There was no incoming request");
+			return null;
+//			if (keptAlive)
+//				return null;
+//			throw new UtilException(Thread.currentThread().getName()+ ": " + "There was no incoming request");
 		}
 		InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Done Headers");
 		request.endHeaders();
@@ -161,7 +158,7 @@ public class ConnectionThread extends Thread {
 			}
 			else
 			{
-				InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"404: Not found - " + request.getPathInfo());
+				InlineServer.logger.info(Thread.currentThread().getName()+ ": " +"404: Not found - " + request.getPathInfo());
 				response.setStatus(404);
 			}
 		}

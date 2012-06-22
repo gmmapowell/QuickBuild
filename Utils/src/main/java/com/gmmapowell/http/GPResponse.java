@@ -300,6 +300,8 @@ public class GPResponse implements HttpServletResponse {
 				InlineServer.logger.info(Thread.currentThread().getName() + " Writing to " + sos);
 				if (status == 0)
 					setStatus(200, "OK");
+				if (status >= 300)
+					InlineServer.logger.info("Servlet Request returned " + status());
 				reply(status());
 				if (headers.contains("Upgrade"))
 					reply(sendHeaders("Upgrade"));

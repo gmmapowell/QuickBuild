@@ -9,13 +9,13 @@ import com.gmmapowell.exceptions.UtilException;
 
 public class GPServletInputStream extends ServletInputStream {
 
-	private final InputStream reader;
+	private final InputStream stream;
 	int cnt = 0;
 	private final int maxchars;
 	private int pushback = -1;
 
 	public GPServletInputStream(InputStream stream, int maxchars) {
-		this.reader = stream;
+		this.stream = stream;
 		this.maxchars = maxchars;
 	}
 
@@ -29,7 +29,7 @@ public class GPServletInputStream extends ServletInputStream {
 		}
 		if (maxchars >= 0 && cnt >= maxchars)
 			return -1;
-		int b = reader.read();
+		int b = stream.read();
 		cnt ++; 
 //		InlineServer.logger.info("read = " + (char)b + " cnt = " + cnt);
 		return b;

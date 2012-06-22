@@ -91,8 +91,8 @@ public class GPRequest implements HttpServletRequest {
 	}
 	
 	public void endHeaders() {
-		if (headers.contains("Content-Length"))
-			servletInputStream = new GPServletInputStream(is, getIntHeader("Content-Length"));
+		if (headers.contains("content-length"))
+			servletInputStream = new GPServletInputStream(is, getIntHeader("content-length"));
 		else
 			servletInputStream = new GPServletInputStream(is, -1);
 	}
@@ -531,5 +531,10 @@ public class GPRequest implements HttpServletRequest {
 
 	public void setWebSocketHandler(InlineServerWebSocketHandler wshandler) {
 		this.wshandler = wshandler;
+	}
+	
+	@Override
+	public String toString() {
+		return "Request["+rawUri+"]";
 	}
 }
