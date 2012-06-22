@@ -5,6 +5,7 @@ usage() {
   exit 1
 }
 
+NAME=
 userlib="org.eclipse.jdt.launching.JRE_CONTAINER";
 while [ $# -gt 0 ] ; do
   case $1 in
@@ -27,46 +28,54 @@ while [ $# -gt 0 ] ; do
       srcpaths="src/android/gen"
       shift 3
       ;;
+    --name)
+      NAME=$2
+      shift 2
+      ;;
     --*)
       usage
       ;;
     *)
-      name=$1
+      folder=$1
       shift
       ;;
   esac
 done
 
-if [ -z "$name" ] ; then
+if [ -z "$folder" ] ; then
   usage
 fi
 
-if [ -e "$name" ] ; then
-  echo "The project $name already exists" >&2
+if [ -e "$folder" ] ; then
+  echo "The project $folder already exists" >&2
   exit 1
 fi
 
-mkdir -p $name/src/main/java
-mkdir -p $name/src/main/resources
-mkdir -p $name/src/test/java
-mkdir -p $name/src/test/resources
-
-touch $name/src/main/java/.gitsmj
-touch $name/src/main/resources/.gitsmr
-touch $name/src/test/java/.gitstj
-touch $name/src/test/resources/.gitstr
-
-if [ "$android" = "1" ] ; then
-  mkdir -p $name/src/android/res
-  touch $name/src/android/res/.gitsar
-  mkdir -p $name/src/android/lib
-  touch $name/src/android/lib/.gitsal
+if [ "$NAME" = "" ] ; then
+  NAME=$folder
 fi
 
-cat << HERE > $name/.project
+mkdir -p $folder/src/main/java
+mkdir -p $folder/src/main/resources
+mkdir -p $folder/src/test/java
+mkdir -p $folder/src/test/resources
+
+touch $folder/src/main/java/.gitsmj
+touch $folder/src/main/resources/.gitsmr
+touch $folder/src/test/java/.gitstj
+touch $folder/src/test/resources/.gitstr
+
+if [ "$android" = "1" ] ; then
+  mkdir -p $folder/src/android/res
+  touch $folder/src/android/res/.gitsar
+  mkdir -p $folder/src/android/lib
+  touch $folder/src/android/lib/.gitsal
+fi
+
+cat << HERE > $folder/.project
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>$name</name>
+	<name>$NAME</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -83,7 +92,7 @@ cat << HERE > $name/.project
 </projectDescription>
 HERE
 
-cat << HERE > $name/.classpath
+cat << HERE > $folder/.classpath
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src/main/java"/>
@@ -91,9 +100,9 @@ cat << HERE > $name/.classpath
 HERE
 for p in $srcpaths
 do
-  echo '	<classpathentry kind="src" path="'"$p"'"/>' >> $name/.classpath
+  echo '	<classpathentry kind="src" path="'"$p"'"/>' >> $folder/.classpath
 done
-cat << HERE >> $name/.classpath
+cat << HERE >> $folder/.classpath
 	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="src" path="src/test/resources" output="bin/testclasses"/>
 	<classpathentry kind="con" path="$userlib"/>
@@ -102,7 +111,7 @@ cat << HERE >> $name/.classpath
 HERE
 
 if [ "$android" = "1" ] ; then
-  cat << HERE >> $name/src/android/AndroidManifest.xml
+  cat << HERE >> $folder/src/android/AndroidManifest.xml
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <manifest android:minSdkVersion="4" android:versionCode="1"
     android:versionName="1.0" package="$package" xmlns:android="http://schemas.android.com/apk/res/android">
@@ -117,8 +126,8 @@ if [ "$android" = "1" ] ; then
     <uses-sdk/>
 </manifest>
 HERE
-mkdir -p $name/src/main/java/$pkgPath
-  cat << HERE >> $name/src/main/java/$pkgPath/$launch.java
+mkdir -p $folder/src/main/java/$pkgPath
+  cat << HERE >> $folder/src/main/java/$pkgPath/$launch.java
 package $package;
 
 import android.app.Activity;

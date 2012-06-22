@@ -41,4 +41,11 @@ public class CollectionUtils {
 			ret.add(it.next());
 		return ret;
 	}
+
+	public static Map<String, Object> map(Object... args) {
+		Map<String, Object> ret = new HashMap<String, Object>();
+		for (int i=0;i+1<args.length;i+=2)
+			ret.put((String) args[i], args[i+1]);
+		return ret;
+	}
 }
