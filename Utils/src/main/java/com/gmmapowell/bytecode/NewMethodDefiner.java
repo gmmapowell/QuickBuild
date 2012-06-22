@@ -71,9 +71,11 @@ public interface NewMethodDefiner {
 
 	Expr ifNull(Expr test, Expr then, Expr orelse);
 
-	Expr isNull(Expr test, Expr yes, Expr no);
+	Expr instanceOf(Expr expr, String referencecontent);
 
 	IntConstExpr intConst(int i);
+
+	Expr isNull(Expr test, Expr yes, Expr no);
 
 	MakeNewExpr makeNew(String ofClz, Expr... args);
 

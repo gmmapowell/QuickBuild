@@ -796,6 +796,13 @@ public class ByteCodeInspector extends ByteCodeFile {
 			hexdump.print("checkcast " + show(info));
 			return 3;
 		}
+		case 0xc1:
+		{
+			int idx = dis.readUnsignedShort();
+			CPInfo info = pool.get(idx);
+			hexdump.print("instanceof " + show(info));
+			return 3;
+		}
 		case 0xc6:
 		{
 			short jumpTo = dis.readShort();

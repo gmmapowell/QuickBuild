@@ -6,7 +6,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="/Users/gareth/user/Personal/Tools/qb/libs/swt-cocoa-64.jar"/>
-	<classpathentry kind="lib" path="/qb/libs/servlet-api.jar"/>
 	<classpathentry kind="lib" path="/qb/libs/jasypt-1.8.jar"/>
+	<classpathentry kind="lib" path="/qb/libs/servlet-api.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

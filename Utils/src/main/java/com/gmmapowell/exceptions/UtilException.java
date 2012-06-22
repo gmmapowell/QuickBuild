@@ -24,6 +24,8 @@ public class UtilException extends RuntimeException {
 	}
 
 	public static Exception reconstitute(String exClass, String msg) {
+		if (exClass == null)
+			throw new UtilException("Exception occurred, but no details provided");
 		try
 		{
 			Class<?> forName = Class.forName(exClass);

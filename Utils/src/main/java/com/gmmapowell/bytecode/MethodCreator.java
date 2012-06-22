@@ -284,8 +284,8 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 	}
 
 	@Override
-	public Expr isNull(Expr test, Expr yes, Expr no) {
-		return new IsExpr(this, test, yes, no, IfCond.NULL);
+	public Expr instanceOf(Expr expr, String ofClz) {
+		return new InstanceOf(this, expr, ofClz);
 	}
 
 	@Override
@@ -293,7 +293,11 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 		return new IntConstExpr(this, i);
 	}
 
-
+	@Override
+	public Expr isNull(Expr test, Expr yes, Expr no) {
+		return new IsExpr(this, test, yes, no, IfCond.NULL);
+	}
+	
 	@Override
 	public MakeNewExpr makeNew(String ofClz, Expr... args) {
 		return new MakeNewExpr(this, ofClz, args);
@@ -708,6 +712,12 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 	@Override
 	public void ireturn() {
 		add(-1, new Instruction(0xac));
+	}
+
+	@Override
+	public void isInstanceOf(String ofClz) {
+		int idx = bcf.pool.requireClass(JavaInfo.mapPrimitive(ofClz));
+		add(0, new Instruction(0xc1, hi(idx), lo(idx)));
 	}
 
 	@Override

@@ -6,7 +6,7 @@ import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.FileUtils;
 
 public class JavaInfo {
-	public static enum Access { PRIVATE, PUBLIC, PROTECTED, DEFAULT, PROTECTEDTRANSIENT, PRIVATESTATIC, PUBLICSTATIC, DEFAULTSTATIC, PUBLICTRANSIENT, PUBLICABSTRACT, ACCESS, STATICACCESS, ENUM; 
+	public static enum Access { PRIVATE, PUBLIC, PROTECTED, DEFAULT, PROTECTEDTRANSIENT, PRIVATESTATIC, PUBLICSTATIC, DEFAULTSTATIC, PUBLICTRANSIENT, PUBLICABSTRACT, PUBLICABSTRACTSTATIC, ACCESS, STATICACCESS, ENUM; 
 		public short asShort() {
 			switch (this)
 			{
@@ -30,6 +30,8 @@ public class JavaInfo {
 				return ByteCodeFile.ACC_PUBLIC|ByteCodeFile.ACC_TRANSIENT;
 			case PUBLICABSTRACT:
 				return ByteCodeFile.ACC_PUBLIC|ByteCodeFile.ACC_ABSTRACT;
+			case PUBLICABSTRACTSTATIC:
+				return ByteCodeFile.ACC_PUBLIC|ByteCodeFile.ACC_ABSTRACT|ByteCodeFile.ACC_STATIC;
 			case ACCESS:
 				return ByteCodeFile.ACC_ACCESSMETH;
 			case STATICACCESS:

@@ -87,6 +87,8 @@ public interface MethodDefiner extends NewMethodDefiner {
 
 	void ireturn();
 	
+	void isInstanceOf(String ofClz);
+
 	Marker jump();
 
 	void ldcClass(String clz);
