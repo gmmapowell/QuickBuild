@@ -5,15 +5,17 @@ import java.util.Enumeration;
 import java.util.List;
 
 import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServlet;
 
 public class GPServletConfig implements ServletConfig {
 
 	private GPServletContext servletContext;
 	private final InlineServer inlineServer;
+	private final GPServletDefn servletDefn;
 
-	public GPServletConfig(InlineServer inlineServer) {
+	public GPServletConfig(InlineServer inlineServer, GPServletDefn servletDefn) {
 		this.inlineServer = inlineServer;
+		this.servletDefn = servletDefn;
 		servletContext = new GPServletContext(this);
 	}
 
@@ -32,7 +34,7 @@ public class GPServletConfig implements ServletConfig {
 	}
 
 	@Override
-	public ServletContext getServletContext() {
+	public GPServletContext getServletContext() {
 		return servletContext;
 	}
 
@@ -44,6 +46,12 @@ public class GPServletConfig implements ServletConfig {
 
 	public List<File> staticPaths() {
 		return inlineServer.staticPaths();
+	}
+
+	HttpServlet getServlet() {
+		if (servletDefn != null)
+			return servletDefn.getImpl();
+		return null;
 	}
 
 }

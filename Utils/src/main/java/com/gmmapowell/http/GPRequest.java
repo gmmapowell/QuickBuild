@@ -27,6 +27,7 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -57,12 +58,11 @@ public class GPRequest implements HttpServletRequest {
 	private BufferedReader reader = null;
 	InlineServerWebSocketHandler wshandler;
 
-	public GPRequest(GPServletContext context, String s, InputStream is) throws URISyntaxException {
-		this.context = context;
+	public GPRequest(GPServletConfig config, String method, String rawUri, InputStream is) throws URISyntaxException {
+		this.context = config.getServletContext();
+		this.method = method;
+		this.rawUri = rawUri;
 		this.is = is;
-		String[] command = s.split(" ");
-		method = command[0];
-		rawUri = command[1];
 		uri = new URI(rawUri);
 		logger.fine(Thread.currentThread().getName()+ ": " + "Received " + method + " request for " + rawUri);
 	}
@@ -450,10 +450,6 @@ public class GPRequest implements HttpServletRequest {
 		this.response = response;
 	}
 
-	public boolean isForServlet() {
-		return getRequestURI().startsWith(getContextPath()+getServletPath());
-	}
-
 	public GPStaticResource getStaticResource() {
 		return context.staticResource(getPathInfo()); 
 	}
@@ -536,5 +532,9 @@ public class GPRequest implements HttpServletRequest {
 	@Override
 	public String toString() {
 		return "Request["+rawUri+"]";
+	}
+
+	public HttpServlet getServlet() {
+		return context.getThisServlet();
 	}
 }

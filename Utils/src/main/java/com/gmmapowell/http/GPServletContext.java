@@ -26,6 +26,7 @@ import javax.servlet.ServletRegistration;
 import javax.servlet.SessionCookieConfig;
 import javax.servlet.SessionTrackingMode;
 import javax.servlet.descriptor.JspConfigDescriptor;
+import javax.servlet.http.HttpServlet;
 
 import com.gmmapowell.collections.IteratorEnumerator;
 import com.gmmapowell.exceptions.UtilException;
@@ -431,5 +432,9 @@ public class GPServletContext implements ServletContext {
 			throws IllegalStateException, IllegalArgumentException {
 		// TODO Auto-generated method stub
 		
+	}
+
+	HttpServlet getThisServlet() {
+		return config.getServlet();
 	}
 }

@@ -2,18 +2,16 @@ package com.gmmapowell.http;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.serialization.Endpoint;
 import com.gmmapowell.utils.FileUtils;
@@ -22,11 +20,11 @@ public class InlineServer {
 	public static final Logger logger = Logger.getLogger("InlineServer");
 
 	private final int port;
-	private final String servletClass;
-	protected final GPServletConfig config = new GPServletConfig(this);
 	private final List<File> staticPaths = new ArrayList<File>();
+	
+	// There is a list of servlets, but, by default, there is only one, the first in the list
+	private final List<GPServletDefn> servlets = new ArrayList<GPServletDefn>();
 
-	private HttpServlet servletImpl;
 	private Endpoint alertEP;
 
 	private final List<NotifyOnServerReady> interestedParties = new ArrayList<NotifyOnServerReady>();
@@ -37,10 +35,20 @@ public class InlineServer {
 
 	private Thread inThread;
 
+	private GPServletConfig staticConfig = new GPServletConfig(this, null);
+
 	public InlineServer(int port, String servletClass) {
 		this.port = port;
-		this.servletClass = servletClass;
+		servlets.add(new GPServletDefn(this, servletClass));
 		inThread = Thread.currentThread();
+	}
+
+	public GPServletDefn addServlet(String contextPath, String servletPath, String servletClass) {
+		GPServletDefn defn = new GPServletDefn(this, servletClass);
+		defn.setContextPath(contextPath);
+		defn.setServletPath(servletPath);
+		servlets.add(defn);
+		return defn;
 	}
 
 	public void addFailure(Throwable ex) {
@@ -54,19 +62,15 @@ public class InlineServer {
 	}
 	
 	public void setContextPath(String path) {
-		servletContext().setContextPath(path);
+		servlets.get(0).setContextPath(path);
 	}
 
 	public void setServletPath(String path) {
-		servletContext().setServletPath(path);
-	}
-
-	public GPServletContext servletContext() {
-		return ((GPServletContext) config.getServletContext());
+		servlets.get(0).setServletPath(path);
 	}
 
 	public void initParam(String key, String value) {
-		config.initParam(key, value);
+		servlets.get(0).initParam(key, value);
 	}
 
 	public void setAlert(String alert) {
@@ -87,9 +91,8 @@ public class InlineServer {
 			s = new ServerSocket(port);
 			s.setSoTimeout(timeout);
 			logger.info("Listening on port " + s.getLocalPort());
-			Class<?> forName = Class.forName(servletClass);
-			servletImpl = (HttpServlet) forName.newInstance();
-			servletImpl.init(config);
+			for (GPServletDefn servlet : servlets)
+				servlet.init();
 			Endpoint addr = new Endpoint(s);
 			if (alertEP != null) {
 				logger.info("Sending " + addr + " to " + alertEP);
@@ -131,9 +134,7 @@ public class InlineServer {
 		}
 	}
 
-	public void service(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
-		servletImpl.service(req, resp);
+	public void service(GPRequest req, GPResponse resp) throws ServletException, IOException {
 	}
 
 	public void notify(NotifyOnServerReady toNotify) {
@@ -153,5 +154,21 @@ public class InlineServer {
 		if (staticPaths.isEmpty())
 			staticPaths.add(FileUtils.getCurrentDir().getAbsoluteFile());
 		return staticPaths;
+	}
+
+	public GPServletDefn getServlet(GPRequest request) {
+		return null;
+	}
+
+	public GPRequest requestFor(String s, InputStream is) throws URISyntaxException {
+		String[] command = s.split(" ");
+		String method = command[0];
+		String rawUri = command[1];
+
+		for (GPServletDefn sd : servlets)
+			if (sd.isForMe(rawUri))
+				return new GPRequest(sd.getConfig(), method, rawUri, is);
+
+		return new GPRequest(staticConfig , method, rawUri, is);
 	}
 }

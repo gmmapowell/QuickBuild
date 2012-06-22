@@ -81,14 +81,13 @@ public class ConnectionThread extends Thread {
 
 	private GPResponse handleOneRequest(boolean keptAlive) throws Exception {
 		GPResponse response;
-		GPServletContext servletContext = (GPServletContext) inlineServer.config.getServletContext();
 		String s;
 		GPRequest request = null;
 		while ((s = readLine()) != null && s.trim().length() > 0)
 		{
 			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Header - " + s);
 			if (request == null)
-				request = new GPRequest(servletContext, s, is);
+				request = inlineServer.requestFor(s, is);
 			else
 				request.addHeader(s);
 		}
@@ -123,10 +122,10 @@ public class ConnectionThread extends Thread {
 				response.setWebSocket(true);
 			}
 		}
-		if (request.isForServlet())
+		if (request.getServlet() != null)
 		{
 			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Handling through servlet");
-			inlineServer.service(request, response);
+			request.getServlet().service(request, response);
 			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Finished servlet handling");
 			if (isWebSocket)
 			{
