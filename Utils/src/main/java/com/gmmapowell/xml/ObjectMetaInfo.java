@@ -82,9 +82,9 @@ class CallbackTable {
 					method1 = minfo.method1;
 					method2 = minfo.method2;
 				}
-				if (m.getReturnType().equals(Object.class) && ptypes.length == 1 && ptypes[0].equals(XMLElement.class))
+				if (Object.class.isAssignableFrom(m.getReturnType()) && ptypes.length == 1 && ptypes[0].equals(XMLElement.class))
 					method1 = m;
-				if (m.getReturnType().equals(Object.class) && ptypes.length == 2 && ptypes[1].equals(XMLElement.class))
+				if (Object.class.isAssignableFrom(m.getReturnType()) && ptypes.length == 2 && ptypes[1].equals(XMLElement.class))
 					method2 = m;
 				
 				if (method1 != null || method2 != null)
