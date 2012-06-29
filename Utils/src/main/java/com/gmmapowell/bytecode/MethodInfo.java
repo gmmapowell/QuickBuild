@@ -6,13 +6,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.gmmapowell.bytecode.CPInfo.Utf8Info;
+import com.gmmapowell.collections.ListMap;
 
-public class MethodInfo extends JavaInfo {
+public class MethodInfo extends JavaInfo implements AnnotationHolder {
 	protected short access_flags = -1;
 	protected short nameIdx = -1;
 	protected short descriptorIdx = -1;
 	protected final ByteCodeFile bcf;
 	protected final List<AttributeInfo> attributes = new ArrayList<AttributeInfo>();
+	private ListMap<AnnotationType, Annotation> annotations = new ListMap<AnnotationType, Annotation>();
 
 	public MethodInfo(ByteCodeFile bcf)
 	{
@@ -40,5 +42,28 @@ public class MethodInfo extends JavaInfo {
 			return "Method[" + bcf.pool.get(nameIdx) + bcf.pool.get(descriptorIdx) +"]";
 		else
 			return "Method[?,?]";
+	}
+
+	public AttributeInfo getAttribute(String string) {
+		for (AttributeInfo ai : attributes)
+			if (ai.hasName(string))
+				return ai;
+		return null;
+	}
+	
+	public Annotation getClassAnnotation(String ann) {
+		for (AnnotationType i : annotations)
+		{
+			for (Annotation j : annotations.get(i))
+				if (j.name.equals(ann))
+					return j;
+		}
+		return null;
+	}
+
+	@Override
+	public Annotation addAnnotation(AnnotationType type, Annotation ann) {
+		annotations.add(type, ann);
+		return ann;
 	}
 }

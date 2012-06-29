@@ -25,7 +25,7 @@ import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.FileUtils;
 
-public class ByteCodeFile {
+public class ByteCodeFile implements AnnotationHolder {
 	public final static int   javaMagic        = 0xCAFEBABE;
 	public final static short javaMajorVersion = 50; // Java 1.6?
 	public final static short javaMinorVersion = 0;
@@ -121,7 +121,7 @@ public class ByteCodeFile {
 			readInterfaces(dis);
 			readFields(dis);
 			readMethods(dis);
-			readAttributes(dis, attributes);
+			readAttributes(dis, attributes, this);
 			if (dis.available() != 0)
 				throw new UtilException("There are still " + dis.available() + " bytes available on the stream");
 		}
@@ -142,6 +142,24 @@ public class ByteCodeFile {
 
 	public String getName() {
 		return ((ClassInfo)pool.get(this_idx)).justName();
+	}
+
+	public RefInfo getRefInfoIfValidIdx(int idx) {
+		if (idx < 1 || idx >= pool.size())
+			return null;
+		CPInfo ret = pool.get(idx);
+		if (ret instanceof RefInfo)
+			return (RefInfo) ret;
+		return null;
+	}
+	
+	public String getString(int idx) {
+		if (idx < 1 || idx >= pool.size())
+			return null;
+		CPInfo ret = pool.get(idx);
+		if (ret instanceof StringInfo)
+			return ((StringInfo)ret).asString();
+		return null;
 	}
 
 	public boolean isConcrete() {
@@ -182,6 +200,8 @@ public class ByteCodeFile {
 		for (int i=0;i<methods.size();i++)
 		{
 			MethodInfo first = methods.get(i);
+			if ((first.access_flags &ACC_ABSTRACT) != 0)
+				this.access_flags |= ACC_ABSTRACT;
 			for (int j=i+1;j<methods.size();j++)
 			{
 				MethodInfo second = methods.get(j);
@@ -244,7 +264,7 @@ public class ByteCodeFile {
 			int name = dis.readUnsignedShort(); // name idx
 //			System.out.println("Reading field " + pool.get(name));
 			dis.readUnsignedShort(); // descriptor idx
-			readAttributes(dis, fi.attributes);
+			readAttributes(dis, fi.attributes, fi);
 		}
 		
 	}
@@ -266,7 +286,7 @@ public class ByteCodeFile {
 			mi.access_flags = (short) dis.readUnsignedShort();
 			mi.nameIdx = (short) dis.readUnsignedShort();
 			mi.descriptorIdx = (short) dis.readUnsignedShort();
-			readAttributes(dis, mi.attributes);
+			readAttributes(dis, mi.attributes, mi);
 			methods.add(mi);
 		}
 		
@@ -280,7 +300,7 @@ public class ByteCodeFile {
 		}
 	}
 
-	private void readAttributes(DataInputStream dis, List<AttributeInfo> attrs) throws IOException {
+	private void readAttributes(DataInputStream dis, List<AttributeInfo> attrs, AnnotationHolder holder) throws IOException {
 		int cnt = dis.readUnsignedShort();
 		for (int i=0;i<cnt;i++)
 		{
@@ -293,7 +313,12 @@ public class ByteCodeFile {
 			if (attr.hasName("RuntimeVisibleAnnotations"))
 			{
 				for (Annotation ann : Annotation.parse(this, attr))
-					annotations.add(AnnotationType.RuntimeVisibleAnnotations, ann);
+					holder.addAnnotation(AnnotationType.RuntimeVisibleAnnotations, ann);
+			}
+			else if (attr.hasName("RuntimeInvisibleAnnotations"))
+			{
+				for (Annotation ann : Annotation.parse(this, attr))
+					holder.addAnnotation(AnnotationType.RuntimeInvisibleAnnotations, ann);
 			}
 		}
 		return;
@@ -474,6 +499,10 @@ public class ByteCodeFile {
 		return super.toString();
 	}
 
+	public Iterable<MethodInfo> allMethods() {
+		return methods;
+	}
+	
 	public boolean hasMethodsWithAnnotation(String string) {
 		String mapped = JavaInfo.map(string);
 		for (MethodInfo mi : methods)
@@ -495,7 +524,7 @@ public class ByteCodeFile {
 		return new AttributeInfo(pool, pool.requireUtf8(named), data);
 	}
 
-	public Annotation addClassAnnotation(AnnotationType type, Annotation annotation) {
+	public Annotation addAnnotation(AnnotationType type, Annotation annotation) {
 		annotations.add(type, annotation);
 		return annotation;
 	}

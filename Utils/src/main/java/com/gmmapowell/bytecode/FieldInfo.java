@@ -7,7 +7,7 @@ import java.util.List;
 
 import com.gmmapowell.collections.ListMap;
 
-public class FieldInfo extends JavaInfo {
+public class FieldInfo extends JavaInfo implements AnnotationHolder {
 	private final ByteCodeFile bcf;
 	private int access_flags;
 	private short name_idx;
@@ -44,9 +44,7 @@ public class FieldInfo extends JavaInfo {
 	}
 
 	public Annotation addRTVAnnotation(String attrClass) {
-		Annotation ret = new Annotation(bcf, attrClass);
-		annotations.add(AnnotationType.RuntimeVisibleAnnotations, ret);
-		return ret;
+		return addAnnotation(AnnotationType.RuntimeVisibleAnnotations, new Annotation(bcf, attrClass));
 	}
 
 	public void attribute(String named, String text) {
@@ -55,5 +53,11 @@ public class FieldInfo extends JavaInfo {
 		data[0] = (byte)(ptr>>8);
 		data[1] = (byte)(ptr&0xff);
 		attributes.add(bcf.newAttribute(named, data));
+	}
+
+	@Override
+	public Annotation addAnnotation(AnnotationType type, Annotation ann) {
+		annotations.add(type, ann);
+		return ann;
 	}
 }

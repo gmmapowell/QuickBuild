@@ -40,6 +40,8 @@ public class AnnotationValue {
 	}
 
 	public AnnotationValue[] asArray() {
+		if (!(value instanceof AnnotationValue[]))
+			throw new UtilException("The annotation value is not an array of annotations");
 		return (AnnotationValue[]) value;
 	}
 
@@ -49,5 +51,11 @@ public class AnnotationValue {
 
 	public boolean isArray() {
 		return tag == AnnotationTag.ARRAY;
+	}
+
+	public Annotation asAnnotation() {
+		if (!(value instanceof Annotation))
+			throw new UtilException("The annotation value is not an annotation");
+		return (Annotation)value;
 	}
 }

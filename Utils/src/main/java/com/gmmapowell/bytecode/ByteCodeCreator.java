@@ -231,7 +231,7 @@ public class ByteCodeCreator implements ByteCodeSink {
 	 */
 	@Override
 	public Annotation addRTVAnnotation(String attrClass) {
-		return bcf.addClassAnnotation(AnnotationType.RuntimeVisibleAnnotations, new Annotation(bcf, attrClass));
+		return bcf.addAnnotation(AnnotationType.RuntimeVisibleAnnotations, new Annotation(bcf, attrClass));
 	}
 
 	/* (non-Javadoc)

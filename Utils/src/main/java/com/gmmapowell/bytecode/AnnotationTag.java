@@ -75,7 +75,7 @@ public enum AnnotationTag {
 		switch (this) {
 		case ANNOTATION:
 		{
-			return Annotation.parse(bcf, dis);
+			return Annotation.parseOne(bcf, dis);
 		}
 		case ARRAY:
 		{

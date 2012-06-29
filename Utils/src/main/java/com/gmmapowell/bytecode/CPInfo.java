@@ -57,6 +57,10 @@ public abstract class CPInfo {
 		public String asString() {
 			return utf8;
 		}
+
+		public boolean matches(String compareTo) {
+			return utf8.equals(compareTo);
+		}
 	}
 
 	public static class IntegerInfo extends CPInfo {
@@ -217,6 +221,10 @@ public abstract class CPInfo {
 			dos.writeShort(idx);
 		}
 
+		public String asString() {
+			return pool.get(idx).asClean();
+		}
+
 	}
 
 
@@ -285,6 +293,13 @@ public abstract class CPInfo {
 		public boolean isA(int refType, int clzIdx, int sigIdx) {
 			return this.tag == refType && this.clz == clzIdx && this.nt == sigIdx;
 		}
+
+		public boolean isMethod(String name, String sig) {
+			if (this.tag != ByteCodeFile.CONSTANT_Methodref)
+				return false;
+			NTInfo nti = (NTInfo) pool.get(this.nt);
+			return nti.matches(name, sig);
+		}
 	}
 
 	public static class NTInfo extends CPInfo {
@@ -322,6 +337,9 @@ public abstract class CPInfo {
 			return this.name == methIdx && this.descriptor == sigIdx;
 		}
 
+		public boolean matches(String name, String sig) {
+			return ((Utf8Info)pool.get(this.name)).matches(name) && ((Utf8Info)pool.get(this.descriptor)).matches(sig);
+		}
 	}
 	
 	

@@ -57,21 +57,24 @@ public class Annotation
 			List<Annotation> ret = new ArrayList<Annotation>();
 			short cnt = dis.readShort();
 			for (int i=0;i<cnt;i++)
-			{
-				short idx = dis.readShort();
-				String name = JavaInfo.unmap(((Utf8Info)bcf.pool.get(idx)).asString());
-				int argcnt = dis.readShort();
-				List<AnnotationArg> args = new ArrayList<AnnotationArg>();
-				for (int j=0;j<argcnt;j++)
-					args.add(AnnotationArg.readArg(bcf, dis));
-				ret.add(new Annotation(bcf, name, args));
-			}
+				ret.add(parseOne(bcf, dis));
 			return ret;
 		}
 		catch (Exception ex)
 		{
 			throw UtilException.wrap(ex);
 		}
+	}
+
+	static Annotation parseOne(ByteCodeFile bcf, DataInputStream dis) throws IOException {
+		short idx = dis.readShort();
+		String name = JavaInfo.unmap(((Utf8Info)bcf.pool.get(idx)).asString());
+		int argcnt = dis.readShort();
+		List<AnnotationArg> args = new ArrayList<AnnotationArg>();
+		for (int j=0;j<argcnt;j++)
+			args.add(AnnotationArg.readArg(bcf, dis));
+		Annotation abb = new Annotation(bcf, name, args);
+		return abb;
 	}
 
 	public void write(DataOutputStream dos) throws IOException {

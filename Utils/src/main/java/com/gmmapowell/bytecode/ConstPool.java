@@ -151,4 +151,8 @@ public class ConstPool {
 			throw new UtilException("StrIdx == 0");
 		return strIdx;
 	}
+
+	public int size() {
+		return nextPoolEntry;
+	}
 }

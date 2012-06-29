@@ -451,9 +451,9 @@ public class ByteCodeInspector extends ByteCodeFile {
 					hexdump.print("throws exception " + pool.get(ex).asClean());
 				}
 			}
-			else if (attr.equals("RuntimeVisibleAnnotations")) {
+			else if (attr.equals("RuntimeVisibleAnnotations") || attr.equals("RuntimeInvisibleAnnotations")) {
 				int acnt = dis.readUnsignedShort();
-				hexdump.print("Has " + acnt + " annotations");
+				hexdump.print("Has " + acnt + " annotations in " + attr);
 				for (int rva = 0;rva<acnt;rva++)
 				{
 					readAnnotation(dis);
@@ -493,6 +493,26 @@ public class ByteCodeInspector extends ByteCodeFile {
 					for (String s : output)
 						hexdump.print(s);
 				}
+			}
+			else if (attr.equals("LineNumberTable")) {
+				int nlines = dis.readUnsignedShort();
+				for (int j=0;j<nlines;j++) {
+					int codePtr = dis.readUnsignedShort();
+					int lineNo = dis.readUnsignedShort();
+					hexdump.print("Line " + lineNo + ": " + codePtr);
+				}
+			}
+			else if (attr.equals("LocalVariableTable")) {
+				int nvars = dis.readUnsignedShort();
+				for (int j=0;j<nvars;j++) {
+					int startPc = dis.readUnsignedShort();
+					int length = dis.readUnsignedShort();
+					String name = pool.get(dis.readUnsignedShort()).asClean();
+					String sig = pool.get(dis.readUnsignedShort()).asClean();
+					int varLoc = dis.readUnsignedShort();
+					hexdump.print(sig + " " + name + " (var #"+varLoc+" from " + startPc + " to " + (startPc+length) +")");
+				}
+				
 			}
 			else
 			{
