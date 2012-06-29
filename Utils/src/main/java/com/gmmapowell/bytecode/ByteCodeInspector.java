@@ -649,6 +649,11 @@ public class ByteCodeInspector extends ByteCodeFile {
 			hexdump.print("aload_"+(opcode-0x2a));
 			return 1;
 		}
+		case 0x32:
+		{
+			hexdump.print("aaload");
+			return 1;
+		}
 		case 0x36:
 		{
 			int reg = dis.readUnsignedByte();
@@ -681,9 +686,34 @@ public class ByteCodeInspector extends ByteCodeFile {
 			hexdump.print("dup");
 			return 1;
 		}
+		case 0x5a:
+		{
+			hexdump.print("dup_x1");
+			return 1;
+		}
+		case 0x5b:
+		{
+			hexdump.print("dup_x2");
+			return 1;
+		}
 		case 0x5c:
 		{
 			hexdump.print("dup2");
+			return 1;
+		}
+		case 0x5d:
+		{
+			hexdump.print("dup2_x1");
+			return 1;
+		}
+		case 0x5e:
+		{
+			hexdump.print("dup2_x2");
+			return 1;
+		}
+		case 0x5f:
+		{
+			hexdump.print("swap");
 			return 1;
 		}
 		case 0x60:

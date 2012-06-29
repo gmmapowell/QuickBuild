@@ -190,6 +190,11 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 	}
 
 	@Override
+	public Expr arrayItem(String returnType, Var array, int idx) {
+		return new ArrayItem(this, returnType, array, idx);
+	}
+
+	@Override
 	public Expr as(Expr expr, String newType) {
 		return new UseAsType(this, expr, newType);
 	}
@@ -462,6 +467,11 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 		add(1, new Instruction(0x1));
 	}
 	
+	@Override
+	public void aaload() {
+		add(-1, new Instruction(0x32));
+	}
+
 	@Override
 	public void aload(int i) {
 		if (i < 4)

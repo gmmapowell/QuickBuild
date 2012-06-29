@@ -23,6 +23,8 @@ public interface MethodDefiner extends NewMethodDefiner {
 
 	void complete() throws IOException;
 
+	void aaload();
+
 	void aconst_null();
 
 	void aload(int i);

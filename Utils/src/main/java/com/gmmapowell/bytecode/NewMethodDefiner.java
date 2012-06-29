@@ -16,6 +16,8 @@ public interface NewMethodDefiner {
 
 	Var saveAslocal(String clz, String name);
 
+	Expr arrayItem(String returnType, Var array, int idx);
+
 	Var avar(JavaType clz, String name);
 
 	Var avar(String clz, String name);
