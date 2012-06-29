@@ -8,7 +8,6 @@ import java.net.Socket;
 import javax.servlet.ServletInputStream;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.FileUtils;
-import com.gmmapowell.utils.StringUtil;
 
 public class ConnectionThread extends Thread {
 	private final InputStream is;
@@ -165,12 +164,19 @@ public class ConnectionThread extends Thread {
 	}
 
 	private void dealWithWebsocket(GPRequest request, GPResponse response) {
+		if (request.wshandler == null)
+			throw new UtilException("No websocket handler has been set on InlineServer");
 		try {
 			ServletInputStream is = request.getInputStream();
 			request.wshandler.onOpen(response);
 			for (;;)
 			{
 				GPFrame frame = readFrame(is);
+				if (frame == null)
+				{
+					is.close();
+					return;
+				}
 				InlineServer.logger.info("Read " + frame + " telling listener");
 				if (frame.opcode == 0x1)
 					request.wshandler.onTextMessage(new String(frame.data));
@@ -191,48 +197,51 @@ public class ConnectionThread extends Thread {
 		}
 	}
 
-	private GPFrame readFrame(ServletInputStream is2) throws IOException {
-		int b1 = is.read();
-		boolean fin = (b1&0x80) != 0;
-		int rsv = (b1&0x70);
-		if (rsv != 0)
-			throw new UtilException("RSV must be 0");
-		int opcode = b1&0xf;
-		int b2 = is.read();
-		boolean isMasked = (b2&0x80) != 0;
-		if (!isMasked)
-			throw new UtilException("Client must mask frames");
-		long len = (b2&0x7f);
-		if (len == 126) {
-			int b3 = is.read() & 0xff;
-			int b4 = is.read() & 0xff;
-			len = (b3 << 8) | b4;
-		} else if (len == 127) {
-			len = 0;
-			for (int i=0;i<8;i++) {
-				int bl = is.read() & 0xff;
-				len = (len << 8) | bl;
-			}
-		}
-		byte[] mask = new byte[4];
-		is.read(mask);
-		
-		System.out.println("Read " + fin + ":" + opcode + " (" + len + " bytes)");
-		System.out.println("Mask: " + StringUtil.hex(mask));
-		
-		byte[] data = new byte[(int)len];
-		is.read(data);
-		
-		for (int i=0;i<data.length;i++)
+	private GPFrame readFrame(ServletInputStream is2) {
+		try
 		{
-			data[i] ^= mask[i%4];
+			int b1 = is.read();
+			boolean fin = (b1&0x80) != 0;
+			int rsv = (b1&0x70);
+			if (rsv != 0)
+				throw new UtilException("RSV must be 0");
+			int opcode = b1&0xf;
+			int b2 = is.read();
+			boolean isMasked = (b2&0x80) != 0;
+			if (!isMasked)
+				throw new UtilException("Client must mask frames");
+			long len = (b2&0x7f);
+			if (len == 126) {
+				int b3 = is.read() & 0xff;
+				int b4 = is.read() & 0xff;
+				len = (b3 << 8) | b4;
+			} else if (len == 127) {
+				len = 0;
+				for (int i=0;i<8;i++) {
+					int bl = is.read() & 0xff;
+					len = (len << 8) | bl;
+				}
+			}
+			byte[] mask = new byte[4];
+			is.read(mask);
+			
+			byte[] data = new byte[(int)len];
+			is.read(data);
+			
+			for (int i=0;i<data.length;i++)
+			{
+				data[i] ^= mask[i%4];
+			}
+			
+			if (opcode == 0x8)
+				return null;
+			return new GPFrame(opcode, data);
 		}
-		System.out.println("Data: " + StringUtil.hex(data));
-//		System.out.println("String: " + new String(data));
-		
-		if (opcode == 0x8)
-			return null;
-		return new GPFrame(opcode, data);
+		catch (IOException ex)
+		{
+			ex.printStackTrace();
+			 return null;
+		}
 	}
 
 	private String readLine() throws IOException {

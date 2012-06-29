@@ -1,5 +1,7 @@
 package com.gmmapowell.http;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -363,6 +365,22 @@ public class GPResponse implements HttpServletResponse {
 		write(0x2, data, offset, length);
 	}
 	
+	public void writeClose(int code, String reason) {
+		try
+		{
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			DataOutputStream dos = new DataOutputStream(baos);
+			dos.writeShort(code);
+			dos.writeChars(reason);
+			byte[] bytes = baos.toByteArray();
+			write(0x8, bytes, 0, bytes.length);
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
+	}
+	
 	private void write(int opcode, byte[] data, int offset, int length) {
 		try {
 			sos.write(0x80|opcode);
@@ -391,6 +409,10 @@ public class GPResponse implements HttpServletResponse {
 	}
 
 	public void close() {
-		throw new UtilException("Not Implemented");
+		try {
+			sos.close();
+		} catch (Exception ex) {
+			throw UtilException.wrap(ex);
+		}
 	}
 }

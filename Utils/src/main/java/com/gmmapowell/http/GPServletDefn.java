@@ -1,5 +1,7 @@
 package com.gmmapowell.http;
 
+import java.io.File;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 

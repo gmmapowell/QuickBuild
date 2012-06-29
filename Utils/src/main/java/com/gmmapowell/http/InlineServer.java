@@ -164,11 +164,12 @@ public class InlineServer {
 		String[] command = s.split(" ");
 		String method = command[0];
 		String rawUri = command[1];
+		String protocol = command[2];
 
 		for (GPServletDefn sd : servlets)
 			if (sd.isForMe(rawUri))
-				return new GPRequest(sd.getConfig(), method, rawUri, is);
+				return new GPRequest(sd.getConfig(), method, rawUri, protocol, is);
 
-		return new GPRequest(staticConfig , method, rawUri, is);
+		return new GPRequest(staticConfig , method, rawUri, protocol, is);
 	}
 }

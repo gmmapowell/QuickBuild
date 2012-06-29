@@ -57,8 +57,10 @@ public class GPRequest implements HttpServletRequest {
 	private String encoding = "iso-8859-1";
 	private BufferedReader reader = null;
 	InlineServerWebSocketHandler wshandler;
+	private final String protocol;
 
-	public GPRequest(GPServletConfig config, String method, String rawUri, InputStream is) throws URISyntaxException {
+	public GPRequest(GPServletConfig config, String method, String rawUri, String protocol, InputStream is) throws URISyntaxException {
+		this.protocol = protocol;
 		this.context = config.getServletContext();
 		this.method = method;
 		this.rawUri = rawUri;
@@ -230,7 +232,7 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public String getProtocol() {
-		throw new UtilException("Not implemented");
+		return protocol;
 	}
 
 	@Override
