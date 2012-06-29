@@ -125,7 +125,7 @@ public class GPServletContext implements ServletContext {
 		if (path.startsWith("/WEB-INF/classes"))
 		{
 			if (classdirs.isEmpty())
-				throw new UtilException("No class directories have been set in inline server");
+				throw new UtilException("No class directories have been set in inline server: asked for " + path);
 			String tmp = path.replace("WEB-INF/classes", "");
 			if (tmp.startsWith("/"))
 				tmp.replace("/", "");

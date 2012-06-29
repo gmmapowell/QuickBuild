@@ -48,4 +48,8 @@ public class GPServletDefn {
 	public GPServletConfig getConfig() {
 		return config;
 	}
+
+	public void addClassDir(File dir) {
+		config.getServletContext().addClassDir(dir);
+	}
 }
