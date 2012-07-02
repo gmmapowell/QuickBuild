@@ -148,6 +148,10 @@ public class ByteCodeCreator implements ByteCodeSink {
 		GenericAnnotator.annotateField(field, type);
 	}
 	
+	public void recordField(boolean isFinal, Access access, JavaType type, String name) {
+		fields.put(name, new FieldObject(access.isStatic(), getCreatedName(), type, name));
+	}
+	
 	// TODO: we need others for statics & inherited members
 	
 	@Override

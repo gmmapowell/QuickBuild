@@ -22,6 +22,8 @@ public interface ByteCodeSink {
 
 	void defineField(boolean isFinal, Access access, JavaType type, String name);
 
+	void recordField(boolean isFinal, Access access, JavaType type, String name);
+	
 	FieldExpr getField(NewMethodDefiner meth, String name);
 	FieldExpr getField(NewMethodDefiner meth, Expr on, String name);
 	// I would like this to go away, but it would require us to model superclasses better
