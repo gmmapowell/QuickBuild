@@ -155,14 +155,25 @@ public class XML {
 		}
 	}
 
+	public String prettyPrint()
+	{
+		try
+		{
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			write(baos, false);
+			return new String(baos.toByteArray());
+		}
+		catch (Exception ex)
+		{
+			throw UtilException.wrap(ex);
+		}
+	}
+	
 	public static String prettyPrint(String s)
 	{
 		try
 		{
-			XML xml = XML.fromString(s);
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			xml.write(baos, false);
-			return new String(baos.toByteArray());
+			return XML.fromString(s).prettyPrint();
 		}
 		catch (XMLParseException ex)
 		{
