@@ -66,7 +66,9 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 		// TODO: use bootclasspath
 		proc.arg("-classpath");
 		proc.arg(classpath.toString());
-		proc.arg("org.junit.runner.JUnitCore");
+		proc.arg("-Djava.util.logging.config.class=com.gmmapowell.http.LoggingConfiguration");
+//		proc.arg("org.junit.runner.JUnitCore");
+		proc.arg("com.gmmapowell.test.QBJUnitRunner");
 		boolean any = false;
 		for (File f : FileUtils.findFilesUnderMatching(srcdir, "*.java"))
 		{
@@ -85,12 +87,14 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 			return BuildStatus.SKIPPED;
 		}
 		proc.execute();
+		FileUtils.assertDirectory(errdir);
+		FileUtils.createFile(new File(errdir, "stdout"), proc.getStdout());
+		FileUtils.createFile(new File(errdir, "stderr"), proc.getStderr());
 		if (proc.getExitCode() == 0)
 		{
 			reportSuccess(cxt);
 			return BuildStatus.SUCCESS;
 		}
-//		System.out.println(" !! JUnit Test Errors will be presented at end");
 		
 		return handleFailure(cxt, proc);
 	}
@@ -112,9 +116,6 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 
 	private BuildStatus handleFailure(BuildContext cxt, RunProcess proc) {
 		ErrorCase failure = cxt.failure(proc.getArgs(), proc.getStdout(), proc.getStderr());
-		FileUtils.assertDirectory(errdir);
-		FileUtils.createFile(new File(errdir, "stdout"), proc.getStdout());
-		FileUtils.createFile(new File(errdir, "stderr"), proc.getStderr());
 		LinePatternParser lpp = new LinePatternParser();
 		lpp.matchAll("([.E]*)", "summary", "details");
 		lpp.matchAll("([0-9]+\\) [a-zA-Z0-9_.()]+)", "case", "name");
