@@ -220,6 +220,14 @@ public class XMLElement implements Externalizable {
 		return elt.getTextContent();
 	}
 
+	public String textFrom(String... elements)
+	{
+		XMLElement e = this;
+		for (String s : elements)
+			e = e.uniqueElement(s);
+		return e.text();
+	}
+	
 	public List<String> attributes() {
 		List<String> ret = new ArrayList<String>();
 		NamedNodeMap attributes = elt.getAttributes();
