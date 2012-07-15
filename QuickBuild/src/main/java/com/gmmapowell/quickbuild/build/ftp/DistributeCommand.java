@@ -3,7 +3,9 @@ package com.gmmapowell.quickbuild.build.ftp;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -69,6 +71,8 @@ public class DistributeCommand extends AbstractBuildCommand implements ConfigBui
 		super.handleOptions(config);
 
 		fromdir = FileUtils.combine(execdir, directory);
+		destination = destination.replaceAll("\\$\\{date}", new SimpleDateFormat("yyyyMMdd").format(new Date()));
+		System.out.println(destination);
 		if (destination.startsWith("sftp:"))
 		{
 			method = "sftp";
@@ -216,7 +220,30 @@ public class DistributeCommand extends AbstractBuildCommand implements ConfigBui
 				}
 				else
 				{
-					throw new UtilException("Sending separate files to sftp is not yet implemented");
+					Session s = null;
+					try
+					{
+						JSch jsch = new JSch();
+						jsch.addIdentity(privateKeyPath.getPath());
+						jsch.setKnownHosts(knownHosts.getPath());
+						s = jsch.getSession(username, host);
+						s.connect();
+						ChannelSftp openChannel = (ChannelSftp) s.openChannel("sftp");
+						openChannel.connect();
+						for (File f : FileUtils.findFilesUnderMatching(fromdir, "*"))
+						{
+							File g = FileUtils.relativePath(fromdir, f.getPath());
+							openChannel.put(g.getPath(), saveAs + f.getPath());
+						}
+					}
+					catch (Exception ex)
+					{
+						ex.printStackTrace();
+					}
+					finally {
+						if (s != null)
+							s.disconnect();
+					}
 				}
 			}
 			catch (Exception ex)
