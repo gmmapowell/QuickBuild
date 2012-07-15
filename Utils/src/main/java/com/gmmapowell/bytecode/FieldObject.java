@@ -25,4 +25,8 @@ public class FieldObject {
 	{
 		return new FieldExpr(meth, obj, inClz, type, name);
 	}
+
+	public FieldObject rewriteFor(String qualifiedName) {
+		return new FieldObject(isStatic, qualifiedName, type, name);
+	}
 }

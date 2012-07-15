@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
@@ -22,8 +23,9 @@ public class ByteCodeCreator implements ByteCodeSink {
 	private String superclass;
 	private final String qualifiedName;
 	private final Map<String, FieldObject> fields = new HashMap<String, FieldObject>();
+	private final ByteCodeEnvironment env;
 
-	public ByteCodeCreator(String qualifiedName) {
+	public ByteCodeCreator(ByteCodeEnvironment env, String qualifiedName) {
 		this.qualifiedName = qualifiedName;
 		bcf = new ByteCodeFile(qualifiedName);
 		File tmp = FileUtils.convertDottedToPath(qualifiedName);
@@ -31,6 +33,8 @@ public class ByteCodeCreator implements ByteCodeSink {
 //		pkg = FileUtils.getPackage(file);
 //		name = FileUtils.getUnextendedName(file);
 		bcf.thisClass(FileUtils.convertToDottedNameDroppingExtension(file));
+		this.env = env;
+		env.associate(this);
 	}
 
 	/* (non-Javadoc)
@@ -137,9 +141,6 @@ public class ByteCodeCreator implements ByteCodeSink {
 		defineField(isFinal, access, new JavaType(type), name);
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.gmmapowell.bytecode.ByteCodeSink#defineField(boolean, com.gmmapowell.bytecode.JavaInfo.Access, com.gmmapowell.bytecode.JavaType, java.lang.String)
-	 */
 	@Override
 	public void defineField(boolean isFinal, Access access, JavaType type, String name) {
 		fields.put(name, new FieldObject(access.isStatic(), getCreatedName(), type, name));
@@ -148,12 +149,20 @@ public class ByteCodeCreator implements ByteCodeSink {
 		GenericAnnotator.annotateField(field, type);
 	}
 	
-	public void recordField(boolean isFinal, Access access, JavaType type, String name) {
+	@Override
+	public void inheritsField(boolean isFinal, Access access, JavaType type, String name) {
 		fields.put(name, new FieldObject(access.isStatic(), getCreatedName(), type, name));
 	}
 	
-	// TODO: we need others for statics & inherited members
-	
+	@Override
+	public void inheritsClass(String clz) {
+		ByteCodeCreator byteCodeCreator = env.get(clz);
+		if (byteCodeCreator == null)
+			throw new UtilException("There is no class " + clz + " to inherit from");
+		for (Entry<String, FieldObject> fo : byteCodeCreator.fields.entrySet())
+			fields.put(fo.getKey(), fo.getValue().rewriteFor(qualifiedName));
+	}
+
 	@Override
 	public FieldExpr getField(NewMethodDefiner meth, String name)
 	{
@@ -162,28 +171,16 @@ public class ByteCodeCreator implements ByteCodeSink {
 		return fields.get(name).use(meth);
 	}
 	
-	public FieldExpr getInheritedField(NewMethodDefiner meth, String ofType, String name)
-	{
-//		if (fields.containsKey(name))
-//			return getField(meth, name);
-		return new FieldExpr(meth, meth.myThis(), getCreatedName(), ofType, name);
-	}
-
 	@Override
 	public FieldExpr getField(NewMethodDefiner meth, Expr obj, String name)
 	{
-		if (!fields.containsKey(name))
-			throw new UtilException("There is no field " + name + " in " + getCreatedName());
-		return fields.get(name).useOn(meth, obj);
+		ByteCodeCreator creatorFor = env.get(obj.getType());
+		if (creatorFor == null)
+			throw new UtilException("The class " + obj.getType() + " is not registered in the system");
+		if (!creatorFor.fields.containsKey(name))
+			throw new UtilException("There is no field " + name + " in " + name);
+		return creatorFor.fields.get(name).useOn(meth, obj);
 	}
-
-	public FieldExpr getInheritedField(NewMethodDefiner meth, Expr obj, String ofType, String name)
-	{
-//		if (fields.containsKey(name))
-//			return getField(meth, name);
-		return new FieldExpr(meth, obj, obj.getType(), ofType, name);
-	}
-
 
 	/* (non-Javadoc)
 	 * @see com.gmmapowell.bytecode.ByteCodeSink#makeAbstract()

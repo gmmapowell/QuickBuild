@@ -87,8 +87,10 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 		return ret;
 	}
 
-	// @Deprecated // I would like to deprecate this, but can't pay the cost right now
-	// Use argument(type, name) instead ...
+	@Deprecated
+	// This isn't actually called here, but through the interface MethodDefiner.
+	// And I haven't deprecated that, because it adds 26 warnings
+	// Use GenAnnotator instead ...
 	@Override
 	public Var argument(String type) {
 		return argument(type, "arg" + (arguments.size()-1));
@@ -164,14 +166,6 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 	@Override
 	public int argCount() {
 		return arguments.size();
-	}
-
-	// TODO: this shouldn't be so hard.  We should have a "field object" that
-	// we can ask for its "getter"
-	@Override
-	@Deprecated
-	public FieldExpr field(Expr from, String clz, String type, String named) {
-		return new FieldExpr(this, from, clz, type, named);
 	}
 
 	@Override

@@ -11,13 +11,14 @@ import com.gmmapowell.exceptions.UtilException;
 public class ByteCodeJar implements ByteCodeHolder {
 
 	private List<ByteCodeCreator> files = new ArrayList<ByteCodeCreator>();
+	private final ByteCodeEnvironment env;
 
-	public ByteCodeJar() {
-		// sort out something about the manifest
+	public ByteCodeJar(ByteCodeEnvironment env) {
+		this.env = env;
 	}
 
 	public ByteCodeSink newEntry(String className, int destinations) {
-		ByteCodeCreator ret = new ByteCodeCreator(className);
+		ByteCodeCreator ret = new ByteCodeCreator(env, className);
 		addEntry(className, ret);
 		return ret;
 	}

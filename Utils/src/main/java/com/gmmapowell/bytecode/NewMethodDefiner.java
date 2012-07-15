@@ -6,6 +6,8 @@ public interface NewMethodDefiner {
 
 	void throwsException(String exception);
 
+//	@Deprecated
+	// Use GenAnnotator
 	Var argument(String type, String aname);
 
 	Var getArgument(int i);

@@ -13,13 +13,8 @@ public interface MethodDefiner extends NewMethodDefiner {
 	void addAttribute(String named, String text);
 
 	// @Deprecated // I would like to deprecate this, but can't pay the cost right now
-	// Use argument(type, name) instead ...
+	// Use GenAnnotator instead
 	Var argument(String type);
-
-	// TODO: this shouldn't be so hard.  We should have a "field object" that
-	// we can ask for its "getter"
-	@Deprecated
-	FieldExpr field(Expr from, String clz, String type, String named);
 
 	void complete() throws IOException;
 

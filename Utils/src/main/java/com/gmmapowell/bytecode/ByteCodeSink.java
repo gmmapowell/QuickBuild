@@ -22,14 +22,12 @@ public interface ByteCodeSink {
 
 	void defineField(boolean isFinal, Access access, JavaType type, String name);
 
-	void recordField(boolean isFinal, Access access, JavaType type, String name);
-	
+	void inheritsClass(String clz);
+
+	void inheritsField(boolean isFinal, Access access, JavaType ofType, String name);
+
 	FieldExpr getField(NewMethodDefiner meth, String name);
 	FieldExpr getField(NewMethodDefiner meth, Expr on, String name);
-	// I would like this to go away, but it would require us to model superclasses better
-	FieldExpr getInheritedField(NewMethodDefiner meth, String ofType, String name);
-	FieldExpr getInheritedField(NewMethodDefiner meth, Expr on, String ofType, String var);
-
 
 	void makeAbstract();
 
