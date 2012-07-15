@@ -87,4 +87,13 @@ public class StringUtil {
 			throw UtilException.wrap(ex);
 		}
 	}
+
+	public static byte[] fromHex(String s, int len) {
+		if (len != 0 && s.length() != 2*len)
+			throw new UtilException("Invalid string length: must be " + 2*len + " not " + s.length());
+		byte[] ret = new byte[len];
+		for (int i=0;i<len;i++)
+			ret[i] = (byte) Integer.parseInt(s.substring(2*i,2*i+2), 16);
+		return ret;
+	}
 }

@@ -638,6 +638,8 @@ public class FileUtils {
 			FileOutputStream fos = new FileOutputStream(file);
 			ByteArrayInputStream bais = new ByteArrayInputStream(contents.getBytes());
 			copyStream(bais, fos);
+			fos.flush();
+			fos.close();
 		}
 		catch (IOException ex)
 		{
