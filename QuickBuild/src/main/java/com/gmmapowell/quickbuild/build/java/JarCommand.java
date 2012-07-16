@@ -59,7 +59,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 
 		JarBuildCommand jar = new JarBuildCommand(this, files, jarResource, includePackages, excludePackages);
 		tactics = new ArrayList<Tactic>();
-		JavaBuildCommand java = addJavaBuild(tactics, jar, "src/main/java", "classes", "main");
+		addJavaBuild(tactics, jar, "src/main/java", "classes", "main");
 		JavaBuildCommand junit = addJavaBuild(tactics, null, "src/test/java", "test-classes", "test");
 		if (junit != null)
 		{

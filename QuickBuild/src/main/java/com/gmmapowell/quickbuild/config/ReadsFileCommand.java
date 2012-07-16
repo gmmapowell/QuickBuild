@@ -22,7 +22,10 @@ public class ReadsFileCommand extends NoChildCommand implements ConfigApplyComma
 
 	@Override
 	public void applyTo(Config config) {
-		path = FileUtils.relativePath(file);
+		if (absolute)
+			path = new File(file);
+		else
+			path = FileUtils.relativePath(file);
 	}
 	
 	@Override
