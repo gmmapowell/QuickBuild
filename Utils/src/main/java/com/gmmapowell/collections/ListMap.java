@@ -130,4 +130,8 @@ public class ListMap<K, V> implements Iterable<K> {
 		if (!map.containsKey(k))
 			map.put(k, new ArrayList<V>());
 	}
+
+	public boolean isEmpty() {
+		return map.isEmpty();
+	}
 }

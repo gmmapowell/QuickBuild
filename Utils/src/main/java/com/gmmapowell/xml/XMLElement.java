@@ -301,4 +301,16 @@ public class XMLElement implements Externalizable {
 	public int requiredInt(String parm) {
 		return Integer.parseInt(required(parm));
 	}
+
+	public int optionalInt(String parm, int def) {
+		return Integer.parseInt(optional(parm, Integer.toString(def)));
+	}
+
+	public boolean requiredBoolean(String parm, boolean b) {
+		return Boolean.parseBoolean(required(parm));
+	}
+
+	public boolean optionalBoolean(String parm, boolean b) {
+		return Boolean.parseBoolean(optional(parm, Boolean.toString(b)));
+	}
 }
