@@ -34,6 +34,12 @@ public class AnnotationValue {
 		throw new UtilException("Not a string");
 	}
 	
+	public <T extends Enum<T>> T asEnum(Class<T> en) {
+		if (tag == AnnotationTag.ENUM)
+			return Enum.valueOf(en, asString());
+		throw new UtilException("Not an enum");
+	}
+	
 	@Override
 	public String toString() {
 		return tag + "."+ value;
