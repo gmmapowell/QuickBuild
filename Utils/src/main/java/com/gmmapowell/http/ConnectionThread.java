@@ -201,6 +201,7 @@ public class ConnectionThread extends Thread {
 		try
 		{
 			int b1 = is.read();
+			@SuppressWarnings("unused") // is this the final frame?
 			boolean fin = (b1&0x80) != 0;
 			int rsv = (b1&0x70);
 			if (rsv != 0)

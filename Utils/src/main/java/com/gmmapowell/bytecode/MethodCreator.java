@@ -36,7 +36,6 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 	private List<String> exceptions = new ArrayList<String>();
 	private final ListMap<AnnotationType, Annotation> annotations = new ListMap<AnnotationType, Annotation>(AnnotationType.sortOrder);
 	private final boolean isStatic;
-	private boolean doCount = true;
 
 	public MethodCreator(ByteCodeCreator byteCodeCreator, ByteCodeFile bcf, boolean isStatic, String returnType, String name) {
 		super(bcf);
