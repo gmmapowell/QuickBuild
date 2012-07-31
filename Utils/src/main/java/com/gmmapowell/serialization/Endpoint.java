@@ -54,7 +54,7 @@ public class Endpoint implements Serializable {
 		try {
 			String host = null;
 			InetAddress in = InetAddress.getLocalHost();
-			logger.fine("Considering addresses for host " + in.getHostName());
+			logger.fine("Considering addresses for host " + in.getHostName() + ": " + in.getHostAddress());
 			InetAddress[] all = InetAddress.getAllByName(in.getHostName());
 			for (int i=0;i<all.length;i++)
 			{
@@ -66,7 +66,10 @@ public class Endpoint implements Serializable {
 				}
 			}
 			if (host == null)
-				throw new UtilException("Could not find any local site address");
+			{
+				logger.severe("Could not find any local site address, using default: " + in.getHostAddress());
+				host = in.getHostAddress();
+			}
 			logger.info("Identifying local host as " + host);
 			return host;
 		} catch (UnknownHostException e) {

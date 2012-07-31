@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.logging.Level;
 
 import javax.servlet.ServletInputStream;
 import com.gmmapowell.exceptions.UtilException;
@@ -62,13 +63,14 @@ public class ConnectionThread extends Thread {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			InlineServer.logger.log(Level.SEVERE, "Uncaught exception processing request", e);
 		}
 		finally
 		{
 			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Closing Connection");
 			try
 			{
+				is.close();
 				os.close();
 			}
 			catch (Exception e)

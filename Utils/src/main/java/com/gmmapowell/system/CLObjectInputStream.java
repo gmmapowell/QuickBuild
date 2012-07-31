@@ -21,7 +21,7 @@ public class CLObjectInputStream extends ObjectInputStream {
 		logger.finer("Requesting class " + desc.getName());
 		try
 		{
-			Class<?> ret = loader.loadClass(desc.getName());
+			Class<?> ret = Class.forName(desc.getName(), false, loader);
 			if (ret != null)
 			{
 				logger.fine("Returning " + ret);
