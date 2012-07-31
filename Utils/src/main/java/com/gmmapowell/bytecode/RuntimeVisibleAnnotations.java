@@ -12,10 +12,11 @@ import com.gmmapowell.exceptions.UtilException;
 public class RuntimeVisibleAnnotations {
 
 	/*
-			@Test(expected=Exception.class)
-			@Ignore
-			@Deprecated
-			@SuppressWarnings("unused")   // source only
+	        I added a space to all these so they don't show up when I'm searching
+			@ Test(expected=Exception.class)
+			@ Ignore
+			@ Deprecated
+			@ SuppressWarnings("unused")   // source only
 
 		00000130 73 74 3B                                        st;               20 => U8: Lorg/junit/Test;
 		00000133 01 00 08 65 78 70 65 63 74 65 64                ...expected       21 => U8: expected

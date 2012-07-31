@@ -10,12 +10,6 @@ public interface ByteCodeSink {
 
 	byte[] generate();
 
-	MethodDefiner ctor();
-
-	MethodDefiner sctor();
-
-	MethodDefiner method(boolean isStatic, String returns, String name);
-
 	String getSuperClass();
 
 	void defineField(boolean isFinal, Access access, String type, String name);

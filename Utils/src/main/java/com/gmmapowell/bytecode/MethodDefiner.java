@@ -12,10 +12,6 @@ public interface MethodDefiner extends NewMethodDefiner {
 
 	void addAttribute(String named, String text);
 
-	// @Deprecated // I would like to deprecate this, but can't pay the cost right now
-	// Use GenAnnotator instead
-	Var argument(String type);
-
 	void complete() throws IOException;
 
 	void aaload();

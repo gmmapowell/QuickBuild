@@ -85,7 +85,7 @@ public class GenericAnnotator {
 		}
 		
 		public void apply(MethodDefiner meth) {
-			var = meth.argument(type.getActual(), name);
+			var = ((MethodCreator)meth).argument(type.getActual(), name);
 			for (ArgAnnotation aa : anns)
 				aa.applyTo(meth, pos);
 		}
@@ -108,7 +108,7 @@ public class GenericAnnotator {
 	private StringBuilder sb = new StringBuilder();
 	private int argPointer;
 	private boolean hasGenerics;
-	private final ByteCodeSink byteCodeCreator;
+	private final ByteCodeCreator byteCodeCreator;
 	private final String name;
 	private List<PendingVar> vars = new ArrayList<PendingVar>();
 	private final boolean isStatic;
@@ -116,14 +116,14 @@ public class GenericAnnotator {
 
 	// This works for method ...
 	private GenericAnnotator(ByteCodeSink projectionClass, boolean isStatic, String name) {
-		this.byteCodeCreator = projectionClass;
+		this.byteCodeCreator = (ByteCodeCreator) projectionClass;
 		this.isStatic = isStatic;
 		this.name = name;
 	}
 	
 	// This is for classes
 	private GenericAnnotator(ByteCodeSink projectionClass) {
-		this.byteCodeCreator = projectionClass;
+		this.byteCodeCreator = (ByteCodeCreator) projectionClass;
 		isStatic = false;
 		name = null;
 	}
@@ -199,7 +199,7 @@ public class GenericAnnotator {
 		}
 		if (returnType == null)
 			throw new UtilException("You have not specified the return type");
-		MethodDefiner ret = byteCodeCreator.method(isStatic, returnType, name);
+		MethodDefiner ret = byteCodeCreator.createMethod(isStatic, returnType, name);
 		if (hasGenerics)
 		{
 			ret.addAttribute("Signature", sb.toString());

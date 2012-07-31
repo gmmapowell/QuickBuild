@@ -78,21 +78,11 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 		this.lenientMode = mode;
 	}
 	
-	@Override
-	public Var argument(String type, String aname) {
+	Var argument(String type, String aname) {
 		Var ret = varOfType(type, aname);
 		ret.setArgument(arguments.size());
 		arguments.add(ret);
 		return ret;
-	}
-
-	@Deprecated
-	// This isn't actually called here, but through the interface MethodDefiner.
-	// And I haven't deprecated that, because it adds 26 warnings
-	// Use GenAnnotator instead ...
-	@Override
-	public Var argument(String type) {
-		return argument(type, "arg" + (arguments.size()-1));
 	}
 
 	@Override
