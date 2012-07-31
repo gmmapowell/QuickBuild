@@ -528,6 +528,8 @@ public class FileUtils {
 		}
 		for (int i=ret.length()-1;i>=0 && ret.charAt(i ) == '.';i--)
 			ret.deleteCharAt(i);
+		if (ret.length() > 180)
+			ret.delete(180, ret.length());
 		return ret.toString();
 	}
 
