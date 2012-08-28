@@ -7,4 +7,9 @@ public class InlineJerseyServer extends InlineServer {
 		initParam("javax.ws.rs.Application", appClz);
 	}
 
+	public InlineJerseyServer(String amqpUri, String appClz) {
+		super(amqpUri, "com.sun.jersey.spi.container.servlet.ServletContainer");
+		initParam("javax.ws.rs.Application", appClz);
+	}
+
 }

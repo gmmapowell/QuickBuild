@@ -3,11 +3,11 @@ package com.gmmapowell.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Socket;
 import java.util.logging.Level;
 
 import javax.servlet.ServletInputStream;
 import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.http.RemoteIO.Connection;
 import com.gmmapowell.utils.FileUtils;
 
 public class ConnectionThread extends Thread {
@@ -16,11 +16,13 @@ public class ConnectionThread extends Thread {
 	private final InlineServer inlineServer;
 	private boolean closeConnection;
 	private boolean isWebSocket;
+	private final Connection conn;
 
-	public ConnectionThread(InlineServer inlineServer, Socket conn) throws IOException {
+	public ConnectionThread(InlineServer inlineServer, Connection conn) throws IOException {
 		this.inlineServer = inlineServer;
-		is = conn.getInputStream();
-		os = conn.getOutputStream();
+		this.conn = conn;
+		this.is = conn.getInputStream();
+		this.os = conn.getOutputStream();
 	}
 	
 	@Override
@@ -54,6 +56,7 @@ public class ConnectionThread extends Thread {
 						try
 						{
 							response.getWriter().flush();
+							conn.doneSending();
 						}
 						catch (Exception e)
 						{
@@ -64,6 +67,13 @@ public class ConnectionThread extends Thread {
 			}
 		} catch (Exception e) {
 			InlineServer.logger.log(Level.SEVERE, "Uncaught exception processing request", e);
+			try {
+				conn.errorSending();
+			}
+			catch (Exception ex)
+			{
+				ex.printStackTrace();
+			}
 		}
 		finally
 		{

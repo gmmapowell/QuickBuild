@@ -1,4 +1,5 @@
 maven junit:junit:jar:4.8.2
+maven com.rabbitmq:amqp-client:jar:2.8.1
 
 # build java code, junit tests, run junit tests and jar up the results
 jar QuickBuild

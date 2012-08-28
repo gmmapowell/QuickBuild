@@ -3,15 +3,14 @@ package com.gmmapowell.http;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
+
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.serialization.Endpoint;
 import com.gmmapowell.utils.FileUtils;
@@ -19,7 +18,7 @@ import com.gmmapowell.utils.FileUtils;
 public class InlineServer {
 	public static final Logger logger = Logger.getLogger("InlineServer");
 
-	private final int port;
+	private final RemoteIO remote;
 	private final List<File> staticPaths = new ArrayList<File>();
 	
 	// There is a list of servlets, but, by default, there is only one, the first in the list
@@ -38,7 +37,13 @@ public class InlineServer {
 	private GPServletConfig staticConfig = new GPServletConfig(this, null);
 
 	public InlineServer(int port, String servletClass) {
-		this.port = port;
+		this.remote = new RemoteIO.UsingSocket(this, port);
+		servlets.add(new GPServletDefn(this, servletClass));
+		inThread = Thread.currentThread();
+	}
+
+	public InlineServer(String amqpUri, String servletClass) {
+		this.remote = new RemoteIO.UsingAMQP(this, amqpUri);
 		servlets.add(new GPServletDefn(this, servletClass));
 		inThread = Thread.currentThread();
 	}
@@ -74,7 +79,7 @@ public class InlineServer {
 	}
 
 	public void setAlert(String alert) {
-		alertEP = Endpoint.parse(alert);
+		remote.setAlertTo(alert);
 	}
 
 	public void run() {
@@ -84,49 +89,51 @@ public class InlineServer {
 	public void run(boolean wantLoop) {
 		if (inThread != Thread.currentThread())
 			throw new UtilException("Cannot run in different thread to creation thread");
-		int timeout = 10;
-		ServerSocket s = null;
 		try {
 			this.doLoop = wantLoop;
-			s = new ServerSocket(port);
-			s.setSoTimeout(timeout);
-			logger.info("Listening on port " + s.getLocalPort());
+			remote.init();
 			for (GPServletDefn servlet : servlets)
 				servlet.init();
-			Endpoint addr = new Endpoint(s);
-			if (alertEP != null) {
-				logger.info("Sending " + addr + " to " + alertEP);
-				alertEP.send(addr.toString());
-			}
-			for (NotifyOnServerReady nosr : interestedParties)
-				nosr.serverReady(this, addr);
+			remote.announce(this.interestedParties);
+			HashSet<ConnectionThread> threads = new HashSet<ConnectionThread>();
 			while (doLoop) {
-				try
+				RemoteIO.Connection conn = remote.accept();
+				if (conn != null)
 				{
-					Socket conn = s.accept();
-					logger.fine("Accepting connection request and dispatching to thread");
-					new ConnectionThread(this, conn).start();
-				}
-				catch (SocketTimeoutException ex)
-				{
-					// this is perfectly normal ... continue (or not)
-					if (timeout < 2000)
+					ConnectionThread thr = new ConnectionThread(this, conn);
+					logger.fine("Accepting connection request and dispatching to thread " + thr);
+					thr.start();
+					threads.add(thr);
+					for (ConnectionThread ct : threads)
 					{
-						timeout *= 2;
-						s.setSoTimeout(timeout);
-						logger.finest("Timeout now = " + timeout);
+						if (!ct.isAlive())
+						{
+							threads.remove(ct);
+							// It's good enough to break here after we've removed one, because if we remove at least one every time we add one it can't grow indefinitely ...
+							break;
+						}
 					}
 				}
 			}
-			s.close();
+			// Wait for all non-dead threads (at least for a while)
+			for (ConnectionThread ct : threads)
+			{
+				if (ct.isAlive())
+				{
+					logger.info("Joining thread " + ct);
+					ct.join(1000);
+				}
+			}
+			logger.info("Closing remote " + remote);
+			remote.close();
 			logger.info("Server exiting");
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			failure = ex;
-			if (s != null)
+			if (remote != null)
 			{
 				try {
-					s.close();
+					remote.close();
 				} catch (Exception e2) {
 					e2.printStackTrace();
 				}
