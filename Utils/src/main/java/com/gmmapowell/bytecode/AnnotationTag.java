@@ -80,6 +80,7 @@ public enum AnnotationTag {
 		case ARRAY:
 		{
 			int len = dis.readShort();
+//			System.out.println("Array len = " + len);
 			AnnotationValue[] arr = new AnnotationValue[len];
 			for (int i=0;i<len;i++)
 				arr[i] = AnnotationValue.parse(bcf, dis);

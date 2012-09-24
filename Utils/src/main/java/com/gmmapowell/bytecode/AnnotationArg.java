@@ -41,6 +41,7 @@ public class AnnotationArg {
 	public static AnnotationArg readArg(ByteCodeFile bcf, DataInputStream dis) throws IOException {
 		short nameIdx = dis.readShort();
 		AnnotationValue value = AnnotationValue.parse(bcf, dis);
+//		System.out.println("value = " + value + " name = " + nameIdx);
 		return new AnnotationArg(bcf, ((Utf8Info)bcf.pool.get(nameIdx)).asString(), value);
 	}
 

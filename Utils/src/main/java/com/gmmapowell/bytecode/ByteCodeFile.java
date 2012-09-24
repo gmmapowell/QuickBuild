@@ -258,13 +258,12 @@ public class ByteCodeFile implements AnnotationHolder {
 		// System.out.println("# of fields = " + cnt);
 		for (int i=0;i<cnt;i++)
 		{
-			FieldInfo fi = new FieldInfo(this);
-			dis.readUnsignedShort(); // access_flags
-			@SuppressWarnings("unused")
+			int access = dis.readUnsignedShort(); // access_flags
 			int name = dis.readUnsignedShort(); // name idx
-//			System.out.println("Reading field " + pool.get(name));
-			dis.readUnsignedShort(); // descriptor idx
+			int descriptor = dis.readUnsignedShort(); // descriptor idx
+			FieldInfo fi = new FieldInfo(this, access, name, descriptor);
 			readAttributes(dis, fi.attributes, fi);
+			fields.add(fi);
 		}
 		
 	}
@@ -497,6 +496,10 @@ public class ByteCodeFile implements AnnotationHolder {
 		if (qualifiedName != null)
 			return "BCF[" + qualifiedName + "]";
 		return super.toString();
+	}
+
+	public Iterable<FieldInfo> allFields() {
+		return fields;
 	}
 
 	public Iterable<MethodInfo> allMethods() {

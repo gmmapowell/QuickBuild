@@ -56,6 +56,7 @@ public class Annotation
 		{
 			List<Annotation> ret = new ArrayList<Annotation>();
 			short cnt = dis.readShort();
+//			System.out.println("#args = " + cnt);
 			for (int i=0;i<cnt;i++)
 				ret.add(parseOne(bcf, dis));
 			return ret;
@@ -69,6 +70,7 @@ public class Annotation
 	static Annotation parseOne(ByteCodeFile bcf, DataInputStream dis) throws IOException {
 		short idx = dis.readShort();
 		String name = JavaInfo.unmap(((Utf8Info)bcf.pool.get(idx)).asString());
+//		System.out.println("Reading " + name);
 		int argcnt = dis.readShort();
 		List<AnnotationArg> args = new ArrayList<AnnotationArg>();
 		for (int j=0;j<argcnt;j++)

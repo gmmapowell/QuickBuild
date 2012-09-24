@@ -25,8 +25,11 @@ public class FieldInfo extends JavaInfo implements AnnotationHolder {
 		this.descriptor_idx = bcf.pool.requireUtf8(map(type));
 	}
 
-	public FieldInfo(ByteCodeFile bcf) {
+	public FieldInfo(ByteCodeFile bcf, int access, int name, int descriptor) {
 		this.bcf = bcf;
+		access_flags = access;
+		this.name_idx = (short) name;
+		this.descriptor_idx = (short) descriptor;
 	}
 
 	public void write(DataOutputStream dos) throws IOException {
@@ -59,5 +62,27 @@ public class FieldInfo extends JavaInfo implements AnnotationHolder {
 	public Annotation addAnnotation(AnnotationType type, Annotation ann) {
 		annotations.add(type, ann);
 		return ann;
+	}
+	
+	public Annotation getClassAnnotation(String ann) {
+		for (AnnotationType i : annotations)
+		{
+			for (Annotation j : annotations.get(i))
+				if (j.name.equals(ann))
+					return j;
+		}
+		return null;
+	}
+
+	public String getName() {
+		return bcf.pool.get(name_idx).asClean();
+	}
+
+	@Override
+	public String toString() {
+		if (name_idx != -1)
+			return "Field[" + bcf.pool.get(name_idx) + "]";
+		else
+			return "Field[?]";
 	}
 }

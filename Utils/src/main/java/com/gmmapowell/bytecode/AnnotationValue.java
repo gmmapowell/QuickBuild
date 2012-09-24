@@ -18,6 +18,7 @@ public class AnnotationValue {
 
 	public static AnnotationValue parse(ByteCodeFile bcf, DataInputStream dis) throws IOException {
 		AnnotationTag tag = AnnotationTag.parse(dis);
+//		System.out.println("Tag = " + tag);
 		Object value = tag.parseValue(bcf, dis);
 		return new AnnotationValue(tag, value);
 	}

@@ -660,11 +660,37 @@ public class ByteCodeInspector extends ByteCodeFile {
 			hexdump.print("istore " + reg);
 			return 2;
 		}
+		case 0x37:
+		{
+			int reg = dis.readUnsignedByte();
+			hexdump.print("lstore " + reg);
+			return 2;
+		}
 		case 0x3a:
 		{
 			int reg = dis.readUnsignedByte();
 			hexdump.print("astore "+ reg);
 			return 2;
+		}
+		case 0x3b: case 0x3c: case 0x3d: case 0x3e:
+		{
+			hexdump.print("istore_"+(opcode-0x3b));
+			return 1;
+		}
+		case 0x3f: case 0x40: case 0x41: case 0x42:
+		{
+			hexdump.print("lstore_"+(opcode-0x3f));
+			return 1;
+		}
+		case 0x43: case 0x44: case 0x45: case 0x46:
+		{
+			hexdump.print("fstore_"+(opcode-0x43));
+			return 1;
+		}
+		case 0x47: case 0x48: case 0x49: case 0x4a:
+		{
+			hexdump.print("dstore_"+(opcode-0x47));
+			return 1;
 		}
 		case 0x4b: case 0x4c: case 0x4d: case 0x4e:
 		{
@@ -719,6 +745,11 @@ public class ByteCodeInspector extends ByteCodeFile {
 		case 0x60:
 		{
 			hexdump.print("iadd");
+			return 1;
+		}
+		case 0x64:
+		{
+			hexdump.print("isub");
 			return 1;
 		}
 		case 0x99: case 0x9a: case 0x9b: case 0x9c: case 0x9d: case 0x9e:
