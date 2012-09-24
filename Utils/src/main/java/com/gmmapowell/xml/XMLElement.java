@@ -179,7 +179,12 @@ public class XMLElement implements Externalizable {
 	}
 
 	public String serialize() {
+		return serialize(true);
+	}
+
+	public String serialize(boolean withXMLDeclaration) {
 		OutputFormat of = new OutputFormat();
+		of.setOmitXMLDeclaration(!withXMLDeclaration);
 		StringWriter fos = new StringWriter();
 		XMLSerializer serializer = new XMLSerializer(fos, of);
 		try {
