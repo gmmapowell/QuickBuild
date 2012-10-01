@@ -12,7 +12,6 @@ import java.util.logging.Logger;
 import javax.servlet.ServletException;
 
 import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.serialization.Endpoint;
 import com.gmmapowell.utils.FileUtils;
 
 public class InlineServer {
@@ -23,8 +22,6 @@ public class InlineServer {
 	
 	// There is a list of servlets, but, by default, there is only one, the first in the list
 	private final List<GPServletDefn> servlets = new ArrayList<GPServletDefn>();
-
-	private Endpoint alertEP;
 
 	private final List<NotifyOnServerReady> interestedParties = new ArrayList<NotifyOnServerReady>();
 
