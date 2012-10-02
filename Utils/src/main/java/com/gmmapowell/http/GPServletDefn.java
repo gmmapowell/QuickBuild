@@ -33,6 +33,10 @@ public class GPServletDefn {
 		servletImpl.init(config);
 	}
 
+	public void destroy() {
+		servletImpl.destroy();
+	}
+
 	public HttpServlet getImpl() {
 		return servletImpl;
 	}

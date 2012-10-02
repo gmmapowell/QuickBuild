@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Logger;
@@ -32,6 +33,10 @@ public class InlineServer {
 	private Thread inThread;
 
 	private GPServletConfig staticConfig = new GPServletConfig(this, null);
+
+	private long totalRequests;
+
+	private int numRequests;
 
 	public InlineServer(int port, String servletClass) {
 		this.remote = new RemoteIO.UsingSocket(this, port);
@@ -123,6 +128,8 @@ public class InlineServer {
 			}
 			logger.info("Closing remote " + remote);
 			remote.close();
+			for (GPServletDefn servlet : servlets)
+				servlet.destroy();
 			logger.info("Server exiting");
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -175,5 +182,12 @@ public class InlineServer {
 				return new GPRequest(sd.getConfig(), method, rawUri, protocol, is);
 
 		return new GPRequest(staticConfig , method, rawUri, protocol, is);
+	}
+
+	public synchronized void requestTime(Date start, Date end) {
+		long elapsed = end.getTime()-start.getTime();
+		totalRequests += elapsed;
+		numRequests++;
+		logger.info("Request took " + (elapsed/1000.0) + "; total = " + totalRequests/1000.0 + "; average = " + totalRequests*10/numRequests/10000.0);
 	}
 }

@@ -3,6 +3,7 @@ package com.gmmapowell.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.logging.Level;
 
 import javax.servlet.ServletInputStream;
@@ -32,6 +33,7 @@ public class ConnectionThread extends Thread {
 		closeConnection = true;
 		isWebSocket = false;
 		InlineServer.logger.fine(Thread.currentThread().getName()+ ": " + "Processing Incoming Request");
+		Date now = new Date();
 		try {
 			boolean keptAlive = false;
 			for (;;) {
@@ -78,6 +80,7 @@ public class ConnectionThread extends Thread {
 		finally
 		{
 			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Closing Connection");
+			inlineServer.requestTime(now, new Date());
 			try
 			{
 				is.close();
