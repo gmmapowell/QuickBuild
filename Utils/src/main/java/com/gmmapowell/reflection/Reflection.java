@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -292,6 +293,26 @@ public class Reflection {
 		}
 		@SuppressWarnings("unchecked")
 		Jimmy<T>[] ret = acc.toArray(new Jimmy[acc.size()]);
+		return ret;
+	}
+
+	public static Map<Field, Object> allFields(Object inpf) {
+		HashMap<Field, Object> ret = new HashMap<Field, Object>();
+		if (inpf == null)
+			return ret;
+		Class<?> clz = inpf.getClass();
+		while (clz != Object.class) {
+			for (Field f : clz.getDeclaredFields())
+			{
+				try {
+					f.setAccessible(true);
+					ret.put(f, f.get(inpf));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			clz = clz.getSuperclass();
+		}
 		return ret;
 	}
 }
