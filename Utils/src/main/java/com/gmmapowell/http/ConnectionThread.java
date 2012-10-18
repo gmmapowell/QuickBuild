@@ -20,6 +20,7 @@ public class ConnectionThread extends Thread {
 	private final Connection conn;
 
 	public ConnectionThread(InlineServer inlineServer, Connection conn) throws IOException {
+		super("InlineServer.Connection");
 		this.inlineServer = inlineServer;
 		this.conn = conn;
 		this.is = conn.getInputStream();

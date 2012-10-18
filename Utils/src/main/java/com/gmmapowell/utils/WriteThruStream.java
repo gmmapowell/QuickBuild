@@ -29,6 +29,7 @@ public class WriteThruStream {
 						throw new IOException("InputEnd closed");
 				}
 				bytes[writePtr++] = (byte)b;
+//				System.out.print(">"+StringUtil.hex(b, 2));
 				WriteThruStream.this.notifyAll();
 				if (writePtr >= bytes.length)
 					writePtr = 0;
@@ -79,6 +80,7 @@ public class WriteThruStream {
 					}
 				}
 				int ret = bytes[readPtr++];
+//				System.out.print("<"+StringUtil.hex(ret, 2));
 				WriteThruStream.this.notifyAll();
 				if (readPtr >= bytes.length)
 				{
