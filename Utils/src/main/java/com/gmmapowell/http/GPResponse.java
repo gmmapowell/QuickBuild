@@ -317,6 +317,8 @@ public class GPResponse implements HttpServletResponse {
 				// TODO: this should be an option, set on the InlineServer, to which we should have a pointer
 				// The option should include the option to specify a list of servers.
 				reply("Access-Control-Allow-Origin: *");
+				reply("Access-Control-Allow-Methods: POST, GET, PUT, DELETE, OPTIONS");
+				reply("Access-Control-Allow-Headers: Content-Type"); 
 				for (String r : sendHeaders())
 					if (!r.toLowerCase().startsWith("upgrade") && !r.toLowerCase().startsWith("connection"))
 						reply(r);
