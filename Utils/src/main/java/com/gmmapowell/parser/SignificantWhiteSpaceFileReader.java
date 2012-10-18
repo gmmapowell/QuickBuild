@@ -17,6 +17,7 @@ public class SignificantWhiteSpaceFileReader {
 	private final Parent<?> top;
 	private String prompt;
 	private final boolean interactive;
+	private boolean tokenize;
 
 	private SignificantWhiteSpaceFileReader(CommandObjectFactory factory, File f) throws FileNotFoundException {
 		this.rootFactory = factory;
@@ -75,7 +76,8 @@ public class SignificantWhiteSpaceFileReader {
 		T tmp = (T) factory.create(s.cmd(), s);
 		if (tmp == null)
 			throw new UtilException("No object was created for '" + s.cmd() + "' on line " + lnr.getLineNumber());
-		ret.addChild(tmp);
+		else if (!(tmp instanceof IgnoreLine))
+			ret.addChild(tmp);
 		accept();
 		return tmp;
 	}
@@ -88,7 +90,7 @@ public class SignificantWhiteSpaceFileReader {
 		prompt();
 		while ((s = lnr.readLine()) != null)
 		{
-			nextLine = new TokenizedLine(lnr.getLineNumber(), s);
+			nextLine = new TokenizedLine(lnr.getLineNumber(), s, tokenize);
 			return nextLine;
 		}
 		nextLine = null;
@@ -112,12 +114,17 @@ public class SignificantWhiteSpaceFileReader {
 	}
 	
 	public static <U, T extends Parent<U>> void read(T parent, CommandObjectFactory factory, File f) {
+		read(parent, factory, f, true);
+	}
+
+	public static <U, T extends Parent<U>> void read(T parent, CommandObjectFactory factory, File f, boolean tokenize) {
 		if (!f.exists())
 			throw new UtilException("The file '" + f.getPath() + "' does not exist");
 		
 		SignificantWhiteSpaceFileReader fr = null;
 		try {
 			fr = new SignificantWhiteSpaceFileReader(factory, f);
+			fr.tokenize = tokenize;
 			fr.readBlock(factory, parent, 0);
 			if (fr.nextLine() != null)
 				fr.inconsistentIndentation(0);

@@ -10,10 +10,10 @@ import com.gmmapowell.utils.ProcessArgs;
 
 public class TokenizedLine {
 	public static enum Mode {
-		BEGIN, SPACE, TEXT, SINGLE_QUOTE, DOUBLE_QUOTE, ANGLE_QUOTE;
+		SPACE, TEXT, SINGLE_QUOTE, DOUBLE_QUOTE, ANGLE_QUOTE;
 
 		public boolean isSpace() {
-			return this == BEGIN || this == SPACE;
+			return this == SPACE;
 		}
 
 		public boolean isText() {
@@ -23,33 +23,44 @@ public class TokenizedLine {
 		public boolean isQuoted() {
 			return this == SINGLE_QUOTE || this == DOUBLE_QUOTE || this == ANGLE_QUOTE;
 		}
-
-		public boolean isIndent() {
-			return this == BEGIN;
-		}
 	}
 
 	public final int lineNo;
 	public final int indent;
+	public final String text;
 	public final String[] tokens;
 	
 	public TokenizedLine(int lineNo, String str) {
+		this(lineNo, str, true);
+	}
+
+	public TokenizedLine(int lineNo, String str, boolean tokenize) {
 		this.lineNo = lineNo;
-		Mode mode = Mode.BEGIN;
+		int ind = 0;
+		while (ind< str.length() && Character.isWhitespace(str.charAt(ind))) {
+			if (str.charAt(ind) == '\t')
+				throw new UtilException("Tabs are not permitted in the indent");
+			ind++;
+		}
+		this.indent = ind;
+		text = str.substring(ind);
+		if (tokenize)
+			this.tokens = tokenizeLine();
+		else
+			this.tokens = null;
+	}
+
+	private String[] tokenizeLine() {
+		Mode mode = Mode.SPACE;
 		int tokStart = -1;
 		boolean pendingQuote = false;
 		List<String> toks = new ArrayList<String>();
-		int ind = 0;
-		StringBuilder s = new StringBuilder(str);
+		StringBuilder s = new StringBuilder(text);
 		for (int pos = 0; pos < s.length(); pos++)
 		{
 			char c = s.charAt(pos);
-			if (mode.isIndent())
-				ind = pos;
 			if (Character.isWhitespace(c))
 			{
-				if (mode.isIndent() && c == '\t')
-					throw new UtilException("Tabs are not permitted in the indent");
 				if (mode.isSpace())
 					continue;
 				else if (pendingQuote)
@@ -99,8 +110,7 @@ public class TokenizedLine {
 			throw new UtilException("Cannot end line in the middle of a string");
 		else if (mode.isText())
 			toks.add(s.substring(tokStart));
-		indent = ind;
-		tokens = toks.toArray(new String[toks.size()]);
+		return toks.toArray(new String[toks.size()]);
 	}
 
 	public int length() {
@@ -108,13 +118,16 @@ public class TokenizedLine {
 	}
 
 	public boolean blank() {
-		return tokens.length == 0;
+		return text.length() == 0;
 	}
 
 	public String cmd() {
 		if (blank())
 			throw new UtilException("You cannot ask for the command from a blank string");
-		return tokens[0];
+		if (tokens != null)
+			return tokens[0];
+		else
+			return null;
 	}
 
 	public <T> void process(T into, ArgumentDefinition... defns) {
