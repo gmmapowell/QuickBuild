@@ -31,6 +31,7 @@ public class JSBuilder {
 	}
 	
 	public void ocb() {
+		if (isPretty) append(" ");
 		append("{");
 		if (isPretty)
 			pp.indentMore();
@@ -59,6 +60,11 @@ public class JSBuilder {
 		if (isPretty)
 			pp.requireNewline();
 	}
+
+	public void assign() {
+		if (isPretty) append(" = ");
+		else append("=");
+	}
 	
 	public void ident(String s) {
 		if (!pp.hasWhitespace() && Character.isJavaIdentifierPart(pp.lastChar()))
@@ -70,8 +76,9 @@ public class JSBuilder {
 		if (field == null)
 			throw new UtilException("field name cannot be null");
 		else
-			writeJSON(field.toString());
+			append(field.toString());
 		append(":");
+		if (isPretty) append(" ");
 	}
 	
 	public void writeJSON(Object value) {

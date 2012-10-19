@@ -29,7 +29,7 @@ public class Assign extends Stmt {
 		if (declare)
 			sb.append("var ");
 		to.toScript(sb);
-		sb.append("=");
+		sb.assign();
 		expr.toScript(sb);
 		sb.semi();
 	}

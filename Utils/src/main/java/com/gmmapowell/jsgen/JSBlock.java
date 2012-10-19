@@ -38,7 +38,7 @@ public class JSBlock {
 		JSExpr value;
 		if (expr instanceof JSExpr)
 			value = (JSExpr)expr;
-		if (expr instanceof String || expr instanceof Integer)
+		else if (expr instanceof String || expr instanceof Integer)
 			value = new JSValue(expr);
 		else
 			throw new UtilException("Cannot handle value of type " + expr.getClass());
@@ -48,7 +48,7 @@ public class JSBlock {
 
 	public VarDecl declareVarLike(String var) {
 		JSVar jsvar = scope.getVarLike(var);
-		VarDecl ret = new VarDecl();
+		VarDecl ret = new VarDecl(scope, jsvar);
 		add(new Assign(jsvar, ret, true));
 		return ret;
 	}
@@ -77,11 +77,20 @@ public class JSBlock {
 		return ret;
 	}
 
-	public void voidCall(String name, JSExpr... args) {
-		FunctionCall toAdd = new FunctionCall(name);
+	public FunctionCall voidCall(String name, JSExpr... args) {
+		FunctionCall toAdd = new FunctionCall(scope, name);
 		for (JSExpr e : args)
 			toAdd.arg(e);
 		add(toAdd);
+		return toAdd;
+	}
+
+	public MethodCall voidMethod(JSExpr target, String name, JSExpr... args) {
+		MethodCall toAdd = new MethodCall(scope, target, name);
+		for (JSExpr e : args)
+			toAdd.arg(e);
+		add(toAdd);
+		return toAdd;
 	}
 
 	public void voidStmt(JSExpr expr) {
@@ -91,13 +100,6 @@ public class JSBlock {
 	public ForEachStmt forEach(String var, JSExpr over) {
 		ForEachStmt ret = new ForEachStmt(scope, var, over);
 		add(ret);
-		return ret;
-	}
-
-	public FunctionCall call(String name, JSExpr... args) {
-		FunctionCall ret = new FunctionCall(name);
-		for (JSExpr a : args)
-			ret.arg(a);
 		return ret;
 	}
 }

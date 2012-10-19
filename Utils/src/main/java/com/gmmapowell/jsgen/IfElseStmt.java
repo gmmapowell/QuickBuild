@@ -12,22 +12,25 @@ public class IfElseStmt extends Stmt {
 		no = new JSBlock(scope);
 	}
 
-	public void and(JSExpr left, JSExpr right) {
+	public IfElseStmt and(JSExpr left, JSExpr right) {
 		if (test != null)
 			throw new UtilException("Cannot specify more than one test for an if block");
 		test = new BinaryOp("&&", left, right);
+		return this;
 	}
 
-	public void equality(JSExpr left, JSExpr right) {
+	public IfElseStmt equality(JSExpr left, JSExpr right) {
 		if (test != null)
 			throw new UtilException("Cannot specify more than one test for an if block");
 		test = new BinaryOp("==", left, right);
+		return this;
 	}
 
-	public void isTruthy(JSExpr nkey) {
+	public IfElseStmt isTruthy(JSExpr nkey) {
 		if (test != null)
 			throw new UtilException("Cannot specify more than one test for an if block");
 		test = nkey;
+		return this;
 	}
 
 	@Override
