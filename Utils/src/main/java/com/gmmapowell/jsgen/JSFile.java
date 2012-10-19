@@ -5,12 +5,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.gmmapowell.collections.CollectionUtils;
+
 public class JSFile {
 	private final List<JSEntry> entries = new ArrayList<JSEntry>();
 	private final JSScope scope = new JSScope(null);
 	private final Map<String, JSNamespace> namespaces = new HashMap<String, JSNamespace>();
 	
 	public JSFunction newFunction(String... args) {
+		return newFunction(CollectionUtils.listOf(args));
+	}
+
+	private JSFunction newFunction(List<String> args) {
 		JSFunction ret = new JSFunction(scope, args);
 		entries.add(ret);
 		return ret;

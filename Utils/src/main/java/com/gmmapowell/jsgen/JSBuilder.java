@@ -12,6 +12,8 @@ public class JSBuilder {
 	private final PrettyPrinter pp = new PrettyPrinter();
 	private final JsonFactory jf = new JsonFactory();
 	private boolean isPretty;
+	private boolean objectComma;
+	private boolean openedCurly;
 	
 	JSBuilder() {
 		pp.indentWidth(2);
@@ -31,15 +33,16 @@ public class JSBuilder {
 	}
 	
 	public void ocb() {
-		if (isPretty) append(" ");
+		if (isPretty && !pp.hasWhitespace() && pp.lastChar() != '(') append(" ");
 		append("{");
-		if (isPretty)
-			pp.indentMore();
+		this.openedCurly = true;
 	}
 	
 	public void ccb() {
-		if (isPretty)
+		if (!openedCurly && isPretty)
 			pp.indentLess();
+		this.objectComma = false;
+		this.openedCurly = false;
 		append("}");
 	}
 
@@ -59,6 +62,10 @@ public class JSBuilder {
 		append(";");
 		if (isPretty)
 			pp.requireNewline();
+	}
+
+	public void objectComma() {
+		this.objectComma = true;
 	}
 
 	public void assign() {
@@ -107,6 +114,17 @@ public class JSBuilder {
 	}
 	
 	public void append(String s) {
+		if (openedCurly) {
+			if (isPretty)
+				pp.indentMore();
+			openedCurly = false;
+		}
+		if (objectComma) {
+			pp.append(",");
+			objectComma = false;
+			if (isPretty)
+				pp.requireNewline();
+		}
 		pp.append(s);
 	}
 	

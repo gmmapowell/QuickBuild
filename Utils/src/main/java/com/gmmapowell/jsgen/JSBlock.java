@@ -14,6 +14,10 @@ public class JSBlock {
 		this.scope = scope;
 	}
 
+	public LValue resolveClass(String name) {
+		return scope.resolveClass(name);
+	}
+
 	public void add(Stmt stmt) {
 		stmts.add(stmt);
 	}
@@ -101,5 +105,9 @@ public class JSBlock {
 		ForEachStmt ret = new ForEachStmt(scope, var, over);
 		add(ret);
 		return ret;
+	}
+
+	public JSExpr value(String cvar) {
+		return new JSValue(cvar);
 	}
 }

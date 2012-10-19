@@ -17,10 +17,6 @@ public class JSMember extends LValue {
 		return member;
 	}
 
-	public JSMethodInvoker method(String method) {
-		return new JSMethodInvoker(new JSMember(this, method));
-	}
-
 	@Override
 	public void toScript(JSBuilder sb) {
 		inside.toScript(sb);

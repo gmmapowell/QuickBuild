@@ -1,20 +1,22 @@
 package com.gmmapowell.jsgen;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.gmmapowell.exceptions.UtilException;
 
 public class JSFunction implements JSEntry {
 	private String name;
-	private final JSVar[] args;
+	private final List<JSVar> args = new ArrayList<JSVar>();
 	private final JSBlock block;
 	private final JSScope scope;
 
-	JSFunction(JSScope parent, String... args)
+	JSFunction(JSScope parent, List<String> args)
 	{
 		scope = new JSScope(parent);
 		block = new JSBlock(scope);
-		this.args = new JSVar[args.length];
-		for (int i=0;i<args.length;i++)
-			this.args[i] = scope.getExactVar(args[i]);
+		for (String a : args)
+			this.args.add(scope.getExactVar(a));
 	}
 
 	public void giveName(String name) {
