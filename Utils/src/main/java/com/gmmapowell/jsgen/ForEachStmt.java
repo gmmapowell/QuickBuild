@@ -4,11 +4,11 @@ package com.gmmapowell.jsgen;
 public class ForEachStmt extends AbstractForStmt {
 	private final JSExpr over;
 
-	public ForEachStmt(JSVar takes, JSExpr over) {
-		super(takes);
+	public ForEachStmt(JSScope scope, String var, JSExpr over) {
+		super(scope, var);
 		this.over = over;
 		// TODO: "idx" should be randomly/uniquely generated
-		nestedBlock().add(new Assign(takes, new ArrayIndex(over, new JSVar("idx")), true));
+		nestedBlock().add(new Assign(getLoopVar(), new ArrayIndex(over, scope.getVarLike("idx")), true));
 	}
 
 	@Override

@@ -4,23 +4,32 @@ import com.gmmapowell.exceptions.UtilException;
 
 public class JSFunction implements JSEntry {
 	private String name;
-	private final String[] args;
-	private final JSBlock block = new JSBlock();
+	private final JSVar[] args;
+	private final JSBlock block;
+	private final JSScope scope;
 
-	public JSFunction(String... args)
+	JSFunction(JSScope parent, String... args)
 	{
-		this.args = args;
+		scope = new JSScope(parent);
+		block = new JSBlock(scope);
+		this.args = new JSVar[args.length];
+		for (int i=0;i<args.length;i++)
+			this.args[i] = scope.getExactVar(args[i]);
 	}
 
 	public void giveName(String name) {
 		this.name = name;
 	}
-	
-	public JSVar arg(String a) {
-		for (String ai : args)
-			if (ai.equals(a))
-				return new JSVar(a);
+
+	public JSVar getArg(String a) {
+		for (JSVar ai : args)
+			if (ai.getName().equals(a))
+				return ai;
 		throw new UtilException("There is no argument " + a);
+	}
+
+	public JSBlock getBlock() {
+		return block;
 	}
 
 	@Override
@@ -36,17 +45,13 @@ public class JSFunction implements JSEntry {
 
 	private void appendArgs(JSBuilder sb) {
 		String sep = "";
-		for (String a : args) {
+		for (JSVar a : args) {
 			sb.append(sep);
-			sb.append(a);
+			sb.append(a.getName());
 			sep = ", ";
 		}
 	}
 	
-	public JSBlock getBlock() {
-		return block;
-	}
-
 	@Override
 	public String toString() {
 		JSBuilder sb = new JSBuilder();

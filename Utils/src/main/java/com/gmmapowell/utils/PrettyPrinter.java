@@ -5,6 +5,7 @@ public class PrettyPrinter {
 	private int indWidth = 4;
 	private int levels = 0;
 	private Hollerith hollerith;
+	private boolean nlAtEnd = true;
 	
 	/** Number of spaces to indent each level.  The default is 4.
 	 * 
@@ -15,6 +16,10 @@ public class PrettyPrinter {
 		indWidth = ind;
 	}
 	
+	public void setNlAtEnd(boolean nl) {
+		nlAtEnd = nl;
+	}
+
 	/** Indent one level more */
 	public void indentMore()
 	{
@@ -83,7 +88,8 @@ public class PrettyPrinter {
 	
 	@Override
 	public String toString() {
-		requireNewline();
+		if (nlAtEnd)
+			requireNewline();
 		return sb.toString();
 	}
 
@@ -100,5 +106,17 @@ public class PrettyPrinter {
 		indentMore();
 		obj.prettyPrint(this);
 		indentLess();
+	}
+
+	public int length() {
+		return sb.length();
+	}
+
+	public boolean hasWhitespace() {
+		return atLineStart() || Character.isWhitespace(sb.charAt(sb.length()-1));
+	}
+
+	public char lastChar() {
+		return sb.charAt(sb.length()-1);
 	}
 }

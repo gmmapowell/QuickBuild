@@ -4,9 +4,14 @@ import com.gmmapowell.exceptions.UtilException;
 
 public class IfElseStmt extends Stmt {
 	public JSExpr test;
-	public JSBlock yes = new JSBlock();
-	public JSBlock no = new JSBlock();
+	public final JSBlock yes;
+	public final JSBlock no;
 	
+	IfElseStmt(JSScope scope) {
+		yes = new JSBlock(scope);
+		no = new JSBlock(scope);
+	}
+
 	public void and(JSExpr left, JSExpr right) {
 		if (test != null)
 			throw new UtilException("Cannot specify more than one test for an if block");

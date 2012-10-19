@@ -4,14 +4,14 @@ public class JSMethod implements JSEntry {
 	private final String field;
 	private final JSFunction fn;
 
-	public JSMethod(String field, String... args)
+	JSMethod(JSScope scope, String field, String... args)
 	{
 		this.field = field;
-		this.fn = new JSFunction(args);
+		this.fn = new JSFunction(scope, args);
 	}
 
 	public JSVar arg(String a) {
-		return fn.arg(a);
+		return fn.getArg(a);
 	}
 
 	public JSBlock getBlock() {

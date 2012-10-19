@@ -2,7 +2,6 @@ package com.gmmapowell.jsgen;
 
 
 public class Assign extends Stmt {
-
 	private final JSExpr to;
 	private final JSExpr expr;
 	private final boolean declare;
@@ -19,7 +18,7 @@ public class Assign extends Stmt {
 		this.declare = false;
 	}
 
-	public Assign(Member member, JSExpr expr) {
+	public Assign(JSMember member, JSExpr expr) {
 		to = member;
 		this.expr = expr;
 		this.declare = false;
@@ -32,7 +31,7 @@ public class Assign extends Stmt {
 		to.toScript(sb);
 		sb.append("=");
 		expr.toScript(sb);
-		sb.append(";");
+		sb.semi();
 	}
 
 }

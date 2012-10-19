@@ -10,6 +10,6 @@ public class VoidExprStmt extends Stmt {
 	@Override
 	public void toScript(JSBuilder sb) {
 		voidExpr.toScript(sb);
-		sb.append(";");
+		sb.semi();
 	}
 }

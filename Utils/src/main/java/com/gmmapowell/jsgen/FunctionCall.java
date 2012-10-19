@@ -1,12 +1,18 @@
 package com.gmmapowell.jsgen;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class FunctionCall extends JSExpr {
 	private final String fn;
-	private final JSExpr[] args;
+	private final List<JSExpr> args = new ArrayList<JSExpr>();
 
-	public FunctionCall(String fn, JSExpr... args) {
+	FunctionCall(String fn) {
 		this.fn = fn;
-		this.args = args;
+	}
+
+	public void arg(JSExpr a) {
+		args.add(a);
 	}
 
 	@Override

@@ -6,11 +6,22 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 
 import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.utils.PrettyPrinter;
 
 public class JSBuilder {
-	private final StringBuilder sb = new StringBuilder();
+	private final PrettyPrinter pp = new PrettyPrinter();
 	private final JsonFactory jf = new JsonFactory();
+	private boolean isPretty;
 	
+	JSBuilder() {
+		pp.indentWidth(2);
+		pp.setNlAtEnd(false);
+	}
+	
+	public void setPretty(boolean b) {
+		isPretty = b;
+	}
+
 	public void orb() {
 		append("(");
 	}
@@ -21,23 +32,37 @@ public class JSBuilder {
 	
 	public void ocb() {
 		append("{");
+		if (isPretty)
+			pp.indentMore();
 	}
 	
 	public void ccb() {
+		if (isPretty)
+			pp.indentLess();
 		append("}");
 	}
 
 	public void osb() {
 		append("[");
+		if (isPretty)
+			pp.indentMore();
 	}
 	
 	public void csb() {
+		if (isPretty)
+			pp.indentLess();
 		append("]");
 	}
 
+	public void semi() {
+		append(";");
+		if (isPretty)
+			pp.requireNewline();
+	}
+	
 	public void ident(String s) {
-		if (sb.length() > 0 && !Character.isWhitespace(sb.charAt(sb.length()-1)))
-			sb.append(' ');
+		if (!pp.hasWhitespace() && Character.isJavaIdentifierPart(pp.lastChar()))
+			pp.append(' ');
 		append(s);
 	}
 
@@ -75,11 +100,11 @@ public class JSBuilder {
 	}
 	
 	public void append(String s) {
-		sb.append(s);
+		pp.append(s);
 	}
 	
 	@Override
 	public String toString() {
-		return sb.toString();
+		return pp.toString();
 	}
 }

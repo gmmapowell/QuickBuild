@@ -5,9 +5,13 @@ public abstract class AbstractForStmt extends Stmt {
 	protected final JSVar takes;
 	private final JSBlock block;
 
-	public AbstractForStmt(JSVar takes) {
-		this.takes = takes;
-		this.block = new JSBlock();
+	AbstractForStmt(JSScope scope, String var) {
+		this.takes = scope.getVarLike(var);
+		this.block = new JSBlock(scope);
+	}
+
+	public JSVar getLoopVar() {
+		return takes;
 	}
 
 	public JSBlock nestedBlock() {

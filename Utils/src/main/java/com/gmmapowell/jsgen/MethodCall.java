@@ -3,9 +3,14 @@ package com.gmmapowell.jsgen;
 public class MethodCall extends FunctionCall {
 	private final JSExpr expr;
 
-	public MethodCall(JSExpr expr, String fn, JSExpr... args) {
-		super(fn, args);
+	MethodCall(JSExpr expr, String fn) {
+		super(fn);
 		this.expr = expr;
+	}
+
+	MethodCall(JSMethodInvoker method) {
+		super(method.getName());
+		this.expr = method.getTarget();
 	}
 
 	@Override

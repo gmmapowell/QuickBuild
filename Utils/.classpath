@@ -9,7 +9,6 @@
 	<classpathentry kind="lib" path="/qb/libs/jasypt-1.8.jar"/>
 	<classpathentry kind="lib" path="/qb/libs/servlet-api.jar"/>
 	<classpathentry kind="lib" path="/Users/gareth/user/Personal/Tools/qb/mvncache/com/rabbitmq/amqp-client/2.8.1/amqp-client-2.8.1.jar"/>
-	<classpathentry kind="lib" path="/qb/mvncache/org/codehaus/woodstox/stax2-api/3.0.1/stax2-api-3.0.1.jar"/>
 	<classpathentry kind="lib" path="/qb/libs/woodstox-android.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
