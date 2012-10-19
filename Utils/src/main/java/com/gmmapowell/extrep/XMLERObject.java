@@ -1,6 +1,7 @@
 package com.gmmapowell.extrep;
 
 import java.io.OutputStream;
+import java.io.Writer;
 import java.util.Map;
 
 import com.ctc.wstx.stax.WstxOutputFactory;
@@ -11,6 +12,17 @@ public class XMLERObject extends ERObject {
 	private XMLStreamWriter gen;
 
 	public XMLERObject(OutputStream out, String tag) {
+		super(tag);
+		try {
+			WstxOutputFactory xf = new WstxOutputFactory();
+//			gen = new IndentingXMLStreamWriter(xf.createXMLStreamWriter(out));
+			gen = xf.createXMLStreamWriter(out);
+		} catch (Exception ex) {
+			throw UtilException.wrap(ex);
+		}
+	}
+
+	public XMLERObject(Writer out, String tag) {
 		super(tag);
 		try {
 			WstxOutputFactory xf = new WstxOutputFactory();
