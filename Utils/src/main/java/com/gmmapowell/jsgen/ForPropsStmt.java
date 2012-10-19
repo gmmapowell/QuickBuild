@@ -2,9 +2,9 @@ package com.gmmapowell.jsgen;
 
 
 public class ForPropsStmt extends AbstractForStmt {
-	private final Var over;
+	private final JSVar over;
 
-	public ForPropsStmt(Var takes, Var over) {
+	public ForPropsStmt(JSVar takes, JSVar over) {
 		super(takes);
 		this.over = over;
 	}

@@ -32,10 +32,10 @@ public class IfElseStmt extends Stmt {
 			throw new UtilException("test cannot be null in an if statement");
 		test.toScript(sb);
 		sb.append(")");
-		yes.asJson(sb);
+		yes.toScript(sb);
 		if (!no.isEmpty()) {
 			sb.append(" else ");
-			no.asJson(sb);
+			no.toScript(sb);
 		}
 	}
 }

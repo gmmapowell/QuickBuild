@@ -20,7 +20,7 @@ public class JSListExpr extends JSExpr {
 
 	@Override
 	public void toScript(JSBuilder sb) {
-		sb.startList();
+		sb.osb();
 		String sep = "";
 		for (JSExpr e : members)
 		{
@@ -28,6 +28,6 @@ public class JSListExpr extends JSExpr {
 			e.toScript(sb);
 			sep = ",";
 		}
-		sb.endList();
+		sb.csb();
 	}
 }

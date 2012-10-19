@@ -12,9 +12,9 @@ public class ArrayIndex extends JSExpr {
 	@Override
 	public void toScript(JSBuilder sb) {
 		array.toScript(sb);
-		sb.startList();
+		sb.osb();
 		idx.toScript(sb);
-		sb.endList();
+		sb.csb();
 	}
 
 }

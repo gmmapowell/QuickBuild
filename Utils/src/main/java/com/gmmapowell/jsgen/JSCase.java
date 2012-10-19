@@ -3,7 +3,7 @@ package com.gmmapowell.jsgen;
 
 public class JSCase {
 
-	public void equality(Var var, StringLiteral stringLiteral) {
+	public void equality(JSVar var, JSValue stringLiteral) {
 		// TODO Auto-generated method stub
 		
 	}

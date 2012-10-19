@@ -4,9 +4,9 @@ public class JSObjectExpr extends JSExpr {
 
 	@Override
 	public void toScript(JSBuilder sb) {
-		sb.open();
+		sb.ocb();
 		// TODO: members
-		sb.close();
+		sb.ccb();
 	}
 
 }

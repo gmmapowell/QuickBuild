@@ -7,7 +7,7 @@ public class Assign extends Stmt {
 	private final JSExpr expr;
 	private final boolean declare;
 
-	public Assign(Var to, JSExpr expr, boolean declare) {
+	public Assign(JSVar to, JSExpr expr, boolean declare) {
 		this.to = to;
 		this.expr = expr;
 		this.declare = declare;

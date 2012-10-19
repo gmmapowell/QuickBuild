@@ -3,30 +3,35 @@ package com.gmmapowell.jsgen;
 import com.gmmapowell.exceptions.UtilException;
 
 public class JSFunction implements JSEntry {
-	private final String field;
+	private String name;
 	private final String[] args;
 	private final JSBlock block = new JSBlock();
 
-	public JSFunction(String field, String... args)
+	public JSFunction(String... args)
 	{
-		this.field = field;
 		this.args = args;
 	}
 
-	public Var arg(String a) {
+	public void giveName(String name) {
+		this.name = name;
+	}
+	
+	public JSVar arg(String a) {
 		for (String ai : args)
 			if (ai.equals(a))
-				return new Var(a);
+				return new JSVar(a);
 		throw new UtilException("There is no argument " + a);
 	}
 
 	@Override
 	public void toScript(JSBuilder sb) {
-		sb.append("\"" + field +"\":\"function(");
+		sb.ident("function");
+		if (name != null)
+			sb.ident(name);
+		sb.orb();
 		appendArgs(sb);
-		sb.append(")");
-		getBlock().asJson(sb);
-		sb.append("\"");
+		sb.crb();
+		block.toScript(sb);
 	}
 
 	private void appendArgs(JSBuilder sb) {
@@ -42,8 +47,15 @@ public class JSFunction implements JSEntry {
 		return block;
 	}
 
+	@Override
+	public String toString() {
+		JSBuilder sb = new JSBuilder();
+        toScript(sb);
+		return sb.toString();
+	}
+	
+	@Deprecated
 	public void textCode(String code) {
 		getBlock().add(new TextCode(code));
 	}
-
 }

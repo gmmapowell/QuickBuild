@@ -15,19 +15,19 @@ public class JSBlock {
 		stmts.add(new VoidExprStmt(voidExpr));
 	}
 
-	public void asJson(JSBuilder sb) {
-		sb.open();
+	public void toScript(JSBuilder sb) {
+		sb.ocb();
 		for (Stmt s : stmts)
 			s.toScript(sb);
-		sb.close();
+		sb.ccb();
 	}
 
 	public boolean isEmpty() {
 		return stmts.isEmpty();
 	}
 
-	public Var declare(String name, JSExpr expr) {
-		Var var = new Var(name);
+	public JSVar declare(String name, JSExpr expr) {
+		JSVar var = new JSVar(name);
 		add(new Assign(var, expr, true));
 		return var;
 	}
@@ -40,7 +40,7 @@ public class JSBlock {
 		add(new Assign(m, expr));
 	}
 
-	public void assign(Var v, ArrayIndex expr) {
+	public void assign(JSVar v, ArrayIndex expr) {
 		add(new Assign(v, expr, false));
 	}
 
@@ -50,7 +50,7 @@ public class JSBlock {
 		return stmt;
 	}
 
-	public ForPropsStmt forProps(Var takes, Var over) {
+	public ForPropsStmt forProps(JSVar takes, JSVar over) {
 		ForPropsStmt ret = new ForPropsStmt(takes, over);
 		add(ret);
 		return ret;
@@ -64,7 +64,7 @@ public class JSBlock {
 		add(new VoidExprStmt(expr));
 	}
 
-	public ForEachStmt forEach(Var takes, JSExpr over) {
+	public ForEachStmt forEach(JSVar takes, JSExpr over) {
 		ForEachStmt ret = new ForEachStmt(takes, over);
 		add(ret);
 		return ret;

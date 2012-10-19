@@ -2,10 +2,10 @@ package com.gmmapowell.jsgen;
 
 
 public abstract class AbstractForStmt extends Stmt {
-	protected final Var takes;
+	protected final JSVar takes;
 	private final JSBlock block;
 
-	public AbstractForStmt(Var takes) {
+	public AbstractForStmt(JSVar takes) {
 		this.takes = takes;
 		this.block = new JSBlock();
 	}
@@ -17,7 +17,7 @@ public abstract class AbstractForStmt extends Stmt {
 	@Override
 	public final void toScript(JSBuilder sb) {
 		constructFor(sb);
-		block.asJson(sb);
+		block.toScript(sb);
 	}
 
 	protected abstract void constructFor(JSBuilder sb);
