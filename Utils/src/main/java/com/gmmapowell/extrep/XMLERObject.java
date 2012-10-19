@@ -3,11 +3,9 @@ package com.gmmapowell.extrep;
 import java.io.OutputStream;
 import java.util.Map;
 
-import javax.xml.stream.XMLStreamWriter;
-
 import com.ctc.wstx.stax.WstxOutputFactory;
 import com.gmmapowell.exceptions.UtilException;
-import com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter;
+import com.gmmapowell.java.xml.stream.XMLStreamWriter;
 
 public class XMLERObject extends ERObject {
 	private XMLStreamWriter gen;
@@ -16,7 +14,8 @@ public class XMLERObject extends ERObject {
 		super(tag);
 		try {
 			WstxOutputFactory xf = new WstxOutputFactory();
-			gen = new IndentingXMLStreamWriter(xf.createXMLStreamWriter(out));
+//			gen = new IndentingXMLStreamWriter(xf.createXMLStreamWriter(out));
+			gen = xf.createXMLStreamWriter(out);
 		} catch (Exception ex) {
 			throw UtilException.wrap(ex);
 		}

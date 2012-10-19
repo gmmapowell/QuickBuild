@@ -1,8 +1,7 @@
 package com.gmmapowell.extrep;
 
-import javax.xml.stream.XMLStreamWriter;
-
 import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.java.xml.stream.XMLStreamWriter;
 
 class XMLERSoup extends ERSoup {
 	private final XMLStreamWriter gen;

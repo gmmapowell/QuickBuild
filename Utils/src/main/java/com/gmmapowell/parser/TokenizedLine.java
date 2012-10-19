@@ -118,13 +118,13 @@ public class TokenizedLine {
 	}
 
 	public boolean blank() {
-		return text.length() == 0;
+		return text.length() == 0 || (tokens != null && tokens.length == 0);
 	}
 
 	public String cmd() {
 		if (blank())
 			throw new UtilException("You cannot ask for the command from a blank string");
-		if (tokens != null)
+		if (tokens != null && tokens.length > 0)
 			return tokens[0];
 		else
 			return null;
