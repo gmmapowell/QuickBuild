@@ -18,7 +18,7 @@ public class Assign extends Stmt {
 		this.declare = false;
 	}
 
-	public Assign(JSMember member, JSExpr expr) {
+	public Assign(LValue member, JSExpr expr) {
 		to = member;
 		this.expr = expr;
 		this.declare = false;

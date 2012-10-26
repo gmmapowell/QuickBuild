@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.gmmapowell.exceptions.UtilException;
 
-public class JSFunction implements JSEntry {
+public class JSFunction extends JSExpr {
 	private String name;
 	private final List<JSVar> args = new ArrayList<JSVar>();
 	private final JSBlock block;
@@ -59,10 +59,5 @@ public class JSFunction implements JSEntry {
 		JSBuilder sb = new JSBuilder();
         toScript(sb);
 		return sb.toString();
-	}
-	
-	@Deprecated
-	public void textCode(String code) {
-		getBlock().add(new TextCode(code));
 	}
 }

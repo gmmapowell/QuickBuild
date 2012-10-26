@@ -128,9 +128,6 @@ public class InlineServer {
 			}
 			logger.info("Closing remote " + remote);
 			remote.close();
-			for (GPServletDefn servlet : servlets)
-				servlet.destroy();
-			logger.info("Server exiting");
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			failure = ex;
@@ -142,6 +139,10 @@ public class InlineServer {
 					e2.printStackTrace();
 				}
 			}
+		} finally {
+			for (GPServletDefn servlet : servlets)
+				servlet.destroy();
+			logger.info("Server exiting");
 		}
 	}
 

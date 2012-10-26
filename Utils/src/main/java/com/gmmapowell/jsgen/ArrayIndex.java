@@ -1,10 +1,10 @@
 package com.gmmapowell.jsgen;
 
-public class ArrayIndex extends JSExpr {
+public class ArrayIndex extends LValue {
 	private final JSExpr array;
 	private final JSExpr idx;
 
-	public ArrayIndex(JSExpr array, JSExpr idx) {
+	ArrayIndex(JSExpr array, JSExpr idx) {
 		this.array = array;
 		this.idx = idx;
 	}

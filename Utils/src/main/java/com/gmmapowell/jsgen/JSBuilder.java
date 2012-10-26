@@ -44,6 +44,8 @@ public class JSBuilder {
 		this.objectComma = false;
 		this.openedCurly = false;
 		append("}");
+		if (isPretty)
+			pp.requireNewline();
 	}
 
 	public void osb() {
@@ -106,6 +108,8 @@ public class JSBuilder {
 				jg.writeNull();
 			else if (value instanceof String)
 				jg.writeString((String) value);
+			else if (value instanceof Integer)
+				jg.writeNumber((Integer)value);
 			else
 				throw new UtilException("JSBuilder cannot write a value of type " + value.getClass());
 		} catch (Exception ex) {

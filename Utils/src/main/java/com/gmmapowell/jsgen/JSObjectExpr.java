@@ -33,6 +33,12 @@ public class JSObjectExpr extends JSExpr {
 		members.put(name, expr);
 	}
 
+	public JSExprGenerator var(String name) {
+		JSExprGenerator ret = new JSExprGenerator(scope);
+		members.put(name, ret);
+		return ret;
+	}
+
 	@Override
 	public void toScript(JSBuilder sb) {
 		sb.ocb();

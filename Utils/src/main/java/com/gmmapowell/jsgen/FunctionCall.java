@@ -24,6 +24,16 @@ public class FunctionCall extends JSExpr {
 		args.add(ret);
 		return ret;
 	}
+	
+	public FunctionCall arg(int k) {
+		arg().value(k);
+		return this;
+	}
+
+	public FunctionCall arg(String s) {
+		arg().value(s);
+		return this;
+	}
 
 	@Override
 	public void toScript(JSBuilder sb) {
@@ -33,7 +43,10 @@ public class FunctionCall extends JSExpr {
 		for (JSExpr ce : args)
 		{
 			sb.append(sep);
-			ce.toScript(sb);
+			if (ce == null)
+				sb.append("null");
+			else
+				ce.toScript(sb);
 			sep = ",";
 		}
 		sb.append(")");

@@ -16,7 +16,7 @@ public class JSVar extends LValue {
 	@Override
 	public void toScript(JSBuilder sb) {
 		if (exact) {
-			sb.append(var);
+			sb.ident(var);
 			return;
 		}
 		int idx = 0;
@@ -31,9 +31,9 @@ public class JSVar extends LValue {
 		if (count == 0)
 			throw new UtilException("Couldn't find var " + this + " in its own scope!");
 		else if (count == 1)
-			sb.append(var);
+			sb.ident(var);
 		else
-			sb.append(var+idx);
+			sb.ident(var+idx);
 	}
 
 	public String getName() {

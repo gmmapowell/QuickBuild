@@ -34,7 +34,10 @@ public class GPServletDefn {
 	}
 
 	public void destroy() {
-		servletImpl.destroy();
+		if (servletImpl != null) {
+			servletImpl.destroy();
+			servletImpl = null;
+		}
 	}
 
 	public HttpServlet getImpl() {

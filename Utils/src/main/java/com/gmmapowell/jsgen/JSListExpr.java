@@ -5,17 +5,14 @@ import java.util.List;
 
 public class JSListExpr extends JSExpr {
 	private final List<JSExpr> members = new ArrayList<JSExpr>();
+//	private final JSScope scope;
 	
-	public void add(JSExpr expr) {
-		members.add(expr);
+	public JSListExpr(JSScope scope) {
+//		this.scope = scope;
 	}
 
-	// Copy the list, but keep the items the same
-	public JSListExpr shallowClone() {
-		JSListExpr ret = new JSListExpr();
-		for (JSExpr e : members)
-			ret.add(e);
-		return ret;
+	public void add(JSExpr expr) {
+		members.add(expr);
 	}
 
 	@Override
