@@ -49,7 +49,7 @@ public class GPServletDefn {
 	}
 
 	public boolean isForMe(String rawUri) {
-		return rawUri.startsWith(contextPath+servletPath);
+		return rawUri.equals(contextPath+servletPath) || rawUri.startsWith(contextPath+servletPath+"/") || rawUri.startsWith(contextPath+servletPath+"?");
 	}
 
 	public GPServletConfig getConfig() {

@@ -237,11 +237,22 @@ public class GPResponse implements HttpServletResponse {
 			message = "Not Found";
 		else if (arg0 >= 400)
 			message = "Denied";
-		else if (arg0 >= 300)
-			message = "Moved";
-		else if (arg0 >= 200)
-			message = "OK";
-		else
+		else if (arg0 >= 300) {
+			if (arg0 == 301)
+				message = "Moved Permanently";
+			else if (arg0 == 302)
+				message = "Found";
+			else if (arg0 == 303)
+				message = "See Other";
+			else
+				message = "Moved";
+		}
+		else if (arg0 >= 200) {
+			if (arg0 == 204)
+				message = "No Content";
+			else
+				message = "OK";
+		} else
 			message = null;
 		setStatus(arg0, message);
 	}
