@@ -24,6 +24,16 @@ public class JSBlock {
 		return scope.resolveClass(name);
 	}
 
+	/** For ordering purposes, it is desirable to be able to say at time t, "I may want to put things here"
+	 * and then at time t+k to put them there.  This issues such a marker with the appearance of a block.
+	 * @return a sub-block of this block
+	 */
+	public JSBlock marker() {
+		JSInnerBlock ret = new JSInnerBlock(scope);
+		stmts.add(ret);
+		return ret.getBlock();
+	}
+
 	public void add(Stmt stmt) {
 		stmts.add(stmt);
 	}
@@ -43,6 +53,13 @@ public class JSBlock {
 
 	public boolean isEmpty() {
 		return stmts.isEmpty();
+	}
+
+	public VarDecl declareExactVar(String var) {
+		JSVar jsvar = scope.getExactVar(var);
+		VarDecl ret = new VarDecl(scope, jsvar);
+		add(new Assign(jsvar, ret, true));
+		return ret;
 	}
 
 	public JSVar declareVarLike(String var, Object expr) {
@@ -95,6 +112,12 @@ public class JSBlock {
 		return ret;
 	}
 
+	public FunctionCall voidCall(JSVar jsVar) {
+		FunctionCall toAdd = new FunctionCall(scope, jsVar);
+		add(toAdd);
+		return toAdd;
+	}
+
 	public FunctionCall voidCall(String name, JSExpr... args) {
 		FunctionCall toAdd = new FunctionCall(scope, name);
 		for (JSExpr e : args)
@@ -115,6 +138,12 @@ public class JSBlock {
 		add(new VoidExprStmt(expr));
 	}
 
+	public JSExprGenerator voidStmt() {
+		JSExprGenerator ret = new JSExprGenerator(scope);
+		add(new VoidExprStmt(ret));
+		return ret;
+	}
+
 	public ForEachStmt forEach(String var, JSExpr over) {
 		ForEachStmt ret = new ForEachStmt(scope, var, over);
 		add(ret);
@@ -127,5 +156,9 @@ public class JSBlock {
 
 	public void returnVoid() {
 		add(new JSReturn());
+	}
+
+	public JSVar mapType(String name) {
+		return scope.getExactVar(name);
 	}
 }

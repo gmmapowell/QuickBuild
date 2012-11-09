@@ -21,6 +21,17 @@ public class IfElseStmt extends Stmt {
 		return this;
 	}
 
+	public IfElseStmt or(JSExpr... exprs) {
+		JSExpr fold = null;
+		for (JSExpr e : exprs)
+			if (fold == null)
+				fold = e;
+			else
+				fold = new BinaryOp("||", fold, e);
+		test = fold;
+		return this;
+	}
+
 	public BinaryOp binop(String op) {
 		BinaryOp ret = new BinaryOp(scope, op);
 		test = ret;

@@ -7,10 +7,18 @@ public class FunctionCall extends JSExpr {
 	private final String fn;
 	private final List<JSExpr> args = new ArrayList<JSExpr>();
 	protected final JSScope scope;
+	private final JSVar var;
 
 	FunctionCall(JSScope scope, String fn) {
 		this.scope = scope;
 		this.fn = fn;
+		this.var = null;
+	}
+
+	public FunctionCall(JSScope scope, JSVar var) {
+		this.scope = scope;
+		this.fn = null;
+		this.var = var;
 	}
 
 	// If you already have the argument ...
@@ -37,7 +45,10 @@ public class FunctionCall extends JSExpr {
 
 	@Override
 	public void toScript(JSBuilder sb) {
-		sb.append(fn);
+		if (fn != null)
+			sb.append(fn);
+		else
+			var.toScript(sb);
 		sb.append("(");
 		String sep = "";
 		for (JSExpr ce : args)

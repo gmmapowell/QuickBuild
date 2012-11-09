@@ -23,6 +23,12 @@ public class JSFunction extends JSExpr {
 		this.name = name;
 	}
 
+	public JSVar addArg(String arg) {
+		JSVar ret = scope.getExactVar(arg);
+		args.add(ret);
+		return ret;
+	}
+
 	public JSVar getArg(String a) {
 		for (JSVar ai : args)
 			if (ai.getName().equals(a))

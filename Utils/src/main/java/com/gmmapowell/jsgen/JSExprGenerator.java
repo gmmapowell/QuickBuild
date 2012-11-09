@@ -26,6 +26,8 @@ public class JSExprGenerator extends JSExpr {
 	public void value(JSExpr e) {
 		if (expr != null)
 			throw new UtilException("Can only specify one value in a placeholder");
+		if (e == null)
+			e = new JSValue(null);
 		expr = e;
 	}
 	
@@ -50,10 +52,17 @@ public class JSExprGenerator extends JSExpr {
 		return (MethodCall) expr;
 	}
 
+	public JSMember member(LValue inside, String m) {
+		if (expr != null)
+			throw new UtilException("Can only specify one value in a placeholder");
+		expr = new JSMember(inside, m);
+		return (JSMember) expr;
+	}
+
 	public JSObjectExpr literalObject() {
 		if (expr != null)
 			throw new UtilException("Can only specify one value in a placeholder");
-		JSObjectExpr ret = new JSObjectExpr(scope);
+		JSObjectExpr ret = new JSObjectExpr(scope, true);
 		expr = ret;
 		return ret;
 	}

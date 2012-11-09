@@ -10,9 +10,17 @@ import com.gmmapowell.exceptions.UtilException;
 public class JSObjectExpr extends JSExpr {
 	private Map<String, JSEntry> members = new LinkedHashMap<String, JSEntry>();
 	private final JSScope scope;
+	private final boolean createNested;
 	
-	JSObjectExpr(JSScope scope) {
+	JSObjectExpr(JSScope scope, boolean createNested) {
 		this.scope = scope;
+		this.createNested = createNested;
+	}
+
+	public JSObjectExpr marker() {
+		JSObjectExpr jsObjectExpr = new JSObjectExpr(scope, false);
+		members.put("_"+members.size(), jsObjectExpr);
+		return jsObjectExpr;
 	}
 
 	public JSFunction method(String name, String... args) {
@@ -41,12 +49,18 @@ public class JSObjectExpr extends JSExpr {
 
 	@Override
 	public void toScript(JSBuilder sb) {
-		sb.ocb();
+		if (createNested)
+			sb.ocb();
 		for (Map.Entry<String, JSEntry> kv : members.entrySet()) {
+			if (kv.getValue() instanceof JSObjectExpr && !((JSObjectExpr)kv.getValue()).createNested) {
+				kv.getValue().toScript(sb);
+				continue;
+			}
 			sb.fieldName(kv.getKey());
 			kv.getValue().toScript(sb);
 			sb.objectComma();
 		}
-		sb.ccb();
+		if (createNested)
+			sb.ccb();
 	}
 }

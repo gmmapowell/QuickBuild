@@ -11,5 +11,4 @@ public class VarDecl extends JSExprGenerator {
 	public JSVar getVar() {
 		return jsvar;
 	}
-
 }

@@ -15,6 +15,13 @@ public class JSFile {
 		return block;
 	}
 
+	public JSFunction createFunction(String name, String... args) {
+		JSFunction ret = newFunction(args);
+		ret.giveName(name);
+		block.add(ret);
+		return ret;
+	}
+
 	public JSFunction newFunction(String... args) {
 		return newFunction(CollectionUtils.listOf(args));
 	}

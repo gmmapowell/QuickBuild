@@ -15,7 +15,7 @@ public class JSBuilder {
 	private boolean objectComma;
 	private boolean openedCurly;
 	
-	JSBuilder() {
+	public JSBuilder() {
 		pp.indentWidth(2);
 		pp.setNlAtEnd(false);
 	}
