@@ -14,10 +14,14 @@ public abstract class ERObject {
 	}
 	
 	public void setAttr(String field, String text) {
+		if (field == null)
+			throw new ERException("Cannot set attribute field null");
 		if (attrs.containsKey(field))
 			throw new ERException("Cannot have duplicate attribute " + field);
 		else if (elements.containsKey(field))
 			throw new ERException("Cannot have attribute " + field + " with same name as element");
+		if (text == null)
+			throw new ERException("Cannot set attribute value to null");
 		attrs.put(field, text);
 	}
 
