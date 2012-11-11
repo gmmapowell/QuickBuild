@@ -3,7 +3,9 @@ package com.gmmapowell.quickbuild.build.java;
 import java.io.File;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.LinePatternMatch;
@@ -12,6 +14,7 @@ import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -43,6 +46,7 @@ public class JavaBuildCommand implements Tactic {
 		if (bindir.exists() && !bindir.isDirectory())
 			throw new QuickBuildException("Cannot build " + srcdir + " because the build directory is not a directory");
 		this.classpath = new BuildClassPath();
+		this.classpath.add(bindir);
 		this.bootclasspath = new BuildClassPath();
 	}
 	
@@ -73,10 +77,14 @@ public class JavaBuildCommand implements Tactic {
 		if (doClean)
 			FileUtils.cleanDirectory(bindir);
 		classpath.add(bindir);
-		for (BuildResource br : cxt.getDependencies(parent))
+		for (BuildResource br : cxt.getDependencies(this))
 		{
 			if (br instanceof JarResource)
 				classpath.add(((JarResource)br).getPath());
+			else if (br instanceof ProcessResource)
+				; // transitive node
+			else
+				System.out.println("What do I do with " + br);
 		}
 		RunProcess proc = new RunProcess("javac");
 		proc.showArgs(showArgs);
@@ -126,7 +134,7 @@ public class JavaBuildCommand implements Tactic {
 				String pkg = lpm.get("pkgname");
 				if (showDebug)
 					System.out.println("Looking for " + pkg);
-				if (nature.addDependency(parent, pkg, context, showDebug))
+				if (nature.addDependency(this, pkg, context, showDebug))
 				{
 					if (showDebug)
 						System.out.println("  ... added for package " + pkg);
@@ -140,7 +148,7 @@ public class JavaBuildCommand implements Tactic {
 		}
 		if (cnt > 0)
 		{
-			System.out.println("Corrected errors by adding " + cnt + " dependencies");
+			System.out.println("       Corrected errors by adding " + cnt + " dependencies");
 			return BuildStatus.RETRY;
 		}
 		// There is an element of desperation here, but what can you do?
@@ -149,7 +157,7 @@ public class JavaBuildCommand implements Tactic {
 		{
 			if (showDebug)
 				System.out.println("Trying to find other implementations of " + pkg);
-			if (nature.addDependency(parent, pkg, context, showDebug))
+			if (nature.addDependency(this, pkg, context, showDebug))
 			{
 				if (showDebug)
 					System.out.println("  ... added for package " + pkg);
@@ -158,10 +166,10 @@ public class JavaBuildCommand implements Tactic {
 		}
 		if (cnt > 0)
 		{
-			System.out.println("Corrected errors by adding " + cnt + " files with similar packages");
+			System.out.println("       Corrected errors by adding " + cnt + " files with similar packages");
 			return BuildStatus.RETRY;
 		}
-		System.out.println("Errors were detected in javac, but could not be corrected:");
+		System.out.println("!!! Errors were detected in javac, but could not be corrected:");
 		System.out.println(proc.getStderr());
 		return BuildStatus.BROKEN;
 	}
@@ -179,5 +187,16 @@ public class JavaBuildCommand implements Tactic {
 	@Override
 	public String identifier() {
 		return BuildOrder.tacticIdentifier(parent, label);
+	}
+
+	private Set <Tactic> procDeps = new HashSet<Tactic>();
+	
+	@Override
+	public void addProcessDependency(Tactic earlier) {
+		procDeps.add(earlier);
+	}
+	
+	public Set<Tactic> getProcessDependencies() {
+		return procDeps;
 	}
 }

@@ -36,6 +36,16 @@ public class StringUtil {
 		return sb.toString();
 	}
 
+	public static String rjdigits(int quant, int nd) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(quant);
+		if (sb.length() > nd)
+			sb.delete(0, sb.length()-nd);
+		while (sb.length() < nd)
+			sb.insert(0, " ");
+		return sb.toString();
+	}
+
 	public static String digits(int quant, int nd) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(quant);

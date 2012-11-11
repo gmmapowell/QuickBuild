@@ -11,11 +11,10 @@ import java.util.Set;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.git.GitRecord;
+import com.gmmapowell.quickbuild.build.java.JavaSourceDirResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
-import com.gmmapowell.quickbuild.core.DependencyFloat;
-import com.gmmapowell.quickbuild.core.FloatToEnd;
 import com.gmmapowell.quickbuild.core.PendingResource;
-import com.gmmapowell.quickbuild.core.ResourcePacket;
+import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
@@ -48,13 +47,10 @@ import com.gmmapowell.xml.XMLElement;
  */
 public class BuildOrder {
 	// We are going to track everything based on name, so we need to map name to strategem
-	private final Map<String, ExecuteStrategem> mapping = new HashMap<String, ExecuteStrategem>();
-	private final List<BandElement> pending = new ArrayList<BandElement>();
-	
-	// This is the basic hierarchy ... everything in the same "band" is independent, but dependent on _something_ in the previous band
-	// We can build the members of a band in any order
-	// We can build an entire band before aborting
-	private final List<ExecutionBand> bands = new ArrayList<ExecutionBand>();
+	private final Map<String, ItemToBuild> mapping = new HashMap<String, ItemToBuild>();
+	private final List<ItemToBuild> well = new ArrayList<ItemToBuild>();
+	private final List<ItemToBuild> toBuild = new ArrayList<ItemToBuild>();
+
 	private final File buildOrderFile;
 	private boolean buildAll;
 	private final boolean debug;
@@ -78,7 +74,8 @@ public class BuildOrder {
 
 	public void clear() {
 		mapping.clear();
-		bands.clear();
+		toBuild.clear();
+		well.clear();
 	}
 	
 	public void buildAll() {
@@ -86,10 +83,11 @@ public class BuildOrder {
 	}
 
 	public void knowAbout(Strategem s) {
-		mapping.put(s.identifier(), new ExecuteStrategem(s.identifier()));
-		ExecuteStrategem es = mapping.get(s.identifier());
-		es.bind(s);
-		pending.add(es);
+		for (Tactic t : s.tactics()) {
+			ItemToBuild itb = new ItemToBuild(BuildStatus.CLEAN, t, t.identifier(), t.identifier());
+			mapping.put(t.identifier(), itb);
+			well.add(itb);
+		}
 	}
 
 	void loadBuildOrderCache() {
@@ -100,48 +98,18 @@ public class BuildOrder {
 		try
 		{
 			final XML input = XML.fromFile(buildOrderFile);
-			List<DeferredTactic> deferred = new ArrayList<DeferredTactic>();
-			for (XMLElement bandElt : input.top().elementChildren())
+			for (XMLElement elt : input.top().elementChildren())
 			{
 				int drift = 0;
-				if (bandElt.hasAttribute("drift"))
-					drift  = Integer.parseInt(bandElt.get("drift"));
-				ExecutionBand band = new ExecutionBand(drift);
-				bands.add(band);
-	
-				for (XMLElement strat : bandElt.elementChildren())
-				{
-					if (strat.tag().equals("Strategem"))
-					{
-						String name = strat.get("name");
-						ExecuteStrategem es = new ExecuteStrategem(name);
-						band.add(es);
-						es.bind(band);
-						for (XMLElement defer : strat.elementChildren())
-						{
-							DeferredTactic dt = new DeferredTactic(defer.get("name"));
-							es.defer(dt);
-							deferred.add(dt);
-						}
-					}
-					else if (strat.tag().equals("Deferred"))
-					{
-						String name = strat.get("name");
-						for (DeferredTactic dt : deferred)
-							if (dt.is(name))
-							{
-								deferred.remove(dt);
-								band.add(dt);
-								dt.bind(band);
-								break;
-							}
-					}
-					else
-						throw new RuntimeException("The tag " + strat.tag() + " was not valid");
-				}
+				if (elt.hasAttribute("drift"))
+					drift  = Integer.parseInt(elt.get("drift"));
+				ItemToBuild itb = mapping.get(elt.get("name"));
+				if (itb == null)
+					continue;
+				itb.setDrift(drift);
+				toBuild.add(itb);
+				well.remove(itb);
 			}
-			if (deferred.size() > 0)
-				throw new RuntimeException("There were un-caught-up deferred tactics in the cache file");
 		} catch (Exception ex)
 		{
 			buildOrderFile.delete();
@@ -149,58 +117,14 @@ public class BuildOrder {
 		}
 	}
 
-	public void attachStrats(List<Strategem> strats) {
-		loop:
-		for (Strategem s : strats)
-		{
-			for (ExecutionBand b : bands)
-			{
-				for (BandElement be : b)
-				{
-					if (be instanceof ExecuteStrategem && be.is(s.identifier()))
-					{
-						ExecuteStrategem es = (ExecuteStrategem)be;
-						mapping.put(s.identifier(), es);
-						es.bind(b);
-						es.bind(s);
-						continue loop;
-					}
-				}
-			}
-			throw new QuickBuildCacheException("There was no mapping for " + s.identifier(), null);
-		}
-	}
-
 	public void saveBuildOrder() {
 		final XML output = XML.create("1.0", "BuildOrder");
-		for (ExecutionBand band : bands)
+		for (ItemToBuild itb : toBuild)
 		{
-			XMLElement item = output.addElement("Band");
-			if (band.drift() != 0)
-				item.setAttribute("drift", "" + band.drift());
-			for (BandElement be : band)
-			{
-				XMLElement esi;
-				if (be instanceof ExecuteStrategem)
-				{
-					ExecuteStrategem es = (ExecuteStrategem)be;
-					esi = item.addElement("Strategem");
-					esi.setAttribute("name", es.name());
-					for (DeferredTactic dt : be.deferred())
-					{
-						XMLElement def = esi.addElement("Defer");
-						def.setAttribute("name", dt.name());
-					}
-				}
-				else if (be instanceof DeferredTactic)
-				{
-					DeferredTactic dt = (DeferredTactic) be;
-					esi = item.addElement("Deferred");
-					esi.setAttribute("name", dt.name());
-				}
-				else
-					throw new RuntimeException("Cannot handle " + be);
-			}
+			XMLElement elt = output.addElement("ItemToBuild");
+			elt.setAttribute("name", itb.id);
+			if (itb.drift() != 0)
+				elt.setAttribute("drift", "" + itb.drift());
 		}
 		FileUtils.assertDirectory(buildOrderFile.getParentFile());
 		output.write(buildOrderFile);
@@ -218,13 +142,13 @@ public class BuildOrder {
 		pp.indentWidth(2);
 		pp.indentMore();
 		int i=0;
-		for (ExecutionBand b : bands)
+		for (ItemToBuild b : toBuild)
 		{
 			pp.append("Band " + i);
 			if (b.drift() > 0)
 				pp.append(" (drift " + b.drift() +")");
 			pp.indentMore();
-			b.print(pp, withTactics);
+			b.print(pp);
 			pp.indentLess();
 			i++;
 		}
@@ -234,122 +158,122 @@ public class BuildOrder {
 	public void figureDirtyness(DependencyManager manager) {
 		for (BuildResource br : manager.unBuilt())
 		{
+			// This is an out-of-band hack and should be cleaned up - GP 2012-11-10
+			if (br instanceof JavaSourceDirResource)
+				continue;
 			File f = br.getPath();
 			OrderedFileList ofl = new OrderedFileList(f);
-			GitRecord ubtx = GitHelper.checkFiles(!buildAll, ofl, cxt.getGitCacheFile("Unbuilt_"+f.getName(), ""));
+//			System.out.println("Considering file " + f + " for " + br);
+			GitRecord ubtx = GitHelper.checkFiles(!buildAll, ofl, cxt.getGitCacheFile("Unbuilt_"+FileUtils.makeRelative(f).getPath().replace("/", "_"), ""));
 			ubtxs.add(ubtx);
 			if (ubtx.isDirty())
 				dirtyUnbuilt.add(br);
 		}
-		for (ExecutionBand b : bands)
-		{
-			for (BandElement be : b)
-			{
-				if (be instanceof ExecuteStrategem)
-				{
-					ExecuteStrategem es = (ExecuteStrategem)be;
-					figureDirtyness(manager, es);
-				}
-			}
-		}
-		for (BandElement es : pending)
-		{
-			if (es instanceof ExecuteStrategem)
-				figureDirtyness(manager, (ExecuteStrategem) es);
-		}
+		for (ItemToBuild itb : toBuild)
+			figureDirtyness(manager, itb);
+		for (ItemToBuild itb : well)
+			figureDirtyness(manager, itb);
 	}
 
-	public void figureDirtyness(DependencyManager manager, ExecuteStrategem strat) {
-		if (strat == null || strat.getStrat() == null)
+	public void figureDirtyness(DependencyManager manager, ItemToBuild itb) {
+		if (itb == null || itb.tactic == null)
 			return;
-		OrderedFileList files = strat.sourceFiles();
+//		System.out.println("Considering " + itb);
 		boolean isDirty = false;
 		if (buildAll)
 		{
 			if (debug)
-				System.out.println("Marking " + strat + " dirty due to --build-all");
+				System.out.println("Marking " + itb + " dirty due to --build-all");
 			isDirty = true;
 		}
 		boolean wasDirty = isDirty;
+		OrderedFileList files = itb.tactic.belongsTo().sourceFiles();
 		if (files == null)
 		{
 			isDirty = true;
 			if (!wasDirty && debug)
-				System.out.println("Marking " + strat + " dirty due to NULL file list");
+				System.out.println("Marking " + itb + " dirty due to NULL file list");
 		}
 		else
 		{
-			GitRecord gittx = GitHelper.checkFiles(strat.isClean() && !buildAll, files, cxt.getGitCacheFile(strat.name(), ""));
-			strat.addGitTx(gittx);
+			GitRecord gittx = GitHelper.checkFiles(itb.isClean() && !buildAll, files, cxt.getGitCacheFile(itb.name(), ""));
+			itb.addGitTx(gittx);
 			isDirty |= gittx.isDirty();
 			if (!wasDirty && isDirty && debug)
-				System.out.println("Marking " + strat + " dirty due to git hash-object");
+				System.out.println("Marking " + itb + " dirty due to git hash-object");
 		}
 		if (!isDirty)
 		{
-			for (BuildResource wb : strat.getStrat().buildsResources())
+			for (BuildResource wb : itb.getDependencies(dependencies))
 			{
+				if (wb == null || wb instanceof ProcessResource)
+					continue;
 				if (wb.getPath() == null || !wb.getPath().exists())
 				{
 					if (debug)
-						System.out.println("Marking " + strat + " dirty because " + wb.compareAs() + " does not have a file output");
+						System.out.println("Marking " + itb + " dirty because " + wb.compareAs() + " does not have a file output");
 					isDirty = true;
 				}
 				else if (!wb.getPath().exists())
 				{
 					if (debug)
-						System.out.println("Marking " + strat + " dirty because " + wb.compareAs() + " does not exist");
+						System.out.println("Marking " + itb + " dirty because " + wb.compareAs() + " does not exist");
 					isDirty = true;
 				}
 			}
 		}
 		if (!isDirty)
 		{
-			for (BuildResource d : manager.getDependencies(strat.getStrat()))
+			for (BuildResource d : manager.getDependencies(itb.tactic))
 			{
+				if (d == null || d instanceof ProcessResource)
+					continue;
 				if (d.getBuiltBy() == null)
 				{
 					if (dirtyUnbuilt.contains(d))
 					{
 						isDirty = true;
 						if (debug)
-							System.out.println("Marking " + strat + " dirty due to library " + d + " is dirty");
+							System.out.println("Marking " + itb + " dirty due to library " + d + " is dirty");
 					}
 				}
 				else if (!mapping.get(d.getBuiltBy().identifier()).isClean())
 				{
 					isDirty = true;
 					if (debug)
-						System.out.println("Marking " + strat + " dirty due to " + d + " is dirty");
+						System.out.println("Marking " + itb + " dirty due to " + d + " is dirty");
 				}
 			}
 		}
-		OrderedFileList ancillaries = strat.ancillaryFiles();
 		boolean ancDirty = false;
-		if (ancillaries != null && !ancillaries.isEmpty())
-		{
-			 GitRecord ancTx = GitHelper.checkFiles(strat.isClean() && !buildAll, ancillaries, cxt.getGitCacheFile(strat.name(), ".anc"));
-			 strat.addGitTx(ancTx);
-			 ancDirty = ancTx.isDirty();
+		if (itb.tactic.belongsTo() instanceof HasAncillaryFiles) {
+			OrderedFileList ancillaries = ((HasAncillaryFiles) itb.tactic.belongsTo()).getAncillaryFiles();
+			if (ancillaries != null && !ancillaries.isEmpty())
+			{
+				 GitRecord ancTx = GitHelper.checkFiles(itb.isClean() && !buildAll, ancillaries, cxt.getGitCacheFile(itb.name(), ".anc"));
+				 itb.addGitTx(ancTx);
+				 ancDirty = ancTx.isDirty();
+			}
 		}
-
 		if (isDirty || buildAll)
 		{
-			strat.markDirty();
+			itb.markDirty();
 		}
 		else if (ancDirty) {
 			if (debug)
-				System.out.println("Marking " + strat + " locally dirty due to git hash-object on ancillaries");
-			strat.markDirtyLocally();
+				System.out.println("Marking " + itb + " locally dirty due to git hash-object on ancillaries");
+			itb.markDirtyLocally();
 		}
 	}
 
-	public ItemToBuild get(int band, int strat, int tactic) {
-		if (band >= bands.size())
+	public ItemToBuild get(int tactic) {
+		if (tactic >= toBuild.size())
 		{
 			if (!addFromWell())
 				return null;
 		}
+		return toBuild.get(tactic);
+		/*
 		ExecutionBand exband = bands.get(band);
 		if (strat >= exband.size())
 		{
@@ -374,44 +298,31 @@ public class BuildOrder {
 		if (be.isCompletelyClean())
 			bs = BuildStatus.CLEAN;
 		return new ItemToBuild(bs, be, tt, (band+1) + "." + (strat+1)+"."+(tactic+1), tt.toString());
+		*/
 	}
 
 	private boolean addFromWell() {
-		if (pending.size() == 0)
+		if (well.size() == 0)
 			return false;
-		BandElement canOffer = null;
-		int withDrift = -2;
-		int offerAt = -2;
-		boolean willSplit = false;
+		ItemToBuild bestFit = null;
 		loop:
-		for (BandElement p : pending)
+		for (ItemToBuild itb : well)
 		{
 			if (debug)
 			{
-				System.out.println("Considering " + p.name());
+				System.out.println("Considering " + itb.id);
 			}
-			int drift = getDrift(p);
-			if (withDrift != -2 && drift > withDrift)
-				continue;
-			if (p instanceof DeferredTactic)
-			{
-				BuildResource reject = null;
-				for (BuildResource sr : p.getStrat().buildsResources())
-					if (isBuilt(sr) < 0)
-						reject = sr;
-				if (reject != null)
-				{
+			boolean hasDependency = false;
+			for (Tactic t : itb.getProcessDependencies()) {
+				if (!isBuilt(t)) {
+					hasDependency = true;
 					if (debug)
-						System.out.println("  Rejecting " + p.name() + "because its parent has not built");
-					continue;
+						System.out.println("  Rejecting because " + t + " is not built");
 				}
 			}
-			int maxBuilt = -1;
-			boolean hasDependency = false;
-			for (BuildResource pr : p.getDependencies(dependencies))
+			for (BuildResource pr : itb.getDependencies(dependencies))
 			{
-				int builtAt = isBuilt(pr);
-				if (builtAt == -2)
+				if (!isBuilt(pr))
 				{
 					if (debug)
 						System.out.println("  Rejecting because " + pr + " is not built");
@@ -421,63 +332,29 @@ public class BuildOrder {
 				else if (hasDependency)
 					continue;
 				if (debug)
-					System.out.println("  Dependency " + pr + " was built at " + builtAt);
-				maxBuilt = Math.max(maxBuilt, builtAt);
+					System.out.println("  Dependency " + pr + " has been built");
 			}
 			if (hasDependency)
 				continue loop;
-			boolean needsSplit = needSplit(p);
-			if (offerAt == -2 || drift < withDrift || (drift == withDrift && maxBuilt < offerAt) /*|| (drift == withDrift && maxBuilt == offerAt && (willSplit && !needsSplit))*/)
-			{
-				willSplit = needsSplit;
-				offerAt = maxBuilt;
-				withDrift = drift;
-				canOffer = p;
-				if (debug)
-				{
-					System.out.println("  Will consider " + p.name() + " drift = " + drift + " at " + maxBuilt + " split = " + needsSplit);
-					if (p.name().equals("Deploy[tomcat]"))
-						System.out.println("Why?");
-				}
+			
+			if (bestFit == null || itb.drift() < bestFit.drift()) {
+				bestFit = itb;
 			}
 		}
-		// TODO: at this point, we should come back and see if there is a dependency which has
-		// a higher drift value that its dependent (shouldn't happen though).
-		if (canOffer != null)
-		{
-			if (debug)
-				System.out.println("And trying " + canOffer.name() + " drift = " + withDrift + " at " + offerAt + " split = " + willSplit);
-			if (willSplit)
-				splitFloaters((ExecuteStrategem)canOffer);
-			pending.remove(canOffer);
-			addTo(offerAt+1, canOffer);
-			if (debug)
-				System.out.println(printOut(false));
+		if (bestFit != null) { 
+			toBuild.add(bestFit);
+			well.remove(bestFit);
 			return true;
 		}
 		System.out.println("There is nothing in the well that can be added!");
 		System.out.println("Well contents:");
-		for (BandElement p : pending)
+		for (ItemToBuild p : well)
 		{
-			System.out.println("  Band " + p.name() + " drift: " + getDrift(p));
-			if (p instanceof DeferredTactic)
-			{
-				BuildResource reject = null;
-				for (BuildResource sr : p.getStrat().buildsResources())
-					if (isBuilt(sr) < 0)
-						reject = sr;
-				if (reject != null)
-				{
-					System.out.println("    Rejecting " + p.name() + "because its parent has not built");
-					continue;
-				}
-			}
-			int maxBuilt = -1;
+			System.out.println("  " + p.name() + " drift: " + p.drift());
 			boolean hasDependency = false;
 			for (BuildResource pr : p.getDependencies(dependencies))
 			{
-				int builtAt = isBuilt(pr);
-				if (builtAt == -2)
+				if (!isBuilt(pr))
 				{
 					System.out.println("    Rejecting because " + pr + " is not built");
 					hasDependency = true;
@@ -485,135 +362,48 @@ public class BuildOrder {
 				}
 				else if (hasDependency)
 					continue;
-				maxBuilt = Math.max(maxBuilt, builtAt);
 			}
 		}
 		throw new UtilException("There is no way to build everything");
 	}
 
-	private void splitFloaters(ExecuteStrategem es) {
-		for (Tactic tt : es.getStrat().tactics())
-		{
-			if (es.isDeferred(tt))
-				continue;
-			if (!(tt instanceof DependencyFloat))
-				continue;
-			ResourcePacket<PendingResource> addl = ((DependencyFloat)tt).needsAdditionalBuiltResources();
-			boolean needSplit = false;
-			for (PendingResource pr : addl)
-			{
-				BuildResource br = dependencies.resolve(pr);
-				if (isBuilt(br) == -2)
-					needSplit = true;
-			}
-			if (needSplit)
-			{
-				DeferredTactic dt = new DeferredTactic(tt.identifier());
-				dt.bind(es, tt);
-				es.defer(dt);
-				// add it to start of pending to try and keep things together
-				pending.add(0, dt);
-			}
-		}
-	}
-
-	private boolean needSplit(BandElement p) {
-		if (p instanceof DeferredTactic)
-			return false;
-		boolean needSplit = false;
-		for (Tactic tt : p.getStrat().tactics())
-		{
-			if (p.isDeferred(tt))
-				continue;
-			if (tt instanceof DependencyFloat)
-			{
-				ResourcePacket<PendingResource> addl = ((DependencyFloat)tt).needsAdditionalBuiltResources();
-				for (PendingResource pr : addl)
-				{
-					BuildResource br = dependencies.resolve(pr);
-					if (isBuilt(br) == -2)
-						needSplit = true;
-				}
-			}
-		}
-		return needSplit;
-	}
-
+	/*
 	private int getDrift(BandElement be) {
 		Strategem building = be.getStrat();
-		if (building instanceof FloatToEnd)
-			return ((FloatToEnd)building).priority();
 		return 0;
 	}
-
-	private int isBuilt(BuildResource pr) {
+	*/
+	
+	private boolean isBuilt(BuildResource pr) {
 		if (pr instanceof PendingResource && !((PendingResource) pr).isBound())
-			return -2;
-		Strategem s = pr.getBuiltBy();
-		if (s == null)
-			return -1;
-		ExecuteStrategem es = mapping.get(s.identifier());
-		for (int i=0;i<bands.size();i++)
-			if (bands.get(i).contains(es))
-				return i;
-		return -2;
+			return false;
+		Tactic t = pr.getBuiltBy();
+		if (t == null)
+			return true;
+		return isBuilt(t);
 	}
 
-	private void addTo(int band, BandElement canOffer) {
-		int drift = getDrift(canOffer);
-		while (band<bands.size())
-		{
-			if (bands.get(band).drift() == drift)
-				break;
-			else if (bands.get(band).drift() > drift)
-				throw new UtilException("This shouldn't happen - bands have been added in wrong drift order");
-			band++;
-		}
-		if (band >= bands.size())
-			makeNew(canOffer.getStrat(), band, drift);
-		bands.get(band).add(canOffer);
-		if (canOffer instanceof ExecuteStrategem)
-			((ExecuteStrategem)canOffer).markDirty();
+	private boolean isBuilt(Tactic t) {
+		if (t == null)
+			return true;
+		for (ItemToBuild i : toBuild)
+			if (i.tactic == t)
+				return true;
+		return false;
 	}
 
-	private ExecutionBand makeNew(Strategem building, int toBand, int drift) {
-		ExecutionBand ret = new ExecutionBand(drift);
-		while (toBand < bands.size() && bands.get(toBand).drift() < drift)
-		{
-			toBand++;
-		}
-		bands.add(toBand, ret);
-		return ret;
-	}
-
-	public ExecuteStrategem get(int band, int strat) {
-		ExecutionBand exband = bands.get(band);
-		BandElement be = exband.get(strat);
-		if (be instanceof ExecuteStrategem)
-			return (ExecuteStrategem) be;
-		return null;
-	}
-
-	public void reject(Strategem s) {
-		if (!mapping.containsKey(s.identifier()))
-			throw new UtilException("Cannot reject non-existent " + s.identifier() + " have " + mapping.keySet());
-		ExecuteStrategem es = mapping.get(s.identifier());
-		for (ExecutionBand b : bands)
-			if (b.contains(es))
-				b.remove(es);
-		if (!pending.contains(es))
-		{
-			System.out.println("Rejecting strategem " + s);
-			pending.add(es);
-		
-			// and then make sure all dependents are rejected
-			for (Strategem d : dependencies.getAllStratsThatDependOn(s))
-				reject(d);
-		}
-	}
-
-	public int count(int band) {
-		return bands.get(band).size();
+	public void reject(Tactic t, boolean forever) {
+		if (!mapping.containsKey(t.identifier()))
+			throw new UtilException("Cannot reject non-existent " + t.identifier() + " have " + mapping.keySet());
+		for (ItemToBuild itb : toBuild)
+			if (itb.tactic == t) {
+				if (debug)
+					System.out.println("Rejecting tactic " + t);
+				toBuild.remove(itb);
+				if (!forever)
+					well.add(0, itb);
+				return;
+			}
 	}
 
 	public void commitUnbuilt()
@@ -624,9 +414,7 @@ public class BuildOrder {
 
 	public void commitAll()
 	{
-		for (ExecutionBand eb : this.bands)
-			for (BandElement es : eb)
-				if (es instanceof ExecuteStrategem)
-					((ExecuteStrategem)es).commitAll();
+		for (ItemToBuild eb : this.toBuild)
+			eb.commitAll();
 	}
 }

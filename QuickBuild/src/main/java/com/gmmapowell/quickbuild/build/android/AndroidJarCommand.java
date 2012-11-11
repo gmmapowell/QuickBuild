@@ -49,7 +49,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 		files = new StructureHelper(projectDir, config.getOutput());
 		targetName = projectName + ".jar";
 		srcdir = files.getRelative("src/main/java");
-		androidJar = new JarResource(this, new File(files.getOutputDir(), targetName));
+		tactics();
 		return this;
 	}
 
@@ -112,7 +112,8 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 			ret.add(junitRun);
 		}
 		*/
-		JarBuildCommand jar = new JarBuildCommand(this, files, androidJar, null, null);
+		JarBuildCommand jar = new JarBuildCommand(this, files, targetName, null, null);
+		androidJar = jar.getJarResource();
 		jar.add(files.getOutput("classes"));
 		if (resdir.exists())
 			jar.add(resdir);
@@ -134,7 +135,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 	@Override
 	public ResourcePacket<BuildResource> providesResources() {
 		ResourcePacket<BuildResource> ret = new ResourcePacket<BuildResource>();
-		ret.add(new JavaSourceDirResource(this, srcdir, FileUtils.findFilesMatching(files.getRelative("src/main/java"), "*.java")));
+		ret.add(new JavaSourceDirResource(srcdir, FileUtils.findFilesMatching(files.getRelative("src/main/java"), "*.java")));
 		return ret;
 	}
 

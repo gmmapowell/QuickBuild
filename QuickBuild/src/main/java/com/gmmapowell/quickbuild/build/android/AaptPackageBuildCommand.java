@@ -1,6 +1,8 @@
 package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
@@ -71,5 +73,16 @@ public class AaptPackageBuildCommand implements Tactic {
 	@Override
 	public String identifier() {
 		return BuildOrder.tacticIdentifier(parent, "aaptpkg");
+	}
+
+	private Set <Tactic> procDeps = new HashSet<Tactic>();
+	
+	@Override
+	public void addProcessDependency(Tactic earlier) {
+		procDeps.add(earlier);
+	}
+	
+	public Set<Tactic> getProcessDependencies() {
+		return procDeps;
 	}
 }

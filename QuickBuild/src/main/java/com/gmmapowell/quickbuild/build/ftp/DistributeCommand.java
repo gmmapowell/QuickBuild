@@ -6,7 +6,9 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -381,5 +383,16 @@ public class DistributeCommand extends AbstractBuildCommand implements ConfigBui
 				broken = true;
 			}
 		}
+	}
+
+	private Set <Tactic> procDeps = new HashSet<Tactic>();
+	
+	@Override
+	public void addProcessDependency(Tactic earlier) {
+		procDeps.add(earlier);
+	}
+	
+	public Set<Tactic> getProcessDependencies() {
+		return procDeps;
 	}
 }

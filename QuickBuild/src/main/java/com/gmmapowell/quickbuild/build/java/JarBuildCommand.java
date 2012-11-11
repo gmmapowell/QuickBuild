@@ -2,7 +2,9 @@ package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
@@ -18,17 +20,17 @@ import com.gmmapowell.utils.FileUtils;
 public class JarBuildCommand implements Tactic {
 	private final Strategem parent;
 	private final File jarfile;
-	private final JarResource jar;
+	private final JarResource jarResource;
 	private final List<File> dirsToJar = new ArrayList<File>();
 	private final List<File> includePackages;
 	private final List<File> excludePackages;
 
-	public JarBuildCommand(Strategem parent, StructureHelper files, JarResource jar, List<File> includePackages, List<File> excludePackages) {
+	public JarBuildCommand(Strategem parent, StructureHelper files, String targetName, List<File> includePackages, List<File> excludePackages) {
 		this.parent = parent;
-		this.jar = jar;
+		this.jarResource = new JarResource(this, files.getOutput(FileUtils.ensureExtension(targetName, ".jar")));;
 		this.includePackages = includePackages;
 		this.excludePackages = excludePackages;
-		this.jarfile = jar.getPath();
+		this.jarfile = jarResource.getPath();
 	}
 	
 	public void add(File file) {
@@ -39,6 +41,10 @@ public class JarBuildCommand implements Tactic {
 		return FileUtils.makeRelative(jarfile);
 	}
 
+	public JarResource getJarResource() {
+		return jarResource;
+	}
+	
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		if (jarfile.exists() && !jarfile.delete())
@@ -56,9 +62,9 @@ public class JarBuildCommand implements Tactic {
 			// we didn't actually build it, but it wants reassurance ...
 			try
 			{
-				if (jar != null)
-					jar.getFile().createNewFile();
-				cxt.builtResource(jar, false);
+				if (jarResource != null)
+					jarResource.getFile().createNewFile();
+				cxt.builtResource(jarResource, false);
 			}
 			catch (Exception ex)
 			{
@@ -69,7 +75,7 @@ public class JarBuildCommand implements Tactic {
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{
-			cxt.builtResource(jar);
+			cxt.builtResource(jarResource);
 			return BuildStatus.SUCCESS;
 		}
 		return BuildStatus.BROKEN;
@@ -119,7 +125,7 @@ public class JarBuildCommand implements Tactic {
 
 	@Override
 	public String toString() {
-		return "Jar Up: " + jar;
+		return "Jar Up: " + jarResource;
 	}
 
 	@Override
@@ -130,5 +136,16 @@ public class JarBuildCommand implements Tactic {
 	@Override
 	public String identifier() {
 		return BuildOrder.tacticIdentifier(parent, "jar");
+	}
+
+	private Set <Tactic> procDeps = new HashSet<Tactic>();
+	
+	@Override
+	public void addProcessDependency(Tactic earlier) {
+		procDeps.add(earlier);
+	}
+	
+	public Set<Tactic> getProcessDependencies() {
+		return procDeps;
 	}
 }

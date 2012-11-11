@@ -47,7 +47,8 @@ public class AdbInstallCommand extends AbstractBuildCommand implements ConfigBui
 		acxt = config.getAndroidContext();
 		apk = new PendingResource(resource);
 		needs.add(apk);
-		buildsInstalled = new AdbInstalledResource(this, resource);
+		tactics();
+		buildsInstalled = new AdbInstalledResource(tactics.get(0), resource);
 		builds.add(buildsInstalled);
 		return this;
 	}

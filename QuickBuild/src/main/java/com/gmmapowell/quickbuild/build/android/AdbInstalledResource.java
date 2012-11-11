@@ -4,21 +4,21 @@ import java.io.File;
 
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.CloningResource;
-import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
 
 public class AdbInstalledResource implements BuildResource {
-	private final AdbInstallCommand strat;
+	private final Tactic tactic;
 	private final String comparison;
 	private boolean analyze;
 
-	public AdbInstalledResource(AdbInstallCommand strat, String apk) {
-		this.strat = strat;
+	public AdbInstalledResource(Tactic t, String apk) {
+		this.tactic = t;
 		comparison = "AdbInstalled["+apk.replaceAll("\\.", "_").replaceAll("/", "_")+"]";
 	}
 
 	@Override
-	public Strategem getBuiltBy() {
-		return strat;
+	public Tactic getBuiltBy() {
+		return tactic;
 	}
 
 	@Override

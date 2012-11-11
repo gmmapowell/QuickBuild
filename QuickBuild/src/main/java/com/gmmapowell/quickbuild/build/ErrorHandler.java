@@ -40,7 +40,7 @@ public class ErrorHandler {
 		FileUtils.cleanDirectory(logDir);
 	}
 	
-	public void currentCmd(ItemToBuild itb) {
+	public void currentCmd(int currentTactic, ItemToBuild itb) {
 		this.itb = itb;
 		this.currentCase = null;
 	}

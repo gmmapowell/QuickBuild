@@ -3,7 +3,9 @@ package com.gmmapowell.quickbuild.build.csharp;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.LinePatternMatch;
@@ -214,6 +216,17 @@ public class DevenvCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 	@Override
 	public boolean analyzeExports() {
 		return true;
+	}
+
+	private Set <Tactic> procDeps = new HashSet<Tactic>();
+	
+	@Override
+	public void addProcessDependency(Tactic earlier) {
+		procDeps.add(earlier);
+	}
+	
+	public Set<Tactic> getProcessDependencies() {
+		return procDeps;
 	}
 
 }

@@ -3,7 +3,9 @@ package com.gmmapowell.quickbuild.app;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.git.GitRecord;
 import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
@@ -38,6 +40,14 @@ public class QuickBuild {
 	
 	public static void main(String[] args)
 	{
+		List<File> pathElts = FileUtils.splitJavaPath(System.getProperty("java.class.path"));
+		File utilsJar = null;
+		for (File f : pathElts) {
+			if (f.getName().endsWith("Utils.jar") || f.getPath().endsWith("Utils/bin"))
+				utilsJar = f;
+		}
+		if (utilsJar == null)
+			throw new UtilException("Could not find Utils.jar on the class path");
 		Date launched = new Date();
 		arguments = new Arguments();
 		ProcessArgs.process(arguments, argumentDefinitions, args);
@@ -103,7 +113,7 @@ public class QuickBuild {
 		buildAll |= mainFiles.isDirty();
 		
 		// now we need to read back anything we've cached ...
-		BuildContext cxt = new BuildContext(conf, configFactory, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet);
+		BuildContext cxt = new BuildContext(conf, configFactory, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar);
 		cxt.configure();
 		
 		if (!arguments.quiet)

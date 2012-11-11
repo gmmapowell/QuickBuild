@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -18,6 +19,7 @@ import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.CloningResource;
 import com.gmmapowell.quickbuild.core.DependencyFloat;
 import com.gmmapowell.quickbuild.core.PendingResource;
+import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.SolidResource;
 import com.gmmapowell.quickbuild.core.Strategem;
@@ -64,7 +66,7 @@ public class DependencyManager {
 		}
 	
 		@Override
-		public Strategem getBuiltBy() {
+		public Tactic getBuiltBy() {
 			if (builtBy == null)
 				return null;
 			if (stratMap == null)
@@ -72,7 +74,10 @@ public class DependencyManager {
 			else if (!stratMap.containsKey(builtBy))
 				throw new UtilException("There is no strat matching " + builtBy);
 			else
-				return stratMap.get(builtBy);
+			{
+				throw new UtilException("MISSING CODE DM1");
+				// return stratMap.get(builtBy);
+			}
 		}
 	
 		@Override
@@ -105,8 +110,9 @@ public class DependencyManager {
 	private final BuildOrder buildOrder;
 	private final ResourceManager rm;
 	private final boolean debug;
-	private final HashMap<Strategem, Set<BuildResource>> cache = new HashMap<Strategem, Set<BuildResource>>();
+	private final Map<Tactic, Set<BuildResource>> cache = new HashMap<Tactic, Set<BuildResource>>();
 	private HashMap<String, Strategem> stratMap = null;
+	private final Map<String, ProcessResource> processResources = new HashMap<String, ProcessResource>();
 
 	public DependencyManager(Config conf, ResourceManager rm, BuildOrder buildOrder, boolean debug)
 	{
@@ -156,6 +162,13 @@ public class DependencyManager {
 
 				willBuild.add(br);
 				dependencies.ensure(br);
+				
+				// TODO: we should be iterating over Tactics, that should be the things responsible for saying what dependencies are ...
+				// But for now, put it on the last guy
+				List<? extends Tactic> tactics = s.tactics();
+				Tactic last = tactics.get(tactics.size()-1);
+				BuildResource proc = ensureProcessResource(last);
+				dependencies.ensureLink(br, proc);
 			}
 		}
 		
@@ -171,7 +184,7 @@ public class DependencyManager {
 		
 		// Now wire up the guys that depend on it
 		for (Strategem s : strats)
-		{			
+		{		
 			s.buildsResources().resolveClones();
 
 			for (PendingResource pr : s.needsResources())
@@ -193,6 +206,13 @@ public class DependencyManager {
 					dependencies.ensureLink(br, actual);
 				}
 			}
+			for (Tactic tt : s.tactics())
+				if (tt instanceof DependencyFloat)
+				{
+					ResourcePacket<PendingResource> addl = ((DependencyFloat)tt).needsAdditionalBuiltResources();
+					for (PendingResource pr : addl)
+						resolve(pr);
+				}
 		}
 		cache.clear();
 	}
@@ -213,7 +233,19 @@ public class DependencyManager {
 		}
 		if (uniq.size() == 0)
 			throw new QuickBuildException("Could not find any dependency that matched " + pr.compareAs() +": have " + dependencies.nodes());
-		else if (uniq.size() > 1)
+		if (uniq.size() > 1) {
+			int i = 0;
+			while (i<uniq.size()) {
+				BuildResource me = uniq.get(i);
+				if (me instanceof ProcessResource)
+					uniq.remove(i);
+				else
+					i++;
+			}
+			if (uniq.size() == 0)
+				throw new QuickBuildException("Found multiple derived dependencies that matched " + pr.compareAs() +", but no originals");
+		}
+		if (uniq.size() > 1)
 			throw new QuickBuildException("Cannot resolve comparison: " + pr.compareAs() + " matches: " + uniq);
 		pr.bindTo(uniq.get(0));
 		return uniq.get(0);
@@ -230,18 +262,26 @@ public class DependencyManager {
 			final XML input = XML.fromFile(dependencyFile);
 			for (XMLElement e : input.top().elementChildren())
 			{
-				String from = e.get("from");
-				String by = null;
-				if (e.hasAttribute("builtBy"))
-					by = e.get("builtBy");
-				BuildResource target = new ComparisonResource(from, by);
+				BuildResource target;
+				if (e.tag().equals("Resource")) {
+					target = new ComparisonResource(e.get("name"), null);
+				} else if (e.tag().equals("Build")) {
+					target = new ComparisonResource(e.get("builds"), e.get("tactic"));
+				} else if (e.tag().equals("Process")) {
+					target = new ComparisonResource("Process["+ e.get("tactic") + "]", null);
+				}
+				else
+					throw new UtilException("Unrecognized dependency node: " + e.tag());
 				dependencies.ensure(target);
 				for (XMLElement r : e.elementChildren())
 				{
-					String resource = r.get("resource");
-					Node<BuildResource> source = dependencies.find(new ComparisonResource(resource, null));
-//					System.out.println(target + " <= " + source);
-					dependencies.ensureLink(target, source.getEntry());
+					if (r.tag().equals("DependsOn")) {
+						String resource = r.get("resource");
+						Node<BuildResource> source = dependencies.find(new ComparisonResource(resource, null));
+//						System.out.println(target + " <= " + source);
+						dependencies.ensureLink(target, source.getEntry());
+					} else
+						throw new UtilException("Cannot handle inner tag: " + r.tag());
 				}
 			}
 			cache.clear();
@@ -249,8 +289,10 @@ public class DependencyManager {
 		catch (Exception ex)
 		{
 			// TODO: we should clear all the links out, but we need to keep the nodes
-			dependencyFile.delete();
-			throw new QuickBuildCacheException("Could not decipher the dependency cache", ex);
+			buildOrder.clear();
+//			dependencyFile.delete();
+//			throw new QuickBuildCacheException("Could not decipher the dependency cache", ex);
+			throw new UtilException("Could not decipher the dependency cache", ex);
 		}
 	}
 
@@ -259,14 +301,24 @@ public class DependencyManager {
 		dependencies.postOrderTraverse(new NodeWalker<BuildResource>() {
 			@Override
 			public void present(Node<BuildResource> node) {
-				XMLElement dep = output.addElement("Dependency");
 				BuildResource br = node.getEntry();
-				dep.setAttribute("from", br.compareAs());
-				if (br.getBuiltBy() != null)
-					dep.setAttribute("builtBy", br.getBuiltBy().identifier());
+				XMLElement dep;
+				if (br instanceof ProcessResource) {
+					dep = output.addElement("Process");
+					dep.setAttribute("tactic", ((ProcessResource)br).getTactic().identifier());
+				}
+				else if (br.getBuiltBy() == null) {
+					XMLElement res = output.addElement("Resource");
+					res.setAttribute("name", br.compareAs());
+					return;
+				} else {
+					dep = output.addElement("Build");
+					dep.setAttribute("builds", br.compareAs());
+					dep.setAttribute("tactic", br.getBuiltBy().identifier());
+				}
 				for (Link<BuildResource> l : node.linksFrom())
 				{
-					XMLElement ref = dep.addElement("References");
+					XMLElement ref = dep.addElement("DependsOn");
 					BuildResource to = l.getTo();
 					ref.setAttribute("resource", to.compareAs());
 				}
@@ -277,18 +329,28 @@ public class DependencyManager {
 		output.write(dependencyFile);
 	}
 
-	public Iterable<BuildResource> getDependencies(Strategem dependent) {
-		if (cache.containsKey(dependent))
-			return cache.get(dependent);
+	public Iterable<BuildResource> getDependencies(Tactic tactic) {
+//		if (cache.containsKey(tactic))
+//			return cache.get(tactic);
 		
 		Set<BuildResource> ret = new HashSet<BuildResource>();
-		for (PendingResource pr : dependent.needsResources())
-			ret.add(pr.physicalResource());
-		for (BuildResource br : dependent.buildsResources())
-		{
+		for (PendingResource pr : tactic.belongsTo().needsResources()) {
+			BuildResource br = pr.physicalResource();
+			ret.add(br);
 			findDependencies(ret, br);
 		}
-		cache.put(dependent, ret);
+//		for (BuildResource br : tactic.belongsTo().buildsResources())
+//		{
+//			findDependencies(ret, br);
+//		}
+		BuildResource dep = ensureProcessResource(tactic);
+		for (Tactic t : tactic.getProcessDependencies()) {
+			if (t == null) continue;
+			BuildResource to = ensureProcessResource(t);
+			dependencies.ensureLink(dep, to);
+		}
+		findDependencies(ret, dep);
+//		cache.put(tactic, ret);
 		return ret;
 	}
 
@@ -298,17 +360,6 @@ public class DependencyManager {
 		for (BuildResource br : dependencies.nodes())
 			if (br.getBuiltBy() == null)
 				ret.add(br);
-		return ret;
-	}
-	
-	public Iterable<Strategem> getAllStratsThatDependOn(Strategem buildFirst) {
-		Set<Strategem> ret = new HashSet<Strategem>();
-		for (BuildResource br : dependencies.nodes())
-		{
-			for (BuildResource wb : buildFirst.buildsResources())
-				if (dependencies.hasLink(br, wb) && br.getBuiltBy() != null)
-					ret.add(br.getBuiltBy());
-		}
 		return ret;
 	}
 	
@@ -332,51 +383,36 @@ public class DependencyManager {
 		return dependencies.toString();
 	}
 
-	public boolean addDependency(Strategem dependent, BuildResource resource, boolean wantDebug) {
-		// The actual dependency is for the things to be built
-		boolean ret = false;
+	public boolean addDependency(Tactic dependent, BuildResource resource, boolean wantDebug) {
 		if (resource instanceof PendingResource)
 			throw new QuickBuildException("No Way!");
-		for (BuildResource br : dependent.buildsResources())
-			ret |= addDependency(br, resource, wantDebug);
+		BuildResource dep = ensureProcessResource(dependent);
+		if (dependencies.hasLink(dep, resource))
+			return false;
+		
+		if (debug)
+			System.out.println("Adding dependency for " + dependent + " on " + resource);
+		dependencies.ensureLink(dep, resource);
+//		for (BuildResource br : dependent.buildsResources())
+//			ret |= addDependency(br, resource, wantDebug);
+		return true;
+	}
+
+	private BuildResource ensureProcessResource(Tactic dependent) {
+		if (processResources.containsKey(dependent.identifier()))
+			return processResources.get(dependent.identifier());
+		ProcessResource ret = new ProcessResource(dependent);
+		processResources.put(dependent.identifier(), ret);
+		dependencies.ensure(ret);
 		return ret;
 	}
 
-	private boolean addDependency(BuildResource br, BuildResource resource, boolean wantDebug) {
-		if (dependencies.hasLink(br, resource))
-			return false;
-		
-		if (br instanceof PendingResource)
-			throw new QuickBuildException("No Way!");
-		if (resource instanceof PendingResource)
-			throw new QuickBuildException("No Way!");
-		if (debug || wantDebug)
-			System.out.println("Added dependency from " + br + " on " + resource);
-		if (br.equals(resource))
-		{
-			try
-			{
-				throw new UtilException("Some fool is trying to link " + br + " to " + resource + " and they're the same!");
-			}
-			catch (UtilException ex)
-			{
-				ex.printStackTrace();
-			}
-		}
-		else
-			dependencies.ensureLink(br, resource);
-		buildOrder.reject(br.getBuiltBy());
-		
-		// TODO: this could be more subtle
-		cache.clear();
-		
-		return true;
-	}
-	
 	public void attachStrats(List<Strategem> strats) {
 		stratMap = new HashMap<String, Strategem>();
-		for (Strategem s : strats)
+		for (Strategem s : strats) {
 			stratMap.put(s.identifier(), s);
+			buildOrder.knowAbout(s);
+		}
 		try
 		{
 			// existing
@@ -384,7 +420,7 @@ public class DependencyManager {
 			{
 				Node<BuildResource> n = dependencies.find(br);
 				if (n.getEntry() instanceof DependencyManager.ComparisonResource)
-					n.setEntry(br);
+					dependencies.rename(n, br);
 			}
 			// will be built
 			Set<CloningResource> clones = new HashSet<CloningResource>();
@@ -399,7 +435,13 @@ public class DependencyManager {
 					}
 					Node<BuildResource> n = dependencies.find(br);
 					if (n.getEntry() instanceof DependencyManager.ComparisonResource)
-						n.setEntry(br);
+						dependencies.rename(n, br);
+				}
+				for (Tactic t : s.tactics()) {
+					BuildResource pr = new ProcessResource(t);
+					Node<BuildResource> n = dependencies.find(pr);
+					if (n.getEntry() instanceof DependencyManager.ComparisonResource)
+						dependencies.rename(n, pr);
 				}
 			}
 			
@@ -410,7 +452,9 @@ public class DependencyManager {
 				BuildResource from = resolve(pending);
 				BuildResource actual = from.cloneInto(clone);
 				clone.bind(actual);
-				dependencies.ensure(actual);
+				Node<BuildResource> n = dependencies.find(actual);
+				if (n.getEntry() instanceof DependencyManager.ComparisonResource)
+					dependencies.rename(n, actual);
 			}
 
 			// needed ones
@@ -421,19 +465,41 @@ public class DependencyManager {
 					BuildResource br = resolve(pr);
 					Node<BuildResource> n = dependencies.find(br);
 					if (n.getEntry() instanceof DependencyManager.ComparisonResource)
-						n.setEntry(br);
+						dependencies.rename(n, br);
 				}
 				for (Tactic tt : s.tactics())
 					if (tt instanceof DependencyFloat)
 					{
 						ResourcePacket<PendingResource> addl = ((DependencyFloat)tt).needsAdditionalBuiltResources();
-						for (PendingResource pr : addl)
-							resolve(pr);
+						for (PendingResource pr : addl) {
+							BuildResource br = resolve(pr);
+							Node<BuildResource> n = dependencies.find(br);
+							if (n.getEntry() instanceof DependencyManager.ComparisonResource)
+								dependencies.rename(n, br);
+						}
 					}
+			}
+			
+			final List<String> fail = new ArrayList<String>();
+			dependencies.postOrderTraverse(new NodeWalker<BuildResource>() {
+
+				@Override
+				public void present(Node<BuildResource> node) {
+					if (node.getEntry() instanceof ComparisonResource) {
+						System.out.println("Failed to match " + node.getEntry().compareAs());
+						fail.add(node.getEntry().compareAs());
+					}
+				}
+			});
+			if (!fail.isEmpty()) {
+				System.out.println(dependencies);
+				throw new QuickBuildCacheException("Failed to match: " + fail, null);
 			}
 		}
 		catch (Exception ex)
 		{
+			if (ex instanceof QuickBuildCacheException)
+				throw (QuickBuildCacheException)ex;
 			throw new QuickBuildCacheException("Failed to attach real strats to cache", ex);
 		}
 		cache.clear();

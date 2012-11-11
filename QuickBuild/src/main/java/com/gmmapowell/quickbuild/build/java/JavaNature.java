@@ -17,7 +17,7 @@ import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
-import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.GPJarEntry;
 import com.gmmapowell.utils.GPJarFile;
@@ -36,7 +36,7 @@ public class JavaNature implements Nature, BuildContextAware {
 	private final List<String> loadedLibs = new ArrayList<String>();
 	private final SetMap<String, JarResource> availablePackages = new SetMap<String, JarResource>();
 	private final Set<String> duplicates = new HashSet<String>();
-	private final ListMap<String, Strategem> projectPackages = new ListMap<String, Strategem>();
+	private final ListMap<String, JarResource> projectPackages = new ListMap<String, JarResource>();
 	private BuildContext cxt;
 	private List<LibDir> libdirs = new ArrayList<LibDir>();
 	private final Config conf;
@@ -116,8 +116,10 @@ public class JavaNature implements Nature, BuildContextAware {
 	}
 
 	private void rememberSources(JavaSourceDirResource br) {
-		if (br.getBuiltBy() == null)
-			throw new UtilException("Cannot handle JavaSourceDir with no builder");
+		if (br.getJarResource() == null) {
+			return; // useless to us, but surely not an error ...
+//			throw new UtilException("Cannot handle JavaSourceDir with no jar");
+		}
 		List<File> sources = br.getSources();
 		HashSet<String> packages = new HashSet<String>();
 		for (File f : sources)
@@ -125,7 +127,7 @@ public class JavaNature implements Nature, BuildContextAware {
 			packages.add(FileUtils.convertToDottedName(FileUtils.makeRelativeTo(f.getParentFile(), br.getPath())));
 		}
 		for (String s : packages)
-			projectPackages.add(s, br.getBuiltBy());
+			projectPackages.add(s, br.getJarResource());
 	}
 
 	public void showDuplicates() {
@@ -140,7 +142,7 @@ public class JavaNature implements Nature, BuildContextAware {
 		}
 	}
 
-	public boolean addDependency(Strategem dependent, String needsJavaPackage, String context, boolean debug) {
+	public boolean addDependency(Tactic dependent, String needsJavaPackage, String context, boolean debug) {
 		// First, try and resolve it with a base jar, or a built jar
 		if (availablePackages.contains(needsJavaPackage))
 		{
@@ -164,13 +166,12 @@ public class JavaNature implements Nature, BuildContextAware {
 		if (projectPackages.contains(needsJavaPackage))
 		{
 			boolean didSomething = false;
-			for (Strategem p : projectPackages.get(needsJavaPackage))
+			for (JarResource p : projectPackages.get(needsJavaPackage))
 			{
 				if (p.equals(dependent))
 					continue;
-				JarResource jr = cxt.getBuiltResource(p, JarResource.class);
-				if (jr != null && conf.matchesContext(jr, context))
-					didSomething |= cxt.addDependency(dependent, jr, debug);
+				if (p != null && conf.matchesContext(p, context))
+					didSomething |= cxt.addDependency(dependent, p, debug);
 			}
 			return didSomething;
 		}

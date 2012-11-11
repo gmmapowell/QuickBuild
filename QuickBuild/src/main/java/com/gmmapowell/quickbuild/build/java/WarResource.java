@@ -5,10 +5,10 @@ import java.io.File;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.CloningResource;
 import com.gmmapowell.quickbuild.core.SolidResource;
-import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
 
 public class WarResource extends SolidResource {
-	public WarResource(Strategem parent, File f) {
+	public WarResource(Tactic parent, File f) {
 		super(parent, f);
 	}
 	

@@ -9,10 +9,10 @@ public abstract class SolidResource implements BuildResource {
 
 	protected final File file;
 	protected final File relative;
-	protected final Strategem parent;
+	protected final Tactic parent;
 	private boolean analyze;
 
-	protected SolidResource(Strategem builtBy, File path)
+	protected SolidResource(Tactic builtBy, File path)
 	{
 		parent = builtBy;
 		file = path;
@@ -29,7 +29,7 @@ public abstract class SolidResource implements BuildResource {
 	public abstract String compareAs();
 	
 	@Override
-	public Strategem getBuiltBy() {
+	public Tactic getBuiltBy() {
 		return parent;
 	}
 

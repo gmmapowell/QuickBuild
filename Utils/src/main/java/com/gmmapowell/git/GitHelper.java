@@ -36,10 +36,11 @@ public class GitHelper {
 		proc.execute();
 
 		GitRecord gittx = new GitRecord(file);
-		boolean nofile = !file.exists();
+		boolean nofile = false;
 		if (!gittx.sourceExists())
 		{
 			System.out.println("! No file: " + file);
+			nofile = true;
 			gittx.setDirty();
 		}
 		File newFile = null;
@@ -62,7 +63,7 @@ public class GitHelper {
 				String s = r.readLine();
 				if (s == null)
 				{
-					System.out.println("! Inconsistent number of files and hashes");
+					System.out.println("! Inconsistent number of files and hashes in " + file);
 					gittx.setDirty();
 					break;
 				}

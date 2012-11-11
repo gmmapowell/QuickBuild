@@ -181,6 +181,13 @@ public class DirectedAcyclicGraph<N> {
 			recurseOver(ret, nodesDone, linksDone, child);
 	}
 
+	public void rename(Node<N> node, N entry) {
+		Node<N> curr = find(entry);
+		if (curr != null && curr != node)
+			throw new UtilException("Cannot create duplicate node name " + entry);
+		node.setEntry(entry);
+	}
+
 	public void clear() {
 		nodes.clear();
 		links.clear();

@@ -1,13 +1,25 @@
 package com.gmmapowell.quickbuild.build.java;
 
+import java.io.File;
+
+import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.utils.PathBuilder;
 
 public class RunClassPath extends BuildClassPath {
 	private final BuildClassPath basedOn;
+	private final File utilsJar;
 	
-	public RunClassPath(JavaBuildCommand jbc)
+	public RunClassPath(BuildContext cxt, JavaBuildCommand jbc)
 	{
 		basedOn = jbc.getClassPath();
+		utilsJar = cxt.getUtilsJar();
+	}
+	
+	@Override
+	public void add(File file) {
+		if (basedOn.contains(file))
+			return;
+		super.add(file);
 	}
 	
 	public String toString()
@@ -15,6 +27,7 @@ public class RunClassPath extends BuildClassPath {
 		PathBuilder pb = new PathBuilder();
 		this.toString(pb);
 		basedOn.toString(pb);
+		pb.add(utilsJar);
 		return pb.toString();
 	}
 

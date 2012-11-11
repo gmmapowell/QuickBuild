@@ -27,6 +27,8 @@ public class JUnitListener extends RunListener {
 	public void testFailure(Failure failure) throws Exception {
 		System.err.println();
 		System.err.println("!! FAILED");
+		System.err.println(failure.getMessage());
+		System.err.println(failure.getTrace());
 	}
 
 	@Override

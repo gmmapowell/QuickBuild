@@ -82,9 +82,8 @@ public class ResourceManager implements ResourceListener {
 		return availableResources.contains(br);
 	}
 
-	public void stratComplete(BuildStatus ret, ExecuteStrategem es)
+	public void stratComplete(BuildStatus ret, Strategem strat)
 	{
-		Strategem strat = es.getStrat();
 		// Test the contract when the strategem comes to an end
 		if (ret.builtResources())
 		{
@@ -98,12 +97,32 @@ public class ResourceManager implements ResourceListener {
 				throw new QuickBuildException("The strategem " + strat + " failed in its contract to build " + fails);
 			}
 		}
-		if (ret.isGood())
+		if (ret.isGood()) {
+			System.out.println("MISSING CODE RM");
+			/*
 			es.commitAll();
+			public void addGitTx(GitRecord tx) {
+-               gittxs.add(tx);
+-       }
+-
+-       public void commitAll() {
+-               if (deferredComplete.size() < deferred.size())
+-                       return;
+-               for (GitRecord gr : gittxs)
+-                       gr.commit();
+-       }
+-
+-       @Override
+-       public void fail() {
+-               for (GitRecord gr : gittxs)
+-                       gr.setError();
+-       }
+*/
+		}
 	}
 
-	public void exportAll(ExecuteStrategem strat) {
-		for (BuildResource br : strat.getStrat().buildsResources())
+	public void exportAll(Strategem strat) {
+		for (BuildResource br : strat.buildsResources())
 			resourceAvailable(br, strat.analyzeExports());
 	}
 }

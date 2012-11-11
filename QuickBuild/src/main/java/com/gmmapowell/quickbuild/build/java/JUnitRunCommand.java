@@ -2,7 +2,9 @@ package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
 import java.io.StringReader;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.gmmapowell.bytecode.ByteCodeFile;
 import com.gmmapowell.exceptions.UtilException;
@@ -15,6 +17,7 @@ import com.gmmapowell.quickbuild.build.ErrorCase;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.DependencyFloat;
 import com.gmmapowell.quickbuild.core.PendingResource;
+import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
@@ -50,12 +53,16 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		if (writeTo != null)
 			writeTo.getFile().delete();
-		RunClassPath classpath = new RunClassPath(jbc);
+		RunClassPath classpath = new RunClassPath(cxt, jbc);
 		if (addlResources != null)
 			for (BuildResource r : addlResources)
 			{
-				classpath.add(((PendingResource) r).getPath());
+				classpath.add(r.getPath());
 			}
+		Iterable<BuildResource> deps = cxt.getDependencies(this);
+		for (BuildResource f : deps)
+			if (f != null && !(f instanceof ProcessResource))
+				classpath.add(f.getPath());
 		RunProcess proc = new RunProcess("java");
 		proc.executeInDir(files.getBaseDir());
 		proc.showArgs(showArgs);
@@ -181,4 +188,15 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 		this.writeTo = jur;
 	}
 
+
+	private Set <Tactic> procDeps = new HashSet<Tactic>();
+	
+	@Override
+	public void addProcessDependency(Tactic earlier) {
+		procDeps.add(earlier);
+	}
+	
+	public Set<Tactic> getProcessDependencies() {
+		return procDeps;
+	}
 }

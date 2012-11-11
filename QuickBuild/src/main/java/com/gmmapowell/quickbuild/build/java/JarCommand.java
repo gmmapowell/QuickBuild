@@ -55,15 +55,17 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		files = new StructureHelper(rootdir, config.getOutput());
 		
 		processOptions(config);
-		jarResource = new JarResource(this, files.getOutput(FileUtils.ensureExtension(targetName, ".jar")));
 
-		JarBuildCommand jar = new JarBuildCommand(this, files, jarResource, includePackages, excludePackages);
+		JarBuildCommand jar = new JarBuildCommand(this, files, targetName, includePackages, excludePackages);
+		jarResource = jar.getJarResource();
+		
 		tactics = new ArrayList<Tactic>();
-		addJavaBuild(tactics, jar, "src/main/java", "classes", "main");
+		JavaBuildCommand javac = addJavaBuild(tactics, jar, "src/main/java", "classes", "main");
 		JavaBuildCommand junit = addJavaBuild(tactics, null, "src/test/java", "test-classes", "test");
 		if (junit != null)
 		{
 			junit.addToClasspath(new File(files.getOutputDir(), "classes"));
+			junit.addProcessDependency(javac);
 		}
 		addResources(jar, junit, "src/main/resources");
 		addResources(null, junit, "src/test/resources");
@@ -71,6 +73,8 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		if (tactics.size() == 0)
 			throw new QuickBuildException("None of the required source directories exist (or have source files) to build " + targetName);
 		tactics.add(jar);
+		if (jrun != null)
+			jrun.addProcessDependency(junit);
 		
 		additionalCommands(config);
 
@@ -78,11 +82,13 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			willProvide.add(jarResource);
 		else if (junit != null)
 		{
-			JUnitResource jur = new JUnitResource(this, files.getOutput(FileUtils.ensureExtension(targetName, ".junr")));
+			JUnitResource jur = new JUnitResource(junit, files.getOutput(FileUtils.ensureExtension(targetName, ".junr")));
 			willProvide.add(jur);
 			jrun.writeTo(jur);
 		}
 
+		jar.addProcessDependency(javac);
+		jar.addProcessDependency(jrun);
 		return this;
 	}
 
@@ -191,11 +197,13 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			JavaBuildCommand ret = new JavaBuildCommand(this, files, src, bin, label, sourceFiles, "jdk");
 			accum.add(ret);
 			
-			JavaSourceDirResource sourcesResource = new JavaSourceDirResource(this, dir, sourceFiles);
+			JavaSourceDirResource sourcesResource = new JavaSourceDirResource(dir, sourceFiles);
 			sources.add(sourcesResource);
 			
 			if (jar != null)
 			{
+				sourcesResource.buildsInto(jar.getJarResource());
+
 				// Do this for main, but not test ...
 				mainSources = sourcesResource;
 				mainSourceFileList = mapOFL(mainSources);

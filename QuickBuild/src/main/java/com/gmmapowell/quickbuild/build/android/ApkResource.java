@@ -5,14 +5,14 @@ import java.io.File;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.CloningResource;
 import com.gmmapowell.quickbuild.core.SolidResource;
-import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.FileUtils;
 
 public class ApkResource extends SolidResource {
 
 	private final String comparison;
 
-	public ApkResource(Strategem parent, File apkFile) {
+	public ApkResource(Tactic parent, File apkFile) {
 		super(parent, apkFile);
 		comparison = "Apk[" + FileUtils.posixPath(relative) + "]";
 	}

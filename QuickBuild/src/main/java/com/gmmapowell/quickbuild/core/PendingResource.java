@@ -17,7 +17,7 @@ public class PendingResource implements BuildResource {
 	@Override
 	public File getPath() {
 		if (boundTo == null)
-			throw new QuickBuildException("Cannot use PendingResource before bound");
+			throw new QuickBuildException("Cannot use PendingResource " + pendingName + " before bound");
 		return boundTo.getPath();
 	}
 
@@ -33,7 +33,7 @@ public class PendingResource implements BuildResource {
 	}
 
 	@Override
-	public Strategem getBuiltBy() {
+	public Tactic getBuiltBy() {
 		if (boundTo == null)
 			throw new QuickBuildException("Cannot use PendingResource before bound");
 		return boundTo.getBuiltBy();

@@ -46,6 +46,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 	final JavaRuntimeReplica jrr;
 	private ArrayList<Tactic> tactics;
 	private File bindir;
+	private ApkBuildCommand apkTactic;
 
 	@SuppressWarnings("unchecked")
 	public AndroidCommand(TokenizedLine toks) {
@@ -61,7 +62,8 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		files = new StructureHelper(rootDir, config.getOutput());
 		acxt = config.getAndroidContext();
 		apkFile = files.getOutput(projectName+".apk");
-		apkResource = new ApkResource(this, apkFile);
+		tactics(); // ensure they're generated
+		apkResource = apkTactic.getResource();
 		
 		for (ConfigApplyCommand cmd : options)
 		{
@@ -163,8 +165,8 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		tactics.add(dex);
 		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(this, acxt, manifest, zipfile, resdir, assetsDir);
 		tactics.add(pkg);
-		ApkBuildCommand apk = new ApkBuildCommand(this, acxt, zipfile, dexFile, apkFile, apkResource);
-		tactics.add(apk);
+		apkTactic = new ApkBuildCommand(this, acxt, zipfile, dexFile, apkFile, apkResource);
+		tactics.add(apkTactic);
 		this.tactics = tactics;
 		return tactics;
 	}
@@ -225,12 +227,13 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 
 	public void configureJRR(BuildContext cxt) {
 		jrr.add(bindir);
-		for (BuildResource br : cxt.getDependencies(this))
-		{
-			if (br instanceof JarResource)
+		for (Tactic t : tactics())
+			for (BuildResource br : cxt.getDependencies(t))
 			{
-				jrr.add(((JarResource)br).getPath());
+				if (br instanceof JarResource)
+				{
+					jrr.add(((JarResource)br).getPath());
+				}
 			}
-		}
 	}
 }

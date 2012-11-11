@@ -6,7 +6,6 @@ public enum BuildStatus {
 	CLEAN,	 // it was already clean, so move on 
 	SKIPPED, // we skipped this step because there didn't seem anything to do
 	NOTAPPLICABLE, // a "buildif" command said not to 
-	DEFERRED, // we didn't do it for some (unspecified) reason, but don't worry about it.  Get back to me!
 
 	// It didn't work out so well ...
 	RETRY,			// But I made changes, so try again!
@@ -14,7 +13,7 @@ public enum BuildStatus {
 	BROKEN;			// I just can't go on!
 	
 	public boolean isGood() { 
-		return this == SUCCESS || this == CLEAN || this == SKIPPED || this == NOTAPPLICABLE || this == DEFERRED;
+		return this == SUCCESS || this == CLEAN || this == SKIPPED || this == NOTAPPLICABLE;
 	}
 	
 	public boolean tryAgain() {
@@ -47,6 +46,6 @@ public enum BuildStatus {
 
 	// This is before we build ... do we need to build?
 	public boolean needsBuild() {
-		return this == SUCCESS || this == RETRY || this == DEFERRED;
+		return this == SUCCESS || this == RETRY;
 	}
 }

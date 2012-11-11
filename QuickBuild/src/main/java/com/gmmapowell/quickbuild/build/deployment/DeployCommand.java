@@ -3,8 +3,10 @@ package com.gmmapowell.quickbuild.build.deployment;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
@@ -149,5 +151,16 @@ public class DeployCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 	@Override
 	public boolean analyzeExports() {
 		return false;
+	}
+
+	private Set <Tactic> procDeps = new HashSet<Tactic>();
+	
+	@Override
+	public void addProcessDependency(Tactic earlier) {
+		procDeps.add(earlier);
+	}
+	
+	public Set<Tactic> getProcessDependencies() {
+		return procDeps;
 	}
 }

@@ -649,5 +649,23 @@ public class FileUtils {
 		}
 	}
 
+
+	public static List<File> splitJavaPath(String path) {
+		String[] elts = path.split(File.pathSeparator);
+		List<File> ret = new ArrayList<File>();
+		for (String s : elts) {
+			if (s == null || s.length() == 0)
+				continue;
+			try {
+				File pe = relativePath(new File(s)).getCanonicalFile();
+				if (pe.exists())
+					ret.add(pe);
+			} catch (Exception ex) { 
+				// whatever
+			}
+		}
+		return ret;
+	}
+
 }
 	

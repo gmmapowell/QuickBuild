@@ -2,6 +2,7 @@ package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -67,7 +68,7 @@ public class DexBuildCommand implements Tactic {
 		proc.arg(bindir.getPath());
 		
 		LinkedHashSet<String> paths = new LinkedHashSet<String>();
-		for (BuildResource br : cxt.getDependencies(parent))
+		for (BuildResource br : cxt.getDependencies(this))
 		{
 			if (br instanceof JarResource)
 				considerAdding(paths, br.getPath().getPath());
@@ -117,5 +118,16 @@ public class DexBuildCommand implements Tactic {
 	@Override
 	public String identifier() {
 		return BuildOrder.tacticIdentifier(parent, "dex");
+	}
+
+	private Set <Tactic> procDeps = new HashSet<Tactic>();
+	
+	@Override
+	public void addProcessDependency(Tactic earlier) {
+		procDeps.add(earlier);
+	}
+	
+	public Set<Tactic> getProcessDependencies() {
+		return procDeps;
 	}
 }

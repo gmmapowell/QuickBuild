@@ -4,14 +4,14 @@ import java.io.File;
 
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.SolidResource;
-import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.FileUtils;
 
 public class DeployedObject extends SolidResource implements BuildResource {
 
 	private String name;
 
-	public DeployedObject(Strategem builtBy, File path) {
+	public DeployedObject(Tactic builtBy, File path) {
 		super(builtBy, path);
 		name = FileUtils.ensureExtension(path.getPath(), ".__");
 	}

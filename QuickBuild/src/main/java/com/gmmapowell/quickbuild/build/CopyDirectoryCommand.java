@@ -1,7 +1,9 @@
 package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.gmmapowell.collections.CollectionUtils;
 import com.gmmapowell.parser.TokenizedLine;
@@ -127,6 +129,17 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 	@Override
 	public boolean analyzeExports() {
 		return false;
+	}
+
+	private Set <Tactic> procDeps = new HashSet<Tactic>();
+	
+	@Override
+	public void addProcessDependency(Tactic earlier) {
+		procDeps.add(earlier);
+	}
+	
+	public Set<Tactic> getProcessDependencies() {
+		return procDeps;
 	}
 
 }

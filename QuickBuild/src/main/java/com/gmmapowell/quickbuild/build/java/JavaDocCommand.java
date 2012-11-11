@@ -3,6 +3,7 @@ package com.gmmapowell.quickbuild.build.java;
 import java.io.File;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -246,5 +247,16 @@ public class JavaDocCommand extends AbstractBuildCommand implements Strategem, T
 	@Override
 	public boolean analyzeExports() {
 		return true;
+	}
+
+	private Set <Tactic> procDeps = new HashSet<Tactic>();
+	
+	@Override
+	public void addProcessDependency(Tactic earlier) {
+		procDeps.add(earlier);
+	}
+	
+	public Set<Tactic> getProcessDependencies() {
+		return procDeps;
 	}
 }

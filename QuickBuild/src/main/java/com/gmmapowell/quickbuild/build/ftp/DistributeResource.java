@@ -4,7 +4,7 @@ import java.io.File;
 
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.CloningResource;
-import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
 
 public class DistributeResource implements BuildResource {
 	private final DistributeCommand strat;
@@ -17,7 +17,7 @@ public class DistributeResource implements BuildResource {
 	}
 
 	@Override
-	public Strategem getBuiltBy() {
+	public Tactic getBuiltBy() {
 		return strat;
 	}
 

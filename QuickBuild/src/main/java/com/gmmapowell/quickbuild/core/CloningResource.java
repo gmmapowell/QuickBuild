@@ -7,11 +7,11 @@ import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 
 public class CloningResource implements BuildResource {
 	private final File clonedPath;
-	private final Strategem builtBy;
+	private final Tactic builtBy;
 	private BuildResource actual;
 	private final PendingResource pending;
 
-	public CloningResource(Strategem builtBy, PendingResource fromResource, File clonedPath) {
+	public CloningResource(Tactic builtBy, PendingResource fromResource, File clonedPath) {
 		this.builtBy = builtBy;
 		this.pending = fromResource;
 		this.clonedPath = clonedPath;
@@ -44,7 +44,7 @@ public class CloningResource implements BuildResource {
 	}
 
 	@Override
-	public Strategem getBuiltBy() {
+	public Tactic getBuiltBy() {
 		return builtBy;
 	}
 

@@ -2,12 +2,12 @@ package com.gmmapowell.quickbuild.build;
 
 import java.util.Date;
 
-import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.DateUtils;
 
 public class BuildExecutor {
-	private enum Status { NOT_SET, BUILD_CURRENT, RESTART_BAND, RESTART_STRAT, NEXT_TACTIC, NEXT_STRAT, NEXT_BAND };
+	private enum Status { NOT_SET, NEXT_TACTIC, REJECT_AND_SEARCH_WELL };
 
 	private final BuildContext cxt;
 	private BuildOrder buildOrder;
@@ -20,9 +20,7 @@ public class BuildExecutor {
 	private int totalErrors;
 	private int projectsWithTestFailures;
 
-	private Status status = Status.BUILD_CURRENT;
-	private int currentBand = 0;
-	private int currentStrat = 0;
+	private Status status = Status.REJECT_AND_SEARCH_WELL;
 	private int currentTactic = 0;
 	private final boolean debug;
 
@@ -42,11 +40,10 @@ public class BuildExecutor {
 		ItemToBuild itb;
 		while ((itb = next())!= null)
 		{
-			ehandler.currentCmd(itb);
+			ehandler.currentCmd(currentTactic, itb);
 			if (debug)
 			{
-				for (Tactic t : itb.strat.getStrat().tactics())
-					System.out.println(t);
+				System.out.println(itb.tactic);
 				System.out.print(new Date().toString()+" ");
 			}
 			BuildStatus outcome = execute(itb);
@@ -60,14 +57,15 @@ public class BuildExecutor {
 					ehandler.buildFail(outcome);
 				if (outcome.isBroken())
 				{
-					System.out.println("  Failed ... skipping to next in band");
-					fatal();
+					System.out.println("  Failed ... pressing on to the grand fallacy");
+					fatal(itb);
 					continue;
 				}
 				else if (outcome.tryAgain())
 				{
-					System.out.println("  Failed ... returning to ready queue");
-					tryAgain();
+					if (debug)
+						System.out.println("  Failed ... returning to ready queue");
+					returnToWell(itb);
 //					System.out.println(cxt.printableBuildOrder(false));
 					continue;
 				}
@@ -87,66 +85,43 @@ public class BuildExecutor {
 		boolean retrying = false;
 		for (;;)
 		{
-//			System.out.println("next(status=" + status + ")");
+			if (debug)
+				System.out.println("next(status=" + status + ")");
 			if (status == Status.NOT_SET)
 				throw new QuickBuildException("Invalid status");
 			// Do the obvious first: try and move on if required
 			if (status == Status.NEXT_TACTIC)
 				currentTactic++;
-			else if (status == Status.RESTART_BAND)
-			{
-				currentTactic = 0;
-				currentStrat = 0;
-				status = Status.BUILD_CURRENT;
-			}
-			else if (status == Status.RESTART_STRAT)
-			{
-				currentTactic = 0;
-				status = Status.BUILD_CURRENT;
-			}
-			else if (status == Status.NEXT_STRAT)
-			{
-				currentTactic = 0;
-				currentStrat++;
-			}
-			else if (status == Status.NEXT_BAND)
-			{
-				currentTactic = 0;
-				currentStrat = 0;
-				currentBand++;
-			}
+			else if (status == Status.REJECT_AND_SEARCH_WELL)
+				; // do nothing
+			else
+				throw new QuickBuildException("Invalid status: " + status);
 
-//			System.out.println("itb("+currentBand+","+currentStrat+","+currentTactic+")");
+			if (debug)
+				System.out.println("itb("+currentTactic+")");
 			// If the identified ITB exists, return it
-			ItemToBuild itb = buildOrder.get(currentBand, currentStrat, currentTactic);
+			ItemToBuild itb = buildOrder.get(currentTactic);
 			if (itb != null)
 			{
 				status = Status.NOT_SET;
 				return itb;
 			}
 
-//			System.out.println("itb = null, status=" + status);
+			if (debug)
+				System.out.println("itb = null, status=" + status);
 			
 			// OK, we've reached the end of the road ...
-			if (status == Status.BUILD_CURRENT)
+			if (status == Status.REJECT_AND_SEARCH_WELL)
 			{
 				// This is a random hack to try and stay out of infinite loops ...
 				if (retrying)
-					throw new QuickBuildException("Can't build current when there isn't one! " + currentBand + " " + currentStrat + " " + currentTactic);
+					throw new QuickBuildException("Can't build current when there isn't one! " + currentTactic);
 
 				status = Status.NEXT_TACTIC;
 				retrying = true;
 			}
-			else if (status == Status.NEXT_BAND)
-				return null; // we are at the beginning of a band, but none ...
-			else if (status == Status.NEXT_STRAT)
-			{
-				if (isBroken)
-					return null;
-				status = Status.NEXT_BAND;
-			}
-			else if (status == Status.NEXT_TACTIC)
-				status = Status.NEXT_STRAT;
+			else
+				return null;
 		}
 	}
 
@@ -154,13 +129,15 @@ public class BuildExecutor {
 		status = Status.NEXT_TACTIC;
 	}
 
-	public void tryAgain() {
-		status = Status.RESTART_STRAT;
+	public void returnToWell(ItemToBuild itb) {
+		buildOrder.reject(itb.tactic, false);
+		status = Status.REJECT_AND_SEARCH_WELL;
 	}
 
-	public void fatal() {
+	public void fatal(ItemToBuild itb) {
 		isBroken  = true;
-		status = Status.NEXT_STRAT;
+		buildOrder.reject(itb.tactic, true);
+		status = Status.REJECT_AND_SEARCH_WELL;
 	}
 	
 	public void showAnyErrors() {
@@ -188,38 +165,10 @@ public class BuildExecutor {
 
 	
 	public BuildStatus execute(ItemToBuild itb) {
-		if (cxt.quietMode())
-		{
-			if (itb.firstTactic() && itb.needsBuild.needsBuild())
-				System.out.println("* " + itb.name());
-		}
-		else
-		{
-			if (itb.firstTactic())
-				System.out.println(itb.name());
-			if (itb.needsBuild == BuildStatus.NOTAPPLICABLE) 
-				System.out.print("v");
-			else if (itb.needsBuild == BuildStatus.SKIPPED)  // defer now, do later ...
-				System.out.print("-");
-			else if (itb.needsBuild == BuildStatus.SUCCESS) // normal build
-				System.out.print("*");
-			else if (itb.needsBuild == BuildStatus.DEFERRED) // was deferred, do now ...
-				System.out.print("+");
-			else if (itb.needsBuild == BuildStatus.RETRY) // just literally failed ... retrying
-				System.out.print("!");
-			else if (itb.needsBuild == BuildStatus.CLEAN) // is clean, that's OK
-				System.out.print(" ");
-			else
-				throw new RuntimeException("Cannot handle status " + itb.needsBuild);
-			
-			System.out.println(" " + itb.id + ": " + itb.label);
-		}
+		itb.announce(!cxt.quietMode(), currentTactic);
 		if (!itb.needsBuild.needsBuild())
 		{
-			if (itb.lastTactic() && itb.strat instanceof ExecuteStrategem)
-			{
-				rm.exportAll((ExecuteStrategem) itb.strat);
-			}
+			itb.export(rm);
 			return itb.needsBuild;
 		}
 
@@ -236,12 +185,13 @@ public class BuildExecutor {
 			ex.printStackTrace(System.out);
 		}
 		if (ret.needsRebuild())
-			itb.strat.fail();
-		if (itb.lastTactic())
-			if (itb.strat instanceof ExecuteStrategem)
-				rm.stratComplete(ret, ((ExecuteStrategem)itb.strat));
-			else
-				((DeferredTactic)itb.strat).complete();
+			itb.fail();
+		else if (ret.isGood()) {
+			itb.commitAll();
+			itb.export(rm);
+			buildOrder.saveBuildOrder();
+			manager.saveDependencies();
+		}
 		
 		return ret;
 	}

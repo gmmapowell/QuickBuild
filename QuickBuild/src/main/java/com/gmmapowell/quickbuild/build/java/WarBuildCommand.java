@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -38,6 +40,7 @@ public class WarBuildCommand implements Tactic {
 		this.warlibs = warlibs;
 		this.warexcl = warexcl;
 		this.warfile = new File(files.getOutputDir(), targetName);
+		warResource = new WarResource(this, files.getOutput(targetName));
 	}
 
 	@Override
@@ -45,6 +48,10 @@ public class WarBuildCommand implements Tactic {
 		return parent;
 	}
 
+	public WarResource getResource() {
+		return warResource;
+	}
+	
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		try
@@ -58,8 +65,8 @@ public class WarBuildCommand implements Tactic {
 			worthIt |= addOurFiles(jos, files.getRelative("qbout/classes"), "WEB-INF/classes/", worthIt);
 			
 			// Now find all the dependencies
-			List<Strategem> str = new ArrayList<Strategem>();
-			str.add(parent); // add this project
+			List<Tactic> str = new ArrayList<Tactic>();
+			str.add(this); // add this project
 			
 			// Now look at all the dependent resources
 			TreeSet<LibEntry> libs = new TreeSet<LibEntry>();
@@ -69,12 +76,15 @@ public class WarBuildCommand implements Tactic {
 				if (r.getBuiltBy() != null)
 					str.add(r.getBuiltBy());
 			}
-			for (Strategem s : str)
+			for (Tactic t : str)
 			{
-				for (BuildResource r : cxt.getDependencies(s))
+				System.out.println("MISSING CODE WBC1");
+				/*
+				for (BuildResource r : cxt.getDependencies(t))
 				{
 					addLibs(libs, r);
 				}
+				*/
 			}
 	
 			for (LibEntry le : libs)
@@ -171,6 +181,17 @@ public class WarBuildCommand implements Tactic {
 		public int compareTo(LibEntry o) {
 			return relative.getPath().compareTo(o.relative.getPath());
 		}
+	}
+
+	private Set <Tactic> procDeps = new HashSet<Tactic>();
+	
+	@Override
+	public void addProcessDependency(Tactic earlier) {
+		procDeps.add(earlier);
+	}
+	
+	public Set<Tactic> getProcessDependencies() {
+		return procDeps;
 	}
 }
 

@@ -31,10 +31,13 @@ public class BuildContext {
 
 	private final boolean quiet;
 
-	public BuildContext(Config conf, ConfigFactory configFactory, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet) {
+	private final File utilsJar;
+
+	public BuildContext(Config conf, ConfigFactory configFactory, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar) {
 		this.conf = conf;
 		this.blankMemory = blankMemory;
 		this.quiet = quiet;
+		this.utilsJar = utilsJar;
 		rm = new ResourceManager(conf);
 		buildOrder = new BuildOrder(this, buildAll, debug);
 		manager = new DependencyManager(conf, rm, buildOrder, debug);
@@ -71,6 +74,10 @@ public class BuildContext {
 		return quiet;
 	}
 	
+	public File getUtilsJar() {
+		return utilsJar;
+	}
+	
 	public void configure()
 	{
 		rm.configure(strats);
@@ -78,14 +85,13 @@ public class BuildContext {
 		{
 			if (blankMemory)
 				throw new QuickBuildCacheException("Blanking memory because root files changed", null);
-			buildOrder.loadBuildOrderCache();
 			manager.loadDependencyCache();
-			buildOrder.attachStrats(strats);
 			manager.attachStrats(strats);
 			for (Strategem s : strats)
 			{			
 				s.buildsResources().resolveClones();
 			}
+			buildOrder.loadBuildOrderCache();
 		}
 		catch (QuickBuildCacheException ex) {
 			// the cache failed to load because of inconsistencies or whatever
@@ -148,16 +154,16 @@ public class BuildContext {
 		return ehandler.failure(args, stdout, stderr);
 	}
 	
-	public boolean addDependency(Strategem dependent, BuildResource resource, boolean wantDebug) {
+	public boolean addDependency(Tactic dependent, BuildResource resource, boolean wantDebug) {
 		if (dependent == null)
-			throw new QuickBuildException("The strategem cannot be null");
+			throw new QuickBuildException("The tactic cannot be null");
 		if (resource == null)
 			throw new QuickBuildException("The resource cannot be null");
 		return manager.addDependency(dependent, resource, wantDebug);
 	}
 	
-	public Iterable<BuildResource> getDependencies(Strategem parent) {
-		return manager.getDependencies(parent);
+	public Iterable<BuildResource> getDependencies(Tactic t) {
+		return manager.getDependencies(t);
 	}
 	
 	public void builtResource(BuildResource r) {

@@ -5,11 +5,11 @@ import java.io.File;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.CloningResource;
 import com.gmmapowell.quickbuild.core.SolidResource;
-import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.FileUtils;
 
 public class JUnitResource  extends SolidResource {
-	public JUnitResource(Strategem parent, File f) {
+	public JUnitResource(Tactic parent, File f) {
 		super(parent, f);
 	}
 	

@@ -83,7 +83,7 @@ public class Node<N> {
 		return node;
 	}
 
-	public void setEntry(N br) {
+	void setEntry(N br) {
 		node = br;
 	}
 }

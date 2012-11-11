@@ -188,4 +188,15 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 		return false;
 	}
 
+	private Set <Tactic> procDeps = new HashSet<Tactic>();
+	
+	@Override
+	public void addProcessDependency(Tactic earlier) {
+		procDeps.add(earlier);
+	}
+	
+	public Set<Tactic> getProcessDependencies() {
+		return procDeps;
+	}
+
 }

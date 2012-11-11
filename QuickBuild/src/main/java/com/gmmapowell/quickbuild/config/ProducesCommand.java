@@ -7,7 +7,7 @@ import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
-import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
@@ -36,9 +36,9 @@ public class ProducesCommand extends NoChildCommand implements ConfigApplyComman
 		return analyze;
 	}
 	
-	public BuildResource getProducedResource(Strategem bash) {
+	public BuildResource getProducedResource(Tactic t) {
 		if (type.equals("jar"))
-			return new JarResource(bash, resourceFile);
+			return new JarResource(t, resourceFile);
 		else
 			throw new UtilException("Cannot handle bash resource type " + type);
 	}

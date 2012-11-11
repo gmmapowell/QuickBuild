@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.utils.PathBuilder;
 
 public class BuildClassPath {
@@ -23,6 +24,10 @@ public class BuildClassPath {
 	protected void toString(PathBuilder pb) {
 		for (File f : files)
 			pb.add(f);
+	}
+
+	public boolean contains(File file) {
+		return files.contains(file);
 	}
 
 	public boolean empty() {
