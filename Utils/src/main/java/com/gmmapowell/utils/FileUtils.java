@@ -486,6 +486,8 @@ public class FileUtils {
 			return;
 		assertDirectory(to);
 		File[] toCopy = from.listFiles();
+		if (toCopy == null || toCopy.length == 0)
+			return;
 		int nerrors = 0;
 		for (File f : toCopy)
 		{

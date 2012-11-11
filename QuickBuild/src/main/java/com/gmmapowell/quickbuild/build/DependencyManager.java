@@ -336,8 +336,8 @@ public class DependencyManager {
 		Set<BuildResource> ret = new HashSet<BuildResource>();
 		for (PendingResource pr : tactic.belongsTo().needsResources()) {
 			BuildResource br = pr.physicalResource();
-			ret.add(br);
-			findDependencies(ret, br);
+			if (ret.add(br))
+				findDependencies(ret, br);
 		}
 //		for (BuildResource br : tactic.belongsTo().buildsResources())
 //		{
@@ -369,8 +369,8 @@ public class DependencyManager {
 		{
 			if (ret.contains(a))
 				continue;
-			ret.add(a);
-			findDependencies(ret, a);
+			if (ret.add(a))
+				findDependencies(ret, a);
 		}
 	}
 

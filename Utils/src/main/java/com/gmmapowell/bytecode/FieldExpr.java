@@ -46,8 +46,17 @@ public class FieldExpr extends Expr {
 			meth.putField(clzName, type.getActual(), fieldName);
 	}
 
+	public boolean isPrimitive() {
+		return type.isPrimitive();
+	}
+	
 	@Override
 	public String getType() {
 		return type.getActual();
+	}
+	
+	@Override
+	public String toString() {
+		return "Field["+clzName+":"+fieldName+" " + type+"]";
 	}
 }

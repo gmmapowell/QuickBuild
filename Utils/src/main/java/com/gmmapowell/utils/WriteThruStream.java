@@ -71,7 +71,7 @@ public class WriteThruStream {
 						throw new IOException("OutputEnd closed");
 					if (closed)
 					{
-						System.out.println();
+//						System.out.println();
 						return -1;
 					}
 					try {

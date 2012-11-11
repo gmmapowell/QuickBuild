@@ -77,4 +77,13 @@ public class JavaType extends JavaInfo {
 		extended = true;
 		return this;
 	}
+
+	public boolean isPrimitive() {
+		return boolean_.equals(actual) || double_.equals(actual) || int_.equals(actual) || long_.equals(actual); 
+	}
+	
+	@Override
+	public String toString() {
+		return actual + (generics!=null&&generics.length>0?":"+generics.length:"");
+	}
 }

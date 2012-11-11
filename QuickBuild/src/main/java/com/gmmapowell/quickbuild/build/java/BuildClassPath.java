@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.utils.PathBuilder;
 
 public class BuildClassPath {

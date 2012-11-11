@@ -78,13 +78,10 @@ public class WarBuildCommand implements Tactic {
 			}
 			for (Tactic t : str)
 			{
-				System.out.println("MISSING CODE WBC1");
-				/*
 				for (BuildResource r : cxt.getDependencies(t))
 				{
 					addLibs(libs, r);
 				}
-				*/
 			}
 	
 			for (LibEntry le : libs)

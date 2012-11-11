@@ -74,7 +74,7 @@ public class DistributeCommand extends AbstractBuildCommand implements ConfigBui
 
 		fromdir = FileUtils.combine(execdir, directory);
 		destination = destination.replaceAll("\\$\\{date}", new SimpleDateFormat("yyyyMMdd").format(new Date()));
-		System.out.println(destination);
+//		System.out.println("Sending to: " + destination);
 		if (destination.startsWith("sftp:"))
 		{
 			method = "sftp";

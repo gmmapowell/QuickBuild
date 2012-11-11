@@ -2,7 +2,6 @@ package com.gmmapowell.quickbuild.build;
 
 import java.util.Date;
 
-import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.DateUtils;
 
@@ -12,7 +11,6 @@ public class BuildExecutor {
 	private final BuildContext cxt;
 	private BuildOrder buildOrder;
 	private ErrorHandler ehandler;
-	private boolean isBroken = false;
 	private DependencyManager manager;
 	private ResourceManager rm;
 
@@ -135,7 +133,6 @@ public class BuildExecutor {
 	}
 
 	public void fatal(ItemToBuild itb) {
-		isBroken  = true;
 		buildOrder.reject(itb.tactic, true);
 		status = Status.REJECT_AND_SEARCH_WELL;
 	}
