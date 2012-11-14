@@ -171,7 +171,8 @@ public class BuildContext {
 	}
 
 	public void builtResource(BuildResource r, boolean analyze) {
-		rm.resourceAvailable(r, analyze);
+		if (r != null)
+			rm.resourceAvailable(r, analyze);
 	}
 	
 	public <T extends BuildResource> Iterable<BuildResource> getResources(Class<T> cls) {

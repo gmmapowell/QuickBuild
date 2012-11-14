@@ -84,7 +84,8 @@ public class GitHelper {
 					{
 						if (currentOld == null)
 						{
-							System.out.println("> " + f);
+							if (oldReader != null)
+								System.out.println("> " + f);
 							gittx.dirtyFile(new File(f));
 							break;
 						}

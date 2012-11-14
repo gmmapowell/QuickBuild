@@ -18,6 +18,7 @@ import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.build.csharp.XAPResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
+import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -33,14 +34,13 @@ public class WarBuildCommand implements Tactic {
 	private final List<Pattern> warexcl;
 	private final WarResource warResource;
 
-	public WarBuildCommand(WarCommand parent, StructureHelper files, WarResource warResource, String targetName, List<PendingResource> warlibs, List<Pattern> warexcl) {
+	public WarBuildCommand(WarCommand parent, StructureHelper files, String targetName, List<PendingResource> warlibs, List<Pattern> warexcl) {
 		this.parent = parent;
 		this.files = files;
-		this.warResource = warResource;
 		this.warlibs = warlibs;
 		this.warexcl = warexcl;
 		this.warfile = new File(files.getOutputDir(), targetName);
-		warResource = new WarResource(this, files.getOutput(targetName));
+		this.warResource = new WarResource(this, files.getOutput(targetName));
 	}
 
 	@Override
@@ -56,7 +56,7 @@ public class WarBuildCommand implements Tactic {
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		try
 		{
-			System.out.println("Opening file " + warfile);
+//			System.out.println("Opening file " + warfile);
 			JarOutputStream jos = new JarOutputStream(new FileOutputStream(warfile.getPath()));
 	
 			// Copy the local items - WebRoot, classes and resources
@@ -123,6 +123,9 @@ public class WarBuildCommand implements Tactic {
 				if (p.matcher(r.getPath().getName().toLowerCase()).matches())
 					return;
 			libs.add(new LibEntry(r.getPath().getName(), r.getPath()));
+		}
+		else if (r instanceof ProcessResource) {
+//			System.out.println("Ignoring " + r);
 		}
 		else
 			throw new QuickBuildException("Do not know how to include " + r +" of type " + r.getClass() + " inside a WAR");

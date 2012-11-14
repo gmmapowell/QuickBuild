@@ -55,4 +55,8 @@ public class ResourcePacket<T extends BuildResource> implements Iterable<T> {
 			break;
 		}
 	}
+
+	public void remove(BuildResource br) {
+		resources.remove(br);
+	}
 }

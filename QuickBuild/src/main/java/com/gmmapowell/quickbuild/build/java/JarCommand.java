@@ -31,7 +31,6 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	private final File rootdir;
 	protected StructureHelper files;
 	protected String targetName;
-	protected JarResource jarResource;
 	protected List<Tactic> tactics;
 	private List<File> includePackages;
 	private List<File> excludePackages;
@@ -57,7 +56,6 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		processOptions(config);
 
 		JarBuildCommand jar = new JarBuildCommand(this, files, targetName, includePackages, excludePackages);
-		jarResource = jar.getJarResource();
 		
 		tactics = new ArrayList<Tactic>();
 		JavaBuildCommand javac = addJavaBuild(tactics, jar, "src/main/java", "classes", "main");
@@ -76,8 +74,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		if (jrun != null)
 			jrun.addProcessDependency(junit);
 		
-		additionalCommands(config);
-
+		JarResource jarResource = jar.getJarResource();
 		if (jarResource != null)
 			willProvide.add(jarResource);
 		else if (junit != null)
@@ -87,6 +84,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			jrun.writeTo(jur);
 		}
 
+		additionalCommands(config);
 		jar.addProcessDependency(javac);
 		jar.addProcessDependency(jrun);
 		return this;

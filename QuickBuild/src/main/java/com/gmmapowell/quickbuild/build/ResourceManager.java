@@ -46,6 +46,8 @@ public class ResourceManager implements ResourceListener {
 	}
 
 	public void resourceAvailable(BuildResource r, boolean analyze) {
+		if (r == null)
+			return;
 		availableResources.add(r);
 		if (r.getPath() != null)
 		{

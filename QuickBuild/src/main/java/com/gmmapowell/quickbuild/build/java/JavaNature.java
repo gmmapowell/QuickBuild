@@ -31,6 +31,10 @@ public class JavaNature implements Nature, BuildContextAware {
 			this.from = from;
 			this.exclusions = exclusions;
 		}
+		@Override
+		public String toString() {
+			return "LibDir["+from+"]";
+		}
 	}
 
 	private final List<String> loadedLibs = new ArrayList<String>();

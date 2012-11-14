@@ -148,6 +148,8 @@ public class DependencyManager {
 			buildOrder.knowAbout(s);
 			for (BuildResource br : s.buildsResources())
 			{
+				if (br == null)
+					continue;
 				if (br instanceof CloningResource)
 				{
 					CloningResource cr = (CloningResource) br;
@@ -195,6 +197,8 @@ public class DependencyManager {
 				dependencies.ensure(actual);
 				for (BuildResource br : s.buildsResources())
 				{
+					if (br == null)
+						continue;
 					if (br instanceof CloningResource)
 					{
 						CloningResource cr = (CloningResource) br;
