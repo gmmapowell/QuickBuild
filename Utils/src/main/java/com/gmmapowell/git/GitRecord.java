@@ -1,6 +1,8 @@
 package com.gmmapowell.git;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.gmmapowell.exceptions.UtilException;
 
@@ -10,6 +12,7 @@ public class GitRecord {
 	private boolean dirty;
 	private boolean error;
 	private boolean committed = false;
+	private List<File> dirtyFiles = new ArrayList<File>();
 
 	GitRecord(File file) {
 		this.source = file;
@@ -17,6 +20,10 @@ public class GitRecord {
 
 	public void setError() {
 		error = true;
+	}
+
+	public boolean isFileDirty(File f) {
+		return dirtyFiles.contains(f);
 	}
 
 	/** Call commit no matter what.
@@ -83,6 +90,12 @@ public class GitRecord {
 
 	public boolean isDirty() {
 		return dirty;
+	}
+
+	public void dirtyFile(File f) {
+		dirtyFiles.add(f);
+		if (!dirty)
+			setDirty();
 	}
 
 }

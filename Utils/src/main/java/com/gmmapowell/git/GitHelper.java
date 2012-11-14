@@ -47,27 +47,27 @@ public class GitHelper {
 		try
 		{
 			doComparison &= file.exists();
-			LineNumberReader r = new LineNumberReader(new StringReader(proc.getStdout()));
-			LineNumberReader old = null;
+			LineNumberReader gitReader = new LineNumberReader(new StringReader(proc.getStdout()));
+			LineNumberReader oldReader = null;
 			newFile = new File(file.getParentFile(), file.getName() + ".new");
 			gittx.generates(newFile);
 			FileOutputStream fos = new FileOutputStream(newFile);
 			if (doComparison)
-				old = new LineNumberReader(new FileReader(file));
+				oldReader = new LineNumberReader(new FileReader(file));
 			
 			PrintWriter pw = new PrintWriter(fos);
 			boolean skipO = false;
-			String lastO = null;
+			String currentOld = null;
 			for (String f : paths)
 			{
-				String s = r.readLine();
-				if (s == null)
+				String hash = gitReader.readLine();
+				if (hash == null)
 				{
-					System.out.println("! Inconsistent number of files and hashes in " + file);
-					gittx.setDirty();
-					break;
+					System.out.println(">! " + f);
+					gittx.dirtyFile(new File(f));
+					continue;
 				}
-				String nextLine = s + " " + f;
+				String nextLine = hash + " " + f;
 				pw.println(nextLine);
 				while (true)
 				{
@@ -75,23 +75,25 @@ public class GitHelper {
 						break;
 					if (skipO)
 						skipO = false;
-					else if (old != null)
-						lastO = old.readLine();
-					if (lastO != null && lastO.equals(nextLine))
+					else if (oldReader != null)
+						currentOld = oldReader.readLine();
+					if (currentOld != null && currentOld.equals(nextLine)) {
 						break;
+					} 
 					else
 					{
-						gittx.setDirty();
-						if (lastO == null)
+						if (currentOld == null)
 						{
 							System.out.println("> " + f);
+							gittx.dirtyFile(new File(f));
 							break;
 						}
-						String oldFile = lastO.substring(41);
+						String oldFile = currentOld.substring(41);
 						int comp = oldFile.compareToIgnoreCase(f);
 						if (comp == 0)
 						{
 							System.out.println("| " + f);
+							gittx.dirtyFile(new File(f));
 							break;
 						}
 						else if (comp < 0)
@@ -110,11 +112,11 @@ public class GitHelper {
 			}
 			{
 				String o;
-				while (old != null && (o = old.readLine()) != null)
+				while (oldReader != null && (o = oldReader.readLine()) != null)
 					System.out.println("< " + o);
 			}
-			if (old != null)
-				old.close();
+			if (oldReader != null)
+				oldReader.close();
 			pw.close();
 			fos.close();
 		}

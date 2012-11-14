@@ -31,6 +31,10 @@ public class OrderedFileList implements Iterable<File> {
 			list.add(f);
 	}
 
+	public void remove(File f) {
+		list.remove(f);
+	}
+
 	@Override
 	public Iterator<File> iterator() {
 		return list.iterator();
