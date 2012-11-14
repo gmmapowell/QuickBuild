@@ -330,8 +330,8 @@ public class DependencyManager {
 	}
 
 	public Iterable<BuildResource> getDependencies(Tactic tactic) {
-//		if (cache.containsKey(tactic))
-//			return cache.get(tactic);
+		if (cache.containsKey(tactic))
+			return cache.get(tactic);
 		
 		Set<BuildResource> ret = new HashSet<BuildResource>();
 		for (PendingResource pr : tactic.belongsTo().needsResources()) {
@@ -339,10 +339,6 @@ public class DependencyManager {
 			if (ret.add(br))
 				findDependencies(ret, br);
 		}
-//		for (BuildResource br : tactic.belongsTo().buildsResources())
-//		{
-//			findDependencies(ret, br);
-//		}
 		BuildResource dep = ensureProcessResource(tactic);
 		for (Tactic t : tactic.getProcessDependencies()) {
 			if (t == null) continue;
@@ -350,7 +346,7 @@ public class DependencyManager {
 			dependencies.ensureLink(dep, to);
 		}
 		findDependencies(ret, dep);
-//		cache.put(tactic, ret);
+		cache.put(tactic, ret);
 		return ret;
 	}
 
@@ -374,11 +370,6 @@ public class DependencyManager {
 		}
 	}
 
-	public void clearCache() {
-		dependencies.clear();
-		cache.clear();
-	}
-
 	public String printableDependencyGraph() {
 		return dependencies.toString();
 	}
@@ -395,6 +386,7 @@ public class DependencyManager {
 		dependencies.ensureLink(dep, resource);
 //		for (BuildResource br : dependent.buildsResources())
 //			ret |= addDependency(br, resource, wantDebug);
+		cache.clear();
 		return true;
 	}
 
@@ -404,6 +396,7 @@ public class DependencyManager {
 		ProcessResource ret = new ProcessResource(dependent);
 		processResources.put(dependent.identifier(), ret);
 		dependencies.ensure(ret);
+		cache.clear();
 		return ret;
 	}
 
