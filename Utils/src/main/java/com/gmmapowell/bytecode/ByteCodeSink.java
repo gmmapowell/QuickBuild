@@ -12,9 +12,9 @@ public interface ByteCodeSink {
 
 	String getSuperClass();
 
-	void defineField(boolean isFinal, Access access, String type, String name);
+	FieldInfo defineField(boolean isFinal, Access access, String type, String name);
 
-	void defineField(boolean isFinal, Access access, JavaType type, String name);
+	FieldInfo defineField(boolean isFinal, Access access, JavaType type, String name);
 
 	void inheritsClass(String clz);
 

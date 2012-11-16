@@ -95,16 +95,17 @@ public class ByteCodeCreator implements ByteCodeSink {
 	}
 
 	@Override
-	public void defineField(boolean isFinal, Access access, String type, String name) {
-		defineField(isFinal, access, new JavaType(type), name);
+	public FieldInfo defineField(boolean isFinal, Access access, String type, String name) {
+		return defineField(isFinal, access, new JavaType(type), name);
 	}
 	
 	@Override
-	public void defineField(boolean isFinal, Access access, JavaType type, String name) {
+	public FieldInfo defineField(boolean isFinal, Access access, JavaType type, String name) {
 		fields.put(name, new FieldObject(access.isStatic(), getCreatedName(), type, name));
 		FieldInfo field = new FieldInfo(bcf, isFinal, access, type.getActual(), name);
 		bcf.addField(field);
 		GenericAnnotator.annotateField(field, type);
+		return field;
 	}
 	
 	@Override

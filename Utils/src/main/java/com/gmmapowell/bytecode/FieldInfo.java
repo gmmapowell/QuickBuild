@@ -63,6 +63,15 @@ public class FieldInfo extends JavaInfo implements AnnotationHolder {
 		annotations.add(type, ann);
 		return ann;
 	}
+
+	// This is probably more general than string
+	public void constValue(String fullName) {
+		int ptr = bcf.pool.requireString(fullName);
+		byte[] data = new byte[2];
+		data[0] = (byte)(ptr>>8);
+		data[1] = (byte)(ptr&0xff);
+		attributes.add(bcf.newAttribute("ConstantValue", data));
+	}
 	
 	public Annotation getClassAnnotation(String ann) {
 		for (AnnotationType i : annotations)

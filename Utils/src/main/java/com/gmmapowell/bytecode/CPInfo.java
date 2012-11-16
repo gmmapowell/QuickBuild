@@ -211,6 +211,11 @@ public abstract class CPInfo {
 		}
 
 		@Override
+		public String toString() {
+			return "StringInfo[" + idx + "{" + pool.get(idx) + "}]";
+		}
+		
+		@Override
 		public String asClean() {
 			return '"' + pool.get(idx).asClean() + '"';
 		}
