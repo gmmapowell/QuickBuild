@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -400,6 +401,21 @@ public class FileUtils {
 			to.write(bs, 0, cnt);
 	}
 
+	public static byte[] readAllReader(Reader r) {
+		try {
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			int cnt;
+			char[] cbuf = new char[500];
+			while ((cnt = r.read(cbuf, 0, 500)) > 0) {
+				baos.write(new String(cbuf, 0, cnt).getBytes());
+			}
+			return baos.toByteArray();
+		}
+		catch (IOException ex) {
+			throw UtilException.wrap(ex);
+		}
+	}
+
 	public static void assertDirectory(File file) {
 		if (!file.exists())
 			if (!file.mkdirs())
@@ -422,6 +438,11 @@ public class FileUtils {
 			if (!new File(dir, f.getPath()).delete())
 				throw new UtilException("Could not delete: " + f);
 		}
+	}
+	
+	public static void deleteDirectoryTree(File dir) {
+		cleanDirectory(dir);
+		dir.delete();
 	}
 
 	public static File combine(File path1, String path2) {
@@ -668,6 +689,7 @@ public class FileUtils {
 		}
 		return ret;
 	}
+
 
 }
 	

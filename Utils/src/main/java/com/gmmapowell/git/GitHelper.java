@@ -16,6 +16,18 @@ import com.gmmapowell.utils.OrderedFileList;
 
 public class GitHelper {
 
+	public static RunProcess runGit(File inDir, String... args) {
+		RunProcess proc = new RunProcess("git");
+//		proc.debug(true);
+		proc.executeInDir(inDir);
+		proc.captureStdout();
+
+		for (String a : args)
+			proc.arg(a);
+		proc.execute();
+		return proc;
+	}
+
 	public static GitRecord checkFiles(boolean doComparison, OrderedFileList files, File file) {
 		RunProcess proc = new RunProcess("git");
 //		proc.debug(); 
