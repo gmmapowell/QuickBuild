@@ -213,7 +213,7 @@ public class ConnectionThread extends Thread {
 		}
 	}
 
-	private GPFrame readFrame(ServletInputStream is2) {
+	private GPFrame readFrame(ServletInputStream is) {
 		try
 		{
 			int b1 = is.read();

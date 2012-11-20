@@ -91,8 +91,9 @@ public interface RemoteIO {
 				InlineServer.logger.info("Sending " + addr + " to " + alertEP);
 				alertEP.send(addr.toString());
 			}
-			for (NotifyOnServerReady nosr : interestedParties)
-				nosr.serverReady(server, addr);
+			if (interestedParties != null)
+				for (NotifyOnServerReady nosr : interestedParties)
+					nosr.serverReady(server, addr);
 		}
 
 		@Override
