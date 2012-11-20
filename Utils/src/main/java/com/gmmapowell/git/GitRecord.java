@@ -9,6 +9,7 @@ import com.gmmapowell.exceptions.UtilException;
 public class GitRecord {
 	private final File source;
 	private File generates;
+	private boolean missing;
 	private boolean dirty;
 	private boolean error;
 	private boolean committed = false;
@@ -23,7 +24,7 @@ public class GitRecord {
 	}
 
 	public boolean isFileDirty(File f) {
-		return dirtyFiles.contains(f);
+		return missing || dirtyFiles.contains(f);
 	}
 
 	/** Call commit no matter what.
@@ -96,6 +97,10 @@ public class GitRecord {
 		dirtyFiles.add(f);
 		if (!dirty)
 			setDirty();
+	}
+
+	public void fileMissing() {
+		missing = true;
 	}
 
 }

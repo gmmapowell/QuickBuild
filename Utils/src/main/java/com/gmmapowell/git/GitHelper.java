@@ -54,6 +54,7 @@ public class GitHelper {
 			System.out.println("! No file: " + file);
 			nofile = true;
 			gittx.setDirty();
+			gittx.fileMissing();
 		}
 		File newFile = null;
 		try
