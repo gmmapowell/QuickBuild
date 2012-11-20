@@ -1,10 +1,14 @@
 package com.gmmapowell.quickbuild.build.maven;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.http.ProxyableConnection;
@@ -77,19 +81,58 @@ public class MavenNature implements Nature {
 			throw new QuickBuildException("There are no maven repositories specified");
 		for (String repo : mvnrepos)
 		{
-			ProxyableConnection conn = config.newConnection(FileUtils.urlPath(repo, mavenToFile));
+			String urlPath = FileUtils.urlPath(repo, mavenToFile);
 			try {
-				FileUtils.assertDirectory(cacheTo.getParentFile());
-				FileOutputStream fos = new FileOutputStream(cacheTo);
-				FileUtils.copyStream(conn.getInputStream(), fos);
-				fos.close();
+				doDownload(urlPath, cacheTo);
 				System.out.println("Downloaded " + pkginfo + " from " + repo);
 				return;
 			} catch (IOException e) {
-				System.out.println("Could not find " + pkginfo + " at " + repo + ":\n  " + e.getMessage());
+				cacheTo.delete();
+				if (trySnapshot(repo, pkginfo, mavenToFile, cacheTo))
+					return;
+//				System.out.println("Could not find " + pkginfo + " at " + repo + ":\n  " + e.getMessage());
 			}
 		}
 		throw new QuickBuildException("Could not find maven package " + pkginfo);
+	}
+
+	private void doDownload(String urlPath, File cacheTo) throws FileNotFoundException, IOException {
+		ProxyableConnection conn = config.newConnection(urlPath);
+		FileUtils.assertDirectory(cacheTo.getParentFile());
+		FileOutputStream fos = new FileOutputStream(cacheTo);
+		FileUtils.copyStream(conn.getInputStream(), fos);
+		fos.close();
+	}
+
+	/** It seems that there are times when snapshots can have random time/date fields in lieu of "SNAPSHOT" in the
+	 * actual version.  Handle this case.
+	 * @return 
+	 */
+	private boolean trySnapshot(String repo, String pkginfo, File mavenToFile, File cacheTo) {
+		try {
+			File pf = mavenToFile.getParentFile();
+			String url = FileUtils.urlPath(repo, pf) +"/";
+			ProxyableConnection conn = config.newConnection(url);
+			ByteArrayOutputStream sw = new ByteArrayOutputStream();
+			FileUtils.copyStream(conn.getInputStream(), sw);
+			String contents = new String(sw.toByteArray());
+
+			String patt = "\"([^\"']*" + mavenToFile.getName().replace("SNAPSHOT", "[^\"']*") + ")\"";
+			Pattern p = Pattern.compile(patt);
+			Matcher matcher = p.matcher(contents);
+			String shortest = null;
+			while (matcher.find()) {
+				if (shortest == null || shortest.length() > matcher.group(1).length())
+					shortest = matcher.group(1);
+			}
+			doDownload(shortest, cacheTo);
+			return true;
+		}
+		catch (IOException e) {
+//			System.out.println("Exception: " + e.getMessage());
+			cacheTo.delete();
+		}
+		return false;
 	}
 
 	@Override
