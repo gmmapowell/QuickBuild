@@ -3,7 +3,6 @@ package com.gmmapowell.serialization;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.net.InetAddress;
@@ -119,9 +118,7 @@ public class Endpoint implements Serializable {
 		try
 		{
 			Socket socket = new Socket(host, port);
-			ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-			
-			return new EndpointConnection(socket, oos); 
+			return new EndpointConnection(socket); 
 		}
 		catch (Exception ex)
 		{
