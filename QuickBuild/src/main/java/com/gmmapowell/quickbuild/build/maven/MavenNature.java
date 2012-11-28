@@ -125,7 +125,8 @@ public class MavenNature implements Nature {
 				if (shortest == null || shortest.length() > matcher.group(1).length())
 					shortest = matcher.group(1);
 			}
-			doDownload(shortest, cacheTo);
+			if (shortest != null)
+				doDownload(shortest, cacheTo);
 			return true;
 		}
 		catch (IOException e) {

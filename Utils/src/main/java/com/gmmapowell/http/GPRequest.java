@@ -131,7 +131,7 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public String getContentType() {
-		throw new UtilException("Not implemented");
+		return this.getHeader("Content-Type");
 	}
 
 	@Override
