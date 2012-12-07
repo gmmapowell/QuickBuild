@@ -1,6 +1,7 @@
 package com.gmmapowell.serialization;
 
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
@@ -9,6 +10,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import com.gmmapowell.exceptions.UtilException;
@@ -49,6 +51,12 @@ public class Endpoint implements Serializable {
 		return port;
 	}
 
+	/** Note: this depends on there being a suitable address for the alleged machine hostname.
+	 * If your machine does not have an entry for its own hostname - or only has 127.0.0.1 - then
+	 * this won't work.
+	 * 
+	 * @return the best IP address we can find
+	 */
 	private static String getLocalHostAddr() {
 		try {
 			String host = null;
@@ -173,5 +181,10 @@ public class Endpoint implements Serializable {
 	@Override
 	public int hashCode() {
 		return host.hashCode() ^ port;
+	}
+	
+	public static void main(String[] args) throws SecurityException, IOException {
+		LogManager.getLogManager().readConfiguration(new ByteArrayInputStream("handlers=java.util.logging.ConsoleHandler\njava.util.logging.ConsoleHandler.formatter = com.gmmapowell.http.HttpFormatter\njava.util.logging.ConsoleHandler.level = FINEST\nEndpoint.level = FINEST\n".getBytes()));
+		getLocalHostAddr();
 	}
 }

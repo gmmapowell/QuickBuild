@@ -74,6 +74,7 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 		proc.arg("-classpath");
 		proc.arg(classpath.toString());
 		proc.arg("-Djava.util.logging.config.class=com.gmmapowell.http.LoggingConfiguration");
+		proc.arg("-Xmx2g");
 //		proc.arg("org.junit.runner.JUnitCore");
 		proc.arg("com.gmmapowell.test.QBJUnitRunner");
 		boolean any = false;

@@ -401,6 +401,10 @@ public class FileUtils {
 			to.write(bs, 0, cnt);
 	}
 
+	public static byte[] readAllStream(InputStream asStream) {
+		return readAllReader(new InputStreamReader(asStream));
+	}
+
 	public static byte[] readAllReader(Reader r) {
 		try {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -689,7 +693,5 @@ public class FileUtils {
 		}
 		return ret;
 	}
-
-
 }
 	

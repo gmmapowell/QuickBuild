@@ -118,13 +118,17 @@ public class InlineServer {
 				}
 			}
 			// Wait for all non-dead threads (at least for a while)
-			for (ConnectionThread ct : threads)
-			{
-				if (ct.isAlive())
+			try {
+				for (ConnectionThread ct : threads)
 				{
-					logger.info("Joining thread " + ct);
-					ct.join(1000);
+					if (ct.isAlive())
+					{
+						logger.info("Joining thread " + ct);
+						ct.join(1000);
+					}
 				}
+			} catch (InterruptedException ex) {
+				logger.severe("Interrupted waiting for threads to join ... trying again");
 			}
 			logger.info("Closing remote " + remote);
 			remote.close();
