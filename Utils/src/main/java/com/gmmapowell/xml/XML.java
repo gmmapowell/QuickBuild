@@ -84,6 +84,10 @@ public class XML {
 		}
 	}
 
+	public void setErrorHandler(XMLErrorHandler errorHandler) {
+		this.top.setErrorHandler(errorHandler);
+	}
+
 	public static XML fromFile(File f) {
 		FileInputStream fis = null;
 		try

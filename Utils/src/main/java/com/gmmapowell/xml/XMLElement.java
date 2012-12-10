@@ -25,12 +25,17 @@ public class XMLElement implements Externalizable {
 	private final XML inside;
 	private Element elt;
 	private final HashSet<String> attrsProcessed = new HashSet<String>();
+	private XMLErrorHandler handler;
 
 	XMLElement(XML inside, Element elt) {
 		this.inside = inside;
 		this.elt = elt;
 	}
 	
+	public void setErrorHandler(XMLErrorHandler handler) {
+		this.handler = handler;
+	}
+
 	public String tag() {
 		return elt.getTagName();
 	}
@@ -46,8 +51,13 @@ public class XMLElement implements Externalizable {
 
 	// Linear Access to attributes
 	public String required(String attr) {
-		if (!elt.hasAttribute(attr))
-			throw new XMLAttributeException("The required attribute '" + attr + "' was not found on " + this);
+		if (!elt.hasAttribute(attr)) {
+			if (handler != null) {
+				handler.missingAttribute(attr);
+				return null;
+			} else
+				throw new XMLAttributeException("The required attribute '" + attr + "' was not found on " + this);
+		}
 		attrsProcessed.add(attr);
 		return elt.getAttribute(attr);
 	}
@@ -75,16 +85,27 @@ public class XMLElement implements Externalizable {
 		{
 			StringBuilder msg = new StringBuilder("At end of attributes processing for " + tag() + ", attributes were unprocessed:");
 			for (String a : attributes())
-				if (!attrsProcessed.contains(a))
+				if (!attrsProcessed.contains(a)) {
 					msg.append(" " + a);
-			throw new XMLAttributeException(msg.toString());
+					if (handler != null)
+						handler.unprocessedAttribute(a);
+					System.out.println(elt.getUserData(LocationAnnotator.START_FROM));
+					System.out.println(elt.getUserData(LocationAnnotator.END_AT));
+				}
+			if (handler == null)
+				throw new XMLAttributeException(msg.toString());
 		}
 	}
 	
 	// Random Access
 	public String get(String attr) {
-		if (!elt.hasAttribute(attr))
-			throw new UtilException("The required attribute '" + attr + "' was not found on " + this);
+		if (!elt.hasAttribute(attr)) {
+			if (handler != null) {
+				handler.missingAttribute(attr);
+				return null;
+			} else
+				throw new XMLAttributeException("The required attribute '" + attr + "' was not found on " + this);
+		}
 		return elt.getAttribute(attr);
 	}
 	
@@ -101,8 +122,11 @@ public class XMLElement implements Externalizable {
 		{
 			Node n = nl.item(i);
 			
-			if (n instanceof Element && (tagged == null || ((Element)n).getTagName().equals(tagged)))
-				ret.add(new XMLElement(inside, (Element)n));
+			if (n instanceof Element && (tagged == null || ((Element)n).getTagName().equals(tagged))) {
+				XMLElement child = new XMLElement(inside, (Element)n);
+				child.setErrorHandler(handler);
+				ret.add(child);
+			}
 		}
 		return ret;
 	}
@@ -123,6 +147,7 @@ public class XMLElement implements Externalizable {
 			if (n instanceof Element)
 			{
 				XMLElement xe = new XMLElement(inside, (Element)n);
+				xe.setErrorHandler(handler);
 				Object inner = info.dispatch(cxt, xe);
 				if (inner == null)
 				{
