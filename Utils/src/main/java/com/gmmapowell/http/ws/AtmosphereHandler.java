@@ -1,0 +1,75 @@
+package com.gmmapowell.http.ws;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.atmosphere.cpr.AtmosphereFramework;
+import org.atmosphere.cpr.AtmosphereRequest;
+import org.atmosphere.cpr.AtmosphereResponse;
+import org.atmosphere.websocket.DefaultWebSocketProcessor;
+import org.atmosphere.websocket.WebSocketEventListener;
+import org.atmosphere.websocket.WebSocketProtocol;
+
+import com.gmmapowell.http.GPResponse;
+
+public class AtmosphereHandler implements InlineServerWebSocketHandler {
+	private final Logger logger = Logger.getLogger("AtmosphereHandler");
+	private final AtmosphereRequest request;
+	private final AtmosphereFramework framework;
+//	private final WebSocketProtocol webSocketProtocol;
+	private DefaultWebSocketProcessor webSocketProcessor;
+	private WSWriter webSocket;
+	private final AtmosphereResponse response;
+
+	public AtmosphereHandler(AtmosphereRequest request, AtmosphereResponse response, AtmosphereFramework framework, WebSocketProtocol webSocketProtocol) {
+		this.request = request;
+		this.response = response;
+		this.framework = framework;
+//		this.webSocketProtocol = webSocketProtocol;
+	}
+	
+	@Override
+	public void onOpen(GPResponse gpresp) {
+        try {
+        	webSocket = new WSWriter(gpresp, framework.getAtmosphereConfig());
+        	response.asyncIOWriter(webSocket);
+//            webSocketProcessor = new WebSocketProcessor(framework, webSocket, webSocketProtocol);
+        	webSocketProcessor = new DefaultWebSocketProcessor(framework);
+        	webSocketProcessor.open(webSocket, request, response);
+//            webSocketProcessor.dispatch(request);
+        	webSocketProcessor.dispatch(webSocket, request, response);
+//            webSocketProcessor.notifyListener(new WebSocketEventListener.WebSocketEvent("", WebSocketEventListener.WebSocketEvent.TYPE.CONNECT, webSocketProcessor.webSocket()));
+        	webSocketProcessor.notifyListener(webSocket, new WebSocketEventListener.WebSocketEvent<String>("", WebSocketEventListener.WebSocketEvent.TYPE.CONNECT, webSocket));
+        } catch (Exception e) {
+        	logger.log(Level.WARNING, "failed to connect to web socket", e);
+        }
+	}
+
+	@Override
+	public void onBinaryMessage(byte[] message) throws IOException {
+        try {
+        	webSocketProcessor.invokeWebSocketProtocol(webSocket, message, 0, message.length);
+            webSocketProcessor.notifyListener(webSocket, new WebSocketEventListener.WebSocketEvent<String>(new String(message, "UTF-8"), WebSocketEventListener.WebSocketEvent.TYPE.MESSAGE, webSocket));
+        } catch (UnsupportedEncodingException e) {
+            logger.log(Level.WARNING, "UnsupportedEncodingException", e);
+        }
+	}
+
+	@Override
+	public void onTextMessage(String string) throws IOException {
+        webSocketProcessor.invokeWebSocketProtocol(webSocket, string);
+        webSocketProcessor.notifyListener(webSocket, new WebSocketEventListener.WebSocketEvent<String>(string, WebSocketEventListener.WebSocketEvent.TYPE.MESSAGE, webSocket));
+	}
+
+	@Override
+	public void onClose(int closeCode) {
+        request.destroy();
+        if (webSocketProcessor == null) return;
+
+        webSocketProcessor.notifyListener(webSocket, new WebSocketEventListener.WebSocketEvent<String>("", WebSocketEventListener.WebSocketEvent.TYPE.CLOSE, webSocket));
+        webSocketProcessor.close(webSocket, closeCode);
+	}
+
+}

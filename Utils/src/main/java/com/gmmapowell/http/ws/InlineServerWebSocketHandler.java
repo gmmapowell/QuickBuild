@@ -1,6 +1,8 @@
-package com.gmmapowell.http;
+package com.gmmapowell.http.ws;
 
 import java.io.IOException;
+
+import com.gmmapowell.http.GPResponse;
 
 /** This is the very simple interface we are going to provide
  * for websocket users

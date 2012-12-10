@@ -68,6 +68,10 @@ public class InlineServer {
 		return failure;
 	}
 	
+	public GPServletDefn getBaseServlet() {
+		return servlets.get(0);
+	}
+	
 	public void setContextPath(String path) {
 		servlets.get(0).setContextPath(path);
 	}

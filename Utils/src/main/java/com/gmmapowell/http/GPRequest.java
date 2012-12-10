@@ -36,6 +36,7 @@ import javax.servlet.http.Part;
 import com.gmmapowell.collections.IteratorEnumerator;
 import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.http.ws.InlineServerWebSocketHandler;
 
 public class GPRequest implements HttpServletRequest {
 

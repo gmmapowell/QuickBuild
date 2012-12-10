@@ -32,6 +32,7 @@ public class GPServletOutputStream extends ServletOutputStream {
 	public void write(byte[] b, int off, int len) throws IOException {
 //		InlineServer.logger.finest("Writing " + new String(b));
 		os.write(b, off, len);
+		os.flush();
 	}
 	
 	@Override

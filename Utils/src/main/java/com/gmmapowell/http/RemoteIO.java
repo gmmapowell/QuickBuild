@@ -128,7 +128,8 @@ public interface RemoteIO {
 
 		@Override
 		public void close() throws Exception {
-			s.close();
+			if (s != null)
+				s.close();
 		}
 
 		@Override

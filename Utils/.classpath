@@ -10,5 +10,6 @@
 	<classpathentry kind="lib" path="/qb/libs/servlet-api.jar"/>
 	<classpathentry kind="lib" path="/Users/gareth/user/Personal/Tools/qb/mvncache/com/rabbitmq/amqp-client/2.8.1/amqp-client-2.8.1.jar"/>
 	<classpathentry kind="lib" path="/qb/libs/woodstox-android.jar"/>
+	<classpathentry exported="true" kind="lib" path="/utils-qb/mvncache/org/atmosphere/atmosphere-runtime/1.1.0.beta1/atmosphere-runtime-1.1.0.beta1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
