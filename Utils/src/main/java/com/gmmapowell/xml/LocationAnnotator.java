@@ -1,6 +1,12 @@
 package com.gmmapowell.xml;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -12,6 +18,8 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.gmmapowell.exceptions.UtilException;
+
 public class LocationAnnotator extends DefaultHandler implements LexicalHandler {
     final static String START_FROM = "startFrom";
     final static String END_AT = "endAt";
@@ -21,9 +29,29 @@ public class LocationAnnotator extends DefaultHandler implements LexicalHandler 
 	private final Document doc;
 	private Location last;
 	private boolean debugMode = false;
+	private List<XMLParseError> errors = new ArrayList<XMLParseError>();
 
-    public LocationAnnotator(Document doc) {
-		this.doc = doc;
+    public LocationAnnotator() {
+    	try {
+	        final DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+	        final DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+	        doc = docBuilder.newDocument();
+    	} catch (ParserConfigurationException ex) {
+    		throw UtilException.wrap(ex);
+    	}
+	}
+
+	public Document getDocument() {
+		return doc;
+	}
+
+	public boolean hasErrors() {
+		return errors.size() > 0;
+	}
+
+	public void replayParseErrors(XMLErrorHandler errorHandler) {
+		for (XMLParseError ex : errors)
+			errorHandler.parseError(ex);
 	}
 
 	@Override
@@ -40,15 +68,18 @@ public class LocationAnnotator extends DefaultHandler implements LexicalHandler 
 	}
 
     @Override
+	public void fatalError(SAXParseException e) throws SAXException {
+    	errors.add(new XMLParseError(last, currentLocation(), e));
+	}
+
+    @Override
 	public void error(SAXParseException e) throws SAXException {
-		// TODO Auto-generated method stub
-		super.error(e);
+    	errors.add(new XMLParseError(last, currentLocation(), e));
 	}
 
 	@Override
 	public void warning(SAXParseException e) throws SAXException {
-		// TODO Auto-generated method stub
-		super.warning(e);
+    	errors.add(new XMLParseError(last, currentLocation(), e));
 	}
 
 	@Override
@@ -99,6 +130,12 @@ public class LocationAnnotator extends DefaultHandler implements LexicalHandler 
         }
     	setLast();
     }
+
+	public void unwindStack() {
+		while (!elementStack.isEmpty()) {
+			endElement(null, null, null);
+		}
+	}
 
     @Override
     public void characters(final char ch[], final int start, final int length) throws SAXException {

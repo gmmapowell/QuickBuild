@@ -4,7 +4,6 @@ import com.gmmapowell.xml.XMLElement;
 
 @SuppressWarnings("serial")
 public class InvalidXMLTagException extends XMLUtilException {
-
 	public final XMLElement xe;
 	public final String which;
 	public final Object callbacks;
@@ -15,5 +14,4 @@ public class InvalidXMLTagException extends XMLUtilException {
 		this.which = which;
 		this.callbacks = callbacks;
 	}
-
 }

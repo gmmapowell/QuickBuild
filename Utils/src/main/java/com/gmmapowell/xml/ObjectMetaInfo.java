@@ -1,11 +1,13 @@
 package com.gmmapowell.xml;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.gmmapowell.exceptions.InvalidXMLTagException;
 import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.exceptions.XMLAttributeException;
 
 // I would expect this to be capable of handling sensible defaults
 class ObjectMetaInfo {
@@ -98,8 +100,11 @@ class CallbackTable {
 	{
 		if (callbacks == null)
 			throw new UtilException("Cannot invoke " + which + " on a null object");
-		if (!callbackTable.containsKey(which))
+		if (!callbackTable.containsKey(which)) {
+			if (xe.hasHandler())
+				xe.getHandler().invalidTag(xe.getStartLocation(), xe.getEndLocation(), which);
 			throw new InvalidXMLTagException(xe, which, callbacks);
+		}
 		try
 		{
 			MethodMetaInfo minfo = callbackTable.get(which);
@@ -108,6 +113,12 @@ class CallbackTable {
 			if (minfo.method1 == null)
 				throw new UtilException("There is no invocation method for " + which + " on " + callbacks);
 			return minfo.method1.invoke(callbacks, xe);
+		}
+		catch (InvocationTargetException ex) {
+			Throwable tmp = ex.getCause();
+			if (tmp instanceof XMLAttributeException && xe.hasHandler())
+				throw (XMLAttributeException)tmp;
+			throw UtilException.wrap(ex);
 		}
 		catch (Exception ex)
 		{

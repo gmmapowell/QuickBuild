@@ -16,6 +16,8 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
+
+import com.gmmapowell.exceptions.InvalidXMLTagException;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.exceptions.XMLAttributeException;
 import com.sun.org.apache.xml.internal.serialize.OutputFormat;
@@ -52,11 +54,9 @@ public class XMLElement implements Externalizable {
 	// Linear Access to attributes
 	public String required(String attr) {
 		if (!elt.hasAttribute(attr)) {
-			if (handler != null) {
-				handler.missingAttribute(attr);
-				return null;
-			} else
-				throw new XMLAttributeException("The required attribute '" + attr + "' was not found on " + this);
+			if (handler != null)
+				handler.missingAttribute(getStartLocation(), getEndLocation(), attr);
+			throw new XMLAttributeException("The required attribute '" + attr + "' was not found on " + this);
 		}
 		attrsProcessed.add(attr);
 		return elt.getAttribute(attr);
@@ -88,9 +88,7 @@ public class XMLElement implements Externalizable {
 				if (!attrsProcessed.contains(a)) {
 					msg.append(" " + a);
 					if (handler != null)
-						handler.unprocessedAttribute(a);
-					System.out.println(elt.getUserData(LocationAnnotator.START_FROM));
-					System.out.println(elt.getUserData(LocationAnnotator.END_AT));
+						handler.unprocessedAttribute(getStartLocation(), getEndLocation(), a);
 				}
 			if (handler == null)
 				throw new XMLAttributeException(msg.toString());
@@ -101,7 +99,7 @@ public class XMLElement implements Externalizable {
 	public String get(String attr) {
 		if (!elt.hasAttribute(attr)) {
 			if (handler != null) {
-				handler.missingAttribute(attr);
+				handler.missingAttribute(getStartLocation(), getEndLocation(), attr);
 				return null;
 			} else
 				throw new XMLAttributeException("The required attribute '" + attr + "' was not found on " + this);
@@ -148,15 +146,23 @@ public class XMLElement implements Externalizable {
 			{
 				XMLElement xe = new XMLElement(inside, (Element)n);
 				xe.setErrorHandler(handler);
-				Object inner = info.dispatch(cxt, xe);
-				if (inner == null)
-				{
-					xe.assertNoSubContents();
-					// then there had better be no non-whitespace children of xe
-				}
-				else if (!(inner instanceof XMLCompletelyHandled))
-				{
-					xe.populate(cxt, inner);
+				try {
+					Object inner = info.dispatch(cxt, xe);
+					if (inner == null)
+					{
+						xe.assertNoSubContents();
+						// then there had better be no non-whitespace children of xe
+					}
+					else if (!(inner instanceof XMLCompletelyHandled))
+					{
+						xe.populate(cxt, inner);
+					}
+				} catch (InvalidXMLTagException ex) {
+					if (!xe.hasHandler())
+						throw ex;
+				} catch (XMLAttributeException ex) {
+					if (!xe.hasHandler())
+						throw ex;
 				}
 			}
 			else if (n instanceof Text)
@@ -342,5 +348,26 @@ public class XMLElement implements Externalizable {
 
 	public boolean optionalBoolean(String parm, boolean b) {
 		return Boolean.parseBoolean(optional(parm, Boolean.toString(b)));
+	}
+
+	public void applyLocation(Object cxt) {
+		if (cxt instanceof XMLWantsLocationInfo)
+			((XMLWantsLocationInfo)cxt).elementLocation(getStartLocation(), getEndLocation());
+	}
+
+	public Location getStartLocation() {
+		return (Location)elt.getUserData(LocationAnnotator.START_FROM);
+	}
+
+	public Location getEndLocation() {
+		return (Location)elt.getUserData(LocationAnnotator.END_AT);
+	}
+	
+	public boolean hasHandler() {
+		return handler != null;
+	}
+
+	public XMLErrorHandler getHandler() {
+		return handler;
 	}
 }

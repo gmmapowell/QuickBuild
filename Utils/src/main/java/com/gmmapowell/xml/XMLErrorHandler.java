@@ -2,7 +2,12 @@ package com.gmmapowell.xml;
 
 public interface XMLErrorHandler {
 
-	void missingAttribute(String attr);
+	void parseError(XMLParseError ex);
 
-	void unprocessedAttribute(String attr);
+	void missingAttribute(Location from, Location to, String attr);
+
+	void unprocessedAttribute(Location startElt, Location endElt, String attr);
+
+	void invalidTag(Location start, Location end, String tag);
+
 }

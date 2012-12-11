@@ -38,9 +38,11 @@ public class XML {
 	private XMLElement top;
 	private final String version;
 	final String fromResource;
+	private final LocationAnnotator annotator;
 
 	XML(String version)
 	{
+		annotator = null;
 		this.fromResource = "-";
 		this.version = version;
 		try {
@@ -53,24 +55,30 @@ public class XML {
 	}
 
 	private XML(String from, InputStream stream) {
+		annotator = new LocationAnnotator();
 		try
 		{
-			fromResource = from;
-			doc = PositionalXMLReader.readXML(stream);
-			version = doc.getXmlVersion();
-			top = new XMLElement(this, doc.getDocumentElement());
+			PositionalXMLReader.readXML(stream, annotator);
 		}
 		catch (SAXParseException ex)
 		{
-			throw new XMLParseException(ex);
+			if (!annotator.hasErrors())
+				throw new XMLParseException(ex);
+			annotator.unwindStack();
 		}
 		catch (Exception ex)
 		{
 			throw UtilException.wrap(ex);
 		}
+
+		fromResource = from;
+		doc = annotator.getDocument();
+		version = doc.getXmlVersion();
+		top = new XMLElement(this, doc.getDocumentElement());
 	}
 	
 	private XML(String version, String tag) {
+		annotator = null;
 		this.fromResource = "-";
 		this.version = version;
 		try {
@@ -86,6 +94,7 @@ public class XML {
 
 	public void setErrorHandler(XMLErrorHandler errorHandler) {
 		this.top.setErrorHandler(errorHandler);
+		annotator.replayParseErrors(errorHandler);
 	}
 
 	public static XML fromFile(File f) {
@@ -236,6 +245,7 @@ public class XML {
 			throw new UtilException("There is no (Object, XMLElement) constructor for " + cls);
 		T ret;
 		try {
+			top.applyLocation(cxt);
 			ret = ctor.newInstance(cxt, top);
 		} catch (Exception e) {
 			throw UtilException.wrap(e);
