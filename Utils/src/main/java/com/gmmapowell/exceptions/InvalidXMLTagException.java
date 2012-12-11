@@ -3,7 +3,7 @@ package com.gmmapowell.exceptions;
 import com.gmmapowell.xml.XMLElement;
 
 @SuppressWarnings("serial")
-public class InvalidXMLTagException extends XMLUtilException {
+public class InvalidXMLTagException extends XMLUtilException implements XMLProcessingException {
 	public final XMLElement xe;
 	public final String which;
 	public final Object callbacks;

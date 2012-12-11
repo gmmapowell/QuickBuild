@@ -30,9 +30,11 @@ public class LocationAnnotator extends DefaultHandler implements LexicalHandler 
 	private Location last;
 	private boolean debugMode = false;
 	private List<XMLParseError> errors = new ArrayList<XMLParseError>();
+	private final String file;
 
-    public LocationAnnotator() {
-    	try {
+    public LocationAnnotator(String file) {
+    	this.file = file;
+		try {
 	        final DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
 	        final DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
 	        doc = docBuilder.newDocument();
@@ -60,7 +62,7 @@ public class LocationAnnotator extends DefaultHandler implements LexicalHandler 
     }
 
 	private Location currentLocation() {
-		return new Location(locator.getLineNumber(), locator.getColumnNumber());
+		return new Location(file, locator.getLineNumber(), locator.getColumnNumber());
 	}
 	
 	private void setLast() {

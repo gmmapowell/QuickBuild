@@ -3,7 +3,7 @@ package com.gmmapowell.exceptions;
 import org.xml.sax.SAXParseException;
 
 @SuppressWarnings("serial")
-public class XMLParseException extends RuntimeException {
+public class XMLParseException extends RuntimeException implements XMLProcessingException {
 
 	public XMLParseException(SAXParseException ex) {
 		super(ex);

@@ -55,7 +55,7 @@ public class XML {
 	}
 
 	private XML(String from, InputStream stream) {
-		annotator = new LocationAnnotator();
+		annotator = new LocationAnnotator(from);
 		try
 		{
 			PositionalXMLReader.readXML(stream, annotator);

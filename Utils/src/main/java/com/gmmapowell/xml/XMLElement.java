@@ -19,7 +19,8 @@ import org.w3c.dom.Text;
 
 import com.gmmapowell.exceptions.InvalidXMLTagException;
 import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.exceptions.XMLAttributeException;
+import com.gmmapowell.exceptions.XMLMissingAttributeException;
+import com.gmmapowell.exceptions.XMLUnprocessedAttributeException;
 import com.sun.org.apache.xml.internal.serialize.OutputFormat;
 import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 
@@ -54,9 +55,10 @@ public class XMLElement implements Externalizable {
 	// Linear Access to attributes
 	public String required(String attr) {
 		if (!elt.hasAttribute(attr)) {
+			XMLMissingAttributeException ex = new XMLMissingAttributeException("The required attribute '" + attr + "' was not found on " + this);
 			if (handler != null)
-				handler.missingAttribute(getStartLocation(), getEndLocation(), attr);
-			throw new XMLAttributeException("The required attribute '" + attr + "' was not found on " + this);
+				handler.missingAttribute(getStartLocation(), getEndLocation(), ex);
+			throw ex;
 		}
 		attrsProcessed.add(attr);
 		return elt.getAttribute(attr);
@@ -84,25 +86,26 @@ public class XMLElement implements Externalizable {
 		if (attrsProcessed.size() != elt.getAttributes().getLength())
 		{
 			StringBuilder msg = new StringBuilder("At end of attributes processing for " + tag() + ", attributes were unprocessed:");
+			XMLUnprocessedAttributeException ex = null;
 			for (String a : attributes())
 				if (!attrsProcessed.contains(a)) {
 					msg.append(" " + a);
+					ex = new XMLUnprocessedAttributeException(a, msg.toString());
 					if (handler != null)
-						handler.unprocessedAttribute(getStartLocation(), getEndLocation(), a);
+						handler.unprocessedAttribute(getStartLocation(), getEndLocation(), ex);
 				}
-			if (handler == null)
-				throw new XMLAttributeException(msg.toString());
+			if (ex != null && handler == null)
+				throw ex;
 		}
 	}
 	
 	// Random Access
 	public String get(String attr) {
 		if (!elt.hasAttribute(attr)) {
-			if (handler != null) {
-				handler.missingAttribute(getStartLocation(), getEndLocation(), attr);
-				return null;
-			} else
-				throw new XMLAttributeException("The required attribute '" + attr + "' was not found on " + this);
+			XMLMissingAttributeException ex = new XMLMissingAttributeException("The required attribute '" + attr + "' was not found on " + this);
+			if (handler != null)
+				handler.missingAttribute(getStartLocation(), getEndLocation(), ex);
+			throw ex;
 		}
 		return elt.getAttribute(attr);
 	}
@@ -160,7 +163,10 @@ public class XMLElement implements Externalizable {
 				} catch (InvalidXMLTagException ex) {
 					if (!xe.hasHandler())
 						throw ex;
-				} catch (XMLAttributeException ex) {
+				} catch (XMLMissingAttributeException ex) {
+					if (!xe.hasHandler())
+						throw ex;
+				} catch (XMLUnprocessedAttributeException ex) {
 					if (!xe.hasHandler())
 						throw ex;
 				}

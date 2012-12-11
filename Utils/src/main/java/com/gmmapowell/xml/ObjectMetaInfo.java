@@ -7,7 +7,8 @@ import java.util.Map;
 
 import com.gmmapowell.exceptions.InvalidXMLTagException;
 import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.exceptions.XMLAttributeException;
+import com.gmmapowell.exceptions.XMLProcessingException;
+import com.gmmapowell.exceptions.XMLUnprocessedAttributeException;
 
 // I would expect this to be capable of handling sensible defaults
 class ObjectMetaInfo {
@@ -101,9 +102,10 @@ class CallbackTable {
 		if (callbacks == null)
 			throw new UtilException("Cannot invoke " + which + " on a null object");
 		if (!callbackTable.containsKey(which)) {
+			InvalidXMLTagException ex = new InvalidXMLTagException(xe, which, callbacks);
 			if (xe.hasHandler())
-				xe.getHandler().invalidTag(xe.getStartLocation(), xe.getEndLocation(), which);
-			throw new InvalidXMLTagException(xe, which, callbacks);
+				xe.getHandler().invalidTag(xe.getStartLocation(), xe.getEndLocation(), ex);
+			throw ex;
 		}
 		try
 		{
@@ -116,8 +118,8 @@ class CallbackTable {
 		}
 		catch (InvocationTargetException ex) {
 			Throwable tmp = ex.getCause();
-			if (tmp instanceof XMLAttributeException && xe.hasHandler())
-				throw (XMLAttributeException)tmp;
+			if (tmp instanceof XMLProcessingException && xe.hasHandler())
+				throw (RuntimeException)tmp;
 			throw UtilException.wrap(ex);
 		}
 		catch (Exception ex)
