@@ -4,4 +4,6 @@ public interface ByteCodeHolder {
 
 	ByteCodeSink newEntry(String className, int destinations);
 
+	void close();
+
 }

@@ -90,6 +90,15 @@ public class WriteThruStream {
 				return ret&0xff;
 			}
 		}
+
+		@Override
+		public void close() throws IOException {
+			synchronized(WriteThruStream.this) {
+				super.close();
+				cancel();
+				WriteThruStream.this.notifyAll();
+			}
+		}
 		
 		public void cancel() {
 			WriteThruStream.this.cancel();

@@ -134,4 +134,8 @@ public class ListMap<K, V> implements Iterable<K> {
 	public boolean isEmpty() {
 		return map.isEmpty();
 	}
+
+	public void clear() {
+		map.clear();
+	}
 }

@@ -9,7 +9,6 @@ import java.util.jar.JarOutputStream;
 import com.gmmapowell.exceptions.UtilException;
 
 public class ByteCodeJar implements ByteCodeHolder {
-
 	private List<ByteCodeCreator> files = new ArrayList<ByteCodeCreator>();
 	private final ByteCodeEnvironment env;
 
@@ -48,4 +47,8 @@ public class ByteCodeJar implements ByteCodeHolder {
 		return !files.isEmpty();
 	}
 
+	@Override
+	public void close() {
+		files.clear();
+	}
 }
