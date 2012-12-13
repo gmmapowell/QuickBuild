@@ -63,6 +63,15 @@ public class XMLElement implements Externalizable {
 		attrsProcessed.add(attr);
 		return elt.getAttribute(attr);
 	}
+
+	/** If you want to allow an attribute, but don't want to get its value,
+	 * you can "accept" it.  This will not complain if it is not there.
+	 * 
+	 * @param attr the attribute to accept
+	 */
+	public void accept(String attr) {
+		attrsProcessed.add(attr);
+	}
 	
 	public String optional(String attr) {
 		if (elt.hasAttribute(attr))
