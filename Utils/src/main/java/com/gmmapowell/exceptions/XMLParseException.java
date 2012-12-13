@@ -9,4 +9,8 @@ public class XMLParseException extends RuntimeException implements XMLProcessing
 		super(ex);
 	}
 
+	public String getAttribute() {
+		return null;
+	}
+
 }

@@ -7,4 +7,8 @@ public class XMLMissingAttributeException extends XMLUtilException implements XM
 		super(message);
 	}
 
+	public String getAttribute() {
+		return null;
+	}
+
 }

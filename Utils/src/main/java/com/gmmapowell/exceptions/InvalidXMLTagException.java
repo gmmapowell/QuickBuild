@@ -14,4 +14,8 @@ public class InvalidXMLTagException extends XMLUtilException implements XMLProce
 		this.which = which;
 		this.callbacks = callbacks;
 	}
+
+	public String getAttribute() {
+		return null;
+	}
 }

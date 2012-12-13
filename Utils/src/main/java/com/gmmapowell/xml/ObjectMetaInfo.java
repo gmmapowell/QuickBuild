@@ -8,7 +8,6 @@ import java.util.Map;
 import com.gmmapowell.exceptions.InvalidXMLTagException;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.exceptions.XMLProcessingException;
-import com.gmmapowell.exceptions.XMLUnprocessedAttributeException;
 
 // I would expect this to be capable of handling sensible defaults
 class ObjectMetaInfo {
