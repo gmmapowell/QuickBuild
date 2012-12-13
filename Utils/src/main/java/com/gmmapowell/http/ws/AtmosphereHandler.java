@@ -18,7 +18,6 @@ public class AtmosphereHandler implements InlineServerWebSocketHandler {
 	private final Logger logger = Logger.getLogger("AtmosphereHandler");
 	private final AtmosphereRequest request;
 	private final AtmosphereFramework framework;
-//	private final WebSocketProtocol webSocketProtocol;
 	private DefaultWebSocketProcessor webSocketProcessor;
 	private WSWriter webSocket;
 	private final AtmosphereResponse response;
@@ -27,7 +26,6 @@ public class AtmosphereHandler implements InlineServerWebSocketHandler {
 		this.request = request;
 		this.response = response;
 		this.framework = framework;
-//		this.webSocketProtocol = webSocketProtocol;
 	}
 	
 	@Override
@@ -35,12 +33,9 @@ public class AtmosphereHandler implements InlineServerWebSocketHandler {
         try {
         	webSocket = new WSWriter(gpresp, framework.getAtmosphereConfig());
         	response.asyncIOWriter(webSocket);
-//            webSocketProcessor = new WebSocketProcessor(framework, webSocket, webSocketProtocol);
         	webSocketProcessor = new DefaultWebSocketProcessor(framework);
         	webSocketProcessor.open(webSocket, request, response);
-//            webSocketProcessor.dispatch(request);
-        	webSocketProcessor.dispatch(webSocket, request, response);
-//            webSocketProcessor.notifyListener(new WebSocketEventListener.WebSocketEvent("", WebSocketEventListener.WebSocketEvent.TYPE.CONNECT, webSocketProcessor.webSocket()));
+//        	webSocketProcessor.dispatch(webSocket, request, response);
         	webSocketProcessor.notifyListener(webSocket, new WebSocketEventListener.WebSocketEvent<String>("", WebSocketEventListener.WebSocketEvent.TYPE.CONNECT, webSocket));
         } catch (Exception e) {
         	logger.log(Level.WARNING, "failed to connect to web socket", e);

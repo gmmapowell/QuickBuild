@@ -161,8 +161,7 @@ public class GPServletContext implements ServletContext {
 	}
 
 	GPStaticResource staticResource(String s) {
-		for (File sp : config.staticPaths()) {
-			File f = new File(sp, s);
+		for (File f : config.staticPaths(s)) {
 			if (f.exists())
 				try {
 					if (f.isDirectory())

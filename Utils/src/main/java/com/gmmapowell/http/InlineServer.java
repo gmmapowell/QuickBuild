@@ -20,6 +20,7 @@ public class InlineServer {
 
 	private final RemoteIO remote;
 	private final List<File> staticPaths = new ArrayList<File>();
+	private final List<VirtualPath> virtualPaths = new ArrayList<VirtualPath>();
 	
 	// There is a list of servlets, but, by default, there is only one, the first in the list
 	private final List<GPServletDefn> servlets = new ArrayList<GPServletDefn>();
@@ -37,6 +38,7 @@ public class InlineServer {
 	private long totalRequests;
 
 	private int numRequests;
+
 
 	public InlineServer(int port, String servletClass) {
 		this.remote = new RemoteIO.UsingSocket(this, port);
@@ -170,10 +172,26 @@ public class InlineServer {
 		staticPaths.add(file);
 	}
 
-	public List<File> staticPaths() {
-		if (staticPaths.isEmpty())
+	public void addVirtualDir(String from, File file) {
+		if (!from.startsWith("/"))
+			from = "/"+from;
+		if (!from.endsWith("/"))
+			from += "/";
+		virtualPaths.add(new VirtualPath(from, file));
+	}
+
+
+	public List<File> staticPaths(String s) {
+		if (staticPaths.isEmpty() && virtualPaths.isEmpty())
 			staticPaths.add(FileUtils.getCurrentDir().getAbsoluteFile());
-		return staticPaths;
+		List<File> ret = new ArrayList<File>();
+		for (File sp : staticPaths)
+			ret.add(new File(sp, s));
+		for (VirtualPath vp : virtualPaths) {
+			if (s.startsWith(vp.vpath))
+				ret.add(new File(vp.isTo, s.replace(vp.vpath, "")));
+		}
+		return ret;
 	}
 
 	public GPServletDefn getServlet(GPRequest request) {

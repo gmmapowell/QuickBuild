@@ -13,7 +13,7 @@ public class GPServletOutputStream extends ServletOutputStream {
 	public GPServletOutputStream(OutputStream os) {
 		this.os = os;
 		this.myunique = ++unique;
-		InlineServer.logger.info(Thread.currentThread().getName() + ": creating " + this);
+		InlineServer.logger.finest(Thread.currentThread().getName() + ": creating " + this);
 	}
 
 	@Override
@@ -37,7 +37,7 @@ public class GPServletOutputStream extends ServletOutputStream {
 	
 	@Override
 	public void close() throws IOException {
-		InlineServer.logger.info(Thread.currentThread() + " " + this + " closing stream");
+		InlineServer.logger.finest(Thread.currentThread() + " " + this + " closing stream");
 		super.close();
 		os.close();
 	}

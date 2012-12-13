@@ -44,8 +44,8 @@ public class GPServletConfig implements ServletConfig {
 		return null;
 	}
 
-	public List<File> staticPaths() {
-		return inlineServer.staticPaths();
+	public List<File> staticPaths(String s) {
+		return inlineServer.staticPaths(s);
 	}
 
 	HttpServlet getServlet() {

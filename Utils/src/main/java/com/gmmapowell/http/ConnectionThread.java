@@ -190,8 +190,8 @@ public class ConnectionThread extends Thread {
 				GPFrame frame = readFrame(is);
 				if (frame == null)
 				{
-					is.close();
-					return;
+					request.wshandler.onClose(1000);
+					break;
 				}
 				InlineServer.logger.info("Read " + frame + " telling listener");
 				if (frame.opcode == 0x1)
@@ -206,6 +206,7 @@ public class ConnectionThread extends Thread {
 				else
 					throw new UtilException("Can't handle " + frame.opcode);
 			}
+			is.close();
 			InlineServer.logger.info(Thread.currentThread().getName()+ ": " + "End of async stream");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -217,6 +218,8 @@ public class ConnectionThread extends Thread {
 		try
 		{
 			int b1 = is.read();
+			if (b1 == -1)
+				return null;
 			@SuppressWarnings("unused") // is this the final frame?
 			boolean fin = (b1&0x80) != 0;
 			int rsv = (b1&0x70);
