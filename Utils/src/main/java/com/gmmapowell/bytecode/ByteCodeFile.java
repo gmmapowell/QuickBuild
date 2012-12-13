@@ -144,6 +144,12 @@ public class ByteCodeFile implements AnnotationHolder {
 		return ((ClassInfo)pool.get(this_idx)).justName();
 	}
 
+	public String getSuperClass() {
+		if (super_idx == 0)
+			return null;
+		return ((ClassInfo)pool.get(super_idx)).justName();
+	}
+
 	public RefInfo getRefInfoIfValidIdx(int idx) {
 		if (idx < 1 || idx >= pool.size())
 			return null;
