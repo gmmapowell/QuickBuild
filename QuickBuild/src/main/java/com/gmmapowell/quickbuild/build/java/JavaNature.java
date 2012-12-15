@@ -61,6 +61,7 @@ public class JavaNature implements Nature, BuildContextAware {
 		config.addCommandExtension("nojunit", NoJUnitCommand.class);
 		config.addCommandExtension("overview", OverviewCommand.class);
 		config.addCommandExtension("package", IncludePackageCommand.class);
+		config.addCommandExtension("pde", PDECommand.class);
 		config.addCommandExtension("target", SpecifyTargetCommand.class);
 		config.addCommandExtension("war", WarCommand.class);
 	}
@@ -153,16 +154,24 @@ public class JavaNature implements Nature, BuildContextAware {
 		{
 			Set<JarResource> resources = availablePackages.get(needsJavaPackage);
 			JarResource haveOne = null;
+			boolean addMany = true;
+			boolean ret = false;
 			for (JarResource jr : resources)
 			{
 				if (conf.matchesContext(jr, context))
 				{
 					if (haveOne != null)
 						System.out.println("Multiple choices in context " + context + " for package " + needsJavaPackage + ": chose " + haveOne + " and not " + jr);
-					else
-						haveOne = jr;
+					else {
+						if (addMany)
+							ret |= cxt.addDependency(dependent, jr, debug);
+						else
+							haveOne = jr;
+					}
 				}
 			}
+			if (ret)
+				return true;
 			if (haveOne != null)
 				return cxt.addDependency(dependent, haveOne, debug);
 		}
@@ -214,6 +223,8 @@ public class JavaNature implements Nature, BuildContextAware {
 						conf.resourceAvailable(new JarResource(null, f));
 					}
 				}
+				else
+					System.out.println("There is no lib directory " + libdir);
 			} catch (IOException e) {
 			}
 	}

@@ -164,7 +164,11 @@ public class BuildOrder {
 			File f = br.getPath();
 			OrderedFileList ofl = new OrderedFileList(f);
 //			System.out.println("Considering file " + f + " for " + br);
-			GitRecord ubtx = GitHelper.checkFiles(!buildAll, ofl, cxt.getGitCacheFile("Unbuilt_"+FileUtils.makeRelative(f).getPath().replace("/", "_"), ""));
+			String relpath = f.getPath();
+			try {
+				relpath = FileUtils.makeRelative(f).getPath();
+			} catch (Exception ex) { /* probably not relative */ }
+			GitRecord ubtx = GitHelper.checkFiles(!buildAll, ofl, cxt.getGitCacheFile("Unbuilt_"+relpath.replace("/", "_"), ""));
 			ubtxs.add(ubtx);
 			if (ubtx.isDirty())
 				dirtyUnbuilt.add(br);

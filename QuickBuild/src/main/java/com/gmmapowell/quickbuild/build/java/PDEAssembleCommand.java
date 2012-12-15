@@ -13,10 +13,17 @@ import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
-public class JarBuildCommand extends ArchiveCommand {
+public class PDEAssembleCommand extends ArchiveCommand {
 	private final Strategem parent;
-	public JarBuildCommand(Strategem parent, StructureHelper files, String targetName, List<File> includePackages, List<File> excludePackages) {
+	private final List<File> pdelibs;
+	private final StructureHelper files;
+	
+	public PDEAssembleCommand(Strategem parent, StructureHelper files, String targetName, List<File> pdelibs, List<File> includePackages, List<File> excludePackages) {
 		super(includePackages, excludePackages);
+		this.files = files;
+		this.pdelibs = pdelibs;
+		if (files.getRelative("libs").isDirectory())
+			this.pdelibs.add(files.getRelative("libs"));
 		this.jarResource = new JarResource(this, files.getOutput(FileUtils.ensureExtension(targetName, ".jar")));
 		this.jarfile = this.jarResource.getFile();
 		this.parent = parent;
@@ -31,7 +38,8 @@ public class JarBuildCommand extends ArchiveCommand {
 			proc.showArgs(showArgs);
 		proc.captureStdout();
 		proc.redirectStderr(System.out);
-		proc.arg("cvf");
+		proc.arg("cvmf");
+		proc.arg(files.getRelative("META-INF/MANIFEST.MF").getPath());
 		proc.arg(jarfile.getPath());
 		boolean hasFiles = hasFiles(proc);
 		if (!hasFiles)
@@ -64,22 +72,34 @@ public class JarBuildCommand extends ArchiveCommand {
 		{
 			for (File f : FileUtils.findFilesUnderMatching(dir, "*"))
 			{
-				if (new File(dir, f.getPath()).isDirectory())
-					continue;
-				if (blockedByFilters(f))
-					continue;
-				if (f.getName().startsWith(".git"))
-					continue;
-				if (proc != null)
-				{
-					proc.arg("-C");
-					proc.arg(dir.getPath());
-					proc.arg(f.getPath());
-				}
-				hasFiles = true;
+				hasFiles |= jarFile(proc, dir, f);
 			}
 		}
+		for (File dir : pdelibs)
+		{
+			for (File f : FileUtils.findFilesUnderMatching(dir, "*"))
+			{
+				hasFiles |= jarFile(proc, dir.getParentFile(), FileUtils.combine(new File(dir.getName()), f));
+			}
+		}
+		hasFiles |= jarFile(proc, files.getBaseDir(), new File("plugin.xml"));
 		return hasFiles;
+	}
+
+	private boolean jarFile(RunProcess proc, File dir, File f) {
+		if (new File(dir, f.getPath()).isDirectory())
+			return false;
+		if (blockedByFilters(f))
+			return false;
+		if (f.getName().startsWith(".git"))
+			return false;
+		if (proc != null)
+		{
+			proc.arg("-C");
+			proc.arg(dir.getPath());
+			proc.arg(f.getPath());
+		}
+		return true;
 	}
 
 	private boolean blockedByFilters(File f) {

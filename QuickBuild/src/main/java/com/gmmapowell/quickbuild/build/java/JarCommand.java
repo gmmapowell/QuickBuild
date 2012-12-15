@@ -32,8 +32,8 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	protected StructureHelper files;
 	protected String targetName;
 	protected List<Tactic> tactics;
-	private List<File> includePackages;
-	private List<File> excludePackages;
+	protected List<File> includePackages;
+	protected List<File> excludePackages;
 	private final List<PendingResource> junitLibs = new ArrayList<PendingResource>();
 	private final List<PendingResource> jarLibs = new ArrayList<PendingResource>();
 	private boolean runJunit = true;
@@ -55,7 +55,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		
 		processOptions(config);
 
-		JarBuildCommand jar = new JarBuildCommand(this, files, targetName, includePackages, excludePackages);
+		ArchiveCommand jar = createAssemblyCommand();
 		
 		tactics = new ArrayList<Tactic>();
 		JavaBuildCommand javac = addJavaBuild(tactics, jar, "src/main/java", "classes", "main");
@@ -92,6 +92,11 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		jar.addProcessDependency(javac);
 		jar.addProcessDependency(jrun);
 		return this;
+	}
+
+	// strategy pattern
+	protected ArchiveCommand createAssemblyCommand() {
+		return new JarBuildCommand(this, files, targetName, includePackages, excludePackages);
 	}
 
 	protected void additionalCommands(Config config) {
@@ -180,7 +185,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		return tactics;
 	}
 
-	private JavaBuildCommand addJavaBuild(List<Tactic> accum, JarBuildCommand jar, String src, String bin, String label) {
+	private JavaBuildCommand addJavaBuild(List<Tactic> accum, ArchiveCommand jar, String src, String bin, String label) {
 		File dir = new File(rootdir, src);
 		if (dir.isDirectory())
 		{
@@ -223,7 +228,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		return null;
 	}
 	
-	private void addResources(JarBuildCommand jar, JavaBuildCommand junit, String src) {
+	private void addResources(ArchiveCommand jar, JavaBuildCommand junit, String src) {
 		File dir = new File(rootdir, src);
 		if (dir.isDirectory())
 		{
