@@ -21,7 +21,7 @@ public class BuildExecutor {
 	private Status status = Status.REJECT_AND_SEARCH_WELL;
 	private int currentTactic = 0;
 	private final boolean debug;
-
+	private boolean haveCompletedUpTo = false;
 
 	public BuildExecutor(BuildContext cxt, boolean debug) {
 		this.cxt = cxt;
@@ -163,9 +163,11 @@ public class BuildExecutor {
 	
 	public BuildStatus execute(ItemToBuild itb) {
 		itb.announce(!cxt.quietMode(), currentTactic);
-		if (!itb.needsBuild.needsBuild())
+		if (haveCompletedUpTo  || !itb.needsBuild.needsBuild())
 		{
 			itb.export(rm);
+			if (cxt.upTo != null && itb.id.equals("Jar["+cxt.upTo+"-jar]"))
+				haveCompletedUpTo = true;
 			return itb.needsBuild;
 		}
 

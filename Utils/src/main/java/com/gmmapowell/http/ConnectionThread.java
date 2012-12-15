@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.logging.Level;
 
 import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServlet;
+
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.http.RemoteIO.Connection;
 import com.gmmapowell.utils.FileUtils;
@@ -137,10 +139,12 @@ public class ConnectionThread extends Thread {
 				response.setWebSocket(true);
 			}
 		}
-		if (request.getServlet() != null)
+		HttpServlet servlet = request.getServlet();
+		InlineServer.logger.info("Request URI: " + request.getRequestURI() + " - " + servlet);
+		if (servlet != null)
 		{
 			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Handling through servlet");
-			request.getServlet().service(request, response);
+			servlet.service(request, response);
 			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Finished servlet handling");
 			if (isWebSocket)
 			{

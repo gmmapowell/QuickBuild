@@ -194,10 +194,6 @@ public class InlineServer {
 		return ret;
 	}
 
-	public GPServletDefn getServlet(GPRequest request) {
-		return null;
-	}
-
 	public GPRequest requestFor(String s, InputStream is) throws URISyntaxException {
 		String[] command = s.split(" ");
 		String method = command[0];
@@ -208,7 +204,7 @@ public class InlineServer {
 			if (sd.isForMe(rawUri))
 				return new GPRequest(sd.getConfig(), method, rawUri, protocol, is);
 
-		return new GPRequest(staticConfig , method, rawUri, protocol, is);
+		return new GPRequest(staticConfig, method, rawUri, protocol, is);
 	}
 
 	public synchronized void requestTime(Date start, Date end) {

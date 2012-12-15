@@ -13,6 +13,7 @@ public class Arguments {
 	public boolean quiet;
 	public String file;
 	public String cachedir;
+	public String upTo;
 	public List<String> showArgsFor = new ArrayList<String>();
 	public List<String> showDebugFor = new ArrayList<String>();
 }

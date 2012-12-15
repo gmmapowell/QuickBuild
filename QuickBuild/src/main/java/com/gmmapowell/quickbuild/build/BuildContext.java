@@ -33,11 +33,14 @@ public class BuildContext {
 
 	private final File utilsJar;
 
-	public BuildContext(Config conf, ConfigFactory configFactory, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar) {
+	public String upTo;
+
+	public BuildContext(Config conf, ConfigFactory configFactory, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar, String upTo) {
 		this.conf = conf;
 		this.blankMemory = blankMemory;
 		this.quiet = quiet;
 		this.utilsJar = utilsJar;
+		this.upTo = upTo;
 		rm = new ResourceManager(conf);
 		buildOrder = new BuildOrder(this, buildAll, debug);
 		manager = new DependencyManager(conf, rm, buildOrder, debug);

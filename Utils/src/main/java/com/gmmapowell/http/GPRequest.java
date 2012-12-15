@@ -68,6 +68,7 @@ public class GPRequest implements HttpServletRequest {
 		this.is = is;
 		uri = new URI(rawUri);
 		logger.fine(Thread.currentThread().getName()+ ": " + "Received " + method + " request for " + rawUri);
+		logger.info("Created request with servlet " + this.getServlet());
 	}
 
 	public void addHeader(String s) {

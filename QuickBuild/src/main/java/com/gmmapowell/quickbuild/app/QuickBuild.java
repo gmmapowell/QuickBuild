@@ -31,7 +31,8 @@ public class QuickBuild {
 		new ArgumentDefinition("--config-only", Cardinality.OPTION, "configOnly", null),
 		new ArgumentDefinition("--debug", Cardinality.LIST, "showDebugFor", null),
 		new ArgumentDefinition("--debugInternals", Cardinality.LIST, "debug", null),
-		new ArgumentDefinition("--quiet", Cardinality.LIST, "quiet", "super quiet mode")
+		new ArgumentDefinition("--quiet", Cardinality.LIST, "quiet", "super quiet mode"),
+		new ArgumentDefinition("--upto", Cardinality.OPTION, "upTo", "last target to build")
 	};
 
 	private static Arguments arguments;
@@ -113,7 +114,7 @@ public class QuickBuild {
 		buildAll |= mainFiles.isDirty();
 		
 		// now we need to read back anything we've cached ...
-		BuildContext cxt = new BuildContext(conf, configFactory, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar);
+		BuildContext cxt = new BuildContext(conf, configFactory, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar, arguments.upTo);
 		cxt.configure();
 		
 		if (!arguments.quiet)

@@ -188,13 +188,16 @@ public class BuildOrder {
 		}
 		boolean wasDirty = isDirty;
 		OrderedFileList files = itb.tactic.belongsTo().sourceFiles();
-		if (files == null)
+		OrderedFileList ancillaries = null;
+		if (itb.tactic.belongsTo() instanceof HasAncillaryFiles)
+			ancillaries = ((HasAncillaryFiles) itb.tactic.belongsTo()).getAncillaryFiles();
+		if (files == null && ancillaries == null)
 		{
 			isDirty = true;
 			if (!wasDirty && debug)
 				System.out.println("Marking " + itb + " dirty due to NULL file list");
 		}
-		else
+		else if (files != null)
 		{
 			GitRecord gittx = GitHelper.checkFiles(itb.isClean() && !buildAll, files, cxt.getGitCacheFile(itb.name(), ""));
 			itb.addGitTx(gittx);
@@ -247,7 +250,6 @@ public class BuildOrder {
 		}
 		boolean ancDirty = false;
 		if (itb.tactic.belongsTo() instanceof HasAncillaryFiles) {
-			OrderedFileList ancillaries = ((HasAncillaryFiles) itb.tactic.belongsTo()).getAncillaryFiles();
 			if (ancillaries != null && !ancillaries.isEmpty())
 			{
 				 GitRecord ancTx = GitHelper.checkFiles(itb.isClean() && !buildAll, ancillaries, cxt.getGitCacheFile(itb.name(), ".anc"));
@@ -273,32 +275,6 @@ public class BuildOrder {
 				return null;
 		}
 		return toBuild.get(tactic);
-		/*
-		ExecutionBand exband = bands.get(band);
-		if (strat >= exband.size())
-		{
-			if (!addFromWell() || strat >= exband.size())
-				return null;
-		}
-		BandElement be = exband.get(strat);
-		if (tactic >= be.size())
-			return null;
-		Tactic tt = be.tactic(tactic);
-		
-		BuildStatus bs = BuildStatus.SUCCESS;
-		if (be.isNotApplicable())
-			bs = BuildStatus.NOTAPPLICABLE;
-		else if (be.isDeferred(tt))
-			bs = BuildStatus.SKIPPED;
-		else if (be instanceof DeferredTactic) {
-			bs = BuildStatus.DEFERRED;
-			if (((DeferredTactic)be).isCompletelyClean())
-				bs = BuildStatus.CLEAN;
-		}
-		if (be.isCompletelyClean())
-			bs = BuildStatus.CLEAN;
-		return new ItemToBuild(bs, be, tt, (band+1) + "." + (strat+1)+"."+(tactic+1), tt.toString());
-		*/
 	}
 
 	private boolean addFromWell() {
