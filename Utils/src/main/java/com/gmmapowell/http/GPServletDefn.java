@@ -29,11 +29,13 @@ public class GPServletDefn {
 
 	public void init() throws ClassNotFoundException, InstantiationException, IllegalAccessException, ServletException {
 		Class<?> forName = Class.forName(servletClass);
+		InlineServer.logger.info("Creating servlet " + servletClass);
 		servletImpl = (HttpServlet) forName.newInstance();
 		servletImpl.init(config);
 	}
 
 	public void destroy() {
+		InlineServer.logger.info("Destroying servlet " + servletClass);
 		if (servletImpl != null) {
 			servletImpl.destroy();
 			servletImpl = null;

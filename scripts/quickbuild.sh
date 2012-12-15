@@ -20,4 +20,4 @@ for i in $ROOTDIR/../qb/libs/* ; do
   CLASSPATH="$CLASSPATH$SEP$i"
 done
 
-java -Xmx2g -cp "$CLASSPATH" com.gmmapowell.quickbuild.app.QuickBuild "$@"
+java -cp "$CLASSPATH" com.gmmapowell.quickbuild.app.QuickBuild "$@"
