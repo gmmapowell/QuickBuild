@@ -40,6 +40,8 @@ public class GPServletConfig implements ServletConfig {
 
 	@Override
 	public String getServletName() {
+		if (servletDefn != null)
+			return servletDefn.getServletClass();
 		// TODO Auto-generated method stub
 		return null;
 	}

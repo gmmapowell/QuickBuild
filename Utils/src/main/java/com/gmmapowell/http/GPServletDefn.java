@@ -59,4 +59,8 @@ public class GPServletDefn {
 	public void addClassDir(File dir) {
 		config.getServletContext().addClassDir(dir);
 	}
+
+	public String getServletClass() {
+		return servletClass;
+	}
 }

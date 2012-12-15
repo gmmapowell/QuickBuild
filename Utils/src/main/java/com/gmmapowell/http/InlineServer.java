@@ -201,9 +201,12 @@ public class InlineServer {
 		String protocol = command[2];
 
 		for (GPServletDefn sd : servlets)
-			if (sd.isForMe(rawUri))
+			if (sd.isForMe(rawUri)) {
+				logger.info("Choosing servlet " + sd);
 				return new GPRequest(sd.getConfig(), method, rawUri, protocol, is);
+			}
 
+		logger.info("No servlet found; going with static");
 		return new GPRequest(staticConfig, method, rawUri, protocol, is);
 	}
 
