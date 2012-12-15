@@ -97,6 +97,7 @@ public class InlineServer {
 	public void run(boolean wantLoop) {
 		if (inThread != Thread.currentThread())
 			throw new UtilException("Cannot run in different thread to creation thread");
+		logger.info("Starting execution of InlineServer " + this);
 		try {
 			this.doLoop = wantLoop;
 			remote.init();
@@ -109,7 +110,7 @@ public class InlineServer {
 				if (conn != null)
 				{
 					ConnectionThread thr = new ConnectionThread(this, conn);
-					logger.fine("Accepting connection request and dispatching to thread " + thr);
+					logger.info("Accepting connection request and dispatching to thread " + thr);
 					thr.start();
 					threads.add(thr);
 					for (ConnectionThread ct : threads)
@@ -153,6 +154,7 @@ public class InlineServer {
 			for (GPServletDefn servlet : servlets)
 				servlet.destroy();
 			logger.info("Server exiting");
+			logger.info("Terminating execution of InlineServer " + this);
 		}
 	}
 
