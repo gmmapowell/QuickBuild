@@ -213,9 +213,12 @@ public class DependencyManager {
 			for (Tactic tt : s.tactics())
 				if (tt instanceof DependencyFloat)
 				{
+					BuildResource proc = ensureProcessResource(tt);
 					ResourcePacket<PendingResource> addl = ((DependencyFloat)tt).needsAdditionalBuiltResources();
-					for (PendingResource pr : addl)
-						resolve(pr);
+					for (PendingResource pr : addl) {
+						BuildResource actual = resolve(pr);
+						dependencies.ensureLink(proc, actual);
+					}
 				}
 		}
 		cache.clear();

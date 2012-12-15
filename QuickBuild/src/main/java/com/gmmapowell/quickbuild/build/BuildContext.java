@@ -35,6 +35,8 @@ public class BuildContext {
 
 	public String upTo;
 
+	public boolean grandFallacy;
+
 	public BuildContext(Config conf, ConfigFactory configFactory, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar, String upTo) {
 		this.conf = conf;
 		this.blankMemory = blankMemory;

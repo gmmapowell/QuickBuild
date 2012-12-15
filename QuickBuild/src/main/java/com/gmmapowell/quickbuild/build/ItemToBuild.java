@@ -101,6 +101,11 @@ public class ItemToBuild {
 			gr.setError();
 	}
 
+	public void revert() {
+		for (GitRecord gr : gittxs )
+			gr.revert();
+	}
+
 	public Set<Tactic> getProcessDependencies() {
 		return tactic.getProcessDependencies();
 	}

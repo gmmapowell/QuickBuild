@@ -56,6 +56,7 @@ public class BuildExecutor {
 				if (outcome.isBroken())
 				{
 					System.out.println("  Failed ... pressing on to the grand fallacy");
+					cxt.grandFallacy = true;
 					fatal(itb);
 					continue;
 				}
@@ -76,7 +77,7 @@ public class BuildExecutor {
 		manager.saveDependencies();
 		buildOrder.saveBuildOrder();
 		showAnyErrors();
-		buildOrder.commitAll();
+		buildOrder.revertRemainder();
 	}
 
 	public ItemToBuild next() {
@@ -191,6 +192,8 @@ public class BuildExecutor {
 			buildOrder.saveBuildOrder();
 			manager.saveDependencies();
 		}
+		if (cxt.upTo != null && itb.id.equals("Jar["+cxt.upTo+"-jar]"))
+			haveCompletedUpTo = true;
 		
 		return ret;
 	}

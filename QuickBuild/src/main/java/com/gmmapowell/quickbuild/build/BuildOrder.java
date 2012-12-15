@@ -388,9 +388,9 @@ public class BuildOrder {
 			gr.commit();
 	}
 
-	public void commitAll()
+	public void revertRemainder()
 	{
 		for (ItemToBuild eb : this.toBuild)
-			eb.commitAll();
+			eb.revert();
 	}
 }

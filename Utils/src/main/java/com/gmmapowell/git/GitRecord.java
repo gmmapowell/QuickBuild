@@ -76,6 +76,18 @@ public class GitRecord {
 		committed = true;
 	}
 
+	public void revert() {
+		if (committed)
+			return;
+		if (error)
+		{
+			if (source.exists())
+				source.delete();
+		}
+		if (generates.exists())
+			generates.delete();
+	}
+
 	boolean sourceExists() {
 		return source.exists();
 	}

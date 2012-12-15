@@ -119,6 +119,9 @@ public class JavaBuildCommand implements Tactic {
 		{
 			// TODO: cxt.addClassDirForProject(project, bindir);
 			return BuildStatus.SUCCESS;
+		} else if (cxt.grandFallacy) {
+			System.out.println("Grand Fallacy mode ... not bothering to fix errors");
+			return BuildStatus.BROKEN;
 		}
 		// compilation errors, usually
 		List<String> mypackages = new ArrayList<String>();
