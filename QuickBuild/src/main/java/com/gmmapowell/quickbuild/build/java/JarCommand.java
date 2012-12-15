@@ -70,12 +70,13 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		JUnitRunCommand jrun = addJUnitRun(tactics, junit);
 		if (tactics.size() == 0)
 			throw new QuickBuildException("None of the required source directories exist (or have source files) to build " + targetName);
-		tactics.add(jar);
+		if (javac != null)
+			tactics.add(jar);
 		if (jrun != null)
 			jrun.addProcessDependency(junit);
 		
 		JarResource jarResource = jar.getJarResource();
-		if (jarResource != null)
+		if (jarResource != null && javac != null)
 			willProvide.add(jarResource);
 		else if (junit != null)
 		{
