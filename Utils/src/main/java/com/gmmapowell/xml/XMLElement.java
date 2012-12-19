@@ -293,6 +293,11 @@ public class XMLElement implements Externalizable {
 		return new XMLElement(inside, child);
 	}
 
+
+	public void addText(String description) {
+		elt.appendChild(inside.doc.createTextNode(description));
+	}
+
 	public XMLElement addElement(XMLElement xe) {
 		XMLElement ret = addElement(xe.tag());
 		for (String attr : xe.attributes())
