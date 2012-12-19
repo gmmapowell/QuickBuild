@@ -67,20 +67,22 @@ public class ItemToBuild {
 		rm.exportAll(tactic.belongsTo());
 	}
 
-	public void announce(boolean verbose, int currentTactic) {
+	public void announce(boolean verbose, int currentTactic, BuildStatus showStatus) {
 		if (verbose) {
-			if (needsBuild == BuildStatus.NOTAPPLICABLE)
+			if (showStatus == BuildStatus.NOTAPPLICABLE)
 				System.out.print("v");
-			else if (needsBuild == BuildStatus.SKIPPED) // defer now, do later ...
+			else if (showStatus == BuildStatus.NOTCRITICAL)
+				System.out.print(".");
+			else if (showStatus == BuildStatus.SKIPPED) // defer now, do later ...
 				System.out.print("-");
-			else if (needsBuild == BuildStatus.SUCCESS) // normal build
+			else if (showStatus == BuildStatus.SUCCESS) // normal build
 				System.out.print("*");
-			else if (needsBuild == BuildStatus.RETRY) // just literally failed ... retrying
+			else if (showStatus == BuildStatus.RETRY) // just literally failed ... retrying
 				System.out.print("!");
-			else if (needsBuild == BuildStatus.CLEAN) // is clean, that's OK
+			else if (showStatus == BuildStatus.CLEAN) // is clean, that's OK
 				System.out.print(" ");
 			else
-				throw new RuntimeException("Cannot handle status " + needsBuild);
+				throw new RuntimeException("Cannot handle status " + showStatus);
 
 			System.out.println(" " + StringUtil.rjdigits(currentTactic+1, 3) + ". " + tactic);
 		}
@@ -102,7 +104,7 @@ public class ItemToBuild {
 	}
 
 	public void revert() {
-		for (GitRecord gr : gittxs )
+		for (GitRecord gr : gittxs)
 			gr.revert();
 	}
 

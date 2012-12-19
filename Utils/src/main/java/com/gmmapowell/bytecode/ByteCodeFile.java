@@ -547,4 +547,9 @@ public class ByteCodeFile implements AnnotationHolder {
 		}
 		return null;
 	}
+
+	public void destroy() {
+		// TODO Auto-generated method stub
+		
+	}
 }

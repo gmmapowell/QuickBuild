@@ -1,7 +1,12 @@
 package com.gmmapowell.quickbuild.build;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
+import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.ProcessResource;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.DateUtils;
 
@@ -21,7 +26,7 @@ public class BuildExecutor {
 	private Status status = Status.REJECT_AND_SEARCH_WELL;
 	private int currentTactic = 0;
 	private final boolean debug;
-	private boolean haveCompletedUpTo = false;
+	private Set<Tactic> upTo = null;
 
 	public BuildExecutor(BuildContext cxt, boolean debug) {
 		this.cxt = cxt;
@@ -30,6 +35,34 @@ public class BuildExecutor {
 		ehandler = cxt.getErrorHandler();
 		manager = cxt.getDependencyManager();
 		rm = cxt.getResourceManager();
+		if (cxt.upTo != null)
+			upTo = figureNecessarySteps(cxt.upTo);
+	}
+
+	private Set<Tactic> figureNecessarySteps(String upTo) {
+		Set<Tactic> ret = new HashSet<Tactic>();
+		Tactic tactic = null;
+		for (ItemToBuild itb : buildOrder) {
+			if (itb.id.contains(upTo)) {
+				tactic = itb.tactic;
+				break;
+			}
+		}
+			
+		if (tactic == null) {
+			System.out.println("Upto target " + upTo + " not found in build order");
+			return null;
+		}
+		ret.add(tactic);
+		Iterable<BuildResource> dependencies = cxt.getDependencyManager().getDependencies(tactic);
+		for (BuildResource br : dependencies) {
+			if (br instanceof ProcessResource) {
+				ProcessResource pr = (ProcessResource) br;
+				ret.add(pr.getBuiltBy());
+			}
+		}
+
+		return ret;
 	}
 
 	public void doBuild() {
@@ -77,7 +110,7 @@ public class BuildExecutor {
 		manager.saveDependencies();
 		buildOrder.saveBuildOrder();
 		showAnyErrors();
-		buildOrder.revertRemainder();
+//		buildOrder.revertRemainder();
 	}
 
 	public ItemToBuild next() {
@@ -163,14 +196,20 @@ public class BuildExecutor {
 
 	
 	public BuildStatus execute(ItemToBuild itb) {
-		itb.announce(!cxt.quietMode(), currentTactic);
-		if (haveCompletedUpTo  || !itb.needsBuild.needsBuild())
+		if (!itb.needsBuild.needsBuild())
 		{
 			itb.export(rm);
-			if (cxt.upTo != null && itb.id.equals("Jar["+cxt.upTo+"-jar]"))
-				haveCompletedUpTo = true;
+			itb.announce(!cxt.quietMode(), currentTactic, itb.needsBuild);
 			return itb.needsBuild;
 		}
+		else if (!isOnCriticalPath(itb))
+		{
+			itb.export(rm);
+			itb.announce(!cxt.quietMode(), currentTactic, BuildStatus.NOTCRITICAL);
+			itb.revert();
+			return BuildStatus.NOTCRITICAL;
+		}
+		itb.announce(!cxt.quietMode(), currentTactic, itb.needsBuild);
 
 		// Record when first build started
 		if (buildStarted == null)
@@ -192,9 +231,15 @@ public class BuildExecutor {
 			buildOrder.saveBuildOrder();
 			manager.saveDependencies();
 		}
-		if (cxt.upTo != null && itb.id.equals("Jar["+cxt.upTo+"-jar]"))
-			haveCompletedUpTo = true;
 		
 		return ret;
+	}
+
+	private boolean isOnCriticalPath(ItemToBuild itb) {
+		if (upTo == null)
+			return true;
+		else if (upTo.contains(itb.tactic))
+			return true;
+		return false;
 	}
 }

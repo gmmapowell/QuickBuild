@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,7 +46,7 @@ import com.gmmapowell.xml.XMLElement;
  * @author Gareth Powell
  *
  */
-public class BuildOrder {
+public class BuildOrder implements Iterable<ItemToBuild> {
 	// We are going to track everything based on name, so we need to map name to strategem
 	private final Map<String, ItemToBuild> mapping = new HashMap<String, ItemToBuild>();
 	private final List<ItemToBuild> well = new ArrayList<ItemToBuild>();
@@ -141,15 +142,14 @@ public class BuildOrder {
 		PrettyPrinter pp = new PrettyPrinter();
 		pp.indentWidth(2);
 		pp.indentMore();
-		int i=0;
+		int i=1;
 		for (ItemToBuild b : toBuild)
 		{
-			pp.append("Band " + i);
+			pp.append(i +". ");
+			b.print(pp);
 			if (b.drift() > 0)
 				pp.append(" (drift " + b.drift() +")");
-			pp.indentMore();
-			b.print(pp);
-			pp.indentLess();
+			pp.requireNewline();
 			i++;
 		}
 		return pp.toString();
@@ -396,5 +396,10 @@ public class BuildOrder {
 	{
 		for (ItemToBuild eb : this.toBuild)
 			eb.revert();
+	}
+
+	@Override
+	public Iterator<ItemToBuild> iterator() {
+		return toBuild.iterator();
 	}
 }

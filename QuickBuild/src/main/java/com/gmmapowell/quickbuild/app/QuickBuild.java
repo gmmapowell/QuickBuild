@@ -14,6 +14,8 @@ import com.gmmapowell.quickbuild.build.BuildExecutor;
 import com.gmmapowell.quickbuild.config.Arguments;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
+import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.DateUtils;
@@ -128,7 +130,6 @@ public class QuickBuild {
 			System.out.println("---- BuildOrder");
 			System.out.print(cxt.printableBuildOrder(true));
 			System.out.println("----");
-
 			return;
 		}
 		if (arguments.debug) {
