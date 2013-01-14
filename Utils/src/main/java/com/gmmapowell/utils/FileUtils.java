@@ -610,12 +610,13 @@ public class FileUtils {
 		FileInputStream fis = null;
 		try
 		{
+			LineSeparator separator = detectLineSeparator(f);
 			StringBuffer sb = new StringBuffer();
 			fis = new FileInputStream(f);
 			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
 			String s;
 			while ((s = br.readLine()) != null)
-				sb.append(s+"\n");
+				sb.append(s + separator);
 			return sb.toString();
 		}
 		catch (IOException ex)
@@ -631,6 +632,42 @@ public class FileUtils {
 				}
 		}
 	}
+
+	private static LineSeparator detectLineSeparator(File f) {
+		FileInputStream fis = null;
+		try
+		{
+			fis = new FileInputStream(f);
+			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+			Character c;
+			while((c = (char) br.read()) != null)
+			{
+				if(c == '\n')
+					return LineSeparator.UNIX;
+				if(c == '\r')
+				{
+					if(br.read() == '\n')
+						return LineSeparator.WINDOWS;
+					else
+						return LineSeparator.OLDMAC; //This seems very unlikely
+				}
+			}
+			return LineSeparator.OTHER; //This is perhaps even less likely
+		}
+		catch (IOException ex)
+		{
+			throw UtilException.wrap(ex);
+		}
+		finally {
+			if (fis != null)
+				try {
+					fis.close();
+				} catch (IOException ex) {
+					throw UtilException.wrap(ex);
+				}
+		}
+	}
+
 
 	public static byte[] readFileAsBytes(File f) {
 		FileInputStream fis = null;
