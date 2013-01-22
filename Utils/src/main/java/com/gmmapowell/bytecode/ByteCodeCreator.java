@@ -137,7 +137,7 @@ public class ByteCodeCreator implements ByteCodeSink {
 		if (creatorFor == null)
 			throw new UtilException("The class " + obj.getType() + " is not registered in the system");
 		if (!creatorFor.fields.containsKey(name))
-			throw new UtilException("There is no field " + name + " in " + name);
+			throw new UtilException("There is no field " + name + " in " + creatorFor.qualifiedName);
 		return creatorFor.fields.get(name).useOn(meth, obj);
 	}
 

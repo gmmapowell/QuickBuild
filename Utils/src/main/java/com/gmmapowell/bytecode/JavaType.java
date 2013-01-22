@@ -4,6 +4,7 @@ import com.gmmapowell.exceptions.UtilException;
 
 public class JavaType extends JavaInfo {
 	public static final JavaType boolean_ = new JavaType("boolean");
+	public static final JavaType byte_ = new JavaType("byte");
 	public static final JavaType date = new JavaType("java.util.Date");
 	public static final JavaType double_ = new JavaType("double");
 	public static final JavaType int_ = new JavaType("int");
@@ -79,7 +80,7 @@ public class JavaType extends JavaInfo {
 	}
 
 	public boolean isPrimitive() {
-		return boolean_.equals(actual) || double_.equals(actual) || int_.equals(actual) || long_.equals(actual); 
+		return boolean_.equals(actual) || byte_.equals(actual) || double_.equals(actual) || int_.equals(actual) || long_.equals(actual); 
 	}
 	
 	@Override

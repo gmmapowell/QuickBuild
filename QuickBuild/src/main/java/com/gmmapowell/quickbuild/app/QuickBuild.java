@@ -14,8 +14,6 @@ import com.gmmapowell.quickbuild.build.BuildExecutor;
 import com.gmmapowell.quickbuild.config.Arguments;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
-import com.gmmapowell.quickbuild.core.BuildResource;
-import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.DateUtils;
