@@ -40,6 +40,7 @@ public class JavaDocCommand extends AbstractBuildCommand implements Strategem, T
 	private File outputdir;
 	private List<String> projects = new ArrayList<String>();
 	private BuildClassPath bootclasspath;
+	private ResourcePacket<PendingResource> dependsOn = new ResourcePacket<PendingResource>();
 
 	@SuppressWarnings("unchecked")
 	public JavaDocCommand(TokenizedLine toks) {
@@ -65,9 +66,11 @@ public class JavaDocCommand extends AbstractBuildCommand implements Strategem, T
 	{
 		if (super.handleOption(config, opt))
 			return true;
-		else if (opt instanceof IncludePackageCommand)
-			projects.add(((IncludePackageCommand) opt).getPackage());
-		else if (opt instanceof OverviewCommand)
+		else if (opt instanceof IncludePackageCommand) {
+			String proj = ((IncludePackageCommand) opt).getPackage();
+			projects.add(proj);
+			dependsOn.add(new PendingResource(proj+"/qbout/"+proj+".jar"));
+		} else if (opt instanceof OverviewCommand)
 			overview = ((OverviewCommand) opt).overview;
 		else if (opt instanceof BootClassPathCommand)
 			addToBootClasspath(((BootClassPathCommand)opt).getFile());
@@ -203,7 +206,7 @@ public class JavaDocCommand extends AbstractBuildCommand implements Strategem, T
 
 	@Override
 	public ResourcePacket<PendingResource> needsResources() {
-		return new ResourcePacket<PendingResource>();
+		return dependsOn;
 	}
 
 	@Override

@@ -33,6 +33,6 @@ public class IncludePackageCommand extends NoChildCommand implements ConfigApply
 
 	@Override
 	public String toString() {
-		return "IncludePackage[" + /* name + */ "]";
+		return "IncludePackage[" + pkg +  "]";
 	}
 }
