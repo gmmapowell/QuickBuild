@@ -128,6 +128,7 @@ public class JavaBuildCommand implements Tactic {
 		LinePatternParser lpp = new LinePatternParser();
 		lpp.match("package ([a-zA-Z0-9_.]*) does not exist", "nopackage", "pkgname");
 		lpp.match("cannot access ([a-zA-Z0-9_.]*)\\.[a-zA-Z0-9_]*", "nopackage", "pkgname");
+		lpp.match("class file for ([a-zA-Z0-9_.]*)\\.[a-zA-Z0-9_]* not found", "nopackage", "pkgname");
 		lpp.match("location: package ([a-zA-Z0-9_.]*)", "nopackage", "pkgname");
 		lpp.match("location: class ([a-zA-Z0-9_.]*)\\.[a-zA-Z0-9_]*", "location", "mypackage");
 		int cnt = 0;
