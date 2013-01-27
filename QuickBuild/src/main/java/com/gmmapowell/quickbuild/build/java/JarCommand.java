@@ -41,6 +41,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	private JavaSourceDirResource mainSources;
 	private JavaSourceDirResource testSources;
 	private OrderedFileList mainSourceFileList;
+	private String javaVersion;
 
 	@SuppressWarnings("unchecked")
 	public JarCommand(TokenizedLine toks) {
@@ -53,6 +54,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		config.getNature(JavaNature.class);
 		files = new StructureHelper(rootdir, config.getOutput());
 		
+		javaVersion = config.getVarIfDefined("javaVersion", null);
 		processOptions(config);
 
 		ArchiveCommand jar = createAssemblyCommand();
@@ -126,6 +128,10 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			else if (opt instanceof NoJUnitCommand)
 			{
 				runJunit  = false;
+			}
+			else if (opt instanceof JavaVersionCommand)
+			{
+				javaVersion = ((JavaVersionCommand)opt).getVersion();
 			}
 			else if (processOption(opt))
 				;
@@ -201,7 +207,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			if (sourceFiles.size() == 0)
 				return null;
 			
-			JavaBuildCommand ret = new JavaBuildCommand(this, files, src, bin, label, sourceFiles, "jdk");
+			JavaBuildCommand ret = new JavaBuildCommand(this, files, src, bin, label, sourceFiles, "jdk", javaVersion);
 			accum.add(ret);
 			
 			JavaSourceDirResource sourcesResource = new JavaSourceDirResource(dir, sourceFiles);

@@ -11,6 +11,7 @@ import com.gmmapowell.quickbuild.build.java.JarBuildCommand;
 import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.build.java.JavaBuildCommand;
 import com.gmmapowell.quickbuild.build.java.JavaSourceDirResource;
+import com.gmmapowell.quickbuild.build.java.JavaVersionCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
@@ -26,8 +27,8 @@ import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
-
 public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem {
+	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private String projectName;
 	private String targetName;
 	private final File projectDir;
@@ -36,6 +37,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 	private File srcdir;
 	private JarResource androidJar;
 	private List<Tactic> tactics;
+	private String javaVersion;
 
 	@SuppressWarnings("unchecked")
 	public AndroidJarCommand(TokenizedLine toks) {
@@ -49,14 +51,24 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 		files = new StructureHelper(projectDir, config.getOutput());
 		targetName = projectName + ".jar";
 		srcdir = files.getRelative("src/main/java");
+		javaVersion = config.getVarIfDefined("javaVersion", null);
+		for (ConfigApplyCommand cmd : options)
+		{
+			cmd.applyTo(config);
+			if (cmd instanceof JavaVersionCommand)
+			{
+				javaVersion = ((JavaVersionCommand)cmd).getVersion();
+			}
+			else
+				throw new UtilException("Cannot handle " + cmd);
+		}
 		tactics();
 		return this;
 	}
 
 	@Override
 	public void addChild(ConfigApplyCommand obj) {
-		// I don't think we need this at the moment
-		throw new UtilException("Cannot handle " + obj);
+		options.add(obj);
 	}
 
 	@Override
@@ -74,7 +86,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 			AaptGenBuildCommand gen = new AaptGenBuildCommand(this, acxt, manifest, gendir, resdir);
 			tactics.add(gen);
 			List<File> genFiles = new DeferredFileList(gendir, "*.java");
-			JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", "gen", genFiles, "android");
+			JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", "gen", genFiles, "android", javaVersion);
 			genRes.addToBootClasspath(acxt.getPlatformJar());
 //			jrr.add(acxt.getPlatformJar());
 			tactics.add(genRes);
@@ -89,7 +101,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 			} else
 				srcFiles = new ArrayList<File>();
 		}
-		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", FileUtils.findFilesMatching(files.getRelative("src/main/java"), "*.java"), "android");
+		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", FileUtils.findFilesMatching(files.getRelative("src/main/java"), "*.java"), "android", javaVersion);
 		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
 		tactics.add(buildSrc);

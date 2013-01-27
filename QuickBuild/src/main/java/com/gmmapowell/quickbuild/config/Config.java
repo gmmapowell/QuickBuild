@@ -41,6 +41,7 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	private final ConfigFactory factory;
 	private File cacheDir;
 	private final ListMap<String, String> libraryContexts = new ListMap<String, String>();
+	private boolean topLevel;
 
 	@SuppressWarnings("unchecked")
 	public Config(ConfigFactory factory, File qbdir, String quickBuildName, String cacheDir)
@@ -88,8 +89,10 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	}
 	
 	public void done() {
+		topLevel = true;
 		for (ConfigApplyCommand cmd : applicators)
 			cmd.applyTo(this);
+		topLevel = false;
 
 		if (output == null)
 			setOutputDir("qbout");
@@ -201,6 +204,12 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		return varProps.get(name);
 	}
 
+	public String getVarIfDefined(String name, String otherwise) {
+		if (!varProps.containsKey(name))
+			return otherwise;
+		return varProps.get(name);
+	}
+
 	public List<Strategem> getStrategems() {
 		return strategems;
 	}
@@ -244,5 +253,9 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 //		if (!ret)
 //			System.out.println("  ... rejecting request");
 		return ret;
+	}
+
+	public boolean isTopLevel() {
+		return topLevel;
 	}
 }

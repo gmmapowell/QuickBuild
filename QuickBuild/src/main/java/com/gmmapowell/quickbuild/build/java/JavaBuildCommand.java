@@ -32,12 +32,14 @@ public class JavaBuildCommand implements Tactic {
 	private List<File> sources;
 	private final String label;
 	private final String context;
+	private final String target;
 
-	public JavaBuildCommand(Strategem parent, StructureHelper files, String src, String bin, String label, List<File> sources, String context) {
+	public JavaBuildCommand(Strategem parent, StructureHelper files, String src, String bin, String label, List<File> sources, String context, String target) {
 		this.parent = parent;
 		this.label = label;
 		this.sources = sources;
 		this.context = context;
+		this.target = target;
 		this.srcdir = new File(files.getBaseDir(), src);
 		this.bindir = new File(files.getOutputDir(), bin);
 		if (!bindir.exists())
@@ -105,6 +107,12 @@ public class JavaBuildCommand implements Tactic {
 		{
 			proc.arg("-classpath");
 			proc.arg(classpath.toString());
+		}
+		if (target != null) {
+			proc.arg("-source");
+			proc.arg(target);
+			proc.arg("-target");
+			proc.arg(target);
 		}
 		boolean any = false;
 		for (File f : sources)

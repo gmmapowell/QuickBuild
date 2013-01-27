@@ -17,6 +17,7 @@ import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
 import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.build.java.JavaBuildCommand;
 import com.gmmapowell.quickbuild.build.java.JavaNature;
+import com.gmmapowell.quickbuild.build.java.JavaVersionCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
@@ -47,6 +48,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 	private ArrayList<Tactic> tactics;
 	private File bindir;
 	private ApkBuildCommand apkTactic;
+	private String javaVersion;
 
 	@SuppressWarnings("unchecked")
 	public AndroidCommand(TokenizedLine toks) {
@@ -65,6 +67,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		tactics(); // ensure they're generated
 		apkResource = apkTactic.getResource();
 		
+		javaVersion = config.getVarIfDefined("javaVersion", null);
 		for (ConfigApplyCommand cmd : options)
 		{
 			cmd.applyTo(config);
@@ -77,6 +80,10 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 			else if (cmd instanceof ExcludeCommand)
 			{
 				exclusions.add(((ExcludeCommand) cmd).getPattern());
+			}
+			else if (cmd instanceof JavaVersionCommand)
+			{
+				javaVersion = ((JavaVersionCommand)cmd).getVersion();
 			}
 			else
 				throw new UtilException("Cannot handle " + cmd);
@@ -107,7 +114,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		AaptGenBuildCommand gen = new AaptGenBuildCommand(this, acxt, manifest, gendir, resdir);
 		tactics.add(gen);
 		List<File> genFiles = new DeferredFileList(gendir, "*.java");
-		JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", "gen", genFiles, "android");
+		JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", "gen", genFiles, "android", javaVersion);
 		genRes.addToBootClasspath(acxt.getPlatformJar());
 		jrr.add(acxt.getPlatformJar());
 		tactics.add(genRes);
@@ -121,7 +128,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 					i++;
 		} else
 			srcFiles = new ArrayList<File>();
-		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", srcFiles, "android");
+		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", srcFiles, "android", javaVersion);
 		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
 		tactics.add(buildSrc);
@@ -135,7 +142,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 			List<File> testSources = FileUtils.findFilesMatching(files.getRelative("src/test/java"), "*.java");
 			if (testSources.size() > 0)
 			{
-				JavaBuildCommand buildTests = new JavaBuildCommand(this, files, "src/test/java", "test-classes", "test", testSources, "android");
+				JavaBuildCommand buildTests = new JavaBuildCommand(this, files, "src/test/java", "test-classes", "test", testSources, "android", javaVersion);
 				buildTests.addToClasspath(new File(files.getOutputDir(), "classes"));
 				buildTests.addToBootClasspath(acxt.getPlatformJar());
 				tactics.add(buildTests);
