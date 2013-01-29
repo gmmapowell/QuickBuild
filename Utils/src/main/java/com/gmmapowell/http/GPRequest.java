@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,6 +38,7 @@ import com.gmmapowell.collections.IteratorEnumerator;
 import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.http.ws.InlineServerWebSocketHandler;
+import com.gmmapowell.utils.FileUtils;
 
 public class GPRequest implements HttpServletRequest {
 
@@ -128,7 +130,7 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public int getContentLength() {
-		throw new UtilException("Not implemented");
+		return Integer.parseInt(getHeader("Content-Length"));
 	}
 
 	@Override
@@ -184,32 +186,18 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public Map<String, String[]> getParameterMap() {
-		// TODO: do we need to decode the %xx notation?
 		if (parameterMap != null)
 			return parameterMap;
 		String q = uri.getQuery();
 		ListMap<String, String> tmp = new ListMap<String, String>();
 		if (q != null)
-		{
-			int k=0;
-			while (k < q.length())
-			{
-				int p = k;
-				while (k < q.length() && q.charAt(k) != '=' && q.charAt(k) != '&')
-					k++;
-				String s = q.substring(p, k);
-				if (k == q.length() || q.charAt(k) == '&')
-				{
-					tmp.add(s, "");
-					continue;
-				}
-				int v = ++k; // skip the =
-				while (k < q.length() && q.charAt(k) != '&')
-					k++;
-				tmp.add(s, q.substring(v, k));
-				k++; // skip the &
+			analyzeQueryString(tmp, q);
+		if (getContentType() != null && getContentType().startsWith("application/x-www-form-urlencoded"))
+			try {
+				analyzeQueryString(tmp, FileUtils.readNStream(getContentLength(), getInputStream()));
+			} catch (Exception ex) {
+				ex.printStackTrace();
 			}
-		}
 		parameterMap = new HashMap<String, String[]>();
 		for (String s : tmp.keySet())
 		{
@@ -217,6 +205,35 @@ public class GPRequest implements HttpServletRequest {
 			parameterMap.put(s, list.toArray(new String[list.size()]));
 		}
 		return parameterMap;
+	}
+
+	private void analyzeQueryString(ListMap<String, String> tmp, String q) {
+		int k=0;
+		while (k < q.length())
+		{
+			int p = k;
+			while (k < q.length() && q.charAt(k) != '=' && q.charAt(k) != '&')
+				k++;
+			String s = q.substring(p, k);
+			if (k == q.length() || q.charAt(k) == '&')
+			{
+				tmp.add(s, "");
+				continue;
+			}
+			int v = ++k; // skip the =
+			while (k < q.length() && q.charAt(k) != '&')
+				k++;
+			tmp.add(s, urlDecode(q.substring(v, k)));
+			k++; // skip the &
+		}
+	}
+
+	private String urlDecode(String s) {
+		try {
+			return URLDecoder.decode(s, "UTF-8");
+		} catch (Exception ex) {
+			throw UtilException.wrap(ex);
+		}
 	}
 
 	@Override

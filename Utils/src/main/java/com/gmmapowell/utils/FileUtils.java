@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.servlet.ServletInputStream;
+
 import com.gmmapowell.exceptions.NoSuchDirectoryException;
 import com.gmmapowell.exceptions.UtilException;
 
@@ -419,6 +421,27 @@ public class FileUtils {
 			throw UtilException.wrap(ex);
 		}
 	}
+
+
+	public static String readNStream(int contentLength,	ServletInputStream inputStream) {
+		return readNReader(contentLength, new InputStreamReader(inputStream));
+	}
+
+	private static String readNReader(int cnt, Reader r) {
+		try {
+			int pos = 0;
+			char[] cbuf = new char[cnt];
+			int n;
+			while (pos < cnt && (n = r.read(cbuf, pos, cnt-pos)) > 0) {
+				pos += n;
+			}
+			return new String(cbuf);
+		}
+		catch (IOException ex) {
+			throw UtilException.wrap(ex);
+		}
+	}
+
 
 	public static void assertDirectory(File file) {
 		if (!file.exists())

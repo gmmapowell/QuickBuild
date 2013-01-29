@@ -9,4 +9,8 @@ public class GPFrame {
 		this.data = data;
 	}
 
+	@Override
+	public String toString() {
+		return "Frame[" + opcode + ":" + (data!=null?data.length:0) + "]";
+	}
 }

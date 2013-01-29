@@ -15,14 +15,20 @@ public class GPServletDefn {
 	public GPServletDefn(InlineServer server, String servletClass) {
 		config = new GPServletConfig(server, this);
 		this.servletClass = servletClass;
+		contextPath = "";
+		servletPath = "";
 	}
 
 	public void setContextPath(String contextPath) {
+		if (!contextPath.startsWith("/"))
+			contextPath = "/" + contextPath;
 		this.contextPath = contextPath;
 		((GPServletContext)config.getServletContext()).setContextPath(contextPath);
 	}
 
 	public void setServletPath(String servletPath) {
+		if (!servletPath.startsWith("/"))
+			servletPath = "/" + servletPath;
 		this.servletPath = servletPath;
 		((GPServletContext)config.getServletContext()).setServletPath(servletPath);
 	}
@@ -63,6 +69,11 @@ public class GPServletDefn {
 	}
 
 	public String getServletClass() {
+		return servletClass;
+	}
+	
+	@Override
+	public String toString() {
 		return servletClass;
 	}
 }
