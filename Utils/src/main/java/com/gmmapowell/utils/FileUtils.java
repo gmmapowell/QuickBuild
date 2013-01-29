@@ -25,8 +25,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.servlet.ServletInputStream;
-
 import com.gmmapowell.exceptions.NoSuchDirectoryException;
 import com.gmmapowell.exceptions.UtilException;
 
@@ -422,8 +420,7 @@ public class FileUtils {
 		}
 	}
 
-
-	public static String readNStream(int contentLength,	ServletInputStream inputStream) {
+	public static String readNStream(int contentLength, InputStream inputStream) {
 		return readNReader(contentLength, new InputStreamReader(inputStream));
 	}
 
@@ -754,4 +751,3 @@ public class FileUtils {
 		return ret;
 	}
 }
-	
