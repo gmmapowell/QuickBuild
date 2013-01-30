@@ -30,6 +30,8 @@ public interface RemoteIO {
 
 	void errorSending(Connection connection) throws Exception;
 
+	String getEndpoint();
+
 	void close() throws Exception;
 
 	void setAlertTo(String alert);
@@ -135,6 +137,11 @@ public interface RemoteIO {
 		@Override
 		public void setAlertTo(String alert) {
 			alertEP = Endpoint.parse(alert);
+		}
+
+		@Override
+		public String getEndpoint() {
+			return new Endpoint(s).toString();
 		}
 
 	}
@@ -249,6 +256,11 @@ public interface RemoteIO {
 		@Override
 		public void setAlertTo(String alert) {
 			alertEP = alert;
+		}
+
+		@Override
+		public String getEndpoint() {
+			return amqpUri;
 		}
 	}
 }

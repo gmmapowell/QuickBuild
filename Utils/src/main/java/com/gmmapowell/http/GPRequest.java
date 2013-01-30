@@ -191,10 +191,10 @@ public class GPRequest implements HttpServletRequest {
 		String q = uri.getQuery();
 		ListMap<String, String> tmp = new ListMap<String, String>();
 		if (q != null)
-			analyzeQueryString(tmp, q);
+			analyzeQueryString(tmp, q, false);
 		if (getContentType() != null && getContentType().startsWith("application/x-www-form-urlencoded"))
 			try {
-				analyzeQueryString(tmp, FileUtils.readNStream(getContentLength(), getInputStream()));
+				analyzeQueryString(tmp, FileUtils.readNStream(getContentLength(), getInputStream()), true);
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
@@ -207,7 +207,7 @@ public class GPRequest implements HttpServletRequest {
 		return parameterMap;
 	}
 
-	private void analyzeQueryString(ListMap<String, String> tmp, String q) {
+	private void analyzeQueryString(ListMap<String, String> tmp, String q, boolean needsDecode) {
 		int k=0;
 		while (k < q.length())
 		{
@@ -223,7 +223,11 @@ public class GPRequest implements HttpServletRequest {
 			int v = ++k; // skip the =
 			while (k < q.length() && q.charAt(k) != '&')
 				k++;
-			tmp.add(s, urlDecode(q.substring(v, k)));
+			String r = q.substring(v, k);
+			if (needsDecode)
+				tmp.add(s, urlDecode(r));
+			else
+				tmp.add(s, r);
 			k++; // skip the &
 		}
 	}

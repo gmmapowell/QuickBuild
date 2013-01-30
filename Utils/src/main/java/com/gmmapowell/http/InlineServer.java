@@ -69,6 +69,10 @@ public class InlineServer {
 	{
 		return failure;
 	}
+
+	public String getEndpoint() {
+		return remote.getEndpoint();
+	}
 	
 	public GPServletDefn getBaseServlet() {
 		return servlets.get(0);
