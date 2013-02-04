@@ -15,7 +15,7 @@ import javax.servlet.ServletException;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.FileUtils;
 
-public class InlineServer {
+public class InlineServer implements Runnable {
 	public static final Logger logger = Logger.getLogger("InlineServer");
 
 	private final RemoteIO remote;
@@ -38,7 +38,6 @@ public class InlineServer {
 	private long totalRequests;
 
 	private int numRequests;
-
 
 	public InlineServer(int port, String servletClass) {
 		this.remote = new RemoteIO.UsingSocket(this, port);
@@ -208,7 +207,7 @@ public class InlineServer {
 
 		for (GPServletDefn sd : servlets)
 			if (sd.isForMe(rawUri)) {
-				logger.info("Choosing servlet " + sd);
+				logger.fine("Choosing servlet " + sd);
 				return new GPRequest(sd.getConfig(), method, rawUri, protocol, is);
 			}
 

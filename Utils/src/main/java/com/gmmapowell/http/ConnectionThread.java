@@ -140,7 +140,7 @@ public class ConnectionThread extends Thread {
 			}
 		}
 		HttpServlet servlet = request.getServlet();
-		InlineServer.logger.info("Request URI: " + request.getRequestURI() + " - " + servlet);
+		InlineServer.logger.fine("Request URI: " + request.getRequestURI() + " - " + servlet);
 		if (servlet != null)
 		{
 			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Handling through servlet");

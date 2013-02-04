@@ -146,6 +146,11 @@ public class XML {
 	}
 
 	public XMLElement top() {
+		if (annotator != null && annotator.hasErrors()) {
+			for (String s : annotator.getErrors())
+				System.err.println(s);
+			throw annotator.getFirstError();
+		}
 		return top;
 	}
 

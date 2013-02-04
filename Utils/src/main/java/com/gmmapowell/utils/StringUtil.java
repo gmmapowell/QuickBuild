@@ -36,6 +36,17 @@ public class StringUtil {
 		return sb.toString();
 	}
 
+	public static String concatSep(String separator, List<String> args) {
+		StringBuilder sb = new StringBuilder();
+		String sep = "";
+		for (String s : args) {
+			sb.append(sep);
+			sb.append(s);
+			sep = separator;
+		}
+		return sb.toString();
+	}
+
 	public static String rjdigits(int quant, int nd) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(quant);

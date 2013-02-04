@@ -51,9 +51,20 @@ public class LocationAnnotator extends DefaultHandler implements LexicalHandler 
 		return errors.size() > 0;
 	}
 
+	public List<String> getErrors() {
+		List<String> ret = new ArrayList<String>();
+		for (XMLParseError ex : errors)
+			ret.add(ex.toString());
+		return ret;
+	}
+	
 	public void replayParseErrors(XMLErrorHandler errorHandler) {
 		for (XMLParseError ex : errors)
 			errorHandler.parseError(ex);
+	}
+
+	public XMLParseError getFirstError() {
+		return errors.get(0);
 	}
 
 	@Override
