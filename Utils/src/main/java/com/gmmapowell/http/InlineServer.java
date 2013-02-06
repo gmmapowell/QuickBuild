@@ -39,6 +39,8 @@ public class InlineServer implements Runnable {
 
 	private int numRequests;
 
+	private int exitStatus;
+
 	public InlineServer(int port, String servletClass) {
 		this.remote = new RemoteIO.UsingSocket(this, port);
 		servlets.add(new GPServletDefn(this, servletClass));
@@ -169,8 +171,17 @@ public class InlineServer implements Runnable {
 	}
 
 	public void pleaseExit() {
+		pleaseExit(0);
+	}
+
+	public void pleaseExit(int status) {
+		exitStatus = status;
 		doLoop = false;
 		inThread.interrupt();
+	}
+	
+	public int getTerminationStatus() {
+		return exitStatus;
 	}
 
 	public void addStaticDir(File file) {

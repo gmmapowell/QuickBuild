@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
-import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.git.GitRecord;
 import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
@@ -14,6 +13,7 @@ import com.gmmapowell.quickbuild.build.BuildExecutor;
 import com.gmmapowell.quickbuild.config.Arguments;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
+import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.DateUtils;
@@ -41,6 +41,7 @@ public class QuickBuild {
 	
 	public static void main(String[] args)
 	{
+		try {
 		List<File> pathElts = FileUtils.splitJavaPath(System.getProperty("java.class.path"));
 		File utilsJar = null;
 		for (File f : pathElts) {
@@ -48,7 +49,7 @@ public class QuickBuild {
 				utilsJar = f;
 		}
 		if (utilsJar == null)
-			throw new UtilException("Could not find Utils.jar on the class path");
+			throw new QuickBuildException("Could not find Utils.jar on the class path");
 		Date launched = new Date();
 		arguments = new Arguments();
 		ProcessArgs.process(arguments, argumentDefinitions, args);
@@ -142,5 +143,9 @@ public class QuickBuild {
 		mainFiles.commit();
 		cxt.getBuildOrder().commitUnbuilt();
 		new BuildExecutor(cxt, arguments.debug).doBuild();
+		} catch (QuickBuildException ex) {
+			System.out.println(ex.getMessage());
+			System.exit(1);
+		}
 	}
 }

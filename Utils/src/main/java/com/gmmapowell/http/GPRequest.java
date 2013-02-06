@@ -171,6 +171,8 @@ public class GPRequest implements HttpServletRequest {
 	@Override
 	public String getParameter(String arg0) {
 		String q = uri.getQuery();
+		if (q == null)
+			return null;
 		int k = q.indexOf(arg0 + "=");
 		if (k == 0 || (k > 0 && q.charAt(k-1) == '&'))
 		{
