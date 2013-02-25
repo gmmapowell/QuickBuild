@@ -113,11 +113,13 @@ public class GitHelper {
 						else if (comp < 0)
 						{
 							System.out.println("< " + oldFile);
+							gittx.setDirty();
 							continue;
 						}
 						else if (comp > 0)
 						{
 							System.out.println("> " + f);
+							gittx.setDirty();
 							skipO = true;
 							break;
 						}
