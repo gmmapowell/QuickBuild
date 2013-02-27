@@ -31,7 +31,8 @@ public class UtilException extends RuntimeException {
 			Class<?> forName = Class.forName(exClass);
 			try
 			{
-				Constructor<?> ctor = forName.getConstructor(String.class);
+				Constructor<?> ctor = forName.getDeclaredConstructor(String.class);
+				ctor.setAccessible(true);
 				if (ctor != null)
 					return (Exception) ctor.newInstance(msg);
 			}
