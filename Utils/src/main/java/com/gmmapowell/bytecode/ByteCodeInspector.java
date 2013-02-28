@@ -593,6 +593,21 @@ public class ByteCodeInspector extends ByteCodeFile {
 			hexdump.print("iconst_" + (opcode-0x03));
 			return 1;
 		}
+		case 0x09: case 0x0a:
+		{
+			hexdump.print("lconst_" + (opcode-0x09));
+			return 1;
+		}
+		case 0x0b: case 0x0c: case 0x0d:
+		{
+			hexdump.print("fconst_" + (opcode-0x0b));
+			return 1;
+		}
+		case 0x0e: case 0x0f:
+		{
+			hexdump.print("dconst_" + (opcode-0x0e));
+			return 1;
+		}
 		case 0x10:
 		{
 			int bi = dis.readByte();

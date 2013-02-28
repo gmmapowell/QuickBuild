@@ -433,7 +433,7 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 	private void add(int stackChange, Instruction instruction) {
 		instructions.add(instruction);
 		if (lenientMode)
-			System.err.println(instruction + " stack = " + opdepth + " change = " + stackChange);
+			System.err.println(instruction + " stack = " + opdepth + " change = " + stackChange + " => " + (opdepth + stackChange));
 		opstack(stackChange);
 	}
 
@@ -548,6 +548,20 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 	}
 
 	@Override
+	public void dconst(int i) {
+		if (i >= 0 && i <= 1)
+		{
+			i += 0x0e;
+			add(2, new Instruction(i));
+		}
+		else
+		{
+			// TODO: should be able, just not yet supported.
+			throw new UtilException("Cannot make dconst(" + i + ")");
+		}
+	}
+
+	@Override
 	public void iconst(int i) {
 		if (i >= -1 && i <=5)
 		{
@@ -558,6 +572,20 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 		{
 			// TODO: should be able, just not yet supported.
 			throw new UtilException("Cannot make iconst(" + i + ")");
+		}
+	}
+
+	@Override
+	public void lconst(int i) {
+		if (i >= 0 && i <= 1)
+		{
+			i += 0x9;
+			add(2, new Instruction(i));
+		}
+		else
+		{
+			// TODO: should be able, just not yet supported.
+			throw new UtilException("Cannot make lconst(" + i + ")");
 		}
 	}
 

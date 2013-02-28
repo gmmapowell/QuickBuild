@@ -42,7 +42,9 @@ public interface MethodDefiner extends NewMethodDefiner {
 
 	void getStatic(String clz, String type, String var);
 
+	void dconst(int i);
 	void iconst(int i);
+	void lconst(int i);
 
 	Marker ifeq();
 
