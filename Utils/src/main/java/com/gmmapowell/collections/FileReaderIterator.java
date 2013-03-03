@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import com.gmmapowell.exceptions.UtilException;
 
@@ -34,7 +35,8 @@ public class FileReaderIterator implements Iterator<String> {
 
 	@Override
 	public String next() {
-		hasNext();
+		if (!hasNext())
+			throw new NoSuchElementException();
 		String ret = next;
 		next = null;
 		return ret;

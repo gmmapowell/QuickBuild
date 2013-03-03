@@ -58,7 +58,16 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 
 	@Override
 	public void makeFinal() {
+		if (access_flags == -1)
+			setAccess(Access.PUBLIC);
 		access_flags |= ByteCodeFile.ACC_FINAL;
+	}
+	
+	@Override
+	public void makeTransient() {
+		if (access_flags == -1)
+			setAccess(Access.PUBLIC);
+		access_flags |= ByteCodeFile.ACC_TRANSIENT;
 	}
 	
 	@Override

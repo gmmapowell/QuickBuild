@@ -2,6 +2,7 @@ package com.gmmapowell.exceptions;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.ExecutionException;
 
 @SuppressWarnings("serial")
 public class UtilException extends RuntimeException {
@@ -17,7 +18,7 @@ public class UtilException extends RuntimeException {
 	public static RuntimeException wrap(Throwable ex) {
 		if (ex instanceof RuntimeException)
 			return (RuntimeException)ex;
-		else if (ex instanceof InvocationTargetException)
+		else if (ex instanceof InvocationTargetException || ex instanceof ExecutionException)
 			return wrap(ex.getCause());
 		else
 			return new UtilException("A checked exception was caught", ex);
