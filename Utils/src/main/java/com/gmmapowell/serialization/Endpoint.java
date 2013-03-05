@@ -57,7 +57,7 @@ public class Endpoint implements Serializable {
 	 * 
 	 * @return the best IP address we can find
 	 */
-	private static String getLocalHostAddr() {
+	public static String getLocalHostAddr() {
 		try {
 			String host = null;
 			InetAddress in = InetAddress.getLocalHost();
