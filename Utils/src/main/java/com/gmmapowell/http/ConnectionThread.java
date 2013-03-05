@@ -130,7 +130,14 @@ public class ConnectionThread extends Thread {
 			else if (connhdr.equalsIgnoreCase("close"))
 				closeConnection = true;
 		}
+		
 		response = new GPResponse(request, os, connhdr);
+		if (request.getMethod().equalsIgnoreCase("OPTIONS")) {
+			response.setStatus(200);
+			request.getInputStream().flush();
+			return response;
+		}
+		
 		{
 			String upghdr = request.getHeader("upgrade");
 			if (upghdr != null && (upghdr.equalsIgnoreCase("websocket")))
@@ -139,6 +146,7 @@ public class ConnectionThread extends Thread {
 				response.setWebSocket(true);
 			}
 		}
+		
 		HttpServlet servlet = request.getServlet();
 		InlineServer.logger.fine("Request URI: " + request.getRequestURI() + " - " + servlet);
 		if (servlet != null)
@@ -164,7 +172,7 @@ public class ConnectionThread extends Thread {
 				return null;
 			}
 		}
-		else {
+		else if (request.getMethod().equalsIgnoreCase("GET")) {
 			GPStaticResource staticResource = request.getStaticResource();
 			if (staticResource != null)
 			{
@@ -180,6 +188,7 @@ public class ConnectionThread extends Thread {
 				response.setStatus(404);
 			}
 		}
+		request.getInputStream().flush();
 		return response;
 	}
 
@@ -271,8 +280,9 @@ public class ConnectionThread extends Thread {
 	private String readLine() throws IOException {
 		StringBuilder sb = new StringBuilder();
 		int b;
-		while ((b = is.read()) != -1 && b != '\n')
+		while ((b = is.read()) != -1 && b != '\n') {
 			sb.append((char)b);
+		}
 		for (int i=sb.length();i>0;i--)
 		{
 			if (sb.charAt(i-1) != '\r' && sb.charAt(i-1) != '\n')
