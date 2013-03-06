@@ -35,10 +35,16 @@ public class GPServletInputStream extends ServletInputStream {
 		return b;
 	}
 
+	public void flush() throws IOException {
+		while (cnt < maxchars) {
+			stream.read();
+			cnt++;
+		}
+	}
+
 	public void pushback(int b) {
 		if (b == -1)
 			throw new UtilException("Cannot push -1");
 		pushback = b;
 	}
-
 }

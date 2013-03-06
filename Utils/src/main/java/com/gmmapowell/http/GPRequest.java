@@ -139,7 +139,7 @@ public class GPRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public ServletInputStream getInputStream() throws IOException {
+	public GPServletInputStream getInputStream() throws IOException {
 		return servletInputStream;
 	}
 

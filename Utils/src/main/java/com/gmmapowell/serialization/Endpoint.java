@@ -59,23 +59,25 @@ public class Endpoint implements Serializable {
 	 */
 	public static String getLocalHostAddr() {
 		try {
-			String host = null;
-			InetAddress in = InetAddress.getLocalHost();
-			logger.fine("Considering addresses for host " + in.getHostName() + ": " + in.getHostAddress());
-			InetAddress[] all = InetAddress.getAllByName(in.getHostName());
-			for (int i=0;i<all.length;i++)
-			{
-				logger.finer("resolving local address:" + all[i] + " " + all[i].isSiteLocalAddress() + " " + all[i].isLoopbackAddress());
-				if (!all[i].isLoopbackAddress())
+			String host = System.getProperty("org.ziniki.claim.endpoint");
+			if (host == null || host.length() == 0) {
+				InetAddress in = InetAddress.getLocalHost();
+				logger.fine("Considering addresses for host " + in.getHostName() + ": " + in.getHostAddress());
+				InetAddress[] all = InetAddress.getAllByName(in.getHostName());
+				for (int i=0;i<all.length;i++)
 				{
-					host = all[i].getHostAddress();
-					break;
+					logger.finer("resolving local address:" + all[i] + " " + all[i].isSiteLocalAddress() + " " + all[i].isLoopbackAddress());
+					if (!all[i].isLoopbackAddress())
+					{
+						host = all[i].getHostAddress();
+						break;
+					}
 				}
-			}
-			if (host == null)
-			{
-				logger.severe("Could not find any local site address, using default: " + in.getHostAddress());
-				host = in.getHostAddress();
+				if (host == null)
+				{
+					logger.severe("Could not find any local site address, using default: " + in.getHostAddress());
+					host = in.getHostAddress();
+				}
 			}
 			logger.info("Identifying local host as " + host);
 			return host;
