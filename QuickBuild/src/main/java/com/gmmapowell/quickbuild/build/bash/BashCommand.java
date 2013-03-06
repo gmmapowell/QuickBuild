@@ -126,8 +126,14 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 	public OrderedFileList sourceFiles() {
 		OrderedFileList ret = new OrderedFileList();
 		ret.add(new File(scriptName));
-		for (File f : readsFiles)
-			ret.add(f);
+		for (File f : readsFiles) {
+			if (f.isDirectory()) {
+				for (File g : FileUtils.findFilesMatching(f, "*"))
+					if (g.isFile())
+						ret.add(g);
+			} else
+				ret.add(f);
+		}
 		return ret;
 	}
 

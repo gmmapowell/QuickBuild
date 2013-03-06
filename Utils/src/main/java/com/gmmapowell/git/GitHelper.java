@@ -30,7 +30,7 @@ public class GitHelper {
 
 	public static GitRecord checkFiles(boolean doComparison, OrderedFileList files, File file) {
 		RunProcess proc = new RunProcess("git");
-//		proc.debug(); 
+//		proc.debug(true); 
 		proc.executeInDir(FileUtils.getCurrentDir());
 		proc.captureStdout();
 		proc.arg("hash-object");
