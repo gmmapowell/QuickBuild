@@ -57,7 +57,7 @@ public class Endpoint implements Serializable {
 	 * 
 	 * @return the best IP address we can find
 	 */
-	private static String getLocalHostAddr() {
+	public static String getLocalHostAddr() {
 		try {
 			String host = System.getProperty("org.ziniki.claim.endpoint");
 			if (host == null || host.length() == 0) {
