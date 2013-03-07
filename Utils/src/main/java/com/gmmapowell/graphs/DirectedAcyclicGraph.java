@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.gmmapowell.collections.CollectionUtils;
+import com.gmmapowell.exceptions.CycleDetectedException;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.lambda.FuncR1;
 import com.gmmapowell.lambda.Lambda;
@@ -91,7 +92,7 @@ public class DirectedAcyclicGraph<N> {
 
 	private void addLink(Link<N> link) {
 		if (link.to.span().contains(link.from.node))
-			throw new UtilException("Adding link from " + link.from.node + " to " + link.to.node + " creates a cycle");
+			throw new CycleDetectedException("Adding link from " + link.from.node + " to " + link.to.node + " creates a cycle");
 		links.add(link);
 		link.from.addLinkFrom(link);
 		link.to.addLinkTo(link);

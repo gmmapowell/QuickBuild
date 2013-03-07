@@ -375,15 +375,25 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 	public void reject(Tactic t, boolean forever) {
 		if (!mapping.containsKey(t.identifier()))
 			throw new UtilException("Cannot reject non-existent " + t.identifier() + " have " + mapping.keySet());
-		for (ItemToBuild itb : toBuild)
-			if (itb.tactic == t) {
+		int rc = 0; // place in well in the same order they currently are in the build order
+		for (int i=0;i<toBuild.size();i++) {
+			ItemToBuild itb = toBuild.get(i);
+			boolean reject = itb.tactic == t;
+			if (!reject) {
+				Iterable<BuildResource> deps = dependencies.getDependencies(itb.tactic);
+				for (BuildResource br : deps) {
+					if (br instanceof ProcessResource && t == ((ProcessResource)br).getTactic())
+						reject = true;
+				}
+			}
+			if (reject) {
 				if (debug)
 					System.out.println("Rejecting tactic " + t);
 				toBuild.remove(itb);
-				if (!forever)
-					well.add(0, itb);
-				return;
+				well.add(rc++, itb);
+				i--;
 			}
+		}
 	}
 
 	public void commitUnbuilt()
@@ -401,5 +411,9 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 	@Override
 	public Iterator<ItemToBuild> iterator() {
 		return toBuild.iterator();
+	}
+
+	public void cleanFile() {
+		buildOrderFile.delete();		
 	}
 }

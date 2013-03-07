@@ -7,6 +7,8 @@ import java.util.List;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ResourceCommand;
+import com.gmmapowell.utils.FileUtils;
+import com.gmmapowell.utils.OrderedFileList;
 
 public class PDECommand extends JarCommand {
 	private List<File> pdelibs = new ArrayList<File>();
@@ -22,10 +24,19 @@ public class PDECommand extends JarCommand {
 			String name = ((ResourceCommand)cmd).getPendingResource().getPending();
 			File f = files.getRelative(name);
 			pdelibs.add(f);
+			addToFileList(f);
 			return true;
 		}
 
 		return false;
+	}
+
+	private void addToFileList(File f) {
+		if (mainSourceFileList == null)
+			mainSourceFileList = new OrderedFileList();
+		for (File g: FileUtils.findFilesMatching(f, "*"))
+			if (g.isFile())
+				mainSourceFileList.add(g);
 	}
 
 	@Override

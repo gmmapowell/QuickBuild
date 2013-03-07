@@ -40,7 +40,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	protected ResourcePacket<BuildResource> willProvide = new ResourcePacket<BuildResource>();
 	private JavaSourceDirResource mainSources;
 	private JavaSourceDirResource testSources;
-	private OrderedFileList mainSourceFileList;
+	protected OrderedFileList mainSourceFileList;
 	private String javaVersion;
 
 	@SuppressWarnings("unchecked")
@@ -219,7 +219,11 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 
 				// Do this for main, but not test ...
 				mainSources = sourcesResource;
-				mainSourceFileList = mapOFL(mainSources);
+				OrderedFileList tmp = mapOFL(mainSources);
+				if (mainSourceFileList == null)
+					mainSourceFileList = tmp;
+				else
+					mainSourceFileList.add(tmp);
 				File resdir = new File(dir.getParentFile(), "resources");
 				if (resdir.isDirectory())
 					mainSourceFileList.add(resdir, "*");

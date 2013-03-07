@@ -164,6 +164,7 @@ public class JavaBuildCommand implements Tactic {
 			System.out.println("       Corrected errors by adding " + cnt + " dependencies");
 			return BuildStatus.RETRY;
 		}
+		/* This just seems to cause trouble ...
 		// There is an element of desperation here, but what can you do?
 		// See if we can find other jars that produce the same package as we are currently compiling
 		for (String pkg : mypackages)
@@ -182,6 +183,7 @@ public class JavaBuildCommand implements Tactic {
 			System.out.println("       Corrected errors by adding " + cnt + " files with similar packages");
 			return BuildStatus.RETRY;
 		}
+		*/
 		System.out.println("!!! Errors were detected in javac, but could not be corrected:");
 		System.out.println(proc.getStderr());
 		return BuildStatus.BROKEN;

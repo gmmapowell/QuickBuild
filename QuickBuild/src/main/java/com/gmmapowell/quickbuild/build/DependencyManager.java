@@ -504,4 +504,8 @@ public class DependencyManager {
 		}
 		cache.clear();
 	}
+	
+	public void cleanFile() {
+		dependencyFile.delete();
+	}
 }

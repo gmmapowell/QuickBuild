@@ -20,6 +20,10 @@ public class OrderedFileList implements Iterable<File> {
 		list.addAll(files); 
 	}
 
+	public void add(OrderedFileList other) {
+		list.addAll(other.list);
+	}
+
 	public void add(File rootdir, String string) {
 		for (File f : FileUtils.findFilesMatching(rootdir, string))
 			if (f.isFile())

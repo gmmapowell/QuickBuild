@@ -10,6 +10,7 @@ public enum BuildStatus {
 	// It didn't work out so well ...
 	RETRY,			// But I made changes, so try again!
 	TEST_FAILURES,	// Tests failed, but don't break the build
+	BROKEN_DEPENDENCIES, // There were broken dependencies
 	BROKEN;			// I just can't go on!
 	
 	public boolean isGood() { 
@@ -21,7 +22,7 @@ public enum BuildStatus {
 	}
 	
 	public boolean moveOn() {
-		return isGood() || this == TEST_FAILURES;
+		return isGood() || this == TEST_FAILURES || this == BROKEN_DEPENDENCIES;
 	}
 	
 	public boolean isBroken() {
@@ -29,7 +30,7 @@ public enum BuildStatus {
 	}
 
 	public boolean needsRebuild() {
-		return isBroken() || this == TEST_FAILURES;
+		return isBroken() || this == TEST_FAILURES || this == BROKEN_DEPENDENCIES;
 	}
 	
 	public boolean isExit1() {
@@ -47,5 +48,9 @@ public enum BuildStatus {
 	// This is before we build ... do we need to build?
 	public boolean needsBuild() {
 		return this == SUCCESS || this == RETRY;
+	}
+
+	public boolean partialFail() {
+		return this == TEST_FAILURES;
 	}
 }

@@ -73,6 +73,8 @@ public class ItemToBuild {
 				System.out.print("v");
 			else if (showStatus == BuildStatus.NOTCRITICAL)
 				System.out.print(".");
+			else if (showStatus == BuildStatus.BROKEN_DEPENDENCIES)
+				System.out.print("<");
 			else if (showStatus == BuildStatus.SKIPPED) // defer now, do later ...
 				System.out.print("-");
 			else if (showStatus == BuildStatus.SUCCESS) // normal build
