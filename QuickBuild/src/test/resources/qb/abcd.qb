@@ -1,0 +1,22 @@
+# The idea here is that we can "run the build" multiple times.
+# When we do, the build receives an -Dmock.qb.iteration argument which is 1, 2, 3 ...
+# We iterate over the build; lib declares an explicit dependency
+# depends says that on a particular iteration (default 1), report that you need an additional dependency. 
+
+# need --no-defaults to ignore ~/.qbinit, etc.
+
+# include "mockJar", "depends", and maybe "lib"
+nature mockNature
+
+# may be needed to do dependencies right
+nature javaNature
+
+mockJar A
+  depends C  # reports that it will depend on C during build
+mockJar B
+  depends C 2 # reports that it will depend on C when run the second time
+mockJar C
+  depends A 3 # third time through, it reports a cycle
+mockJar D
+  lib B # openly declares it depends on B
+  depends A 2 # will declare it depends on A the second time through
