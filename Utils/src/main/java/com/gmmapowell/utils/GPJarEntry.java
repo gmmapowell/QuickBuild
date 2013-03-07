@@ -32,6 +32,10 @@ public class GPJarEntry {
 	public long length() {
 		return entry.getSize();
 	}
+
+	public boolean isDirectory() {
+		return entry.isDirectory();
+	}
 	
 	@Override
 	public String toString() {

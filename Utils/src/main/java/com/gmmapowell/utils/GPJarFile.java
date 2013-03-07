@@ -41,7 +41,7 @@ public class GPJarFile implements Iterable<GPJarEntry> {
 			jf = new JarFile(FileUtils.relativePath(f));
 			stillOpen = true;
 		} catch (IOException e) {
-			throw new GPJarException(e);
+			throw new GPJarException(f, e);
 		}
 	}
 
@@ -81,6 +81,24 @@ public class GPJarFile implements Iterable<GPJarEntry> {
 		if (ret == null || !(ret instanceof JarEntry))
 			return null;
 		return new GPJarEntry(this, (JarEntry) ret);
+	}
+
+	/** Extract contents of JAR/ZIP file to directory
+	 * 
+	 * @param dir the directory to extract to
+	 * @return this object
+	 */
+	public GPJarFile extractAll(File dir) {
+		for (GPJarEntry je : this) {
+			if (je.isDirectory())
+				FileUtils.assertDirectory(je.getFile());
+			else {
+				File f = FileUtils.combine(dir, je.getFile());
+				FileUtils.assertDirectory(f.getParentFile());
+				FileUtils.copyStreamToFile(je.asStream(), f);
+			}
+		}
+		return this;
 	}
 
 	@Override

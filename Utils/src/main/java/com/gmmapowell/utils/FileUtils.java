@@ -491,6 +491,13 @@ public class FileUtils {
 			return new File(path1, path2.getPath());
 	}
 
+	public static File combine(String path1, String path2) {
+		if (path1 == null)
+			return combine((File)null, path2);
+		else
+			return combine(new File(path1), path2);
+	}
+
 	public static String getHostName() {
 		try {
 		    return InetAddress.getLocalHost().getHostName();

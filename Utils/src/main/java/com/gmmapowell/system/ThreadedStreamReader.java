@@ -35,6 +35,8 @@ public class ThreadedStreamReader extends Thread {
 	}
 
 	public void read(InputStream inputStream) {
+		if (inputStream == null)
+			return;
 		readFrom = inputStream;
 		start();
 	}

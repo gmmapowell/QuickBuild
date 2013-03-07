@@ -6,13 +6,17 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.gmmapowell.exceptions.UtilException;
 
 public class RunProcess {
 
 	private final List<String> cmdarray = new ArrayList<String>();
+	private boolean clearEnv;
+	private final Map<String, String> envMap = new HashMap<String, String>();
 	private File workingDir = null;
 	private ThreadedStreamReader stdout;
 	private ThreadedStreamReader stderr;
@@ -33,6 +37,26 @@ public class RunProcess {
 
 	public void arg(String string) {
 		cmdarray.add(string);
+	}
+
+	public void clearEnv(boolean b) {
+		clearEnv = b;
+	}
+	
+	public void env(String key, String value) {
+		envMap.put(key, value);
+	}
+
+	public void env(String key, File dir) {
+		env(key, dir.getPath());
+	}
+
+	public void env(String key, int k) {
+		env(key, Integer.toString(k));
+	}
+
+	public void env(String key, boolean b) {
+		env(key, Boolean.toString(b));
 	}
 
 	public void redirectStdout(OutputStream out) {
@@ -82,9 +106,21 @@ public class RunProcess {
 			for (String s : cmdarray)
 				System.out.println(s);
 		try {
-			proc = Runtime.getRuntime().exec(cmdarray.toArray(new String[cmdarray.size()]), null, workingDir);
+			ProcessBuilder builder = new ProcessBuilder(cmdarray);
+			Map<String, String> env = builder.environment();
+			if (clearEnv)
+				env.clear();
+			env.putAll(envMap);
+			builder.directory(workingDir);
+			proc = builder.start();
 			stdout.read(proc.getInputStream());
 			stderr.read(proc.getErrorStream());
+			Runtime.getRuntime().addShutdownHook(new Thread() {
+			  @Override
+			  public void run() {
+			    proc.destroy();
+			  }
+			});
 			if (runBackground)
 			{
 				new WaitForThread(this).start();
@@ -171,6 +207,12 @@ public class RunProcess {
 		if (debug)
 			System.out.println("Killing " + proc);
 		proc.destroy();
+		while (true)
+			try {
+				exitCode = proc.waitFor();
+				break;
+			} catch (InterruptedException e) {
+			}
+		finished = true;
 	}
 }
-
