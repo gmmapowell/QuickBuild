@@ -37,12 +37,15 @@ public class BuildContext {
 
 	public boolean grandFallacy;
 
-	public BuildContext(Config conf, ConfigFactory configFactory, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar, String upTo) {
+	private final int nthreads;
+
+	public BuildContext(Config conf, ConfigFactory configFactory, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar, String upTo, int nthreads) {
 		this.conf = conf;
 		this.blankMemory = blankMemory;
 		this.quiet = quiet;
 		this.utilsJar = utilsJar;
 		this.upTo = upTo;
+		this.nthreads = nthreads;
 		rm = new ResourceManager(conf);
 		buildOrder = new BuildOrder(this, buildAll, debug);
 		manager = new DependencyManager(conf, rm, buildOrder, debug);
@@ -194,5 +197,9 @@ public class BuildContext {
 
 	public String printableBuildOrder(boolean b) {
 		return buildOrder.printOut(b);
+	}
+
+	public int getNumThreads() {
+		return nthreads;
 	}
 }

@@ -44,6 +44,10 @@ public class RunProcess {
 	}
 	
 	public void env(String key, String value) {
+		if (key == null)
+			return;
+		else if (value == null)
+			value = "";
 		envMap.put(key, value);
 	}
 

@@ -337,24 +337,30 @@ public class DependencyManager {
 	}
 
 	public Iterable<BuildResource> getDependencies(Tactic tactic) {
-		if (cache.containsKey(tactic))
-			return cache.get(tactic);
+		synchronized (cache) {
+			if (cache.containsKey(tactic))
+				return cache.get(tactic);
+		}
 		
-		Set<BuildResource> ret = new HashSet<BuildResource>();
-		for (PendingResource pr : tactic.belongsTo().needsResources()) {
-			BuildResource br = pr.physicalResource();
-			if (ret.add(br))
-				findDependencies(ret, br);
+		synchronized (dependencies) {
+			Set<BuildResource> ret = new HashSet<BuildResource>();
+			for (PendingResource pr : tactic.belongsTo().needsResources()) {
+				BuildResource br = pr.physicalResource();
+				if (ret.add(br))
+					findDependencies(ret, br);
+			}
+			BuildResource dep = ensureProcessResource(tactic);
+			for (Tactic t : tactic.getProcessDependencies()) {
+				if (t == null) continue;
+				BuildResource to = ensureProcessResource(t);
+				dependencies.ensureLink(dep, to);
+			}
+			findDependencies(ret, dep);
+			synchronized (cache) {
+				cache.put(tactic, ret);
+			}
+			return ret;
 		}
-		BuildResource dep = ensureProcessResource(tactic);
-		for (Tactic t : tactic.getProcessDependencies()) {
-			if (t == null) continue;
-			BuildResource to = ensureProcessResource(t);
-			dependencies.ensureLink(dep, to);
-		}
-		findDependencies(ret, dep);
-		cache.put(tactic, ret);
-		return ret;
 	}
 
 	public Iterable<BuildResource> unBuilt()

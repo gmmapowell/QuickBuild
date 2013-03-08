@@ -60,12 +60,14 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 	private DependencyManager dependencies;
 	private final Set<BuildResource> dirtyUnbuilt = new HashSet<BuildResource>();
 	private final Set<GitRecord> ubtxs = new HashSet<GitRecord>();
+	private final int nthreads;
 
 	public BuildOrder(BuildContext cxt, boolean buildAll, boolean debug)
 	{
 		this.cxt = cxt;
 		this.buildAll = buildAll;
 		this.debug = debug;
+		this.nthreads = cxt.getNumThreads();
 		buildOrderFile = cxt.getCacheFile("buildOrder.xml");
 	}	
 
@@ -155,7 +157,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		return pp.toString();
 	}
 
-	public void figureDirtyness(DependencyManager manager) {
+	public void figureDirtyness(final DependencyManager manager) {
 		for (BuildResource br : manager.unBuilt())
 		{
 			// This is an out-of-band hack and should be cleaned up - GP 2012-11-10
@@ -173,10 +175,47 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 			if (ubtx.isDirty())
 				dirtyUnbuilt.add(br);
 		}
+		final List<ItemToBuild> itbQueue = new ArrayList<ItemToBuild>();
 		for (ItemToBuild itb : toBuild)
-			figureDirtyness(manager, itb);
+			itbQueue.add(itb);
 		for (ItemToBuild itb : well)
-			figureDirtyness(manager, itb);
+			itbQueue.add(itb);
+		if (nthreads < 2 || itbQueue.size() < 5) {
+			for (ItemToBuild itb : itbQueue)
+				figureDirtyness(manager, itb);
+		} else {
+			System.out.println("Using " + nthreads + " threads to figure dirtyness");
+			int nthrs = Math.min(nthreads, itbQueue.size());
+			Thread[] thrs = new Thread[nthrs];
+			for (int i=0;i<nthrs;i++) {
+				final int j = i;
+				thrs[i] = new Thread() {
+					public void run() {
+						while (true) {
+							ItemToBuild itb;
+							synchronized (itbQueue) {
+								if (itbQueue.isEmpty())
+									break;
+								itb = itbQueue.remove(0);
+							}
+							System.out.println("Thread " + j + " took item " + itb);
+							figureDirtyness(manager, itb);
+							System.out.println("       " + j + " done with " + itb);
+						}
+						System.out.println("  Done: " + j);
+					}
+				};
+				thrs[i].start();
+			}
+			for (int i=0;i<nthrs;i++) {
+				while (thrs[i].isAlive())
+					try {
+						thrs[i].join();
+					} catch (InterruptedException ex) {
+						; // whatever
+					}
+			}
+		}
 	}
 
 	public void figureDirtyness(DependencyManager manager, ItemToBuild itb) {
