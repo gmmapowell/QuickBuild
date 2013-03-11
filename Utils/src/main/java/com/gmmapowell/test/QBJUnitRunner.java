@@ -30,7 +30,7 @@ public class QBJUnitRunner {
 				lsnr.failed++;
 			}
 		
-		System.out.println("Total, ran " + lsnr.runCount + ": " + lsnr.failed + " failed ," + lsnr.ignored + " ignored");
+		System.out.println("Summary: ran " + lsnr.runCount + ": " + lsnr.failed + " failed, " + lsnr.ignored + " ignored");
 		// Restrict the exit code to be in a range 0-100 to avoid conflict with 128+
 		int exitStatus = lsnr.failed;
 		if (exitStatus > 100)

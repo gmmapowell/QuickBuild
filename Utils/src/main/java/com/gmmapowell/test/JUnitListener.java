@@ -17,11 +17,12 @@ public class JUnitListener extends RunListener {
 	private int startRun;
 	private int startFailed;
 	private int startIgnored;
+	private Description batch;
 
 	@Override
 	public void testRunStarted(Description description) throws Exception {
-		System.err.println();
-		System.err.println("Starting batch " + description);
+		System.out.println("Running batch " + description);
+		batch = description;
 		startTime = new Date();
 		startRun = runCount;
 		startFailed = failed;
@@ -39,8 +40,6 @@ public class JUnitListener extends RunListener {
 
 	@Override
 	public void testFailure(Failure failure) throws Exception {
-		System.err.println();
-		System.err.println("!! FAILED");
 		System.err.println(failure.getMessage());
 		System.err.println(failure.getTrace());
 		System.err.println("Failed Test " + failure.getDescription());
@@ -57,8 +56,7 @@ public class JUnitListener extends RunListener {
 	}
 
 	@Override
-	public void testRunFinished(Result result) throws Exception {
-		System.err.println("Run finished in " + Format.hhmmss3.format(new Date().getTime()-startTime.getTime()));
-		System.out.println("Ran: " + (runCount-startRun)+": "+(failed-startFailed)+" failed ("+(ignored-startIgnored)+" ignored)");
+	public void testRunFinished(Result notUsed) throws Exception {
+		System.out.println("Ran batch " + batch + ": " + (runCount-startRun)+" total, "+(failed-startFailed)+" failed ("+(ignored-startIgnored)+" ignored) finished in " + Format.hhmmss3.format(new Date().getTime()-startTime.getTime()));
 	}
 }

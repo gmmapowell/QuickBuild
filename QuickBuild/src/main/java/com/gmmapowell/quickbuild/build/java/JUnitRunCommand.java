@@ -2,6 +2,8 @@ package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -77,7 +79,7 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 //		proc.arg("-Xmx2g");
 //		proc.arg("org.junit.runner.JUnitCore");
 		proc.arg("com.gmmapowell.test.QBJUnitRunner");
-		boolean any = false;
+		List<String> testsToRun = new ArrayList<String>();
 		for (File f : FileUtils.findFilesUnderMatching(srcdir, "*.java"))
 		{
 			String qualifiedName = FileUtils.convertToDottedNameDroppingExtension(f);
@@ -85,15 +87,17 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 			ByteCodeFile bcf = new ByteCodeFile(clsFile, qualifiedName);
 			if (bcf.hasMethodsWithAnnotation("org.junit.Test"))
 			{
-				any = true;
-				proc.arg(qualifiedName);
+				testsToRun.add(qualifiedName);
 			}
 		}
-		if (!any)
+		if (testsToRun.isEmpty())
 		{
 			reportSuccess(cxt);
 			return BuildStatus.SKIPPED;
 		}
+		Collections.sort(testsToRun);
+		for (String s : testsToRun)
+			proc.arg(s);
 		proc.execute();
 		FileUtils.assertDirectory(errdir);
 		FileUtils.createFile(new File(errdir, "stdout"), proc.getStdout());
@@ -128,20 +132,24 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 			cxt.output.cat("testFail", proc.getStdout());
 		} else {
 			LinePatternParser lpp = new LinePatternParser();
-			lpp.matchAll("([.E]*)", "summary", "details");
-			lpp.matchAll("([0-9]+\\) [a-zA-Z0-9_.()]+)", "case", "name");
+//			lpp.matchAll("(Ran batch.*)", "batch", "details");
+			lpp.matchAll("(Failure:.*)", "case", "name");
+			lpp.matchAll("(Summary:.*)", "summary", "info");
 			
-			int cnt = 0;
 			for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStdout())))
 			{
 				String s;
-				if (lpm.is("summary"))
+				if (lpm.is("batch"))
 				{
 					s = lpm.get("details");
 				}
 				else if (lpm.is("case"))
 				{
 					s = lpm.get("name");
+				}
+				else if (lpm.is("summary"))
+				{
+					s = lpm.get("info");
 				}
 				else
 					throw new QuickBuildException("Do not know how to handle match " + lpm);
@@ -151,8 +159,6 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 					failure.addMessage(s);
 				}
 			}
-			if (cnt > 0)
-				return BuildStatus.RETRY;
 		}
 		return BuildStatus.TEST_FAILURES;
 	}
