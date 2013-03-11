@@ -401,6 +401,18 @@ public class FileUtils {
 			to.write(bs, 0, cnt);
 	}
 
+	public static String readResource(String resourceName) {
+		InputStream stream = FileUtils.class.getResourceAsStream(resourceName);
+		if (stream == null)
+		{
+			stream = FileUtils.class.getResourceAsStream("/" + resourceName);
+			if (stream == null)
+				throw new UtilException("Could not find resource " + resourceName);
+		}
+		String ret = new String(readAllStream(stream));
+		try { stream.close(); } catch (IOException ex) { throw UtilException.wrap(ex); }
+		return ret;
+	}
 	public static byte[] readAllStream(InputStream asStream) {
 		return readAllReader(new InputStreamReader(asStream));
 	}
