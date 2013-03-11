@@ -56,7 +56,8 @@ public class QuickBuild {
 		arguments = new Arguments();
 		ProcessArgs.process(arguments, argumentDefinitions, args);
 		BuildOutput output = new BuildOutput(arguments.teamcity);
-		
+		output.openBlock("Config");
+
 //		System.out.println("user.home = " + System.getProperty("user.home"));
 		File file = new File(arguments.file);
 		OrderedFileList ofl = new OrderedFileList(FileUtils.relativePath(file));
@@ -89,6 +90,8 @@ public class QuickBuild {
 		SignificantWhiteSpaceFileReader.read(conf, configFactory, file);
 		conf.done();
 		configFactory.done();
+		output.closeBlock("Config");
+
 		if (arguments.debug)
 		{
 			System.out.println("Files read (in order):");
