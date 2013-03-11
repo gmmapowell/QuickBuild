@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.gmmapowell.quickbuild.app.BuildOutput;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
@@ -39,8 +40,11 @@ public class BuildContext {
 
 	private final int nthreads;
 
-	public BuildContext(Config conf, ConfigFactory configFactory, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar, String upTo, int nthreads) {
+	public final BuildOutput output;
+
+	public BuildContext(Config conf, ConfigFactory configFactory, BuildOutput output, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar, String upTo, int nthreads) {
 		this.conf = conf;
+		this.output = output;
 		this.blankMemory = blankMemory;
 		this.quiet = quiet;
 		this.utilsJar = utilsJar;
@@ -104,10 +108,10 @@ public class BuildContext {
 		catch (QuickBuildCacheException ex) {
 			// the cache failed to load because of inconsistencies or whatever
 			// ignore it and try again
-			System.out.println("Cache was out of date; rebuilding");
-			System.out.println("  " + ex.getMessage());
+			output.println("Cache was out of date; rebuilding");
+			output.println("  " + ex.getMessage());
 			if (ex.getCause() != null)
-				System.out.println("  > "+ ex.getCause().getMessage());
+				output.println("  > "+ ex.getCause().getMessage());
 			manager.figureOutDependencies(strats);
 			buildOrder.buildAll();
 		}

@@ -15,6 +15,11 @@ public class QBJUnitRunner {
 				System.err.println("There was no class " + arg + " found");
 				lsnr.failed++;
 			}
-		System.exit((lsnr.failed>100)?100:lsnr.failed);
+		
+		// Restrict the exit code to be in a range 0-100 to avoid conflict with 128+
+		int exitStatus = lsnr.failed;
+		if (exitStatus > 100)
+			exitStatus = 100;
+		System.exit(exitStatus);
 	}
 }

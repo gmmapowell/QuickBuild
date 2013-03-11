@@ -16,11 +16,13 @@ public class JUnitListener extends RunListener {
 		System.err.println();
 		System.err.println("Starting batch " + description);
 	}
+
 	
 	@Override
 	public void testStarted(Description description) throws Exception {
 		System.err.println();
 		System.err.println("Starting test " + description);
+		System.out.println("Starting test " + description);
 	}
 
 	@Override
@@ -29,6 +31,7 @@ public class JUnitListener extends RunListener {
 		System.err.println("!! FAILED");
 		System.err.println(failure.getMessage());
 		System.err.println(failure.getTrace());
+		System.out.println("Failure: " + failure.getDescription());
 	}
 
 	@Override

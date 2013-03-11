@@ -226,7 +226,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		if (buildAll)
 		{
 			if (debug)
-				System.out.println("Marking " + itb + " dirty due to --build-all");
+				cxt.output.println("Marking " + itb + " dirty due to --build-all");
 			isDirty = true;
 		}
 		boolean wasDirty = isDirty;
@@ -238,7 +238,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		{
 			isDirty = true;
 			if (!wasDirty && debug)
-				System.out.println("Marking " + itb + " dirty due to NULL file list");
+				cxt.output.println("Marking " + itb + " dirty due to NULL file list");
 		}
 		else if (files != null)
 		{
@@ -246,7 +246,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 			itb.addGitTx(gittx);
 			isDirty |= gittx.isDirty();
 			if (!wasDirty && isDirty && debug)
-				System.out.println("Marking " + itb + " dirty due to git hash-object");
+				cxt.output.println("Marking " + itb + " dirty due to git hash-object");
 		}
 		if (!isDirty)
 		{
@@ -257,13 +257,13 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 				if (wb.getPath() == null || !wb.getPath().exists())
 				{
 					if (debug)
-						System.out.println("Marking " + itb + " dirty because " + wb.compareAs() + " does not have a file output");
+						cxt.output.println("Marking " + itb + " dirty because " + wb.compareAs() + " does not have a file output");
 					isDirty = true;
 				}
 				else if (!wb.getPath().exists())
 				{
 					if (debug)
-						System.out.println("Marking " + itb + " dirty because " + wb.compareAs() + " does not exist");
+						cxt.output.println("Marking " + itb + " dirty because " + wb.compareAs() + " does not exist");
 					isDirty = true;
 				}
 			}
@@ -280,14 +280,14 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 					{
 						isDirty = true;
 						if (debug)
-							System.out.println("Marking " + itb + " dirty due to library " + d + " is dirty");
+							cxt.output.println("Marking " + itb + " dirty due to library " + d + " is dirty");
 					}
 				}
 				else if (!mapping.get(d.getBuiltBy().identifier()).isClean())
 				{
 					isDirty = true;
 					if (debug)
-						System.out.println("Marking " + itb + " dirty due to " + d + " is dirty");
+						cxt.output.println("Marking " + itb + " dirty due to " + d + " is dirty");
 				}
 			}
 		}
@@ -306,7 +306,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		}
 		else if (ancDirty) {
 			if (debug)
-				System.out.println("Marking " + itb + " locally dirty due to git hash-object on ancillaries");
+				cxt.output.println("Marking " + itb + " locally dirty due to git hash-object on ancillaries");
 			itb.markDirtyLocally();
 		}
 	}
@@ -329,14 +329,14 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		{
 			if (debug)
 			{
-				System.out.println("Considering " + itb.id);
+				cxt.output.println("Considering " + itb.id);
 			}
 			boolean hasDependency = false;
 			for (Tactic t : itb.getProcessDependencies()) {
 				if (!isBuilt(t)) {
 					hasDependency = true;
 					if (debug)
-						System.out.println("  Rejecting because " + t + " is not built");
+						cxt.output.println("  Rejecting because " + t + " is not built");
 				}
 			}
 			for (BuildResource pr : itb.getDependencies(dependencies))
@@ -344,14 +344,14 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 				if (!isBuilt(pr))
 				{
 					if (debug)
-						System.out.println("  Rejecting because " + pr + " is not built");
+						cxt.output.println("  Rejecting because " + pr + " is not built");
 					hasDependency = true;
 					continue;
 				}
 				else if (hasDependency)
 					continue;
 				if (debug)
-					System.out.println("  Dependency " + pr + " has been built");
+					cxt.output.println("  Dependency " + pr + " has been built");
 			}
 			if (hasDependency)
 				continue loop;
@@ -365,17 +365,18 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 			well.remove(bestFit);
 			return true;
 		}
-		System.out.println("There is nothing in the well that can be added!");
-		System.out.println("Well contents:");
+		cxt.output.openBlock("noWell");
+		cxt.output.println("There is nothing in the well that can be added!");
+		cxt.output.println("Well contents:");
 		for (ItemToBuild p : well)
 		{
-			System.out.println("  " + p.name() + " drift: " + p.drift());
+			cxt.output.println("  " + p.name() + " drift: " + p.drift());
 			boolean hasDependency = false;
 			for (BuildResource pr : p.getDependencies(dependencies))
 			{
 				if (!isBuilt(pr))
 				{
-					System.out.println("    Rejecting because " + pr + " is not built");
+					cxt.output.println("    Rejecting because " + pr + " is not built");
 					hasDependency = true;
 					continue;
 				}
@@ -383,6 +384,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 					continue;
 			}
 		}
+		cxt.output.closeBlock("noWell");
 		throw new UtilException("There is no way to build everything");
 	}
 
@@ -427,7 +429,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 			}
 			if (reject) {
 				if (debug)
-					System.out.println("Rejecting tactic " + t);
+					cxt.output.println("Rejecting tactic " + t);
 				toBuild.remove(itb);
 				well.add(rc++, itb);
 				i--;

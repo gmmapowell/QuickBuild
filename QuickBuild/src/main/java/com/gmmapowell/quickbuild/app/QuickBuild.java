@@ -33,6 +33,7 @@ public class QuickBuild {
 		new ArgumentDefinition("--debugInternals", Cardinality.LIST, "debug", null),
 		new ArgumentDefinition("--nthreads", Cardinality.OPTION, "nthreads", "number of threads"),
 		new ArgumentDefinition("--quiet", Cardinality.LIST, "quiet", "super quiet mode"),
+		new ArgumentDefinition("--teamcity", Cardinality.OPTION, "teamcity", "TeamCity integration mode"),
 		new ArgumentDefinition("--upto", Cardinality.OPTION, "upTo", "last target to build")
 	};
 
@@ -84,6 +85,7 @@ public class QuickBuild {
 			}
 
 		}
+		BuildOutput output = new BuildOutput(arguments.teamcity);
 		SignificantWhiteSpaceFileReader.read(conf, configFactory, file);
 		conf.done();
 		configFactory.done();
@@ -109,15 +111,17 @@ public class QuickBuild {
 			
 		boolean buildAll = arguments.buildAll;
 		boolean blankMemory = arguments.blank;
+		output.openBlock("compareFiles");
 		if (!arguments.quiet)
-			System.out.println("Comparing files ...");
+			output.println("Comparing files ...");
 		GitRecord mainFiles = GitHelper.checkFiles(true, ofl, new File(conf.getCacheDir(), file.getName()));
 		blankMemory |= mainFiles.isDirty();
 		buildAll |= mainFiles.isDirty();
 		
 		// now we need to read back anything we've cached ...
-		BuildContext cxt = new BuildContext(conf, configFactory, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar, arguments.upTo, arguments.nthreads);
+		BuildContext cxt = new BuildContext(conf, configFactory, output, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar, arguments.upTo, arguments.nthreads);
 		cxt.configure();
+		output.closeBlock("compareFiles");
 		
 		if (!arguments.quiet)
 			System.out.println();

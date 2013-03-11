@@ -11,6 +11,7 @@ public class Arguments {
 	public boolean configOnly;
 	public boolean debug;
 	public boolean quiet;
+	public boolean teamcity;
 	public int nthreads;
 	public String file;
 	public String cachedir;

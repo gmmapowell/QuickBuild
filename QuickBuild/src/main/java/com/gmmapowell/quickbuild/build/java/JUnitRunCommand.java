@@ -124,32 +124,36 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 
 	private BuildStatus handleFailure(BuildContext cxt, RunProcess proc) {
 		ErrorCase failure = cxt.failure(proc.getArgs(), proc.getStdout(), proc.getStderr());
-		LinePatternParser lpp = new LinePatternParser();
-		lpp.matchAll("([.E]*)", "summary", "details");
-		lpp.matchAll("([0-9]+\\) [a-zA-Z0-9_.()]+)", "case", "name");
-		
-		int cnt = 0;
-		for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStdout())))
-		{
-			String s;
-			if (lpm.is("summary"))
+		if (cxt.output.forTeamCity()) {
+			cxt.output.cat("testFail", proc.getStdout());
+		} else {
+			LinePatternParser lpp = new LinePatternParser();
+			lpp.matchAll("([.E]*)", "summary", "details");
+			lpp.matchAll("([0-9]+\\) [a-zA-Z0-9_.()]+)", "case", "name");
+			
+			int cnt = 0;
+			for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStdout())))
 			{
-				s = lpm.get("details");
+				String s;
+				if (lpm.is("summary"))
+				{
+					s = lpm.get("details");
+				}
+				else if (lpm.is("case"))
+				{
+					s = lpm.get("name");
+				}
+				else
+					throw new QuickBuildException("Do not know how to handle match " + lpm);
+				if (s != null && s.trim().length() > 0)
+				{
+					System.out.println("    " + s);
+					failure.addMessage(s);
+				}
 			}
-			else if (lpm.is("case"))
-			{
-				s = lpm.get("name");
-			}
-			else
-				throw new QuickBuildException("Do not know how to handle match " + lpm);
-			if (s != null && s.trim().length() > 0)
-			{
-				System.out.println("    " + s);
-				failure.addMessage(s);
-			}
+			if (cnt > 0)
+				return BuildStatus.RETRY;
 		}
-		if (cnt > 0)
-			return BuildStatus.RETRY;
 		return BuildStatus.TEST_FAILURES;
 	}
 
