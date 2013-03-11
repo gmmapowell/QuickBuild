@@ -1,5 +1,7 @@
 package com.gmmapowell.test;
 
+import java.util.Date;
+
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
@@ -8,13 +10,22 @@ import org.junit.runner.notification.RunListener;
 import com.gmmapowell.utils.DateUtils.Format;
 
 public class JUnitListener extends RunListener {
-
-	public int failed;
+	private Date startTime;
+	int runCount;
+	int failed;
+	int ignored;
+	private int startRun;
+	private int startFailed;
+	private int startIgnored;
 
 	@Override
 	public void testRunStarted(Description description) throws Exception {
 		System.err.println();
 		System.err.println("Starting batch " + description);
+		startTime = new Date();
+		startRun = runCount;
+		startFailed = failed;
+		startIgnored = ignored;
 	}
 
 	
@@ -23,6 +34,7 @@ public class JUnitListener extends RunListener {
 		System.err.println();
 		System.err.println("Starting test " + description);
 		System.out.println("Starting test " + description);
+		runCount++;
 	}
 
 	@Override
@@ -31,21 +43,22 @@ public class JUnitListener extends RunListener {
 		System.err.println("!! FAILED");
 		System.err.println(failure.getMessage());
 		System.err.println(failure.getTrace());
+		System.err.println("Failed Test " + failure.getDescription());
 		System.out.println("Failure: " + failure.getDescription());
+		failed++;
 	}
 
 	@Override
 	public void testIgnored(Description description) throws Exception {
 		System.err.println();
-		System.err.println("Starting test " + description);
+		System.err.println("Ignoring test " + description);
+		System.out.println("Ignoring test " + description);
+		ignored++;
 	}
 
 	@Override
 	public void testRunFinished(Result result) throws Exception {
-		System.err.println("Run finished in " + Format.hhmmss3.format(result.getRunTime()));
-		System.out.println("Ran: " + result.getRunCount()+": "+result.getFailureCount()+" failed ("+result.getIgnoreCount()+" ignored)");
-		failed += result.getFailureCount();
-		for (Failure x : result.getFailures())
-			System.out.println(x);
+		System.err.println("Run finished in " + Format.hhmmss3.format(new Date().getTime()-startTime.getTime()));
+		System.out.println("Ran: " + (runCount-startRun)+": "+(failed-startFailed)+" failed ("+(ignored-startIgnored)+" ignored)");
 	}
 }

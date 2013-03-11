@@ -55,11 +55,12 @@ public class QuickBuild {
 		Date launched = new Date();
 		arguments = new Arguments();
 		ProcessArgs.process(arguments, argumentDefinitions, args);
+		BuildOutput output = new BuildOutput(arguments.teamcity);
 		
 //		System.out.println("user.home = " + System.getProperty("user.home"));
 		File file = new File(arguments.file);
 		OrderedFileList ofl = new OrderedFileList(FileUtils.relativePath(file));
-		Config conf = new Config(configFactory, file.getParentFile(), FileUtils.dropExtension(file.getName()), arguments.cachedir);
+		Config conf = new Config(configFactory, output, file.getParentFile(), FileUtils.dropExtension(file.getName()), arguments.cachedir);
 		{
 			File hostfile = new File(file.getParentFile(), FileUtils.getHostName() + ".host.qb");
 			if (hostfile.exists())
@@ -85,7 +86,6 @@ public class QuickBuild {
 			}
 
 		}
-		BuildOutput output = new BuildOutput(arguments.teamcity);
 		SignificantWhiteSpaceFileReader.read(conf, configFactory, file);
 		conf.done();
 		configFactory.done();

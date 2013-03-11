@@ -14,6 +14,7 @@ import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.http.ProxyInfo;
 import com.gmmapowell.http.ProxyableConnection;
+import com.gmmapowell.quickbuild.app.BuildOutput;
 import com.gmmapowell.quickbuild.build.android.AndroidContext;
 import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
@@ -42,12 +43,14 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	private File cacheDir;
 	private final ListMap<String, String> libraryContexts = new ListMap<String, String>();
 	private boolean topLevel;
+	public final BuildOutput outlog;
 
 	@SuppressWarnings("unchecked")
-	public Config(ConfigFactory factory, File qbdir, String quickBuildName, String cacheDir)
+	public Config(ConfigFactory factory, BuildOutput outlog, File qbdir, String quickBuildName, String cacheDir)
 	{
 		super(ConfigApplyCommand.class, ConfigBuildCommand.class);
 		this.factory = factory;
+		this.outlog = outlog;
 		this.quickBuildName = quickBuildName;
 		try
 		{
