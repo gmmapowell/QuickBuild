@@ -149,7 +149,9 @@ public class RunProcess {
 		}
 		if (debug)
 			System.out.println("Process terminated");
-		finished = true;
+		synchronized (this) {
+			finished = true;
+		}
 	}
 	
 	public int getExitCode()
@@ -181,7 +183,7 @@ public class RunProcess {
 		return new StringReader(getStderr());
 	}
 
-	private void assertFinished() {
+	private synchronized void assertFinished() {
 		if (!finished)
 			throw new UtilException("Can only call this method after successful completion");
 	}
@@ -200,13 +202,13 @@ public class RunProcess {
 		return cmdarray;
 	}
 
-	public boolean isFinished() {
+	public synchronized boolean isFinished() {
 		return finished;
 	}
 
 	public void kill() {
 		// don't kill the dead
-		if (finished)
+		if (finished || proc == null)
 			return;
 		if (debug)
 			System.out.println("Killing " + proc);

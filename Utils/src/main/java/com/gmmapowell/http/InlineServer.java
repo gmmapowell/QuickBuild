@@ -3,6 +3,7 @@ package com.gmmapowell.http;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.BindException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -99,6 +100,22 @@ public class InlineServer implements Runnable {
 		run(true);
 	}
 
+	public boolean testPort() {
+		try {
+			remote.init();
+		} catch (BindException ex) {
+			return false;
+		} catch (Exception ex) {
+			throw UtilException.wrap(ex);
+		} finally {
+			try {
+				remote.close();
+			} catch (Exception ex) {
+				throw UtilException.wrap(ex);
+			}
+		}
+		return true;
+	}
 	public void run(boolean wantLoop) {
 		if (inThread != Thread.currentThread())
 			throw new UtilException("Cannot run in different thread to creation thread");

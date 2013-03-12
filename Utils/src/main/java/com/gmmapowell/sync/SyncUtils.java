@@ -20,4 +20,17 @@ public class SyncUtils {
 		return false;
 	}
 
+	public static void sleep(int ms) {
+		Date end = new Date();
+		end = new Date(end.getTime() + ms);
+		Date curr;
+		while ((curr = new Date()).before(end)) {
+			try {
+				Thread.sleep(end.getTime() - curr.getTime());
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 }

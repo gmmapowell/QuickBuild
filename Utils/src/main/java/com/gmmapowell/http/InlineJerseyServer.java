@@ -11,5 +11,4 @@ public class InlineJerseyServer extends InlineServer {
 		super(amqpUri, "com.sun.jersey.spi.container.servlet.ServletContainer");
 		initParam("javax.ws.rs.Application", appClz);
 	}
-
 }

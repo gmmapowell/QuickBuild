@@ -156,7 +156,6 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 		int failed = 0;
 		for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStdout())))
 		{
-			String s;
 			if (lpm.is("startBatch"))
 			{
 				output.startTestBatch(lpm.get("details"));
