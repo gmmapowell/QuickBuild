@@ -205,13 +205,13 @@ public class BuildExecutor {
 		}
 		if (!itb.needsBuild.needsBuild())
 		{
-			itb.export(rm);
+			itb.export(cxt.output, rm);
 			itb.announce(cxt.output, !cxt.quietMode(), currentTactic, itb.needsBuild);
 			return itb.needsBuild;
 		}
 		else if (!isOnCriticalPath(itb))
 		{
-			itb.export(rm);
+			itb.export(cxt.output, rm);
 			itb.announce(cxt.output, !cxt.quietMode(), currentTactic, BuildStatus.NOTCRITICAL);
 			itb.revert();
 			return BuildStatus.NOTCRITICAL;
@@ -242,7 +242,7 @@ public class BuildExecutor {
 			itb.fail();
 		else if (ret.isGood()) {
 			itb.commitAll();
-			itb.export(rm);
+			itb.export(cxt.output, rm);
 			buildOrder.saveBuildOrder();
 			manager.saveDependencies();
 		}

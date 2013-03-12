@@ -59,12 +59,12 @@ public class ItemToBuild {
 	}
 
 	/** Export anything that is completed by this operation */
-	public void export(ResourceManager rm) {
+	public void export(BuildOutput output, ResourceManager rm) {
 		List<? extends Tactic> tactics = tactic.belongsTo().tactics();
 		Tactic last = tactics.get(tactics.size()-1);
 		if (last != tactic)
 			return;
-		System.out.println("       Completing " + tactic.belongsTo().identifier());
+		output.complete(tactic.belongsTo().identifier());
 		rm.exportAll(tactic.belongsTo());
 	}
 

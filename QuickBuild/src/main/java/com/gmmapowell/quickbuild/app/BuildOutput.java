@@ -68,8 +68,10 @@ public class BuildOutput {
 
 	public void startBuildStep(String cmd, String invocation) {
 		if (teamCity) {
-			if (!cmd.equals("JUnit")) {
-				buildCmd = cmd;
+			buildCmd = cmd;
+			if (cmd.equals("JUnit")) {
+				openBlock("JUnit");
+			} else {
 				System.out.println("##teamcity[compilationStarted compiler='" + cmd + "']");
 				System.out.println("##teamcity[message text='" + invocation + "']");
 			}
@@ -78,9 +80,13 @@ public class BuildOutput {
 	}
 
 	public void finishBuildStep() {
-		if (teamCity && buildCmd != null) {
-			System.out.println("##teamcity[compilationFinished compiler='" + buildCmd + "']");
-			buildCmd = null;
+		if (teamCity) {
+			if (buildCmd.equals("JUnit"))
+				closeBlock("JUnit");
+			else {
+				System.out.println("##teamcity[compilationFinished compiler='" + buildCmd + "']");
+				buildCmd = null;
+			}
 		}
 	}
 
@@ -88,10 +94,19 @@ public class BuildOutput {
 		if (teamCity) {
 			String[] messages = errors.split("\n");
 			for (String m : messages)
-				System.out.println("##teamcity[message text='" + m + "' status='ERROR']");
+				System.out.println("##teamcity[message text='" + escape(m) + "' status='ERROR']");
 		} else {
 			System.out.println("!!! Errors were detected in javac, but could not be corrected:");
 			System.out.println(errors);
 		}
+	}
+
+	private String escape(String m) {
+		return m.replaceAll("|", "||").replaceAll("\\[", "|[").replaceAll("\\]", "|]").replaceAll("\n", "|n");
+	}
+
+	public void complete(String identifier) {
+		if (!teamCity)
+			System.out.println("       Completing " + identifier);
 	}
 }
