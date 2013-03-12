@@ -1,5 +1,8 @@
 package com.gmmapowell.test;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
@@ -29,6 +32,17 @@ public class QBJUnitRunner {
 				System.err.println("Class " + arg + " encountered run exception: " + e.getMessage());
 				lsnr.failed++;
 			}
+
+		System.out.println("Active Threads:");
+		Set<Thread> threads = new HashSet<Thread>(Thread.getAllStackTraces().keySet());
+		int counter = 1;
+		for (Thread t : threads)
+			if (t.isAlive() && !t.isDaemon())
+				System.out.println(counter++ +". " + t.getName());
+		System.out.println("Daemon Threads:");
+		for (Thread t : threads)
+			if (t.isAlive() && t.isDaemon())
+				System.out.println(counter++ +". " + t.getName());
 		
 		System.out.println("Summary: ran " + lsnr.runCount + ": " + lsnr.failed + " failed, " + lsnr.ignored + " ignored");
 		// Restrict the exit code to be in a range 0-100 to avoid conflict with 128+

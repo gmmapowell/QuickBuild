@@ -200,23 +200,23 @@ public class BuildExecutor {
 	
 	public BuildStatus execute(ItemToBuild itb) {
 		if (hasBrokenDependencies(itb)) {
-			itb.announce(!cxt.quietMode(), currentTactic, BuildStatus.BROKEN_DEPENDENCIES);
+			itb.announce(cxt.output, !cxt.quietMode(), currentTactic, BuildStatus.BROKEN_DEPENDENCIES);
 			return BuildStatus.BROKEN_DEPENDENCIES;
 		}
 		if (!itb.needsBuild.needsBuild())
 		{
 			itb.export(rm);
-			itb.announce(!cxt.quietMode(), currentTactic, itb.needsBuild);
+			itb.announce(cxt.output, !cxt.quietMode(), currentTactic, itb.needsBuild);
 			return itb.needsBuild;
 		}
 		else if (!isOnCriticalPath(itb))
 		{
 			itb.export(rm);
-			itb.announce(!cxt.quietMode(), currentTactic, BuildStatus.NOTCRITICAL);
+			itb.announce(cxt.output, !cxt.quietMode(), currentTactic, BuildStatus.NOTCRITICAL);
 			itb.revert();
 			return BuildStatus.NOTCRITICAL;
 		}
-		itb.announce(!cxt.quietMode(), currentTactic, itb.needsBuild);
+		itb.announce(cxt.output, !cxt.quietMode(), currentTactic, itb.needsBuild);
 
 		// Record when first build started
 		if (buildStarted == null)
@@ -237,6 +237,7 @@ public class BuildExecutor {
 		{
 			ex.printStackTrace(System.out);
 		}
+		cxt.output.finishBuildStep();
 		if (ret.needsRebuild())
 			itb.fail();
 		else if (ret.isGood()) {

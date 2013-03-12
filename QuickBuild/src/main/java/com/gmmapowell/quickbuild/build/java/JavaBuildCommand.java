@@ -184,8 +184,7 @@ public class JavaBuildCommand implements Tactic {
 			return BuildStatus.RETRY;
 		}
 		*/
-		System.out.println("!!! Errors were detected in javac, but could not be corrected:");
-		System.out.println(proc.getStderr());
+		cxt.output.buildErrors(proc.getStderr());
 		return BuildStatus.BROKEN;
 	}
 

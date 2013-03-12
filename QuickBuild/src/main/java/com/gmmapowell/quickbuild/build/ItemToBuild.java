@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.gmmapowell.git.GitRecord;
+import com.gmmapowell.quickbuild.app.BuildOutput;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.FloatToEnd;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -67,26 +68,34 @@ public class ItemToBuild {
 		rm.exportAll(tactic.belongsTo());
 	}
 
-	public void announce(boolean verbose, int currentTactic, BuildStatus showStatus) {
+	public void announce(BuildOutput output, boolean verbose, int currentTactic, BuildStatus showStatus) {
 		if (verbose) {
+			StringBuilder sb = new StringBuilder();
 			if (showStatus == BuildStatus.NOTAPPLICABLE)
-				System.out.print("v");
+				sb.append("v");
 			else if (showStatus == BuildStatus.NOTCRITICAL)
-				System.out.print(".");
+				sb.append(".");
 			else if (showStatus == BuildStatus.BROKEN_DEPENDENCIES)
-				System.out.print("<");
+				sb.append("<");
 			else if (showStatus == BuildStatus.SKIPPED) // defer now, do later ...
-				System.out.print("-");
+				sb.append("-");
 			else if (showStatus == BuildStatus.SUCCESS) // normal build
-				System.out.print("*");
+				sb.append("*");
 			else if (showStatus == BuildStatus.RETRY) // just literally failed ... retrying
-				System.out.print("!");
+				sb.append("!");
 			else if (showStatus == BuildStatus.CLEAN) // is clean, that's OK
-				System.out.print(" ");
+				sb.append(" ");
 			else
 				throw new RuntimeException("Cannot handle status " + showStatus);
 
-			System.out.println(" " + StringUtil.rjdigits(currentTactic+1, 3) + ". " + tactic);
+			sb.append(" " + StringUtil.rjdigits(currentTactic+1, 3) + ". " + tactic);
+			String cmd = tactic.toString();
+			for (int i=0;i<cmd.length();i++)
+				if (!Character.isLetter(cmd.charAt(i))) {
+					cmd = cmd.substring(0, i);
+					break;
+				}
+			output.startBuildStep(cmd, sb.toString());
 		}
 	}
 

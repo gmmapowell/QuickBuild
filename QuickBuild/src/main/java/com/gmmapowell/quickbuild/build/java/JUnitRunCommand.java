@@ -12,6 +12,7 @@ import com.gmmapowell.bytecode.ByteCodeFile;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.LinePatternMatch;
 import com.gmmapowell.parser.LinePatternParser;
+import com.gmmapowell.quickbuild.app.BuildOutput;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
@@ -102,6 +103,7 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 		FileUtils.assertDirectory(errdir);
 		FileUtils.createFile(new File(errdir, "stdout"), proc.getStdout());
 		FileUtils.createFile(new File(errdir, "stderr"), proc.getStderr());
+		handleOutput(cxt.output, proc);
 		if (proc.getExitCode() == 0)
 		{
 			reportSuccess(cxt);
@@ -128,39 +130,64 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 
 	private BuildStatus handleFailure(BuildContext cxt, RunProcess proc) {
 		ErrorCase failure = cxt.failure(proc.getArgs(), proc.getStdout(), proc.getStderr());
-		if (cxt.output.forTeamCity()) {
-			cxt.output.cat("testFail", proc.getStdout());
-		} else {
-			LinePatternParser lpp = new LinePatternParser();
-//			lpp.matchAll("(Ran batch.*)", "batch", "details");
-			lpp.matchAll("(Failure:.*)", "case", "name");
-			lpp.matchAll("(Summary:.*)", "summary", "info");
-			
-			for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStdout())))
+		LinePatternParser lpp = new LinePatternParser();
+		lpp.matchAll("(Failure:.*)", "case", "name");
+		for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStdout())))
+		{
+			if (lpm.is("case"))
 			{
-				String s;
-				if (lpm.is("batch"))
-				{
-					s = lpm.get("details");
-				}
-				else if (lpm.is("case"))
-				{
-					s = lpm.get("name");
-				}
-				else if (lpm.is("summary"))
-				{
-					s = lpm.get("info");
-				}
-				else
-					throw new QuickBuildException("Do not know how to handle match " + lpm);
+				String s = lpm.get("name");
 				if (s != null && s.trim().length() > 0)
-				{
-					System.out.println("    " + s);
 					failure.addMessage(s);
-				}
 			}
 		}
 		return BuildStatus.TEST_FAILURES;
+	}
+
+	private void handleOutput(BuildOutput output, RunProcess proc) {
+		LinePatternParser lpp = new LinePatternParser();
+		lpp.matchAll("Running batch (.*)", "startBatch", "details");
+		lpp.matchAll("Ran batch (.*)", "endBatch", "details");
+		lpp.matchAll("Starting test (.*)", "startTest", "name");
+		lpp.matchAll("Failure: (.*)", "failure", "name");
+		lpp.matchAll("Summary: (.*)", "summary", "info");
+		
+		String currentTest = null;
+		for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStdout())))
+		{
+			String s;
+			if (lpm.is("startBatch"))
+			{
+				output.startTestBatch(lpm.get("details"));
+			}
+			else if (lpm.is("endBatch"))
+			{
+				if (currentTest != null) {
+					output.finishTest(currentTest);
+					currentTest = null;
+				}
+				output.endTestBatch(lpm.get("details"));
+			}
+			else if (lpm.is("startTest"))
+			{
+				if (currentTest != null)
+					output.finishTest(currentTest);
+				currentTest = lpm.get("name");
+				output.startTest(currentTest);
+			}
+			else if (lpm.is("failure"))
+			{
+				output.failTest(lpm.get("name"));
+			}
+			else if (lpm.is("summary"))
+			{
+				output.testSummary(lpm.get("info"));
+			}
+			else
+				throw new QuickBuildException("Do not know how to handle match " + lpm);
+		}
+		if (currentTest != null)
+			output.finishTest(currentTest);
 	}
 
 	@Override
