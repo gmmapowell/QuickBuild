@@ -90,7 +90,6 @@ public class QuickBuild {
 		SignificantWhiteSpaceFileReader.read(conf, configFactory, file);
 		conf.done();
 		configFactory.done();
-		output.closeBlock("Config");
 
 		if (arguments.debug)
 		{
@@ -114,6 +113,7 @@ public class QuickBuild {
 			
 		boolean buildAll = arguments.buildAll;
 		boolean blankMemory = arguments.blank;
+		output.closeBlock("Config");
 		output.openBlock("compareFiles");
 		if (!arguments.quiet)
 			output.println("Comparing files ...");
@@ -124,9 +124,8 @@ public class QuickBuild {
 		// now we need to read back anything we've cached ...
 		BuildContext cxt = new BuildContext(conf, configFactory, output, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar, arguments.upTo, arguments.nthreads);
 		cxt.configure();
-		output.closeBlock("compareFiles");
 		
-		if (!arguments.quiet)
+		if (!arguments.quiet && !output.forTeamCity())
 			System.out.println();
 
 		if (arguments.configOnly)
@@ -146,8 +145,9 @@ public class QuickBuild {
 		}
 		
 		if (!arguments.quiet)
-			System.err.println("Pre-build configuration time: " + DateUtils.elapsedTime(launched, new Date(), DateUtils.Format.hhmmss3));
-		
+			System.out.println("Pre-build configuration time: " + DateUtils.elapsedTime(launched, new Date(), DateUtils.Format.hhmmss3));
+		output.closeBlock("compareFiles");
+
 		mainFiles.commit();
 		cxt.getBuildOrder().commitUnbuilt();
 		new BuildExecutor(cxt, arguments.debug).doBuild();

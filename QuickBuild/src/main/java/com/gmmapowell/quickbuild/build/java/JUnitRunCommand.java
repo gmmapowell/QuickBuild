@@ -150,9 +150,10 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 		lpp.matchAll("Ran batch (.*)", "endBatch", "details");
 		lpp.matchAll("Starting test (.*)", "startTest", "name");
 		lpp.matchAll("Failure: (.*)", "failure", "name");
-		lpp.matchAll("Summary: (.*)", "summary", "info");
+		lpp.matchAll("(Summary: .*)", "summary", "info");
 		
 		String currentTest = null;
+		int failed = 0;
 		for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStdout())))
 		{
 			String s;
@@ -178,10 +179,12 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 			else if (lpm.is("failure"))
 			{
 				output.failTest(lpm.get("name"));
+				failed++;
 			}
 			else if (lpm.is("summary"))
 			{
-				output.testSummary(lpm.get("info"));
+				if (failed > 0)
+					output.testSummary(lpm.get("info"));
 			}
 			else
 				throw new QuickBuildException("Do not know how to handle match " + lpm);

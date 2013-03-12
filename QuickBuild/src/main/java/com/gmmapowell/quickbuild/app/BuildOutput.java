@@ -38,12 +38,12 @@ public class BuildOutput {
 
 	public void startTestBatch(String string) {
 		if (teamCity)
-			System.out.println("##teamcity[testSuiteStarted name='" + string +"']");
+			System.out.println("##teamcity[testSuiteStarted name='" + escape(string) +"']");
 	}
 
 	public void endTestBatch(String string) {
 		if (teamCity)
-			System.out.println("##teamcity[testSuiteFinished name='" + string +"']");
+			System.out.println("##teamcity[testSuiteFinished name='" + escape(string) +"']");
 	}
 
 	public void testSummary(String string) {
@@ -53,17 +53,17 @@ public class BuildOutput {
 
 	public void startTest(String currentTest) {
 		if (teamCity)
-			System.out.println("##teamcity[testStarted name='" + currentTest +"']");
+			System.out.println("##teamcity[testStarted name='" + escape(currentTest) +"']");
 	}
 
 	public void finishTest(String currentTest) {
 		if (teamCity)
-			System.out.println("##teamcity[testFinished name='" + currentTest +"']");
+			System.out.println("##teamcity[testFinished name='" + escape(currentTest) +"']");
 	}
 
 	public void failTest(String string) {
 		if (teamCity)
-			System.out.println("##teamcity[testFailed name='" + string +"']");
+			System.out.println("##teamcity[testFailed name='" + escape(string) +"']");
 	}
 
 	public void startBuildStep(String cmd, String invocation) {
@@ -72,8 +72,8 @@ public class BuildOutput {
 			if (cmd.equals("JUnit")) {
 				openBlock("JUnit");
 			} else {
-				System.out.println("##teamcity[compilationStarted compiler='" + cmd + "']");
-				System.out.println("##teamcity[message text='" + invocation + "']");
+				System.out.println("##teamcity[compilationStarted compiler='" + escape(cmd) + "']");
+				System.out.println("##teamcity[message text='" + escape(invocation) + "']");
 			}
 		} else
 			System.out.println(invocation);
@@ -84,7 +84,7 @@ public class BuildOutput {
 			if (buildCmd.equals("JUnit"))
 				closeBlock("JUnit");
 			else {
-				System.out.println("##teamcity[compilationFinished compiler='" + buildCmd + "']");
+				System.out.println("##teamcity[compilationFinished compiler='" + escape(buildCmd) + "']");
 				buildCmd = null;
 			}
 		}
@@ -102,7 +102,7 @@ public class BuildOutput {
 	}
 
 	private String escape(String m) {
-		return m.replaceAll("|", "||").replaceAll("\\[", "|[").replaceAll("\\]", "|]").replaceAll("\n", "|n");
+		return m.replaceAll("\\|", "||").replaceAll("\\[", "|[").replaceAll("\\]", "|]").replaceAll("\n", "|n");
 	}
 
 	public void complete(String identifier) {

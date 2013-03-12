@@ -68,7 +68,7 @@ public class BuildExecutor {
 	}
 
 	public void doBuild() {
-		if (!cxt.quietMode())
+		if (!cxt.quietMode() && !cxt.output.forTeamCity())
 			System.out.println("Building ...");
 		ItemToBuild itb;
 		while ((itb = next())!= null)
