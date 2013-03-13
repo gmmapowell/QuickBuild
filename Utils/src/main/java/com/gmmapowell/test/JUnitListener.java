@@ -10,7 +10,8 @@ import org.junit.runner.notification.RunListener;
 import com.gmmapowell.utils.DateUtils.Format;
 
 public class JUnitListener extends RunListener {
-	private Date startTime;
+	private Date batchStartTime;
+	private Date testStartTime;
 	int runCount;
 	int failed;
 	int ignored;
@@ -23,7 +24,7 @@ public class JUnitListener extends RunListener {
 	public void testRunStarted(Description description) throws Exception {
 		System.out.println("Running batch " + description);
 		batch = description;
-		startTime = new Date();
+		batchStartTime = new Date();
 		startRun = runCount;
 		startFailed = failed;
 		startIgnored = ignored;
@@ -35,6 +36,7 @@ public class JUnitListener extends RunListener {
 		System.err.println();
 		System.err.println("Starting test " + description);
 		System.out.println("Starting test " + description);
+		testStartTime = new Date();
 		runCount++;
 	}
 
@@ -56,7 +58,12 @@ public class JUnitListener extends RunListener {
 	}
 
 	@Override
+	public void testFinished(Description description) throws Exception {
+		System.out.println("Duration: " + (new Date().getTime()-testStartTime.getTime()));
+	}
+
+	@Override
 	public void testRunFinished(Result notUsed) throws Exception {
-		System.out.println("Ran batch " + batch + ": " + (runCount-startRun)+" total, "+(failed-startFailed)+" failed ("+(ignored-startIgnored)+" ignored) finished in " + Format.hhmmss3.format(new Date().getTime()-startTime.getTime()));
+		System.out.println("Ran batch " + batch + ": " + (runCount-startRun)+" total, "+(failed-startFailed)+" failed ("+(ignored-startIgnored)+" ignored) finished in " + Format.hhmmss3.format(new Date().getTime()-batchStartTime.getTime()));
 	}
 }

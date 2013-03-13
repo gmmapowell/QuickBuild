@@ -189,7 +189,7 @@ public class GenericAnnotator {
 
 	public MethodDefiner done() {
 		if (sb == null)
-			throw new UtilException("You have already completed this class");
+			throw new UtilException("You have already completed this method");
 		if (name == null)
 		{
 			 // a class, then
@@ -223,8 +223,8 @@ public class GenericAnnotator {
 		projectionClass.defineField(isStatic, access, javaType, name);
 	}
 
-	public GenAnnotation addRTVAnnotation(String operation) {
-		GenAnnotation ret = new GenAnnotation(operation);
+	public GenAnnotation addRTVAnnotation(String annotation) {
+		GenAnnotation ret = new GenAnnotation(annotation);
 		anns.add(ret);
 		return ret;
 	}

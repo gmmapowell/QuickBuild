@@ -3,6 +3,7 @@ package com.gmmapowell.quickbuild.app;
 public class BuildOutput {
 	private final boolean teamCity;
 	private String buildCmd;
+	private String buildInvocation;
 
 	public BuildOutput(boolean teamCity) {
 		this.teamCity = teamCity;
@@ -56,9 +57,9 @@ public class BuildOutput {
 			System.out.println("##teamcity[testStarted name='" + escape(currentTest) +"']");
 	}
 
-	public void finishTest(String currentTest) {
+	public void finishTest(String currentTest, int msDuration) {
 		if (teamCity)
-			System.out.println("##teamcity[testFinished name='" + escape(currentTest) +"']");
+			System.out.println("##teamcity[testFinished name='" + escape(currentTest) +"' duration='" + msDuration + "']");
 	}
 
 	public void failTest(String string) {
@@ -66,27 +67,29 @@ public class BuildOutput {
 			System.out.println("##teamcity[testFailed name='" + escape(string) +"']");
 	}
 
+	public void ignoreTest(String string) {
+		if (teamCity)
+			System.out.println("##teamcity[testIgnored name='" + escape(string) +"']");
+	}
+
 	public void startBuildStep(String cmd, String invocation) {
 		if (teamCity) {
 			buildCmd = cmd;
-			if (cmd.equals("JUnit")) {
-				openBlock("JUnit");
-			} else {
+			buildInvocation = invocation;
+			openBlock(escape(invocation));
+			if (!cmd.equals("JUnit"))
 				System.out.println("##teamcity[compilationStarted compiler='" + escape(cmd) + "']");
-				System.out.println("##teamcity[message text='" + escape(invocation) + "']");
-			}
 		} else
 			System.out.println(invocation);
 	}
 
 	public void finishBuildStep() {
 		if (teamCity) {
-			if (buildCmd.equals("JUnit"))
-				closeBlock("JUnit");
-			else {
+			if (!buildCmd.equals("JUnit"))
 				System.out.println("##teamcity[compilationFinished compiler='" + escape(buildCmd) + "']");
-				buildCmd = null;
-			}
+			closeBlock(escape(buildInvocation));
+			buildCmd = null;
+			buildInvocation = null;
 		}
 	}
 
@@ -102,6 +105,8 @@ public class BuildOutput {
 	}
 
 	private String escape(String m) {
+		if (m == null)
+			return null;
 		return m.replaceAll("\\|", "||").replaceAll("\\[", "|[").replaceAll("\\]", "|]").replaceAll("\n", "|n");
 	}
 

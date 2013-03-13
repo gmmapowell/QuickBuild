@@ -86,7 +86,7 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 			String qualifiedName = FileUtils.convertToDottedNameDroppingExtension(f);
 			File clsFile = new File(bindir, FileUtils.ensureExtension(f, ".class").getPath());
 			ByteCodeFile bcf = new ByteCodeFile(clsFile, qualifiedName);
-			if (bcf.hasMethodsWithAnnotation("org.junit.Test"))
+			if (bcf.hasClassAnnotation("org.junit.runner.RunWith") || bcf.hasMethodsWithAnnotation("org.junit.Test"))
 			{
 				testsToRun.add(qualifiedName);
 			}
@@ -149,7 +149,9 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 		lpp.matchAll("Running batch (.*)", "startBatch", "details");
 		lpp.matchAll("Ran batch (.*)", "endBatch", "details");
 		lpp.matchAll("Starting test (.*)", "startTest", "name");
+		lpp.matchAll("Ignoring test (.*)", "ignoreTest", "name");
 		lpp.matchAll("Failure: (.*)", "failure", "name");
+		lpp.matchAll("Duration: ([0-9]*)", "duration", "ms");
 		lpp.matchAll("(Summary: .*)", "summary", "info");
 		
 		String currentTest = null;
@@ -162,23 +164,27 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 			}
 			else if (lpm.is("endBatch"))
 			{
-				if (currentTest != null) {
-					output.finishTest(currentTest);
-					currentTest = null;
-				}
 				output.endTestBatch(lpm.get("details"));
 			}
 			else if (lpm.is("startTest"))
 			{
-				if (currentTest != null)
-					output.finishTest(currentTest);
 				currentTest = lpm.get("name");
 				output.startTest(currentTest);
+			}
+			else if (lpm.is("ignoreTest"))
+			{
+				currentTest = null;
+				output.ignoreTest(lpm.get("name"));
 			}
 			else if (lpm.is("failure"))
 			{
 				output.failTest(lpm.get("name"));
 				failed++;
+			}
+			else if (lpm.is("duration"))
+			{
+				output.finishTest(currentTest, Integer.parseInt(lpm.get("ms")));
+				currentTest = null;
 			}
 			else if (lpm.is("summary"))
 			{
@@ -188,8 +194,6 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 			else
 				throw new QuickBuildException("Do not know how to handle match " + lpm);
 		}
-		if (currentTest != null)
-			output.finishTest(currentTest);
 	}
 
 	@Override

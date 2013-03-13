@@ -3,10 +3,14 @@ package com.gmmapowell.test;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.junit.internal.builders.AllDefaultPossibilitiesBuilder;
 import org.junit.runner.Description;
+import org.junit.runner.RunWith;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.InitializationError;
+
+import com.gmmapowell.reflection.Reflection;
 
 public class QBJUnitRunner {
 	public static void main(String... args)
@@ -17,18 +21,26 @@ public class QBJUnitRunner {
 		for (String arg : args)
 			try {
 				Class<?> clz = Class.forName(arg);
-				BlockJUnit4ClassRunner runner = new BlockJUnit4ClassRunner(clz);
-				Description desc = Description.createSuiteDescription(clz);
-				lsnr.testRunStarted(desc);
-				runner.run(nfy);
-				lsnr.testRunFinished(null);
+				RunWith runWith = clz.getAnnotation(RunWith.class);
+				if (runWith != null)
+				{
+					lsnr.testRunStarted(Description.createSuiteDescription(clz));
+					Reflection.create(runWith.value(), clz, new AllDefaultPossibilitiesBuilder(true)).run(nfy);
+					lsnr.testRunFinished(null);
+				}
+				else
+				{
+					lsnr.testRunStarted(Description.createSuiteDescription(clz));
+					new BlockJUnit4ClassRunner(clz).run(nfy);
+					lsnr.testRunFinished(null);
+				}
 			} catch (ClassNotFoundException e) {
 				System.err.println("There was no class " + arg + " found");
 				lsnr.failed++;
 			} catch (InitializationError e) {
 				System.err.println("Class " + arg + " failed to start: " + e.getMessage());
 				lsnr.failed++;
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				System.err.println("Class " + arg + " encountered run exception: " + e.getMessage());
 				lsnr.failed++;
 			}

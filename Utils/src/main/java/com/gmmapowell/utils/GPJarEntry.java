@@ -21,6 +21,10 @@ public class GPJarEntry {
 		return FileUtils.convertToDottedName(parentFile);
 	}
 
+	public String getClassName() {
+		return FileUtils.convertToDottedName(new File(entry.getName().replaceFirst(".class$", "")));
+	}
+
 	public boolean isClassFile() {
 		return entry.getName().endsWith(".class");
 	}

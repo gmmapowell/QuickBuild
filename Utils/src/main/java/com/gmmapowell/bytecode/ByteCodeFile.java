@@ -538,6 +538,16 @@ public class ByteCodeFile implements AnnotationHolder {
 		return annotation;
 	}
 
+	public boolean hasClassAnnotation(String ann) {
+		for (AnnotationType i : annotations)
+		{
+			for (Annotation j : annotations.get(i))
+				if (j.name.equals(ann))
+					return true;
+		}
+		return false;
+	}
+
 	public Annotation getClassAnnotation(String ann) {
 		for (AnnotationType i : annotations)
 		{

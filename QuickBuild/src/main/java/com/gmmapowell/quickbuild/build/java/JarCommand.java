@@ -42,9 +42,11 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	private JavaSourceDirResource testSources;
 	protected OrderedFileList mainSourceFileList;
 	private String javaVersion;
+	private final boolean justJunit;
 
 	@SuppressWarnings("unchecked")
 	public JarCommand(TokenizedLine toks) {
+		justJunit = (toks.cmd().equals("junit"));
 		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
 		rootdir = FileUtils.findDirectoryNamed(projectName);
 	}
@@ -60,7 +62,11 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		ArchiveCommand jar = createAssemblyCommand();
 		
 		tactics = new ArrayList<Tactic>();
-		JavaBuildCommand javac = addJavaBuild(tactics, jar, "src/main/java", "classes", "main");
+		JavaBuildCommand javac;
+		if (justJunit)
+			javac = null;
+		else
+			javac = addJavaBuild(tactics, jar, "src/main/java", "classes", "main");
 		JavaBuildCommand junit = addJavaBuild(tactics, null, "src/test/java", "test-classes", "test");
 		if (junit != null)
 		{

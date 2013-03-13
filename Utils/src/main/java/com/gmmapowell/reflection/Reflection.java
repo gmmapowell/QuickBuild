@@ -12,7 +12,18 @@ import java.util.Map;
 import com.gmmapowell.exceptions.UtilException;
 
 public class Reflection {
-
+	private static ClassLoader useClassLoader;
+	
+	public static void setClassLoader(ClassLoader cl) {
+		if (useClassLoader != null)
+			throw new UtilException("Cannot set multiple class loaders");
+		useClassLoader = cl;
+	}
+	
+	public static void clearClassLoader() {
+		useClassLoader = null;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public static <T> T getStaticField(Class<?> inClz, String fieldName) {
 		try
@@ -103,11 +114,15 @@ public class Reflection {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public static <T> T create(String cls, Object... args) {
 		try
 		{
-			@SuppressWarnings("unchecked")
-			Class<T> clz = (Class<T>) Class.forName(cls);
+			final Class<T> clz;
+			if (useClassLoader != null)
+				clz = (Class<T>) Class.forName(cls, false, useClassLoader);
+			else
+				clz = (Class<T>) Class.forName(cls);
 			return create(clz, args);
 		}
 		catch (Exception ex)
