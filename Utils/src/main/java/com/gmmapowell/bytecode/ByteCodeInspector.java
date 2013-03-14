@@ -153,7 +153,14 @@ public class ByteCodeInspector extends ByteCodeFile {
 			System.exit(2);
 		}
 	}
-		
+	
+	public ByteCodeInspector() {
+	}
+
+	public ByteCodeInspector(boolean clean) {
+		this.cleanMode = clean;
+	}
+	
 	public void read(PrintWriter out, InputStream fis)
 	{
 		try

@@ -6,4 +6,6 @@ public interface ByteCodeHolder {
 
 	void close();
 
+	void addEntry(String className, ByteCodeCreator ret);
+
 }

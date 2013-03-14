@@ -1,8 +1,11 @@
 package com.gmmapowell.utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.jar.JarEntry;
+
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.lambda.FuncR1;
 
 public class GPJarEntry {
@@ -57,6 +60,18 @@ public class GPJarEntry {
 
 	public InputStream asStream() {
 		return jar.getInputStream(entry);
+	}
+
+
+	public byte[] getBytes() {
+		try {
+			InputStream str = jar.getInputStream(entry);
+			byte[] ret = FileUtils.readAllStream(str);
+			str.close();
+			return ret;
+		} catch (IOException ex) {
+			throw UtilException.wrap(ex);
+		}
 	}
 
 	public JarEntry getJava() {
