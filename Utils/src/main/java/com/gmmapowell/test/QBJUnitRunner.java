@@ -21,28 +21,27 @@ public class QBJUnitRunner {
 		for (String arg : args)
 			try {
 				Class<?> clz = Class.forName(arg);
+				lsnr.testRunStarted(Description.createSuiteDescription(clz));
 				RunWith runWith = clz.getAnnotation(RunWith.class);
 				if (runWith != null)
-				{
-					lsnr.testRunStarted(Description.createSuiteDescription(clz));
 					Reflection.create(runWith.value(), clz, new AllDefaultPossibilitiesBuilder(true)).run(nfy);
-					lsnr.testRunFinished(null);
-				}
 				else
-				{
-					lsnr.testRunStarted(Description.createSuiteDescription(clz));
 					new BlockJUnit4ClassRunner(clz).run(nfy);
-					lsnr.testRunFinished(null);
-				}
 			} catch (ClassNotFoundException e) {
-				System.err.println("There was no class " + arg + " found");
+				System.out.println("There was no class " + arg + " found");
+				e.printStackTrace(System.err);
 				lsnr.failed++;
 			} catch (InitializationError e) {
-				System.err.println("Class " + arg + " failed to start: " + e.getMessage());
+				System.out.println("Class " + arg + " failed to start: " + e.getMessage());
+				e.printStackTrace(System.err);
 				lsnr.failed++;
 			} catch (Throwable e) {
-				System.err.println("Class " + arg + " encountered run exception: " + e.getMessage());
+				System.out.println("Class " + arg + " encountered run exception: " + e.getMessage());
+				e.printStackTrace(System.err);
 				lsnr.failed++;
+			}
+			finally {
+				try { lsnr.testRunFinished(null); } catch (Exception ex) { ex.printStackTrace(); }
 			}
 
 		System.out.println("Active Threads:");
