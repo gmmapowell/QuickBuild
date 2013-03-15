@@ -77,8 +77,7 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 		proc.arg("-classpath");
 		proc.arg(classpath.toString());
 		proc.arg("-Djava.util.logging.config.class=com.gmmapowell.http.LoggingConfiguration");
-//		proc.arg("-Xmx2g");
-//		proc.arg("org.junit.runner.JUnitCore");
+		proc.arg("-Xmx1g");
 		proc.arg("com.gmmapowell.test.QBJUnitRunner");
 		List<String> testsToRun = new ArrayList<String>();
 		for (File f : FileUtils.findFilesUnderMatching(srcdir, "*.java"))
