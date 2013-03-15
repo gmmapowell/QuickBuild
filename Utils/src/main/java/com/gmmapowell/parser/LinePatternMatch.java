@@ -21,7 +21,7 @@ public class LinePatternMatch {
 			}
 			catch (IndexOutOfBoundsException ex)
 			{
-				throw new UtilException("Could not extract field " + id + " because there were not " + (cnt-2) +" patterns: ", ex);
+				throw new UtilException("Could not extract field " + s + " for rule " + id + " because there were not " + (cnt-2) +" patterns: ", ex);
 			}
 		}
 	}

@@ -10,11 +10,11 @@ public class LinePatternParser {
 	private List<PatternStore> patterns = new ArrayList<PatternStore>();
 	
 	public void match(String oattern, String id, String... storeIn) {
-		patterns.add(new PatternStore(".*("+oattern+").*", id, storeIn));
+		patterns.add(new PatternStore("("+oattern+")", false, id, storeIn));
 	}
 
 	public void matchAll(String pattern, String id, String... storeIn) {
-		patterns.add(new PatternStore("("+pattern+")", id, storeIn));
+		patterns.add(new PatternStore("("+pattern+")", true, id, storeIn));
 	}
 	
 	public List<LinePatternMatch> applyTo(Reader reader) {

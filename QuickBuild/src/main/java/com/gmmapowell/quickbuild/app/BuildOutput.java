@@ -57,14 +57,23 @@ public class BuildOutput {
 			System.out.println("##teamcity[testStarted name='" + escape(currentTest) +"']");
 	}
 
+	public void testStderr(String currentTest, String copyStderr) {
+		if (teamCity)
+			System.out.println("##teamcity[testStdErr name='" + escape(currentTest) +"' out='" + escape(copyStderr) + "']");
+	}
+
+	public void failTest(String string, String messageAndStackTrace) {
+		if (teamCity) {
+			System.out.print("##teamcity[testFailed name='" + escape(string) +"'");
+			if (messageAndStackTrace != null && messageAndStackTrace.length() > 0)
+				System.out.print(" details='" + escape(messageAndStackTrace) +"'");
+			System.out.println("]");
+		}
+	}
+
 	public void finishTest(String currentTest, int msDuration) {
 		if (teamCity)
 			System.out.println("##teamcity[testFinished name='" + escape(currentTest) +"' duration='" + msDuration + "']");
-	}
-
-	public void failTest(String string) {
-		if (teamCity)
-			System.out.println("##teamcity[testFailed name='" + escape(string) +"']");
 	}
 
 	public void ignoreTest(String string) {

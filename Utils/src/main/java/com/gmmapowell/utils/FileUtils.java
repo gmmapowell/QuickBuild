@@ -413,8 +413,22 @@ public class FileUtils {
 		try { stream.close(); } catch (IOException ex) { throw UtilException.wrap(ex); }
 		return ret;
 	}
+
+	// Apologies for the apparent duplication, but it's important to avoid
+	// turning things into characters if at all possible - they can end up as '?' characters
 	public static byte[] readAllStream(InputStream asStream) {
-		return readAllReader(new InputStreamReader(asStream));
+		try {
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			int cnt;
+			byte[] buf = new byte[500];
+			while ((cnt = asStream.read(buf, 0, 500)) > 0) {
+				baos.write(buf, 0, cnt);
+			}
+			return baos.toByteArray();
+		}
+		catch (IOException ex) {
+			throw UtilException.wrap(ex);
+		}
 	}
 
 	public static byte[] readAllReader(Reader r) {

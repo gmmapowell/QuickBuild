@@ -41,10 +41,19 @@ public class JUnitListener extends RunListener {
 	}
 
 	@Override
+	public void testAssumptionFailure(Failure failure) {
+		try {
+			testFailure(failure);
+		} catch (Exception ex) {
+			ex.printStackTrace(System.err);
+		}
+	}
+
+	@Override
 	public void testFailure(Failure failure) throws Exception {
+		System.err.println("Failed test " + failure.getDescription());
 		System.err.println(failure.getMessage());
 		System.err.println(failure.getTrace());
-		System.err.println("Failed Test " + failure.getDescription());
 		System.out.println("Failure: " + failure.getDescription());
 		failed++;
 	}
@@ -59,6 +68,7 @@ public class JUnitListener extends RunListener {
 
 	@Override
 	public void testFinished(Description description) throws Exception {
+		System.err.println("Finished test " + description);
 		System.out.println("Duration: " + (new Date().getTime()-testStartTime.getTime()));
 	}
 

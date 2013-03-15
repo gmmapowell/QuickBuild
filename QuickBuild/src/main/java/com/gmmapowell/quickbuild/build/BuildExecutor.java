@@ -202,12 +202,14 @@ public class BuildExecutor {
 	public BuildStatus execute(ItemToBuild itb) {
 		if (hasBrokenDependencies(itb)) {
 			itb.announce(cxt.output, !cxt.quietMode(), currentTactic, BuildStatus.BROKEN_DEPENDENCIES);
+			cxt.output.finishBuildStep();
 			return BuildStatus.BROKEN_DEPENDENCIES;
 		}
 		if (!itb.needsBuild.needsBuild())
 		{
 			itb.export(cxt.output, rm);
 			itb.announce(cxt.output, !cxt.quietMode(), currentTactic, itb.needsBuild);
+			cxt.output.finishBuildStep();
 			return itb.needsBuild;
 		}
 		else if (!isOnCriticalPath(itb))
@@ -215,6 +217,7 @@ public class BuildExecutor {
 			itb.export(cxt.output, rm);
 			itb.announce(cxt.output, !cxt.quietMode(), currentTactic, BuildStatus.NOTCRITICAL);
 			itb.revert();
+			cxt.output.finishBuildStep();
 			return BuildStatus.NOTCRITICAL;
 		}
 		itb.announce(cxt.output, !cxt.quietMode(), currentTactic, itb.needsBuild);
