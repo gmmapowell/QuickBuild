@@ -116,7 +116,7 @@ public class BuildOutput {
 	private String escape(String m) {
 		if (m == null)
 			return null;
-		return m.replaceAll("\\|", "||").replaceAll("\\[", "|[").replaceAll("\\]", "|]").replaceAll("\n", "|n");
+		return m.replaceAll("\\|", "||").replaceAll("\\[", "|[").replaceAll("\\]", "|]").replaceAll("\n", "|n").replaceAll("\r", "|r").replaceAll("'", "|'");
 	}
 
 	public void complete(String identifier) {
