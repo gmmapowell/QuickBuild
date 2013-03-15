@@ -205,9 +205,9 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 	private List<LinePatternMatch> breakUpStderr(String stderr) {
 		LinePatternParser lpp = new LinePatternParser();
 		lpp.match("Starting test (.*)", "start", "case");
+		lpp.match("Finished test", "finished");
 		lpp.match("(.*)", "always", "line");
 		lpp.match("Failed test", "traceMarker");
-		lpp.match("Finished test", "finished");
 		return lpp.applyTo(new StringReader(stderr));
 	}
 
@@ -220,13 +220,16 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 		StringBuilder copyStderr = new StringBuilder();
 		StringBuilder messageAndStack = new StringBuilder();
 		boolean collectTrace = false;
+		boolean doBreak = false;
 		while (tagStderr.hasNext()) {
 			LinePatternMatch lpm = tagStderr.next();
 			if (lpm.is("finished"))
-				break;
+				doBreak = true;
 			else if (lpm.is("always")) {
 				String msg = lpm.get("line") + "\n";
 				copyStderr.append(msg);
+				if (doBreak)
+					break;
 				if (collectTrace)
 					messageAndStack.append(msg);
 			} else if (lpm.is("traceMarker"))
