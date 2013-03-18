@@ -32,15 +32,19 @@ public class SaneJSONParser {
 			throw new UtilException("Expected token '" + expected + "' but was '" + tok + "' (" + text + ")");
 		accept();
 	}
-
+	
 	public boolean is(JsonToken possible) {
+		return possible == get();
+	}
+
+	public boolean match(JsonToken possible) {
 		boolean ret = possible == get();
 		if (ret)
 			accept();
 		return ret;
 	}
 
-	public boolean is(JsonToken possible, String withText) {
+	public boolean match(JsonToken possible, String withText) {
 		boolean ret = possible == get();
 		if (!ret)
 			return false;
@@ -50,6 +54,14 @@ public class SaneJSONParser {
 		return true;
 	}
 
+	public String getFieldName() {
+		JsonToken tok = get();
+		if (tok != JsonToken.FIELD_NAME)
+			throw new UtilException("Expected FIELD_NAME but was '" + tok + "' (" + text + ")");
+		String ret = text;
+		accept();
+		return ret;
+	}
 
 	@SuppressWarnings("unchecked")
 	public <T> T extractField() {
@@ -59,7 +71,7 @@ public class SaneJSONParser {
 		if (tok == JsonToken.VALUE_STRING) {
 			ret = (T)text;
 		} else
-			throw new UtilException("That is not handled");
+			throw new UtilException("That is not handled: " + tok);
 		accept();
 		return ret;
 	}

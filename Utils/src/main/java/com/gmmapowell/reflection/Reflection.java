@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.gmmapowell.exceptions.UtilException;
+import com.sun.xml.internal.ws.util.StringUtils;
 
 public class Reflection {
 	private static ClassLoader useClassLoader;
@@ -157,6 +158,10 @@ public class Reflection {
 		}
 	}
 
+	public static <O> void callSetter(O invokee, String property, Object value) {
+		String meth = "set" + StringUtils.capitalize(property);
+		call(invokee, meth, value);
+	}
 
 	public static Map<String, Object> callStatic(String clz, String meth, String applName) {
 		try {
