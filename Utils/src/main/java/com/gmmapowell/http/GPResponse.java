@@ -329,7 +329,7 @@ public class GPResponse implements HttpServletResponse {
 				// The option should include the option to specify a list of servers.
 				reply("Access-Control-Allow-Origin: *");
 				reply("Access-Control-Allow-Methods: POST, GET, PUT, DELETE, OPTIONS");
-				reply("Access-Control-Allow-Headers: Content-Type, X-Ziniki-Token"); 
+				reply("Access-Control-Allow-Headers: Content-Type, X-Ziniki-Token, X-Cache-Date"); 
 				reply("Access-Control-Expose-Headers: X-Ziniki-Token"); 
 				for (String r : sendHeaders())
 					if (!r.toLowerCase().startsWith("upgrade") && !r.toLowerCase().startsWith("connection"))
