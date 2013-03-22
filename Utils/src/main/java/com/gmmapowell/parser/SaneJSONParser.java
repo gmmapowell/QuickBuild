@@ -32,6 +32,15 @@ public class SaneJSONParser {
 			throw new UtilException("Expected token '" + expected + "' but was '" + tok + "' (" + text + ")");
 		accept();
 	}
+
+	public void check(JsonToken expected, String withText) {
+		JsonToken tok = get();
+		if (tok != expected)
+			throw new UtilException("Expected token '" + expected + "' but was '" + tok + "' (" + text + ")");
+		if (!withText.equals(text))
+			throw new UtilException("Expected token text '" + withText + "' but was '" + text + "'");
+		accept();
+	}
 	
 	public boolean is(JsonToken possible) {
 		return possible == get();
@@ -68,9 +77,13 @@ public class SaneJSONParser {
 		JsonToken tok;
 		tok = get();
 		T ret;
-		if (tok == JsonToken.VALUE_STRING) {
+		if (tok == JsonToken.VALUE_STRING)
 			ret = (T)text;
-		} else
+		else if (tok == JsonToken.VALUE_TRUE)
+			ret = (T)(Boolean)true;
+		else if (tok == JsonToken.VALUE_FALSE)
+			ret = (T)(Boolean)false;
+		else
 			throw new UtilException("That is not handled: " + tok);
 		accept();
 		return ret;

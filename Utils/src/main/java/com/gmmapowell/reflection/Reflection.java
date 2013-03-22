@@ -192,7 +192,10 @@ public class Reflection {
 			if (args.length != jtypes.length)
 				continue;
 			for (int i=0;i<args.length;i++)
-				if (args[i] != null && !jtypes[i].isInstance(args[i]))
+				if (args[i] != null && !jtypes[i].isInstance(args[i])) // &&
+					if (jtypes[i].getSimpleName().equals("boolean") && args[i] instanceof Boolean)
+						continue;
+					else
 					continue loop;
 			return j;
 		}
