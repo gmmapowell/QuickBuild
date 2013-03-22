@@ -10,7 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.gmmapowell.exceptions.UtilException;
-import com.sun.xml.internal.ws.util.StringUtils;
+import com.gmmapowell.utils.StringUtil;
+
 
 public class Reflection {
 	private static ClassLoader useClassLoader;
@@ -159,7 +160,7 @@ public class Reflection {
 	}
 
 	public static <O> void callSetter(O invokee, String property, Object value) {
-		String meth = "set" + StringUtils.capitalize(property);
+		String meth = "set" + StringUtil.capitalize(property);
 		call(invokee, meth, value);
 	}
 
