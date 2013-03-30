@@ -70,7 +70,8 @@ public class XMLElement implements Externalizable {
 	 * @param attr the attribute to accept
 	 */
 	public void accept(String attr) {
-		attrsProcessed.add(attr);
+		if (elt.hasAttribute(attr))
+			attrsProcessed.add(attr);
 	}
 	
 	public String optional(String attr) {
