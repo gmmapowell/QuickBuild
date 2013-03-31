@@ -1,5 +1,6 @@
 package com.gmmapowell.collections;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -54,6 +55,16 @@ public class CollectionUtils {
 		Map<String, Object> ret = new HashMap<String, Object>();
 		for (int i=0;i+1<args.length;i+=2)
 			ret.put((String) args[i], args[i+1]);
+		return ret;
+	}
+
+	public static <T> T[] arrayAppend(Class<T> cls, T[] arr, T... append) {
+		@SuppressWarnings("unchecked")
+		T[] ret = (T[]) Array.newInstance(cls, arr.length + append.length);
+		for (int i=0;i<arr.length;i++)
+			ret[i] = arr[i];
+		for (int i=0;i<append.length;i++)
+			ret[i+arr.length] = append[i];
 		return ret;
 	}
 }
