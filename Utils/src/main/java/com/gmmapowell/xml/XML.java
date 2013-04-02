@@ -255,6 +255,8 @@ public class XML {
 		} catch (Exception e) {
 			throw UtilException.wrap(e);
 		}
+		if (ret instanceof XMLRetainInput)
+			((XMLRetainInput)ret).retainOriginalXML(this);
 		top.populate(cxt, ret);
 		return ret;
 	}
