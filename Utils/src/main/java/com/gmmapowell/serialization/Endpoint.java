@@ -13,6 +13,7 @@ import java.net.UnknownHostException;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.exceptions.UtilException;
 
 @SuppressWarnings("serial")
@@ -50,10 +51,17 @@ public class Endpoint implements Serializable {
 	public int getPort() {
 		return port;
 	}
+	
+	private enum Type { DEFAULT, LOOPBACK, LINKLOCAL, N192, N172, N10, GLOBAL };
 
-	/** Note: this depends on there being a suitable address for the alleged machine hostname.
-	 * If your machine does not have an entry for its own hostname - or only has 127.0.0.1 - then
-	 * this won't work.
+	/** Try and determine the machine's IP address.  There's no guarantee that this is local,
+	 * and if this method does not find the most appropriate one, use -Dorg.ziniki.claim.endpoint=
+	 * to specify your preferred address.
+	 * 
+	 * This method returns a Global address if it can, otherwise it returns the most global site local address it can find; if there
+	 * are none of these, it returns a link local address or the loopback address.
+	 * 
+	 * In the worst of all cases, this method throws an exception.
 	 * 
 	 * @return the best IP address we can find
 	 */
@@ -61,23 +69,41 @@ public class Endpoint implements Serializable {
 		try {
 			String host = System.getProperty("org.ziniki.claim.endpoint");
 			if (host == null || host.length() == 0) {
+				ListMap<Type,InetAddress> map = new ListMap<Type,InetAddress>();
 				InetAddress in = InetAddress.getLocalHost();
 				logger.fine("Considering addresses for host " + in.getHostName() + ": " + in.getHostAddress());
 				InetAddress[] all = InetAddress.getAllByName(in.getHostName());
 				for (int i=0;i<all.length;i++)
 				{
-					logger.finer("resolving local address:" + all[i] + " " + all[i].isSiteLocalAddress() + " " + all[i].isLoopbackAddress());
-					if (!all[i].isLoopbackAddress())
-					{
-						host = all[i].getHostAddress();
+					InetAddress ai = all[i];
+					byte[] addr = ai.getAddress();
+					logger.fine("resolving local address:" + ai + " ipv4:" + (addr.length == 4) + " site:" + ai.isSiteLocalAddress() + " link:" + ai.isLinkLocalAddress() + " lo:" + ai.isLoopbackAddress());
+					if (ai.isMulticastAddress() || addr.length != 4) {
+						logger.fine("Ignoring multicast or IPv6 address:" + ai);
+						continue;
+					}
+					Type type;
+					if (ai.isLoopbackAddress())
+						type = Type.LOOPBACK;
+					else if (ai.isLinkLocalAddress())
+						type = Type.LINKLOCAL;
+					else if (addr[0] == 10)
+						type = Type.N10;
+					else if (addr[0] == 172 && (addr[1]&0xf0) == 1)
+						type = Type.N172;
+					else if (addr[0] == 192 && (addr[1] == 168))
+						type = Type.N192;
+					else
+						 type = Type.GLOBAL;
+					map.add(type, ai);
+				}
+				for (Type t : new Type[] { Type.GLOBAL, Type.N10, Type.N172, Type.N192, Type.LINKLOCAL, Type.LOOPBACK, Type.DEFAULT })
+					if (map.contains(t) && map.get(t).size() > 0) {
+						host = map.get(t).get(0).getHostAddress();
 						break;
 					}
-				}
 				if (host == null)
-				{
-					logger.severe("Could not find any local site address, using default: " + in.getHostAddress());
-					host = in.getHostAddress();
-				}
+					throw new UtilException("Could not find any host address");
 			}
 			logger.info("Identifying local host as " + host);
 			return host;
