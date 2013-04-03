@@ -783,4 +783,12 @@ public class FileUtils {
 		}
 		return ret;
 	}
+
+	public static File canonical(String dir) {
+		try {
+			return new File(dir).getCanonicalFile();
+		} catch (IOException e) {
+			throw UtilException.wrap(e);
+		}
+	}
 }
