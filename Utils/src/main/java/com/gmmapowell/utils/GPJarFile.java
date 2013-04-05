@@ -45,6 +45,10 @@ public class GPJarFile implements Iterable<GPJarEntry> {
 		}
 	}
 
+	public String getFileName() {
+		return jf.getName();
+	}
+
 	@Override
 	public Iterator<GPJarEntry> iterator() {
 		return new JEIterator();

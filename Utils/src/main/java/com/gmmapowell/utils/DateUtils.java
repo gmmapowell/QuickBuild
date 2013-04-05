@@ -6,11 +6,12 @@ import com.gmmapowell.exceptions.UtilException;
 
 public class DateUtils {
 	public enum Format {
-		hhmmss3;
+		hhmmss3, sss3;
 
 		public String format(long elapsed) {
 			final int millis = (int)elapsed%1000;
-			final int seconds = (int) ((elapsed/1000)%60);
+			final int inSeconds = (int) (elapsed/1000);
+			final int seconds = (int) (inSeconds%60);
 			final int minutes = (int) ((elapsed/60000)%60);
 			final int hours = (int) ((elapsed/3600000));
 			
@@ -18,6 +19,10 @@ public class DateUtils {
 			case hhmmss3:
 			{
 				return StringUtil.concat(StringUtil.digits(hours,2), ":", StringUtil.digits(minutes,2), ":", StringUtil.digits(seconds,2), ".", StringUtil.digits(millis, 3));
+			}
+			case sss3:
+			{
+				return StringUtil.concat(Integer.toString(inSeconds), ".", StringUtil.digits(millis, 3));
 			}
 			default:
 				throw new UtilException("The format " + this + " is not handled");
