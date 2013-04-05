@@ -6,8 +6,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.gmmapowell.exceptions.UtilException;
 
@@ -21,7 +21,7 @@ public class SerializedControllerConnection extends Thread {
 	
 	public SerializedControllerConnection(String loggerName, SerializedController parent, Socket conn, Class<?>[] classes) throws IOException {
 		this.parent = parent;
-		logger = Logger.getLogger(loggerName+"*");
+		logger = LoggerFactory.getLogger(loggerName+"*");
 		logger.info("Connection received on " + conn.getLocalPort());
 		this.conn = conn;
 		this.classes = classes;
@@ -59,12 +59,12 @@ public class SerializedControllerConnection extends Thread {
 		}
 		catch (Throwable t)
 		{
-			logger.log(Level.SEVERE, "Exception encountered", t);
+			logger.error("Exception encountered", t);
 		}
 		try {
 			conn.close();
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Failed to close connection", e);
+			logger.error("Failed to close connection", e);
 		}
 		parent.closingConnection(this);
 		logger.info("Thread finishing");

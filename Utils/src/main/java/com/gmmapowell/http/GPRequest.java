@@ -17,7 +17,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Vector;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.DispatcherType;
@@ -41,7 +42,7 @@ import com.gmmapowell.utils.FileUtils;
 
 public class GPRequest implements HttpServletRequest {
 
-	static final Logger logger = Logger.getLogger("InlineServer");
+	static final Logger logger = LoggerFactory.getLogger("InlineServer");
 	private final String method;
 	private final URI uri;
 	private final ListMap<String, String> headers = new ListMap<String, String>();
@@ -68,8 +69,8 @@ public class GPRequest implements HttpServletRequest {
 		this.rawUri = rawUri;
 		this.is = is;
 		uri = new URI(rawUri);
-		logger.fine(Thread.currentThread().getName()+ ": " + "Received " + method + " request for " + rawUri);
-		logger.fine("Created request with servlet " + this.getServlet());
+		logger.debug(Thread.currentThread().getName()+ ": " + "Received " + method + " request for " + rawUri);
+		logger.debug("Created request with servlet " + this.getServlet());
 	}
 
 	public void addHeader(String s) {

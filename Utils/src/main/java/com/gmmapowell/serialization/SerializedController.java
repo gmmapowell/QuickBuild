@@ -3,7 +3,9 @@ package com.gmmapowell.serialization;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.serialization.Endpoint;
@@ -28,7 +30,7 @@ public class SerializedController extends Thread {
 
 	public SerializedController(String loggerName, int port, Class<?>[] acceptableRequests) {
 		this.loggerName = loggerName;
-		this.logger = Logger.getLogger(loggerName);
+		this.logger = LoggerFactory.getLogger(loggerName);
 		this.acceptableRequests = acceptableRequests;
 		try {
 			socket = new ServerSocket(port);

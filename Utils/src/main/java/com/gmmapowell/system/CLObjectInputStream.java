@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MarkerFactory;
 
 public class CLObjectInputStream extends ObjectInputStream {
-	private static Logger logger = Logger.getLogger("CLOIS");
+	private static Logger logger = LoggerFactory.getLogger("CLOIS");
 	private final ClassLoader loader;
 
 	public CLObjectInputStream(InputStream in, ClassLoader loader) throws IOException {
@@ -18,13 +20,13 @@ public class CLObjectInputStream extends ObjectInputStream {
 	@Override
 	protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException,
 			ClassNotFoundException {
-		logger.finer("Requesting class " + desc.getName());
+		logger.debug(MarkerFactory.getMarker("finer"), "Requesting class " + desc.getName());
 		try
 		{
 			Class<?> ret = Class.forName(desc.getName(), false, loader);
 			if (ret != null)
 			{
-				logger.fine("Returning " + ret);
+				logger.debug("Returning " + ret);
 				return ret;
 			}
 		}

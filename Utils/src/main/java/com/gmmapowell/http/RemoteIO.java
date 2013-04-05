@@ -9,7 +9,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.List;
-import java.util.logging.Level;
 
 import com.gmmapowell.serialization.Endpoint;
 import com.rabbitmq.client.AMQP.BasicProperties;
@@ -112,7 +111,7 @@ public interface RemoteIO {
 				{
 					timeout *= 2;
 					s.setSoTimeout(timeout);
-					InlineServer.logger.finest("Timeout now = " + timeout);
+					InlineServer.logger.trace("Timeout now = " + timeout);
 				}
 				return null;
 			}
@@ -216,7 +215,7 @@ public interface RemoteIO {
 			}
 			catch (Exception ex) {
 				// If something goes wrong here, make sure to ack it to prevent looping ...
-				InlineServer.logger.log(Level.SEVERE, "Encountered error reading from AMQP", ex);
+				InlineServer.logger.error("Encountered error reading from AMQP", ex);
 				if (req != null)
 					channel.basicAck(req.getEnvelope().getDeliveryTag(), false);
 				return null;

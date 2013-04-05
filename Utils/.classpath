@@ -11,5 +11,7 @@
 	<classpathentry exported="true" kind="lib" path="/utils-qb/mvncache/org/atmosphere/atmosphere-runtime/1.1.0.beta1/atmosphere-runtime-1.1.0.beta1.jar"/>
 	<classpathentry kind="lib" path="/utils-qb/mvncache/com/rabbitmq/amqp-client/2.8.1/amqp-client-2.8.1.jar"/>
 	<classpathentry kind="lib" path="/utils-qb/libs/jsch-0.1.41.jar"/>
+	<classpathentry kind="lib" path="/qb/mvncache/org/slf4j/slf4j-api/1.7.5/slf4j-api-1.7.5.jar"/>
+	<classpathentry kind="lib" path="/utils-qb/mvncache/log4j/log4j/1.2.17/log4j-1.2.17.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

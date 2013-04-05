@@ -10,14 +10,15 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MarkerFactory;
 
 import com.gmmapowell.exceptions.UtilException;
 
 @SuppressWarnings("serial")
 public class Endpoint implements Serializable {
-	private static final Logger logger = Logger.getLogger("Endpoint");
+	private static final Logger logger = LoggerFactory.getLogger("Endpoint");
 	private final String host;
 	private final int port;
 
@@ -62,11 +63,11 @@ public class Endpoint implements Serializable {
 			String host = System.getProperty("org.ziniki.claim.endpoint");
 			if (host == null || host.length() == 0) {
 				InetAddress in = InetAddress.getLocalHost();
-				logger.fine("Considering addresses for host " + in.getHostName() + ": " + in.getHostAddress());
+				logger.debug("Considering addresses for host " + in.getHostName() + ": " + in.getHostAddress());
 				InetAddress[] all = InetAddress.getAllByName(in.getHostName());
 				for (int i=0;i<all.length;i++)
 				{
-					logger.finer("resolving local address:" + all[i] + " " + all[i].isSiteLocalAddress() + " " + all[i].isLoopbackAddress());
+					logger.debug(MarkerFactory.getMarker("finer"), "resolving local address:" + all[i] + " " + all[i].isSiteLocalAddress() + " " + all[i].isLoopbackAddress());
 					if (!all[i].isLoopbackAddress())
 					{
 						host = all[i].getHostAddress();
@@ -75,7 +76,7 @@ public class Endpoint implements Serializable {
 				}
 				if (host == null)
 				{
-					logger.severe("Could not find any local site address, using default: " + in.getHostAddress());
+					logger.error("Could not find any local site address, using default: " + in.getHostAddress());
 					host = in.getHostAddress();
 				}
 			}
@@ -186,7 +187,6 @@ public class Endpoint implements Serializable {
 	}
 	
 	public static void main(String[] args) throws SecurityException, IOException {
-		LogManager.getLogManager().readConfiguration(new ByteArrayInputStream("handlers=java.util.logging.ConsoleHandler\njava.util.logging.ConsoleHandler.formatter = com.gmmapowell.http.HttpFormatter\njava.util.logging.ConsoleHandler.level = FINEST\nEndpoint.level = FINEST\n".getBytes()));
 		getLocalHostAddr();
 	}
 }

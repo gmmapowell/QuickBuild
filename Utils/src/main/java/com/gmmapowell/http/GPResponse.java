@@ -87,7 +87,7 @@ public class GPResponse implements HttpServletResponse {
 	}
 
 	private void reply(String string) {
-		InlineServer.logger.fine(Thread.currentThread().getName()+ ": Response: " + string);
+		InlineServer.logger.debug(Thread.currentThread().getName()+ ": Response: " + string);
 		pw.print(string +"\r\n");
 	}
 
@@ -261,7 +261,7 @@ public class GPResponse implements HttpServletResponse {
 	public void setStatus(int arg0, String arg1) {
 		status = arg0;
 		statusMsg = arg1;
-		InlineServer.logger.fine("Setting status to " + status());
+		InlineServer.logger.debug("Setting status to " + status());
 	}
 
 	private List<String> sendHeaders() {
@@ -310,11 +310,11 @@ public class GPResponse implements HttpServletResponse {
 			if (!committed)
 			{
 				pw = new PrintWriter(new OutputStreamWriter(sos, encoding));
-				InlineServer.logger.finest(Thread.currentThread().getName() + " Writing to " + sos);
+				InlineServer.logger.trace(Thread.currentThread().getName() + " Writing to " + sos);
 				if (status == 0)
 					setStatus(200, "OK");
 				if (status >= 300)
-					InlineServer.logger.fine("Servlet Request returned " + status());
+					InlineServer.logger.debug("Servlet Request returned " + status());
 				reply(status());
 				if (headers.contains("Upgrade"))
 					reply(sendHeaders("Upgrade"));

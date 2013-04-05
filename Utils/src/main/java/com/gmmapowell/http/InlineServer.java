@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
 
@@ -17,7 +18,7 @@ import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.FileUtils;
 
 public class InlineServer implements Runnable {
-	public static final Logger logger = Logger.getLogger("InlineServer");
+	public static final Logger logger = LoggerFactory.getLogger("InlineServer");
 
 	private final RemoteIO remote;
 	private final List<File> staticPaths = new ArrayList<File>();
@@ -157,7 +158,7 @@ public class InlineServer implements Runnable {
 					}
 				}
 			} catch (InterruptedException ex) {
-				logger.severe("Interrupted waiting for threads to join ... trying again");
+				logger.error("Interrupted waiting for threads to join ... trying again");
 			}
 			logger.info("Closing remote " + remote);
 			remote.close();
@@ -235,7 +236,7 @@ public class InlineServer implements Runnable {
 
 		for (GPServletDefn sd : servlets)
 			if (sd.isForMe(rawUri)) {
-				logger.fine("Choosing servlet " + sd);
+				logger.debug("Choosing servlet " + sd);
 				return new GPRequest(sd.getConfig(), method, rawUri, protocol, is);
 			}
 

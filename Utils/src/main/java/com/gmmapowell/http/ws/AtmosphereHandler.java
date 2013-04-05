@@ -2,8 +2,8 @@ package com.gmmapowell.http.ws;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.atmosphere.cpr.AtmosphereFramework;
 import org.atmosphere.cpr.AtmosphereRequest;
@@ -15,7 +15,7 @@ import org.atmosphere.websocket.WebSocketProtocol;
 import com.gmmapowell.http.GPResponse;
 
 public class AtmosphereHandler implements InlineServerWebSocketHandler {
-	private final Logger logger = Logger.getLogger("AtmosphereHandler");
+	private final Logger logger = LoggerFactory.getLogger("AtmosphereHandler");
 	private final AtmosphereRequest request;
 	private final AtmosphereFramework framework;
 	private DefaultWebSocketProcessor webSocketProcessor;
@@ -38,7 +38,7 @@ public class AtmosphereHandler implements InlineServerWebSocketHandler {
 //        	webSocketProcessor.dispatch(webSocket, request, response);
         	webSocketProcessor.notifyListener(webSocket, new WebSocketEventListener.WebSocketEvent<String>("", WebSocketEventListener.WebSocketEvent.TYPE.CONNECT, webSocket));
         } catch (Exception e) {
-        	logger.log(Level.WARNING, "failed to connect to web socket", e);
+        	logger.warn("failed to connect to web socket", e);
         }
 	}
 
@@ -48,7 +48,7 @@ public class AtmosphereHandler implements InlineServerWebSocketHandler {
         	webSocketProcessor.invokeWebSocketProtocol(webSocket, message, 0, message.length);
             webSocketProcessor.notifyListener(webSocket, new WebSocketEventListener.WebSocketEvent<String>(new String(message, "UTF-8"), WebSocketEventListener.WebSocketEvent.TYPE.MESSAGE, webSocket));
         } catch (UnsupportedEncodingException e) {
-            logger.log(Level.WARNING, "UnsupportedEncodingException", e);
+            logger.warn("UnsupportedEncodingException", e);
         }
 	}
 

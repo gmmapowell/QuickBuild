@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
-import java.util.logging.Level;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServlet;
@@ -35,7 +34,7 @@ public class ConnectionThread extends Thread {
 		GPResponse response = null;
 		closeConnection = true;
 		isWebSocket = false;
-		InlineServer.logger.fine(Thread.currentThread().getName()+ ": " + "Processing Incoming Request");
+		InlineServer.logger.debug(Thread.currentThread().getName()+ ": " + "Processing Incoming Request");
 		Date now = new Date();
 		try {
 			boolean keptAlive = false;
@@ -71,7 +70,7 @@ public class ConnectionThread extends Thread {
 				}
 			}
 		} catch (Exception e) {
-			InlineServer.logger.log(Level.SEVERE, "Uncaught exception processing request", e);
+			InlineServer.logger.error("Uncaught exception processing request", e);
 			try {
 				conn.errorSending();
 			}
@@ -82,7 +81,7 @@ public class ConnectionThread extends Thread {
 		}
 		finally
 		{
-			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Closing Connection");
+			InlineServer.logger.debug(Thread.currentThread().getName()+ ": " +"Closing Connection");
 			inlineServer.requestTime(now, new Date());
 			try
 			{
@@ -102,7 +101,7 @@ public class ConnectionThread extends Thread {
 		GPRequest request = null;
 		while ((s = readLine()) != null && s.trim().length() > 0)
 		{
-			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Header - " + s);
+			InlineServer.logger.debug(Thread.currentThread().getName()+ ": " +"Header - " + s);
 			if (request == null)
 				request = inlineServer.requestFor(s, is);
 			else
@@ -115,7 +114,7 @@ public class ConnectionThread extends Thread {
 //				return null;
 //			throw new UtilException(Thread.currentThread().getName()+ ": " + "There was no incoming request");
 		}
-		InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Done Headers");
+		InlineServer.logger.debug(Thread.currentThread().getName()+ ": " +"Done Headers");
 		request.endHeaders();
 		
 		String connhdr;
@@ -148,12 +147,12 @@ public class ConnectionThread extends Thread {
 		}
 		
 		HttpServlet servlet = request.getServlet();
-		InlineServer.logger.fine("Request URI: " + request.getRequestURI() + " - " + servlet);
+		InlineServer.logger.debug("Request URI: " + request.getRequestURI() + " - " + servlet);
 		if (servlet != null)
 		{
-			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Handling through servlet");
+			InlineServer.logger.debug(Thread.currentThread().getName()+ ": " +"Handling through servlet");
 			servlet.service(request, response);
-			InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Finished servlet handling");
+			InlineServer.logger.debug(Thread.currentThread().getName()+ ": " +"Finished servlet handling");
 			if (isWebSocket)
 			{
 				if (response.getStatus() == 0)
@@ -176,7 +175,7 @@ public class ConnectionThread extends Thread {
 			GPStaticResource staticResource = request.getStaticResource();
 			if (staticResource != null)
 			{
-				InlineServer.logger.fine(Thread.currentThread().getName()+ ": " +"Found static resource");
+				InlineServer.logger.debug(Thread.currentThread().getName()+ ": " +"Found static resource");
 				response.setStatus(200);
 				response.setContentLength((int)staticResource.len);
 				FileUtils.copyStream(staticResource.stream, response.getOutputStream());
