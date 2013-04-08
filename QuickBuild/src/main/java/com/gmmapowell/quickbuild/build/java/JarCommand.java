@@ -266,7 +266,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		return null;
 	}
 
-	// Certainly the idea is that this is the "static" resouces this guy needs
+	// Certainly the idea is that this is the "static" resources this guy needs
 	// Dynamic resources come in some other way
 	@Override
 	public ResourcePacket<PendingResource> needsResources() {
