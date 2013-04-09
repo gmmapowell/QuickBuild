@@ -114,6 +114,8 @@ public class JavaDocCommand extends AbstractBuildCommand implements Strategem, T
 		}
 		if (sourcepath.empty())
 			return BuildStatus.SKIPPED;
+		if (cxt.doubleQuick)
+			return BuildStatus.SKIPPED;
 
 		FileUtils.assertDirectory(outputdir);
 		RunProcess proc = new RunProcess("javadoc");

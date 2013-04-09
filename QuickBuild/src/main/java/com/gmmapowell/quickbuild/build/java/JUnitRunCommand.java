@@ -55,6 +55,8 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
+		if (cxt.doubleQuick)
+			return BuildStatus.SKIPPED;
 		if (writeTo != null)
 			writeTo.getFile().delete();
 		RunClassPath classpath = new RunClassPath(cxt, jbc);

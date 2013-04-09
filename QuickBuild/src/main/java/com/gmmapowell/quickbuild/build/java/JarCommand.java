@@ -66,8 +66,8 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		if (justJunit)
 			javac = null;
 		else
-			javac = addJavaBuild(tactics, jar, "src/main/java", "classes", "main");
-		JavaBuildCommand junit = addJavaBuild(tactics, null, "src/test/java", "test-classes", "test");
+			javac = addJavaBuild(tactics, jar, "src/main/java", "classes", "main", true);
+		JavaBuildCommand junit = addJavaBuild(tactics, null, "src/test/java", "test-classes", "test", false);
 		if (junit != null)
 		{
 			junit.addToClasspath(new File(files.getOutputDir(), "classes"));
@@ -197,7 +197,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		return tactics;
 	}
 
-	private JavaBuildCommand addJavaBuild(List<Tactic> accum, ArchiveCommand jar, String src, String bin, String label) {
+	private JavaBuildCommand addJavaBuild(List<Tactic> accum, ArchiveCommand jar, String src, String bin, String label, boolean runAlways) {
 		File dir = new File(rootdir, src);
 		if (dir.isDirectory())
 		{
@@ -213,7 +213,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			if (sourceFiles.size() == 0)
 				return null;
 			
-			JavaBuildCommand ret = new JavaBuildCommand(this, files, src, bin, label, sourceFiles, "jdk", javaVersion);
+			JavaBuildCommand ret = new JavaBuildCommand(this, files, src, bin, label, sourceFiles, "jdk", javaVersion, runAlways);
 			accum.add(ret);
 			
 			JavaSourceDirResource sourcesResource = new JavaSourceDirResource(dir, sourceFiles);

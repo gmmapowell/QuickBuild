@@ -114,7 +114,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		AaptGenBuildCommand gen = new AaptGenBuildCommand(this, acxt, manifest, gendir, resdir);
 		tactics.add(gen);
 		List<File> genFiles = new DeferredFileList(gendir, "*.java");
-		JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", "gen", genFiles, "android", javaVersion);
+		JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", "gen", genFiles, "android", javaVersion, true);
 		genRes.addToBootClasspath(acxt.getPlatformJar());
 		jrr.add(acxt.getPlatformJar());
 		tactics.add(genRes);
@@ -128,7 +128,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 					i++;
 		} else
 			srcFiles = new ArrayList<File>();
-		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", srcFiles, "android", javaVersion);
+		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", srcFiles, "android", javaVersion, true);
 		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
 		tactics.add(buildSrc);
@@ -142,7 +142,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 			List<File> testSources = FileUtils.findFilesMatching(files.getRelative("src/test/java"), "*.java");
 			if (testSources.size() > 0)
 			{
-				JavaBuildCommand buildTests = new JavaBuildCommand(this, files, "src/test/java", "test-classes", "test", testSources, "android", javaVersion);
+				JavaBuildCommand buildTests = new JavaBuildCommand(this, files, "src/test/java", "test-classes", "test", testSources, "android", javaVersion, false);
 				buildTests.addToClasspath(new File(files.getOutputDir(), "classes"));
 				buildTests.addToBootClasspath(acxt.getPlatformJar());
 				tactics.add(buildTests);

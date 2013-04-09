@@ -33,13 +33,15 @@ public class JavaBuildCommand implements Tactic {
 	private final String label;
 	private final String context;
 	private final String target;
+	private final boolean runAlways;
 
-	public JavaBuildCommand(Strategem parent, StructureHelper files, String src, String bin, String label, List<File> sources, String context, String target) {
+	public JavaBuildCommand(Strategem parent, StructureHelper files, String src, String bin, String label, List<File> sources, String context, String target, boolean runAlways) {
 		this.parent = parent;
 		this.label = label;
 		this.sources = sources;
 		this.context = context;
 		this.target = target;
+		this.runAlways = runAlways;
 		this.srcdir = new File(files.getBaseDir(), src);
 		this.bindir = new File(files.getOutputDir(), bin);
 		if (!bindir.exists())
@@ -75,6 +77,8 @@ public class JavaBuildCommand implements Tactic {
 		if (nature == null)
 			throw new UtilException("There is no JavaNature installed (huh?)");
 		if (!srcdir.isDirectory())
+			return BuildStatus.SKIPPED;
+		if (!runAlways && cxt.doubleQuick)
 			return BuildStatus.SKIPPED;
 		if (doClean)
 			FileUtils.cleanDirectory(bindir);

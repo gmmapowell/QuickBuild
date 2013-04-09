@@ -42,7 +42,9 @@ public class BuildContext {
 
 	public final BuildOutput output;
 
-	public BuildContext(Config conf, ConfigFactory configFactory, BuildOutput output, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar, String upTo, int nthreads) {
+	public final boolean doubleQuick;
+
+	public BuildContext(Config conf, ConfigFactory configFactory, BuildOutput output, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar, String upTo, int nthreads, boolean doubleQuick) {
 		this.conf = conf;
 		this.output = output;
 		this.blankMemory = blankMemory;
@@ -50,6 +52,7 @@ public class BuildContext {
 		this.utilsJar = utilsJar;
 		this.upTo = upTo;
 		this.nthreads = nthreads;
+		this.doubleQuick = doubleQuick;
 		rm = new ResourceManager(conf);
 		buildOrder = new BuildOrder(this, buildAll, debug);
 		manager = new DependencyManager(conf, rm, buildOrder, debug);

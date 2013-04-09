@@ -10,6 +10,7 @@ public class Arguments {
 	public boolean blank;
 	public boolean configOnly;
 	public boolean debug;
+	public boolean doubleQuick;
 	public boolean quiet;
 	public boolean teamcity;
 	public int nthreads;

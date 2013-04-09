@@ -86,7 +86,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 			AaptGenBuildCommand gen = new AaptGenBuildCommand(this, acxt, manifest, gendir, resdir);
 			tactics.add(gen);
 			List<File> genFiles = new DeferredFileList(gendir, "*.java");
-			JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", "gen", genFiles, "android", javaVersion);
+			JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", "gen", genFiles, "android", javaVersion, true);
 			genRes.addToBootClasspath(acxt.getPlatformJar());
 //			jrr.add(acxt.getPlatformJar());
 			tactics.add(genRes);
@@ -101,7 +101,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 			} else
 				srcFiles = new ArrayList<File>();
 		}
-		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", FileUtils.findFilesMatching(files.getRelative("src/main/java"), "*.java"), "android", javaVersion);
+		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", FileUtils.findFilesMatching(files.getRelative("src/main/java"), "*.java"), "android", javaVersion, false);
 		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
 		tactics.add(buildSrc);
