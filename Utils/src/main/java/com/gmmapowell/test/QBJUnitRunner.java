@@ -3,9 +3,11 @@ package com.gmmapowell.test;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.junit.Ignore;
 import org.junit.internal.builders.AllDefaultPossibilitiesBuilder;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
+import org.junit.runner.Runner;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.InitializationError;
@@ -21,11 +23,18 @@ public class QBJUnitRunner {
 		for (String arg : args)
 			try {
 				Class<?> clz = Class.forName(arg);
-				lsnr.testRunStarted(Description.createSuiteDescription(clz));
+				Description desc = Description.createSuiteDescription(clz);
+				lsnr.testRunStarted(desc);
 				RunWith runWith = clz.getAnnotation(RunWith.class);
-				if (runWith != null)
-					Reflection.create(runWith.value(), clz, new AllDefaultPossibilitiesBuilder(true)).run(nfy);
-				else
+				if (runWith != null) {
+					Ignore ign = clz.getAnnotation(Ignore.class);
+					if (ign != null)
+						nfy.fireTestIgnored(desc);
+					else {
+						Runner suite = Reflection.create(runWith.value(), clz, new AllDefaultPossibilitiesBuilder(true));
+						suite.run(nfy);
+					}
+				} else
 					new BlockJUnit4ClassRunner(clz).run(nfy);
 			} catch (ClassNotFoundException e) {
 				System.out.println("There was no class " + arg + " found");
