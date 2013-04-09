@@ -77,7 +77,7 @@ public class JavaBuildCommand implements Tactic {
 		if (!srcdir.isDirectory())
 			return BuildStatus.SKIPPED;
 		if (doClean)
-			FileUtils.cleanDirectory(bindir);
+			FileUtils.persistentCleanDirectory(bindir, 5, 200);
 		classpath.add(bindir);
 		for (BuildResource br : cxt.getDependencies(this))
 		{

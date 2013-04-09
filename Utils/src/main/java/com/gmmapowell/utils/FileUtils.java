@@ -490,6 +490,24 @@ public class FileUtils {
 		}
 	}
 	
+	public static void persistentCleanDirectory(File bindir, int numberOfRetries, int msToWaitBetweenTries) {
+		try {
+			cleanDirectory(bindir);
+		}
+		catch (UtilException ex)
+		{
+			if (numberOfRetries > 0)
+			{
+				System.out.println(ex.getMessage() + " Retrying in " + msToWaitBetweenTries + "ms");
+				persistentCleanDirectory(bindir, numberOfRetries - 1, msToWaitBetweenTries);
+			}
+			else
+			{
+				throw new UtilException("Not able to sucessfully delete " + bindir);
+			}
+		}
+	}
+	
 	public static void deleteDirectoryTree(File dir) {
 		cleanDirectory(dir);
 		dir.delete();
@@ -791,4 +809,5 @@ public class FileUtils {
 			throw UtilException.wrap(e);
 		}
 	}
+	
 }
