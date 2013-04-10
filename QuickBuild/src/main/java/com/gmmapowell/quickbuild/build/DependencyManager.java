@@ -126,7 +126,10 @@ public class DependencyManager {
 	{
 		// Clear out any erroneous info from loading cache
 		dependencies.clear();
-		buildOrder.clear();
+		// Experimental 2013-04-09: don't clear the build order just because we decided we didn't like the dependencies.
+		// The build order will be fine until it isn't and should be self-healing.
+		// See also ~300
+//		buildOrder.clear();
 		
 		// First off, build up a picture of what exists without prompting ...
 
@@ -295,8 +298,11 @@ public class DependencyManager {
 		}
 		catch (Exception ex)
 		{
+			// Experimental 2013-04-09: don't clear the build order just because we decided we didn't like the dependencies.
+			// The build order will be fine until it isn't and should be self-healing.
+			// See also ~130
+//			buildOrder.clear();
 			// TODO: we should clear all the links out, but we need to keep the nodes
-			buildOrder.clear();
 //			dependencyFile.delete();
 //			throw new QuickBuildCacheException("Could not decipher the dependency cache", ex);
 			throw new UtilException("Could not decipher the dependency cache", ex);
