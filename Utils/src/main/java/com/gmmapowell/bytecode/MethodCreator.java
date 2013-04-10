@@ -212,8 +212,8 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 	}
 
 	@Override
-	public Expr unbox(Expr expr) {
-		return new UnboxExpr(this, expr);
+	public Expr unbox(Expr expr, boolean protectFromNulls) {
+		return new UnboxExpr(this, expr, protectFromNulls);
 	}
 
 	/** Group a collection of expressions as a block */
@@ -298,6 +298,11 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 	@Override
 	public MakeNewExpr makeNew(String ofClz, Expr... args) {
 		return new MakeNewExpr(this, ofClz, args);
+	}
+
+	@Override
+	public Expr returnTyped(Expr e) {
+		return new ReturnX(this, e.getType(), e);
 	}
 
 	@Override

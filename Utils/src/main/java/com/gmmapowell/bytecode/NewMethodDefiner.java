@@ -79,6 +79,8 @@ public interface NewMethodDefiner {
 
 	MakeNewExpr makeNew(String ofClz, Expr... args);
 
+	Expr returnTyped(Expr e);
+
 	Expr returnVoid();
 
 	Expr returnBool(Expr i);
@@ -99,5 +101,5 @@ public interface NewMethodDefiner {
 
 	Expr box(Expr expr);
 
-	Expr unbox(Expr expr);
+	Expr unbox(Expr expr, boolean protectFromNulls);
 }
