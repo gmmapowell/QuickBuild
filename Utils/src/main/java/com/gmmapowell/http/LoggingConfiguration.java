@@ -3,28 +3,50 @@ package com.gmmapowell.http;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
-import org.apache.log4j.PropertyConfigurator;
+import java.util.Enumeration;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 public class LoggingConfiguration {
 	
+	private Logger logger;
+
 	public LoggingConfiguration() throws SecurityException, IOException
 	{
+		System.out.println("Configuring java.util.logging");
 		InputStream resourceAsStream = this.getClass().getResourceAsStream("/logging.properties");
 		if (resourceAsStream == null)
-			resourceAsStream = new ByteArrayInputStream("log4j.rootLogger=INFO, console\nlog4j.logger.com.gmmapowell=DEBUG\nlog4j.logger.org.ziniki=DEBUG\nlog4j.appender.console=org.apache.log4j.ConsoleAppender\nlog4j.appender.console.layout=com.gmmapowell.http.Log4JHttpLayout\n".getBytes());
+		{
+			System.out.println("Unable to find /logging.properties, setting properties programatically");
+			resourceAsStream = new ByteArrayInputStream("handlers = org.slf4j.bridge.SLF4JBridgeHandler\n".getBytes());
+		}
+		LogManager.getLogManager().readConfiguration(resourceAsStream);
 		
-		PropertyConfigurator.configure(resourceAsStream);
-
-		//TODO: I think this would need to be done differently for slf4j. We aren't currently using this capability.
-//		for (String s : new String[] { "error", "warn", "info", "debug", "trace" }) {
+		
+		//commenting out some debugging/out of date code
+//		Enumeration<String> loggerNames = LogManager.getLogManager().getLoggerNames();
+//		
+//		System.out.println("Loggers loaded:");
+//		for(; loggerNames.hasMoreElements(); ) 
+//		{ 
+//			String loggerName = loggerNames.nextElement();
+//			System.out.println(loggerName);
+//			logger = Logger.getLogger(loggerName);
+//			System.out.println("Handlers: ");
+//			Handler[] handlers = logger.getHandlers();
+//			for(int i = 0; i < handlers.length; i++)
+//				handlers[i].toString();
+//		}
+//		
+//		for (String s : new String[] { "error", "severe", "info", "fine", "finer", "finest"}) {
 //			String v = System.getProperty("com.gmmapowell.logging."+ s);
 //			if (v != null) {
 //				for (String l : v.split(","))
-//					LoggerFactory.getLogger(l). setLevel(Level.toLevel(s));
+//					Logger.getLogger(l).setLevel(Level.parse(s.toUpperCase()));
 //			}
 //		}
 	}
 }
-
 
