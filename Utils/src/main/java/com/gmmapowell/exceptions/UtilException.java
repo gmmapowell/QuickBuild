@@ -23,6 +23,15 @@ public class UtilException extends RuntimeException {
 		else
 			return new UtilException("A checked exception was caught", ex);
 	}
+	
+	public static Throwable unwrap(Exception ex) {
+		if (ex instanceof UtilException && ex.getCause() != null)
+			return ex.getCause();
+		else if (ex instanceof InvocationTargetException || ex instanceof ExecutionException)
+			return ex.getCause();
+		else
+			return ex;
+	}
 
 	public static Exception reconstitute(String exClass, String msg) {
 		if (exClass == null)

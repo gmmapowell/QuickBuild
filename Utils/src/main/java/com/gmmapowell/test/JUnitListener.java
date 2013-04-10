@@ -63,6 +63,7 @@ public class JUnitListener extends RunListener {
 		System.err.println();
 		System.err.println("Ignoring test " + description);
 		System.out.println("Ignoring test " + description);
+		runCount++;
 		ignored++;
 	}
 

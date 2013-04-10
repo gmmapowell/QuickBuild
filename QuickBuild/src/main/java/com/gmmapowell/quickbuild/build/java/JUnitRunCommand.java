@@ -17,6 +17,7 @@ import com.gmmapowell.quickbuild.app.BuildOutput;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.CanBeSkipped;
 import com.gmmapowell.quickbuild.build.ErrorCase;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.DependencyFloat;
@@ -30,7 +31,7 @@ import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
-public class JUnitRunCommand implements Tactic, DependencyFloat {
+public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 	private final File srcdir;
 	private File bindir;
 	private File errdir;
@@ -288,5 +289,10 @@ public class JUnitRunCommand implements Tactic, DependencyFloat {
 	
 	public Set<Tactic> getProcessDependencies() {
 		return procDeps;
+	}
+
+	@Override
+	public boolean skipMe(BuildContext cxt) {
+		return cxt.doubleQuick;
 	}
 }

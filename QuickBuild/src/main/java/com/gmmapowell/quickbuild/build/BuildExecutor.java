@@ -220,6 +220,7 @@ public class BuildExecutor {
 			cxt.output.finishBuildStep();
 			return BuildStatus.NOTCRITICAL;
 		}
+		itb.considerAutoSkipping(cxt);
 		itb.announce(cxt.output, !cxt.quietMode(), currentTactic, itb.needsBuild);
 
 		// Record when first build started

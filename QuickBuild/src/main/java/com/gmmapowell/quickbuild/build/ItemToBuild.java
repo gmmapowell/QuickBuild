@@ -31,8 +31,8 @@ public class ItemToBuild {
 	private final List<GitRecord> gittxs = new ArrayList<GitRecord>();
 	private int drift;
 
-	public ItemToBuild(BuildStatus needsBuild, Tactic tactic, String id, String label) {
-		this.needsBuild = needsBuild;
+	public ItemToBuild(Tactic tactic, String id, String label) {
+		this.needsBuild = BuildStatus.CLEAN;
 		this.tactic = tactic;
 		this.id = id;
 		this.label = label;
@@ -66,6 +66,11 @@ public class ItemToBuild {
 			return;
 		output.complete(tactic.belongsTo().identifier());
 		rm.exportAll(tactic.belongsTo());
+	}
+
+	public void considerAutoSkipping(BuildContext cxt) {
+		if (tactic instanceof CanBeSkipped && ((CanBeSkipped)tactic).skipMe(cxt))
+			needsBuild = BuildStatus.SKIPPED;
 	}
 
 	public void announce(BuildOutput output, boolean verbose, int currentTactic, BuildStatus showStatus) {
