@@ -56,10 +56,13 @@ public class IfExpr extends Expr {
 		if (orelse != null)
 		{
 			meth.resetStack(depth);
-			Marker m2 = meth.jump();
+			Marker m2 = null;
+			if (!(then instanceof ReturnX)) // don't generate a jump if we've already returned ...
+				m2 = meth.jump();
 			m1.setHere();
 			orelse.spitOutByteCode(meth);
-			m2.setHere();
+			if (m2 != null)
+				m2.setHere();
 		}
 		else
 			m1.setHere();
