@@ -13,6 +13,7 @@ import com.gmmapowell.parser.LinePatternParser;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.CanBeSkipped;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
@@ -22,7 +23,7 @@ import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
-public class JavaBuildCommand implements Tactic {
+public class JavaBuildCommand implements Tactic, CanBeSkipped {
 	private final File srcdir;
 	private final File bindir;
 	private final BuildClassPath classpath;
@@ -69,6 +70,11 @@ public class JavaBuildCommand implements Tactic {
 	public void dontClean()
 	{
 		doClean = false;
+	}
+
+	@Override
+	public boolean skipMe(BuildContext cxt) {
+		return !runAlways && cxt.doubleQuick;
 	}
 	
 	@Override

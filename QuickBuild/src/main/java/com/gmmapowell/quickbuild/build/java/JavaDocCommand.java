@@ -15,6 +15,7 @@ import com.gmmapowell.parser.LinePatternParser;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.CanBeSkipped;
 import com.gmmapowell.quickbuild.build.ErrorCase;
 import com.gmmapowell.quickbuild.config.AbstractBuildCommand;
 import com.gmmapowell.quickbuild.config.Config;
@@ -32,7 +33,7 @@ import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
-public class JavaDocCommand extends AbstractBuildCommand implements Strategem, Tactic, FloatToEnd {
+public class JavaDocCommand extends AbstractBuildCommand implements Strategem, Tactic, FloatToEnd, CanBeSkipped {
 
 	private String overview;
 	private final File rootdir;
@@ -87,6 +88,11 @@ public class JavaDocCommand extends AbstractBuildCommand implements Strategem, T
 	@Override
 	public String toString() {
 		return "Javadoc " + outdir;
+	}
+
+	@Override
+	public boolean skipMe(BuildContext cxt) {
+		return cxt.doubleQuick;
 	}
 
 	@Override

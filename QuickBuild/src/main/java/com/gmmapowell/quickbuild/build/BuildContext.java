@@ -98,6 +98,10 @@ public class BuildContext {
 		rm.configure(strats);
 		try
 		{
+			for (Strategem s : strats) {
+				buildOrder.knowAbout(s);
+			}
+			buildOrder.loadBuildOrderCache();
 			if (blankMemory)
 				throw new QuickBuildCacheException("Blanking memory because root files changed", null);
 			manager.loadDependencyCache();
@@ -106,7 +110,6 @@ public class BuildContext {
 			{			
 				s.buildsResources().resolveClones();
 			}
-			buildOrder.loadBuildOrderCache();
 		}
 		catch (QuickBuildCacheException ex) {
 			// the cache failed to load because of inconsistencies or whatever

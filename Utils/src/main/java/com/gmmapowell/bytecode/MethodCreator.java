@@ -582,9 +582,16 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 			i += 0x3;
 			add(1, new Instruction(i));
 		}
-		else
+		else if (i >= -128 && i <= 127)
 		{
-			// TODO: should be able, just not yet supported.
+			add(1, new Instruction(0x10, (i&0xff)));
+		}
+		else if (i >= -32768 && i <= 32767)
+		{
+			add(1, new Instruction(0x11, (i>>8)&0xff, (i&0xff)));
+		}
+		else {
+			// TODO: It's not clear how to do this - compile some code and see what happens!
 			throw new UtilException("Cannot make iconst(" + i + ")");
 		}
 	}

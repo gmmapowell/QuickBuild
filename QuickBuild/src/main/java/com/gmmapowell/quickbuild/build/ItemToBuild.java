@@ -153,4 +153,8 @@ public class ItemToBuild {
 	public boolean isClean() {
 		return needsBuild == BuildStatus.CLEAN;
 	}
+
+	public boolean hasUnbuiltDependencies(BuildOrder bo) {
+		return bo.hasUnbuiltDependencies(this);
+	}
 }

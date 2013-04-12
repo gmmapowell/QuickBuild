@@ -100,7 +100,10 @@ public class BuildExecutor {
 				{
 					if (debug)
 						System.out.println("  Failed ... returning to ready queue");
-					returnToWell(itb);
+					if (itb.hasUnbuiltDependencies(cxt.getBuildOrder()))
+						returnToWell(itb);
+					else
+						status = Status.REJECT_AND_SEARCH_WELL;
 //					System.out.println(cxt.printableBuildOrder(false));
 					continue;
 				}

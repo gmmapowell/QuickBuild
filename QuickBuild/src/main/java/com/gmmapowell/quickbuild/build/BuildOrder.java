@@ -331,28 +331,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 			{
 				cxt.output.println("Considering " + itb.id);
 			}
-			boolean hasDependency = false;
-			for (Tactic t : itb.getProcessDependencies()) {
-				if (!isBuilt(t)) {
-					hasDependency = true;
-					if (debug)
-						cxt.output.println("  Rejecting because " + t + " is not built");
-				}
-			}
-			for (BuildResource pr : itb.getDependencies(dependencies))
-			{
-				if (!isBuilt(pr))
-				{
-					if (debug)
-						cxt.output.println("  Rejecting because " + pr + " is not built");
-					hasDependency = true;
-					continue;
-				}
-				else if (hasDependency)
-					continue;
-				if (debug)
-					cxt.output.println("  Dependency " + pr + " has been built");
-			}
+			boolean hasDependency = hasUnbuiltDependencies(itb);
 			if (hasDependency)
 				continue loop;
 			
@@ -386,6 +365,32 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		}
 		cxt.output.closeBlock("noWell");
 		throw new UtilException("There is no way to build everything");
+	}
+
+	boolean hasUnbuiltDependencies(ItemToBuild itb) {
+		boolean hasDependency = false;
+		for (Tactic t : itb.getProcessDependencies()) {
+			if (!isBuilt(t)) {
+				hasDependency = true;
+				if (debug)
+					cxt.output.println("  Rejecting because " + t + " is not built");
+			}
+		}
+		for (BuildResource pr : itb.getDependencies(dependencies))
+		{
+			if (!isBuilt(pr))
+			{
+				if (debug)
+					cxt.output.println("  Rejecting because " + pr + " is not built");
+				hasDependency = true;
+				continue;
+			}
+			else if (hasDependency)
+				continue;
+			if (debug)
+				cxt.output.println("  Dependency " + pr + " has been built");
+		}
+		return hasDependency;
 	}
 
 	/*

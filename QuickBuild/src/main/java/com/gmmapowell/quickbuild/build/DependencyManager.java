@@ -423,7 +423,6 @@ public class DependencyManager {
 		stratMap = new HashMap<String, Strategem>();
 		for (Strategem s : strats) {
 			stratMap.put(s.identifier(), s);
-			buildOrder.knowAbout(s);
 		}
 		try
 		{
