@@ -146,9 +146,8 @@ public class DependencyManager {
 		Set<CloningResource> clones = new HashSet<CloningResource>();
 		for (Strategem s : strats)
 		{
-			// Get it in the build order (at level 0)
-			// buildOrder.depends(this, s, null);
-			buildOrder.knowAbout(s);
+			// Experimental 2013-04-09 (see above)
+//			buildOrder.knowAbout(s);
 			for (BuildResource br : s.buildsResources())
 			{
 				if (br == null)
