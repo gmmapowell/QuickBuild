@@ -2,6 +2,6 @@ package com.gmmapowell.xml;
 
 public interface XMLNotifyOnComplete {
 
-	void complete();
+	void complete(Object cxt);
 
 }
