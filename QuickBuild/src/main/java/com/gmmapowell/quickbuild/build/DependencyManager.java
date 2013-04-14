@@ -107,17 +107,17 @@ public class DependencyManager {
 
 	private final DependencyGraph<BuildResource> dependencies = new DependencyGraph<BuildResource>();
 	private final File dependencyFile;
-	private final BuildOrder buildOrder;
+//	private final BuildOrder buildOrder;
 	private final ResourceManager rm;
 	private final boolean debug;
 	private final Map<Tactic, Set<BuildResource>> cache = new HashMap<Tactic, Set<BuildResource>>();
 	private HashMap<String, Strategem> stratMap = null;
 	private final Map<String, ProcessResource> processResources = new HashMap<String, ProcessResource>();
 
-	public DependencyManager(Config conf, ResourceManager rm, BuildOrder buildOrder, boolean debug)
+	public DependencyManager(Config conf, ResourceManager rm, boolean debug)
 	{
 		this.rm = rm;
-		this.buildOrder = buildOrder;
+//		this.buildOrder = buildOrder;
 		this.debug = debug;
 		dependencyFile = new File(conf.getCacheDir(), "dependencies.xml");
 	}

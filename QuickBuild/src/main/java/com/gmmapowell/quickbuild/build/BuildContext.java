@@ -54,9 +54,8 @@ public class BuildContext {
 		this.nthreads = nthreads;
 		this.doubleQuick = doubleQuick;
 		rm = new ResourceManager(conf);
-		buildOrder = new BuildOrder(this, buildAll, debug);
-		manager = new DependencyManager(conf, rm, buildOrder, debug);
-		buildOrder.dependencyManager(manager);
+		manager = new DependencyManager(conf, rm, debug);
+		buildOrder = new BuildOrder(this, manager, buildAll, debug);
 		ehandler = new ErrorHandler(conf.getLogDir());
 		for (String s : showArgsFor)
 			this.showArgsFor.add(Pattern.compile(".*"+s.toLowerCase()+".*"));

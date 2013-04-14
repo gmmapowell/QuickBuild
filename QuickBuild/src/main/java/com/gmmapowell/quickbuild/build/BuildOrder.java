@@ -57,23 +57,20 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 	private final boolean debug;
 
 	private final BuildContext cxt;
-	private DependencyManager dependencies;
+	private final DependencyManager dependencies;
 	private final Set<BuildResource> dirtyUnbuilt = new HashSet<BuildResource>();
 	private final Set<GitRecord> ubtxs = new HashSet<GitRecord>();
 	private final int nthreads;
 
-	public BuildOrder(BuildContext cxt, boolean buildAll, boolean debug)
+	public BuildOrder(BuildContext cxt, DependencyManager manager, boolean buildAll, boolean debug)
 	{
 		this.cxt = cxt;
+		dependencies = manager;
 		this.buildAll = buildAll;
 		this.debug = debug;
 		this.nthreads = cxt.getNumThreads();
 		buildOrderFile = cxt.getCacheFile("buildOrder.xml");
 	}	
-
-	public void dependencyManager(DependencyManager manager) {
-		this.dependencies = manager;
-	}
 
 	public void clear() {
 		mapping.clear();
