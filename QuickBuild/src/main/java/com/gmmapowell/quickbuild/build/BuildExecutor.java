@@ -84,12 +84,16 @@ public class BuildExecutor {
 			{
 				System.out.println(new Date().toString() + " Completed");
 			}
-			if (!outcome.isGood())
+			if (outcome.isGood()) {
+				buildOrder.completeTactic(itb.tactic);
+			}
+			else
 			{
 				if (outcome.isWorthReporting())
 					ehandler.buildFail(outcome);
 				if (outcome.isBroken())
 				{
+					buildOrder.completeTactic(itb.tactic);
 					System.out.println("  Failed ... pressing on to the grand fallacy");
 					cxt.grandFallacy = true;
 					brokenTactics.add(itb.tactic);
@@ -107,9 +111,10 @@ public class BuildExecutor {
 //					System.out.println(cxt.printableBuildOrder(false));
 					continue;
 				}
-				else if (outcome.partialFail())
+				else if (outcome.partialFail()) {
 					System.out.println("  Partially failed, moving on ...");
-				// else move on ...
+					buildOrder.completeTactic(itb.tactic);
+				}
 			}
 			advance();
 		}
@@ -141,8 +146,13 @@ public class BuildExecutor {
 			ItemToBuild itb = buildOrder.get(currentTactic);
 			if (itb != null)
 			{
-				status = Status.NOT_SET;
-				return itb;
+				if (itb.hasUnbuiltDependencies(buildOrder)) {
+					returnToWell(itb);
+					continue;
+				} else {
+					status = Status.NOT_SET;
+					return itb;
+				}
 			}
 
 			if (debug)
@@ -223,7 +233,12 @@ public class BuildExecutor {
 			cxt.output.finishBuildStep();
 			return BuildStatus.NOTCRITICAL;
 		}
-		itb.considerAutoSkipping(cxt);
+		else if (itb.considerAutoSkipping(cxt)) {
+			itb.announce(cxt.output, !cxt.quietMode(), currentTactic, BuildStatus.NOTCRITICAL);
+			itb.revert();
+			cxt.output.finishBuildStep();
+			return BuildStatus.NOTCRITICAL;
+		}
 		itb.announce(cxt.output, !cxt.quietMode(), currentTactic, itb.needsBuild);
 
 		// Record when first build started

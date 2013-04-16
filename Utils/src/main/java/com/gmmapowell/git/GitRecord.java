@@ -79,7 +79,7 @@ public class GitRecord {
 	public void revert() {
 		if (committed)
 			return;
-		System.out.println("Removing " + source + " and " + generates);
+//		System.out.println("Removing " + source + " and " + generates);
 		if (source.exists())
 			source.delete();
 		if (generates.exists())

@@ -223,7 +223,9 @@ public class DependencyManager {
 					}
 				}
 		}
-		cache.clear();
+		
+		// This seems wasteful.  If there's a good reason for it, please add an explanation
+		// cache.clear();
 	}
 
 	BuildResource resolve(PendingResource pr) {

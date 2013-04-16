@@ -62,6 +62,8 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 	private final Set<GitRecord> ubtxs = new HashSet<GitRecord>();
 	private final int nthreads;
 
+	private Set<Tactic> completedTactics = new HashSet<Tactic>();
+
 	public BuildOrder(BuildContext cxt, DependencyManager manager, boolean buildAll, boolean debug)
 	{
 		this.cxt = cxt;
@@ -390,12 +392,9 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		return hasDependency;
 	}
 
-	/*
-	private int getDrift(BandElement be) {
-		Strategem building = be.getStrat();
-		return 0;
+	public void completeTactic(Tactic tactic) {
+		completedTactics.add(tactic);
 	}
-	*/
 	
 	private boolean isBuilt(BuildResource pr) {
 		if (pr instanceof PendingResource && !((PendingResource) pr).isBound())
@@ -409,8 +408,8 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 	private boolean isBuilt(Tactic t) {
 		if (t == null)
 			return true;
-		for (ItemToBuild i : toBuild)
-			if (i.tactic == t)
+		for (Tactic i : completedTactics)
+			if (i == t)
 				return true;
 		return false;
 	}

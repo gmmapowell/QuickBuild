@@ -98,7 +98,6 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 
 		additionalCommands(config);
 		jar.addProcessDependency(javac);
-		jar.addProcessDependency(jrun);
 		return this;
 	}
 

@@ -68,9 +68,8 @@ public class ItemToBuild {
 		rm.exportAll(tactic.belongsTo());
 	}
 
-	public void considerAutoSkipping(BuildContext cxt) {
-		if (tactic instanceof CanBeSkipped && ((CanBeSkipped)tactic).skipMe(cxt))
-			needsBuild = BuildStatus.SKIPPED;
+	public boolean considerAutoSkipping(BuildContext cxt) {
+		return (tactic instanceof CanBeSkipped && ((CanBeSkipped)tactic).skipMe(cxt));
 	}
 
 	public void announce(BuildOutput output, boolean verbose, int currentTactic, BuildStatus showStatus) {
