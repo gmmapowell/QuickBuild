@@ -107,17 +107,17 @@ public class DependencyManager {
 
 	private final DependencyGraph<BuildResource> dependencies = new DependencyGraph<BuildResource>();
 	private final File dependencyFile;
-	private final BuildOrder buildOrder;
+//	private final BuildOrder buildOrder;
 	private final ResourceManager rm;
 	private final boolean debug;
 	private final Map<Tactic, Set<BuildResource>> cache = new HashMap<Tactic, Set<BuildResource>>();
 	private HashMap<String, Strategem> stratMap = null;
 	private final Map<String, ProcessResource> processResources = new HashMap<String, ProcessResource>();
 
-	public DependencyManager(Config conf, ResourceManager rm, BuildOrder buildOrder, boolean debug)
+	public DependencyManager(Config conf, ResourceManager rm, boolean debug)
 	{
 		this.rm = rm;
-		this.buildOrder = buildOrder;
+//		this.buildOrder = buildOrder;
 		this.debug = debug;
 		dependencyFile = new File(conf.getCacheDir(), "dependencies.xml");
 	}
@@ -146,9 +146,8 @@ public class DependencyManager {
 		Set<CloningResource> clones = new HashSet<CloningResource>();
 		for (Strategem s : strats)
 		{
-			// Get it in the build order (at level 0)
-			// buildOrder.depends(this, s, null);
-			buildOrder.knowAbout(s);
+			// Experimental 2013-04-09 (see above)
+//			buildOrder.knowAbout(s);
 			for (BuildResource br : s.buildsResources())
 			{
 				if (br == null)
@@ -224,7 +223,9 @@ public class DependencyManager {
 					}
 				}
 		}
-		cache.clear();
+		
+		// This seems wasteful.  If there's a good reason for it, please add an explanation
+		// cache.clear();
 	}
 
 	BuildResource resolve(PendingResource pr) {
@@ -423,7 +424,6 @@ public class DependencyManager {
 		stratMap = new HashMap<String, Strategem>();
 		for (Strategem s : strats) {
 			stratMap.put(s.identifier(), s);
-			buildOrder.knowAbout(s);
 		}
 		try
 		{

@@ -19,6 +19,7 @@ public class JUnitListener extends RunListener {
 	private int startFailed;
 	private int startIgnored;
 	private Description batch;
+	boolean inTest = false;
 
 	@Override
 	public void testRunStarted(Description description) throws Exception {
@@ -38,6 +39,7 @@ public class JUnitListener extends RunListener {
 		System.out.println("Starting test " + description);
 		testStartTime = new Date();
 		runCount++;
+		inTest = true;
 	}
 
 	@Override
@@ -51,11 +53,16 @@ public class JUnitListener extends RunListener {
 
 	@Override
 	public void testFailure(Failure failure) throws Exception {
-		System.err.println("Failed test " + failure.getDescription());
-		System.err.println(failure.getMessage());
-		System.err.println(failure.getTrace());
-		System.out.println("Failure: " + failure.getDescription());
-		failed++;
+		if (inTest) {
+			System.err.println("Failed test " + failure.getDescription());
+			System.err.println(failure.getMessage());
+			System.err.println(failure.getTrace());
+			System.out.println("Failure: " + failure.getDescription());
+			failed++;
+			inTest = false;
+		} else {
+			System.out.println("Saw repeated failure in " + failure.getDescription());
+		}
 	}
 
 	@Override
@@ -65,12 +72,14 @@ public class JUnitListener extends RunListener {
 		System.out.println("Ignoring test " + description);
 		runCount++;
 		ignored++;
+		inTest = false; // I claim it is already
 	}
 
 	@Override
 	public void testFinished(Description description) throws Exception {
 		System.err.println("Finished test " + description);
 		System.out.println("Duration: " + (new Date().getTime()-testStartTime.getTime()));
+		inTest = false;
 	}
 
 	@Override

@@ -8,7 +8,7 @@ public class SyncUtils {
 		Date d = new Date();
 		d = new Date(d.getTime() + ms);
 		synchronized (waitOn) {
-			while (new Date().before(d)) {
+			while (ms == 0 || new Date().before(d)) {
 				try {
 					waitOn.wait(ms);
 					return true;
@@ -31,6 +31,20 @@ public class SyncUtils {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public static void join(Thread thr) {
+		while (thr.isAlive()) {
+			try {
+				thr.join();
+			} catch (InterruptedException ex) {
+				// no worries
+			}
+		}
+	}
+
+	public static ChokePoint chokePoint() {
+		return new ChokePoint();
 	}
 
 }

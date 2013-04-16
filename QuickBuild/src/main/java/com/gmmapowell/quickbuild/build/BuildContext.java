@@ -54,9 +54,8 @@ public class BuildContext {
 		this.nthreads = nthreads;
 		this.doubleQuick = doubleQuick;
 		rm = new ResourceManager(conf);
-		buildOrder = new BuildOrder(this, buildAll, debug);
-		manager = new DependencyManager(conf, rm, buildOrder, debug);
-		buildOrder.dependencyManager(manager);
+		manager = new DependencyManager(conf, rm, debug);
+		buildOrder = new BuildOrder(this, manager, buildAll, debug);
 		ehandler = new ErrorHandler(conf.getLogDir());
 		for (String s : showArgsFor)
 			this.showArgsFor.add(Pattern.compile(".*"+s.toLowerCase()+".*"));
@@ -98,6 +97,10 @@ public class BuildContext {
 		rm.configure(strats);
 		try
 		{
+			for (Strategem s : strats) {
+				buildOrder.knowAbout(s);
+			}
+			buildOrder.loadBuildOrderCache();
 			if (blankMemory)
 				throw new QuickBuildCacheException("Blanking memory because root files changed", null);
 			manager.loadDependencyCache();
@@ -106,7 +109,6 @@ public class BuildContext {
 			{			
 				s.buildsResources().resolveClones();
 			}
-			buildOrder.loadBuildOrderCache();
 		}
 		catch (QuickBuildCacheException ex) {
 			// the cache failed to load because of inconsistencies or whatever

@@ -57,23 +57,22 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 	private final boolean debug;
 
 	private final BuildContext cxt;
-	private DependencyManager dependencies;
+	private final DependencyManager dependencies;
 	private final Set<BuildResource> dirtyUnbuilt = new HashSet<BuildResource>();
 	private final Set<GitRecord> ubtxs = new HashSet<GitRecord>();
 	private final int nthreads;
 
-	public BuildOrder(BuildContext cxt, boolean buildAll, boolean debug)
+	private Set<Tactic> completedTactics = new HashSet<Tactic>();
+
+	public BuildOrder(BuildContext cxt, DependencyManager manager, boolean buildAll, boolean debug)
 	{
 		this.cxt = cxt;
+		dependencies = manager;
 		this.buildAll = buildAll;
 		this.debug = debug;
 		this.nthreads = cxt.getNumThreads();
 		buildOrderFile = cxt.getCacheFile("buildOrder.xml");
 	}	
-
-	public void dependencyManager(DependencyManager manager) {
-		this.dependencies = manager;
-	}
 
 	public void clear() {
 		mapping.clear();
@@ -331,28 +330,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 			{
 				cxt.output.println("Considering " + itb.id);
 			}
-			boolean hasDependency = false;
-			for (Tactic t : itb.getProcessDependencies()) {
-				if (!isBuilt(t)) {
-					hasDependency = true;
-					if (debug)
-						cxt.output.println("  Rejecting because " + t + " is not built");
-				}
-			}
-			for (BuildResource pr : itb.getDependencies(dependencies))
-			{
-				if (!isBuilt(pr))
-				{
-					if (debug)
-						cxt.output.println("  Rejecting because " + pr + " is not built");
-					hasDependency = true;
-					continue;
-				}
-				else if (hasDependency)
-					continue;
-				if (debug)
-					cxt.output.println("  Dependency " + pr + " has been built");
-			}
+			boolean hasDependency = hasUnbuiltDependencies(itb);
 			if (hasDependency)
 				continue loop;
 			
@@ -388,12 +366,35 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		throw new UtilException("There is no way to build everything");
 	}
 
-	/*
-	private int getDrift(BandElement be) {
-		Strategem building = be.getStrat();
-		return 0;
+	boolean hasUnbuiltDependencies(ItemToBuild itb) {
+		boolean hasDependency = false;
+		for (Tactic t : itb.getProcessDependencies()) {
+			if (!isBuilt(t)) {
+				hasDependency = true;
+				if (debug)
+					cxt.output.println("  Rejecting because " + t + " is not built");
+			}
+		}
+		for (BuildResource pr : itb.getDependencies(dependencies))
+		{
+			if (!isBuilt(pr))
+			{
+				if (debug)
+					cxt.output.println("  Rejecting because " + pr + " is not built");
+				hasDependency = true;
+				continue;
+			}
+			else if (hasDependency)
+				continue;
+			if (debug)
+				cxt.output.println("  Dependency " + pr + " has been built");
+		}
+		return hasDependency;
 	}
-	*/
+
+	public void completeTactic(Tactic tactic) {
+		completedTactics.add(tactic);
+	}
 	
 	private boolean isBuilt(BuildResource pr) {
 		if (pr instanceof PendingResource && !((PendingResource) pr).isBound())
@@ -407,8 +408,8 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 	private boolean isBuilt(Tactic t) {
 		if (t == null)
 			return true;
-		for (ItemToBuild i : toBuild)
-			if (i.tactic == t)
+		for (Tactic i : completedTactics)
+			if (i == t)
 				return true;
 		return false;
 	}

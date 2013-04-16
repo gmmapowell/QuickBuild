@@ -405,7 +405,8 @@ public class FileUtils {
 		InputStream stream = FileUtils.class.getResourceAsStream(resourceName);
 		if (stream == null)
 		{
-			stream = FileUtils.class.getResourceAsStream("/" + resourceName);
+			if (!resourceName.startsWith("/"))
+				stream = FileUtils.class.getResourceAsStream("/" + resourceName);
 			if (stream == null)
 				throw new UtilException("Could not find resource " + resourceName);
 		}

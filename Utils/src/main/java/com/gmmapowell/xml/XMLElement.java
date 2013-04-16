@@ -147,6 +147,7 @@ public class XMLElement implements Externalizable {
 	// I would like this to involve dynamically re-ordering the input file if the alternative would be an error,
 	// but that seems difficult to get right in the general case.
 	public void populate(Object cxt, Object callbacks) {
+		trackAs(cxt, elt);
 		ObjectMetaInfo info = new ObjectMetaInfo(callbacks);
 		
 		NodeList nl = elt.getChildNodes();
@@ -158,6 +159,7 @@ public class XMLElement implements Externalizable {
 			if (n instanceof Element)
 			{
 				XMLElement xe = new XMLElement(inside, (Element)n);
+				trackAs(cxt, elt);
 				xe.setErrorHandler(handler);
 				try {
 					Object inner = info.dispatch(cxt, xe);
@@ -193,8 +195,15 @@ public class XMLElement implements Externalizable {
 					throw new UtilException("There is no valid text handler");
 			}
 		}
-		if (callbacks instanceof XMLNotifyOnComplete)
-			((XMLNotifyOnComplete)callbacks).complete();
+		if (callbacks instanceof XMLNotifyOnComplete) {
+			trackAs(cxt, elt);
+			((XMLNotifyOnComplete)callbacks).complete(cxt);
+		}
+	}
+
+	private void trackAs(Object cxt, Element lookAt) {
+		if (cxt instanceof XMLTrackLocation)
+			((XMLTrackLocation)cxt).elementLocation((Location)elt.getUserData(LocationAnnotator.START_FROM), (Location)elt.getUserData(LocationAnnotator.END_AT));
 	}
 
 	public void assertNoSubContents() {

@@ -4,12 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.LogManager;
-import java.util.logging.Logger;
 
 public class LoggingConfiguration {
 	
-	private Logger logger;
-
 	public LoggingConfiguration() throws SecurityException, IOException
 	{
 		InputStream resourceAsStream = this.getClass().getResourceAsStream("/logging.properties");
