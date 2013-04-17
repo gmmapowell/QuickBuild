@@ -117,4 +117,8 @@ public class StringUtil {
 			ret[i] = (byte) Integer.parseInt(s.substring(2*i,2*i+2), 16);
 		return ret;
 	}
+
+	public static boolean isHexDigit(char ch) {
+		return Character.isDigit(ch) || (ch >='a' && ch <='f') || (ch >='A' && ch <='F');
+	}
 }

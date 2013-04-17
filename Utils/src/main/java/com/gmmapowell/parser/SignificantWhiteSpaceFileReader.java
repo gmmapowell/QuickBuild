@@ -5,13 +5,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
 
 import com.gmmapowell.exceptions.UtilException;
 
 public class SignificantWhiteSpaceFileReader {
-	private final LineNumberReader lnr;
+	private final LineCounter lnr;
 	private TokenizedLine nextLine;
 	private final CommandObjectFactory rootFactory;
 	private final Parent<?> top;
@@ -22,25 +20,29 @@ public class SignificantWhiteSpaceFileReader {
 	private SignificantWhiteSpaceFileReader(CommandObjectFactory factory, File f) throws FileNotFoundException {
 		this.rootFactory = factory;
 		this.top = null;
-		lnr = new LineNumberReader(new InputStreamReader(new FileInputStream(f)));
+		lnr = new StreamLineCounter(new FileInputStream(f));
 		this.interactive = false;
 	}
 	
 	public <U, T extends Parent<U>> SignificantWhiteSpaceFileReader(CommandObjectFactory factory, T parent, InputStream in) {
+		this(factory, parent, new StreamLineCounter(in));
+	}
+
+	private <U, T extends Parent<U>> SignificantWhiteSpaceFileReader(CommandObjectFactory factory, T parent, LineCounter lnr) {
 		this.rootFactory = factory;
 		this.top = parent;
-		this.lnr = new LineNumberReader(new InputStreamReader(in));
+		this.lnr = lnr;
 		this.interactive = true;
 	}
 
+	public void useTokenizer(boolean b) {
+		this.tokenize = b;
+	}
+	
 	private void dispose()
 	{
-		try {
-			if (lnr != null)
-				lnr.close();
-		} catch (IOException e) {
-			throw UtilException.wrap(e);
-		}
+		if (lnr != null)
+			lnr.close();
 	}
 	
 	private <T> void readBlock(CommandObjectFactory factory, Parent<T> parent, int ind) throws Exception {
@@ -112,6 +114,10 @@ public class SignificantWhiteSpaceFileReader {
 	public static <U, T extends Parent<U>> SignificantWhiteSpaceFileReader interactive(T parent, CommandObjectFactory factory) {
 		return new SignificantWhiteSpaceFileReader(factory, parent, System.in);
 	}
+
+	public static <U, T extends Parent<U>> SignificantWhiteSpaceFileReader push(T parent, CommandObjectFactory factory, PushLineCounter commsLink) {
+		return new SignificantWhiteSpaceFileReader(factory, parent, commsLink);
+	}
 	
 	public static <U, T extends Parent<U>> void read(T parent, CommandObjectFactory factory, File f) {
 		read(parent, factory, f, true);
@@ -157,7 +163,7 @@ public class SignificantWhiteSpaceFileReader {
 				accept();
 				return true;
 			}
-			if (line.tokens[line.tokens.length-1].equals("\\"))
+			if (line.tokens != null && line.tokens[line.tokens.length-1].equals("\\"))
 				readBlock(rootFactory, top, 0);
 			else
 				processCurrentLine(rootFactory, top, line);
