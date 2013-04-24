@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.gmmapowell.exceptions.NoSuchDirectoryException;
+import com.gmmapowell.exceptions.ResourceNotFoundException;
 import com.gmmapowell.exceptions.UtilException;
 
 public class FileUtils {
@@ -408,7 +409,7 @@ public class FileUtils {
 			if (!resourceName.startsWith("/"))
 				stream = FileUtils.class.getResourceAsStream("/" + resourceName);
 			if (stream == null)
-				throw new UtilException("Could not find resource " + resourceName);
+				throw new ResourceNotFoundException("Could not find resource " + resourceName);
 		}
 		String ret = new String(readAllStream(stream));
 		try { stream.close(); } catch (IOException ex) { throw UtilException.wrap(ex); }

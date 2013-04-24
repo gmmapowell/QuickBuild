@@ -1,5 +1,6 @@
 package com.gmmapowell.utils;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -64,11 +65,11 @@ public class WriteThruStream {
 		public int read() throws IOException {
 			synchronized(WriteThruStream.this) {
 				if (cancelled)
-					throw new IOException("OutputEnd closed");
+					throw new EOFException("OutputEnd closed");
 				while (size() == 0)
 				{
 					if (cancelled)
-						throw new IOException("OutputEnd closed");
+						throw new EOFException("OutputEnd closed");
 					if (closed)
 					{
 //						System.out.println();

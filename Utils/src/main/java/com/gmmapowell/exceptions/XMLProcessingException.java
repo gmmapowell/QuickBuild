@@ -1,5 +1,5 @@
 package com.gmmapowell.exceptions;
 
-public interface XMLProcessingException {
+public interface XMLProcessingException extends UtilPredictableException {
 
 }

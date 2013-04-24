@@ -163,7 +163,10 @@ public class InlineServer implements Runnable {
 			logger.info("Closing remote " + remote);
 			remote.close();
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			if (ex.getClass().getName().equals("com.sun.jersey.api.container.ContainerException"))
+				logger.error(ex.getMessage());
+			else
+				ex.printStackTrace();
 			failure = ex;
 			if (remote != null)
 			{
