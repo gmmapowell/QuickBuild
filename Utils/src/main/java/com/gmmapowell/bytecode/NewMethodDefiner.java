@@ -102,4 +102,8 @@ public interface NewMethodDefiner {
 	Expr box(Expr expr);
 
 	Expr unbox(Expr expr, boolean protectFromNulls);
+
+	Annotation addRTVAnnotation(String annClass);
+
+	Annotation addRTVPAnnotation(String attrClass, int param);
 }

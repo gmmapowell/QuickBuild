@@ -107,10 +107,6 @@ public interface MethodDefiner extends NewMethodDefiner {
 
 	void vreturn();
 
-	Annotation addRTVAnnotation(String attrClass);
-
-	Annotation addRTVPAnnotation(String attrClass, int param);
-
 	int nextLocal();
 
 	String getClassName();
