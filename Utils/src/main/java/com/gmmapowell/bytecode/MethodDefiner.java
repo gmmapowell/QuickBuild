@@ -98,6 +98,7 @@ public interface MethodDefiner extends NewMethodDefiner {
 
 	void putStatic(String clz, String type, String var);
 
+	@Deprecated
 	void vreturn();
 
 	int nextLocal();

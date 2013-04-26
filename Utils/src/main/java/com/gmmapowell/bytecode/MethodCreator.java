@@ -259,15 +259,19 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 
 	@Override
 	public IfExpr ifBoolean(Expr expr, Expr then, Expr orelse) {
-		return new IfExpr(this, expr, then, orelse);
+		return new IfExpr(this, expr, true, then, orelse);
+	}
+
+	@Override
+	public IfExpr ifNotBoolean(Expr expr, Expr then, Expr orelse) {
+		return new IfExpr(this, expr, false, then, orelse);
 	}
 
 	@Override
 	public Expr ifEquals(Expr left, Expr right, Expr then, Expr orelse)
 	{
-		return new IfExpr(this, new EqualsExpr(this, left, right), then, orelse);
+		return new IfExpr(this, new EqualsExpr(this, left, right), true, then, orelse);
 	}
-
 
 	@Override
 	public Expr ifNotNull(Expr test, Expr then,Expr orelse) {

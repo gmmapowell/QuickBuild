@@ -17,8 +17,8 @@ public class IfExpr extends Expr {
 		this(meth, new EqualsExpr(meth, left, right), then, orelse, IfCond.TRUE);
 	}
 
-	public IfExpr(MethodDefiner meth, Expr test, Expr then, Expr orelse) {
-		this(meth, test, then, orelse, IfCond.TRUE);
+	public IfExpr(MethodDefiner meth, Expr test, boolean sign, Expr then, Expr orelse) {
+		this(meth, test, then, orelse, sign?IfCond.TRUE:IfCond.FALSE);
 	}
 	
 	public IfExpr(MethodDefiner meth, Expr test, Expr then, Expr orelse, IfCond cond) {
@@ -57,7 +57,7 @@ public class IfExpr extends Expr {
 		{
 			meth.resetStack(depth);
 			Marker m2 = null;
-			if (!(then instanceof ReturnX)) // don't generate a jump if we've already returned ...
+			if (!(then instanceof ReturnX) && !(then instanceof ThrowExpr)) // don't generate a jump if we've already returned ...
 				m2 = meth.jump();
 			m1.setHere();
 			orelse.spitOutByteCode(meth);

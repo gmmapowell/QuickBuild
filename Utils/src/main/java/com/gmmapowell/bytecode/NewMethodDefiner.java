@@ -66,6 +66,8 @@ public interface NewMethodDefiner {
 
 	IfExpr ifBoolean(Expr expr, Expr then, Expr orelse);
 
+	IfExpr ifNotBoolean(Expr expr, Expr then, Expr orelse);
+
 	Expr ifEquals(Expr left, Expr right, Expr then, Expr orelse);
 
 	Expr ifNotNull(Expr test, Expr then, Expr orelse);

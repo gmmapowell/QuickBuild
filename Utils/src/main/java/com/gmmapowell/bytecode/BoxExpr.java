@@ -33,7 +33,7 @@ public class BoxExpr extends Expr {
 
 	@Override
 	public String getType() {
-		return outType;
+		return outType!=null?outType:expr.getType();
 	}
 
 }
