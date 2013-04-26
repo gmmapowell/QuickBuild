@@ -132,18 +132,19 @@ public class WarBuildCommand implements Tactic {
 		
 	}
 
-	private boolean addOurFiles(JarOutputStream jos, File root, String prefix, boolean worthIt)
-			throws IOException {
-		for (File f : FileUtils.findFilesMatching(root, "*"))
-		{
-			if (!f.exists() || f.isDirectory())
-				continue;
-			if (!FileUtils.isUnder(f, root))
-				continue;
-			if (f.getName().startsWith("."))
-				continue;
-			writeToJar(jos, f, prefix, FileUtils.makeRelativeTo(f, root));
-			worthIt = true;
+	private boolean addOurFiles(JarOutputStream jos, File root, String prefix, boolean worthIt) throws IOException {
+		if (root.isDirectory()) {
+			for (File f : FileUtils.findFilesMatching(root, "*"))
+			{
+				if (!f.exists() || f.isDirectory())
+					continue;
+				if (!FileUtils.isUnder(f, root))
+					continue;
+				if (f.getName().startsWith("."))
+					continue;
+				writeToJar(jos, f, prefix, FileUtils.makeRelativeTo(f, root));
+				worthIt = true;
+			}
 		}
 		return worthIt;
 	}
