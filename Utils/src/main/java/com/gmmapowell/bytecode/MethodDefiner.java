@@ -2,14 +2,7 @@ package com.gmmapowell.bytecode;
 
 import java.io.IOException;
 
-import com.gmmapowell.bytecode.JavaInfo.Access;
-
 public interface MethodDefiner extends NewMethodDefiner {
-
-	void setAccess(Access a);
-
-	void makeFinal();
-	void makeTransient();
 
 	void addAttribute(String named, String text);
 

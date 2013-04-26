@@ -1,5 +1,6 @@
 package com.gmmapowell.bytecode;
 
+import com.gmmapowell.bytecode.JavaInfo.Access;
 import com.gmmapowell.bytecode.Var.AVar;
 
 public interface NewMethodDefiner {
@@ -102,6 +103,10 @@ public interface NewMethodDefiner {
 	Expr box(Expr expr);
 
 	Expr unbox(Expr expr, boolean protectFromNulls);
+
+	void setAccess(Access a);
+	void makeFinal();
+	void makeTransient();
 
 	Annotation addRTVAnnotation(String annClass);
 
