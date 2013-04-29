@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 
 import com.gmmapowell.exceptions.UtilException;
 
@@ -17,10 +19,10 @@ public class SignificantWhiteSpaceFileReader {
 	private final boolean interactive;
 	private boolean tokenize;
 
-	private SignificantWhiteSpaceFileReader(CommandObjectFactory factory, File f) throws FileNotFoundException {
+	private SignificantWhiteSpaceFileReader(CommandObjectFactory factory, Reader r) {
 		this.rootFactory = factory;
 		this.top = null;
-		lnr = new StreamLineCounter(new FileInputStream(f));
+		lnr = new StreamLineCounter(r);
 		this.interactive = false;
 	}
 	
@@ -126,10 +128,18 @@ public class SignificantWhiteSpaceFileReader {
 	public static <U, T extends Parent<U>> void read(T parent, CommandObjectFactory factory, File f, boolean tokenize) {
 		if (!f.exists())
 			throw new UtilException("The file '" + f.getPath() + "' does not exist");
+		try {
+			read(parent, factory, new InputStreamReader(new FileInputStream(f)), tokenize);
+		} catch (FileNotFoundException e) {
+			throw UtilException.wrap(e);
+		}
+	}
+
+	public static <U, T extends Parent<U>> void read(T parent, CommandObjectFactory factory, Reader r, boolean tokenize) {
 		
 		SignificantWhiteSpaceFileReader fr = null;
 		try {
-			fr = new SignificantWhiteSpaceFileReader(factory, f);
+			fr = new SignificantWhiteSpaceFileReader(factory, r);
 			fr.tokenize = tokenize;
 			fr.readBlock(factory, parent, 0);
 			if (fr.nextLine() != null)

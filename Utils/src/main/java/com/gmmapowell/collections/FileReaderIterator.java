@@ -47,4 +47,18 @@ public class FileReaderIterator implements Iterator<String> {
 		throw new UtilException("Remove not supported");
 	}
 
+	public static Iterable<String> overFile(File file) {
+		try {
+			final FileReaderIterator it = new FileReaderIterator(file);
+			return new Iterable<String>() {
+				@Override
+				public Iterator<String> iterator() {
+					return it;
+				}
+			};
+		} catch (FileNotFoundException e) {
+			throw UtilException.wrap(e);
+		}
+	}
+
 }
