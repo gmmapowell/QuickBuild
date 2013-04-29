@@ -11,6 +11,72 @@ public class JSBlock {
 	private final JSScope scope;
 	private final boolean useParens;
 
+	public abstract class JSCompiler {
+		public JSCompiler() {
+			compile();
+		}
+		
+		protected void assign(JSVar var, JSExpr rvalue) {
+			stmts.add(new Assign(var, rvalue, false));
+		}
+
+		protected void blockComment(String text) {
+			stmts.add(new JSBlockComment(text));
+		}
+
+		protected VarDecl declareVar(String var, JSExpr expr) {
+			VarDecl decl = declareExactVar(var);
+			decl.value(expr);
+			return decl;
+		}
+
+		protected FunctionCall function(String function, JSExpr... args) {
+			FunctionCall expr = new FunctionCall(scope, function);
+			for (JSExpr arg : args)
+				expr.arg(arg);
+			return expr;
+		}
+
+		protected FunctionCall jquery(String s) {
+			return function("$", string(s));
+		}
+
+		protected MethodCall methodExpr(String callOn, String method, JSExpr... args) {
+			return methodExpr(scope.getDefinedVar(callOn), method, args);
+		}
+		
+		protected MethodCall methodExpr(JSExpr callOn, String method, JSExpr... args) {
+			JSExprGenerator gen = new JSExprGenerator(scope);
+			MethodCall expr = gen.methodCall(callOn, method);
+			for (JSExpr arg : args)
+				expr.arg(arg);
+			return expr;
+		}
+
+		protected JSObjectExpr objectHash() {
+			JSExprGenerator gen = new JSExprGenerator(scope);
+			return gen.literalObject();
+		}
+
+		protected JSExpr string(String s) {
+			return new JSValue(s);
+		}
+
+		protected void voidMethod(String callOn, String method, JSExpr... args) {
+			stmts.add(new VoidExprStmt(methodExpr(callOn, method, args)));
+		}
+
+		protected void voidMethod(JSExpr callOn, String method, JSExpr... args) {
+			stmts.add(new VoidExprStmt(methodExpr(callOn, method, args)));
+		}
+
+		protected JSExpr This() {
+			return new JSThis(scope);
+		}
+
+		public abstract void compile();
+	}
+
 	JSBlock(JSScope scope) {
 		this(scope, true);
 	}
@@ -18,6 +84,10 @@ public class JSBlock {
 	public JSBlock(JSScope scope, boolean useParens) {
 		this.scope = scope;
 		this.useParens = useParens;
+	}
+
+	public JSScope getScope() {
+		return scope;
 	}
 
 	public LValue resolveClass(String name) {

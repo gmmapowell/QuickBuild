@@ -19,6 +19,10 @@ public class JSFunction extends JSExpr {
 			this.args.add(scope.getExactVar(a));
 	}
 
+	public JSScope getScope() {
+		return scope;
+	}
+
 	public void giveName(String name) {
 		this.name = name;
 	}

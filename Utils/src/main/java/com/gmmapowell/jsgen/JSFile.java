@@ -15,6 +15,10 @@ public class JSFile {
 		return block;
 	}
 
+	public JSScope getScope() {
+		return scope;
+	}
+	
 	public JSFunction createFunction(String name, String... args) {
 		JSFunction ret = newFunction(args);
 		ret.giveName(name);
@@ -41,6 +45,10 @@ public class JSFile {
 		JSNamespace ret = new JSNamespace(s);
 		namespaces.put(s, ret);
 		return ret;
+	}
+
+	public void toScript(JSBuilder jsb) {
+		block.toScript(jsb);
 	}
 
 	@Override

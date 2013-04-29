@@ -14,6 +14,8 @@ public class JSBuilder {
 	private boolean isPretty;
 	private boolean objectComma;
 	private boolean openedCurly;
+	private boolean openedSquare;
+	private boolean requireCommaOrNewLine;
 	
 	public JSBuilder() {
 		pp.indentWidth(2);
@@ -45,19 +47,22 @@ public class JSBuilder {
 		this.openedCurly = false;
 		append("}");
 		if (isPretty)
-			pp.requireNewline();
+			requireCommaOrNewLine = true;
 	}
 
 	public void osb() {
 		append("[");
-		if (isPretty)
-			pp.indentMore();
+		this.openedSquare = true;
 	}
 	
 	public void csb() {
-		if (isPretty)
+		if (!openedSquare && isPretty)
 			pp.indentLess();
+		this.objectComma = false;
+		this.openedSquare = false;
 		append("]");
+		if (isPretty)
+			requireCommaOrNewLine = true;
 	}
 
 	public void semi() {
@@ -118,16 +123,23 @@ public class JSBuilder {
 	}
 	
 	public void append(String s) {
-		if (openedCurly) {
+		if (openedCurly || openedSquare) {
 			if (isPretty)
 				pp.indentMore();
 			openedCurly = false;
+			openedSquare = false;
 		}
 		if (objectComma) {
 			pp.append(",");
 			objectComma = false;
 			if (isPretty)
 				pp.requireNewline();
+			requireCommaOrNewLine = false;
+		} else if (s.startsWith(")") || s.startsWith("}") || s.startsWith(";")) {
+			;
+		} else if (requireCommaOrNewLine) {
+			pp.requireNewline();
+			requireCommaOrNewLine = false;
 		}
 		pp.append(s);
 	}

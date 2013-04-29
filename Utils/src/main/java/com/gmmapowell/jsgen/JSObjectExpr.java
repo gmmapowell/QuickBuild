@@ -8,6 +8,32 @@ import com.gmmapowell.collections.CollectionUtils;
 import com.gmmapowell.exceptions.UtilException;
 
 public class JSObjectExpr extends JSExpr {
+	public abstract class JSObjectDefiner extends JSExpr {
+		public JSObjectDefiner() {
+			members();
+		}
+
+		protected JSScope getScope() {
+			return scope;
+		}
+		
+		protected void declareVar(String var, JSExpr expr) {
+			JSExprGenerator decl = JSObjectExpr.this.var(var);
+			decl.value(expr);
+		}
+
+		protected JSFunction method(String name, String... args) {
+			return JSObjectExpr.this.method(name, args);
+		}
+
+		@Override
+		public void toScript(JSBuilder sb) {
+			JSObjectExpr.this.toScript(sb);
+		}
+		
+		public abstract void members();
+	}
+
 	private Map<String, JSEntry> members = new LinkedHashMap<String, JSEntry>();
 	private final JSScope scope;
 	private final boolean createNested;
