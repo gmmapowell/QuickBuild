@@ -192,5 +192,11 @@ public class ConfigFactory implements CommandObjectFactory {
 	public boolean usesNature(Class<? extends Nature> cls) {
 		return natures.containsKey(cls);
 	}
+
+	@Override
+	public void handleError(TokenizedLine toks, Exception error) {
+		// TODO Auto-generated method stub
+		
+	}
 }
 

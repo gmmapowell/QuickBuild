@@ -86,6 +86,8 @@ public class StringUtil {
 	
 	public static String capitalize(String s)
 	{
+		if (s == null)
+			return null;
 		return Character.toUpperCase(s.charAt(0)) + s.substring(1);
 	}
 

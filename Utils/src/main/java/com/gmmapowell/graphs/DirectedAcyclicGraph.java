@@ -119,6 +119,12 @@ public class DirectedAcyclicGraph<N> {
 	}
 	
 
+	public void assertSpanning() {
+		List<N> roots = roots();
+		if (roots.size() != 1)
+			throw new UtilException("The graph had more than one root");
+	}
+
 	public Iterable<N> allChildren(N node) {
 		Set<N> ret = new HashSet<N>();
 		int cnt;

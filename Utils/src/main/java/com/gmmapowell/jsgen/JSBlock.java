@@ -3,6 +3,7 @@ package com.gmmapowell.jsgen;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gmmapowell.collections.CollectionUtils;
 import com.gmmapowell.exceptions.UtilException;
 
 
@@ -10,42 +11,85 @@ public class JSBlock {
 	private final List<Stmt> stmts = new ArrayList<Stmt>();
 	private final JSScope scope;
 	private final boolean useParens;
+	private final JSEntry ownedBy;
 
-	public abstract class JSCompiler {
+	public abstract class JSCompiler extends JSExpr {
 		public JSCompiler() {
 			compile();
 		}
 		
-		protected void assign(JSVar var, JSExpr rvalue) {
+		public void assign(JSVar var, JSExpr rvalue) {
 			stmts.add(new Assign(var, rvalue, false));
 		}
 
-		protected void blockComment(String text) {
+
+		public void assign(LValue member, JSExpr rvalue) {
+			stmts.add(new Assign(member, rvalue));
+		}
+
+		public void blockComment(String text) {
 			stmts.add(new JSBlockComment(text));
 		}
 
-		protected VarDecl declareVar(String var, JSExpr expr) {
+		public JSFunction declareFunction(String name, String... args) {
+			JSFunction decl = createFunction(name, args);
+			return decl;
+		}
+
+		public VarDecl declareVar(String var, JSExpr expr) {
 			VarDecl decl = declareExactVar(var);
 			decl.value(expr);
 			return decl;
 		}
 
-		protected FunctionCall function(String function, JSExpr... args) {
+		public VarDecl declareExactVar(String var) {
+			return JSBlock.this.declareExactVar(var);
+		}
+
+		public FunctionCall functionExpr(String function, JSExpr... args) {
 			FunctionCall expr = new FunctionCall(scope, function);
 			for (JSExpr arg : args)
 				expr.arg(arg);
 			return expr;
 		}
 
-		protected FunctionCall jquery(String s) {
-			return function("$", string(s));
+		public FunctionCall functionExpr(JSExpr fn, JSExpr... args) {
+			FunctionCall expr = new FunctionCall(scope, fn);
+			for (JSExpr arg : args)
+				expr.arg(arg);
+			return expr;
 		}
 
-		protected MethodCall methodExpr(String callOn, String method, JSExpr... args) {
+		public IfElseStmt ifEq(JSExpr lhs, JSExpr rhs) {
+			IfElseStmt ret = new IfElseStmt(scope);
+			ret.test = new BinaryOp("==", lhs, rhs);
+			stmts.add(ret);
+			return ret;
+		}
+		
+		public IfElseStmt ifEEq(JSExpr lhs, JSExpr rhs) {
+			IfElseStmt ret = new IfElseStmt(scope);
+			ret.test = new BinaryOp("===", lhs, rhs);
+			stmts.add(ret);
+			return ret;
+		}
+		
+		public IfElseStmt ifTruthy(JSExpr expr) {
+			IfElseStmt ret = new IfElseStmt(scope);
+			ret.test = expr;
+			stmts.add(ret);
+			return ret;
+		}
+		
+		public FunctionCall jquery(String s) {
+			return functionExpr("$", string(s));
+		}
+
+		public MethodCall methodExpr(String callOn, String method, JSExpr... args) {
 			return methodExpr(scope.getDefinedVar(callOn), method, args);
 		}
 		
-		protected MethodCall methodExpr(JSExpr callOn, String method, JSExpr... args) {
+		public MethodCall methodExpr(JSExpr callOn, String method, JSExpr... args) {
 			JSExprGenerator gen = new JSExprGenerator(scope);
 			MethodCall expr = gen.methodCall(callOn, method);
 			for (JSExpr arg : args)
@@ -53,37 +97,64 @@ public class JSBlock {
 			return expr;
 		}
 
-		protected JSObjectExpr objectHash() {
+		public JSObjectExpr objectHash() {
 			JSExprGenerator gen = new JSExprGenerator(scope);
 			return gen.literalObject();
 		}
+		
+		public void returnVoid() {
+			stmts.add(new JSReturn());
+		}
 
-		protected JSExpr string(String s) {
+		public JSExpr string(String s) {
 			return new JSValue(s);
 		}
 
-		protected void voidMethod(String callOn, String method, JSExpr... args) {
+		public JSVar var(String var) {
+			return scope.getDefinedVar(var);
+		}
+		
+		public void voidFunction(String function, JSExpr... args) {
+			stmts.add(new VoidExprStmt(functionExpr(function, args)));
+		}
+
+		public void voidFunction(JSExpr function, JSExpr... args) {
+			stmts.add(new VoidExprStmt(functionExpr(function, args)));
+		}
+
+		public void voidMethod(String callOn, String method, JSExpr... args) {
 			stmts.add(new VoidExprStmt(methodExpr(callOn, method, args)));
 		}
 
-		protected void voidMethod(JSExpr callOn, String method, JSExpr... args) {
+		public void voidMethod(JSExpr callOn, String method, JSExpr... args) {
 			stmts.add(new VoidExprStmt(methodExpr(callOn, method, args)));
 		}
 
-		protected JSExpr This() {
+		public JSExpr This() {
 			return new JSThis(scope);
 		}
 
 		public abstract void compile();
+
+		public JSScope getScope() {
+			return scope;
+		}
+		
+		@Override
+		public void toScript(JSBuilder sb) {
+			if (ownedBy != null)
+				ownedBy.toScript(sb);
+		}
 	}
 
-	JSBlock(JSScope scope) {
-		this(scope, true);
+	JSBlock(JSScope scope, JSEntry ownedBy) {
+		this(scope, ownedBy, true);
 	}
 
-	public JSBlock(JSScope scope, boolean useParens) {
+	public JSBlock(JSScope scope, JSEntry ownedBy, boolean useParens) {
 		this.scope = scope;
 		this.useParens = useParens;
+		this.ownedBy = ownedBy;
 	}
 
 	public JSScope getScope() {
@@ -217,6 +288,24 @@ public class JSBlock {
 	public ForEachStmt forEach(String var, JSExpr over) {
 		ForEachStmt ret = new ForEachStmt(scope, var, over);
 		add(ret);
+		return ret;
+	}
+
+	public JSFunction createFunction(String name, String... args) {
+		JSFunction ret = newFunction(args);
+		if (name != null) {
+			ret.giveName(name);
+			add(ret);
+		}
+		return ret;
+	}
+
+	public JSFunction newFunction(String... args) {
+		return newFunction(CollectionUtils.listOf(args));
+	}
+
+	private JSFunction newFunction(List<String> args) {
+		JSFunction ret = new JSFunction(scope, args);
 		return ret;
 	}
 

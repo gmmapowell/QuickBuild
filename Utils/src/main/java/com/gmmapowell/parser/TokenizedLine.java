@@ -146,11 +146,11 @@ public class TokenizedLine {
 	@Override
 	public String toString() {
 		if (tokens == null)
-			return "<null>";
+			return "[ind:"+indent+"]:'" + text + "'";
 		ArrayList<String> ret = new ArrayList<String>();
 		for (String s : tokens)
 			ret.add(s);
-		return ret.toString();
+		return "[ind:"+indent+"]:" + ret.toString();
 	}
 
 }

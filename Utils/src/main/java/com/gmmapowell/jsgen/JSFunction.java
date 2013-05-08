@@ -10,11 +10,12 @@ public class JSFunction extends JSExpr {
 	private final List<JSVar> args = new ArrayList<JSVar>();
 	private final JSBlock block;
 	private final JSScope scope;
+	private JSVar var;
 
 	JSFunction(JSScope parent, List<String> args)
 	{
 		scope = new JSScope(parent);
-		block = new JSBlock(scope);
+		block = new JSBlock(scope, this);
 		for (String a : args)
 			this.args.add(scope.getExactVar(a));
 	}
@@ -24,7 +25,17 @@ public class JSFunction extends JSExpr {
 	}
 
 	public void giveName(String name) {
-		this.name = name;
+		if (name != null) {
+			this.name = name;
+			var = new JSVar(scope, name, true);
+		}
+	}
+
+
+	public JSExpr asVar() {
+		if (var == null)
+			throw new UtilException("Must give function a name to use asVar()");
+		return var;
 	}
 
 	public JSVar addArg(String arg) {

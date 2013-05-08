@@ -7,7 +7,7 @@ public abstract class AbstractForStmt extends Stmt {
 
 	AbstractForStmt(JSScope scope, String var) {
 		this.takes = scope.getVarLike(var);
-		this.block = new JSBlock(scope);
+		this.block = new JSBlock(scope, this);
 	}
 
 	public JSVar getLoopVar() {

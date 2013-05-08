@@ -4,7 +4,7 @@ public class JSInnerBlock extends Stmt {
 	private JSBlock block;
 
 	public JSInnerBlock(JSScope scope) {
-		block = new JSBlock(scope, false);
+		block = new JSBlock(scope, this, false);
 	}
 
 	@Override

@@ -7,18 +7,18 @@ public class FunctionCall extends JSExpr {
 	private final String fn;
 	private final List<JSExpr> args = new ArrayList<JSExpr>();
 	protected final JSScope scope;
-	private final JSVar var;
+	private final JSExpr expr;
 
 	FunctionCall(JSScope scope, String fn) {
 		this.scope = scope;
 		this.fn = fn;
-		this.var = null;
+		this.expr = null;
 	}
 
-	public FunctionCall(JSScope scope, JSVar var) {
+	public FunctionCall(JSScope scope, JSExpr expr) {
 		this.scope = scope;
 		this.fn = null;
-		this.var = var;
+		this.expr = expr;
 	}
 
 	// If you already have the argument ...
@@ -48,7 +48,7 @@ public class FunctionCall extends JSExpr {
 		if (fn != null)
 			sb.append(fn);
 		else
-			var.toScript(sb);
+			expr.toScript(sb);
 		sb.append("(");
 		String sep = "";
 		for (JSExpr ce : args)

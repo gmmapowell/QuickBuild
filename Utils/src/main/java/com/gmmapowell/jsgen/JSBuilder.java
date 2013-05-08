@@ -61,8 +61,8 @@ public class JSBuilder {
 		this.objectComma = false;
 		this.openedSquare = false;
 		append("]");
-		if (isPretty)
-			requireCommaOrNewLine = true;
+//		if (isPretty)
+//			requireCommaOrNewLine = true;
 	}
 
 	public void semi() {
@@ -111,6 +111,8 @@ public class JSBuilder {
 		try {
 			if (value == null)
 				jg.writeNull();
+			else if (value instanceof Boolean)
+				jg.writeBoolean((Boolean) value);
 			else if (value instanceof String)
 				jg.writeString((String) value);
 			else if (value instanceof Integer)
@@ -123,7 +125,7 @@ public class JSBuilder {
 	}
 	
 	public void append(String s) {
-		if (openedCurly || openedSquare) {
+		if (openedCurly) {
 			if (isPretty)
 				pp.indentMore();
 			openedCurly = false;

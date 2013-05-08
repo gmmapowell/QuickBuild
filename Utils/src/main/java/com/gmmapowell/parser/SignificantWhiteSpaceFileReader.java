@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
+import com.gmmapowell.exceptions.IndentationException;
 import com.gmmapowell.exceptions.UtilException;
 
 public class SignificantWhiteSpaceFileReader {
@@ -67,6 +68,8 @@ public class SignificantWhiteSpaceFileReader {
 				if (curr == null)
 					throw new UtilException("I think actually this can only happen if the initial indent is non-zero");
 				readBlock((curr instanceof CommandObjectFactory)?((CommandObjectFactory)curr):factory, (Parent<?>) curr, s.indent);
+				if (nextLine() != null && nextLine().indent > ind)
+					factory.handleError(s, new IndentationException());
 			}
 			else
 			{

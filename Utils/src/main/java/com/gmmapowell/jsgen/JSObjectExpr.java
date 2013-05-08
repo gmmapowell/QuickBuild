@@ -17,6 +17,10 @@ public class JSObjectExpr extends JSExpr {
 			return scope;
 		}
 		
+		protected JSMember fromThis(String var) {
+			return new JSMember(new JSThis(scope), var);
+		}
+		
 		protected void declareVar(String var, JSExpr expr) {
 			JSExprGenerator decl = JSObjectExpr.this.var(var);
 			decl.value(expr);

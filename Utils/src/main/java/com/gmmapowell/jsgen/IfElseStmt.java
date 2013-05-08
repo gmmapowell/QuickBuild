@@ -10,8 +10,8 @@ public class IfElseStmt extends Stmt {
 	
 	IfElseStmt(JSScope scope) {
 		this.scope = scope;
-		yes = new JSBlock(scope);
-		no = new JSBlock(scope);
+		yes = new JSBlock(scope, this);
+		no = new JSBlock(scope, this);
 	}
 
 	public IfElseStmt and(JSExpr left, JSExpr right) {
