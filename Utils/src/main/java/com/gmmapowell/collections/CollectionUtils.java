@@ -30,6 +30,14 @@ public class CollectionUtils {
 		return it.next();
 	}
 
+	public static <T> T nth(Iterable<T> coll, int which) {
+		Iterator<T> it = coll.iterator();
+		T ret = null;
+		while (which-- >= 0)
+			ret = it.next();
+		return ret;
+	}
+
 	public static <T> List<T> listOf(T... items) {
 		List<T> ret = new ArrayList<T>();
 		for (T x : items)
