@@ -1,5 +1,7 @@
 package com.gmmapowell.sync;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -8,22 +10,24 @@ import java.util.concurrent.TimeoutException;
 import com.gmmapowell.exceptions.UtilException;
 
 public class Promise<T> implements Future<T>, RecoveryFutureCommon<T> {
-	private boolean done;
+	enum Outcome { PENDING, SUCCESS, FAILURE };
+	private Outcome done;
 	private T obj;
 	private Throwable error;
-	private Handler<T> then;
+	private final Set<Handler<T>> then = new HashSet<Handler<T>>();
 
 	public Promise() {
+		done = Outcome.PENDING;
 	}
 
 	public Promise(T obj) {
 		this.obj = obj;
-		done = true;
+		done = Outcome.SUCCESS;
 	}
 
 	@Override
 	public boolean isDone() {
-		return done;
+		return done != Outcome.PENDING;
 	}
 
 	@Override
@@ -31,8 +35,21 @@ public class Promise<T> implements Future<T>, RecoveryFutureCommon<T> {
 		return false;
 	}
 
+	public <V> Promise<V> transform(TransformHandler<T,V> handler) {
+		Promise<V> ret = new Promise<V>();
+		handler.sendTo(ret);
+		this.then.add(handler);
+		return ret;
+	}
+
 	public Promise<T> then(Handler<T> then) {
-		this.then = then;
+		if (done == Outcome.SUCCESS)
+			then.handle(obj);
+		else if (done == Outcome.FAILURE)
+			then.failed(error);
+		else {
+			this.then.add(then);
+		}
 		return this;
 	}
 	
@@ -45,11 +62,16 @@ public class Promise<T> implements Future<T>, RecoveryFutureCommon<T> {
 	public T get() {
 		try {
 			synchronized (this) {
-				if (done)
+				while (done == Outcome.PENDING)
+					this.wait();
+
+				if (done == Outcome.FAILURE)
+					throw UtilException.wrap(error);
+				else if (done == Outcome.SUCCESS)
 					return obj;
-				this.wait();
+				else
+					throw new TimeoutException();
 			}
-			return obj;
 		} catch (Exception ex) {
 			throw UtilException.wrap(ex);
 		}
@@ -63,21 +85,24 @@ public class Promise<T> implements Future<T>, RecoveryFutureCommon<T> {
 	@Override
 	public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
 		synchronized (this) {
-			if (done)
+			if (done == Outcome.PENDING)
+				this.wait(unit.toMillis(timeout));
+
+			if (done == Outcome.FAILURE)
+				throw UtilException.wrap(error);
+			else if (done == Outcome.SUCCESS)
 				return obj;
-			this.wait(unit.toMillis(timeout));
-			if (!done)
+			else
 				throw new TimeoutException();
 		}
-		return obj;
 	}
 
 	public synchronized void completed(T object) {
 		this.obj = object;
-		this.done = true;
+		this.done = Outcome.SUCCESS;
 		this.notifyAll();
-		if (then != null)
-			then.handle(object);
+		for (Handler<T> h : then)
+			h.handle(object);
 	}
 
 	@Override
@@ -88,9 +113,9 @@ public class Promise<T> implements Future<T>, RecoveryFutureCommon<T> {
 	@Override
 	public synchronized void failed(Throwable t) {
 		this.error = t;
-		this.done = true;
+		this.done = Outcome.FAILURE;
 		this.notifyAll();
-		if (then != null)
-			then.failed(t);
+		for (Handler<T> h : then)
+			h.failed(t);
 	}
 }

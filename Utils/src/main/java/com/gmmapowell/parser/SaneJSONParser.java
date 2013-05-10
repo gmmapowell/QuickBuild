@@ -1,5 +1,7 @@
 package com.gmmapowell.parser;
 
+import java.io.Reader;
+
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
@@ -11,7 +13,6 @@ public class SaneJSONParser {
 	private JsonToken ctok;
 	private String text;
 
-	// TODO: should also support reader, etc...
 	public SaneJSONParser(String input) {
 		try {
 			JsonFactory jf = new JsonFactory();
@@ -19,6 +20,21 @@ public class SaneJSONParser {
 		} catch (Exception ex) {
 			throw UtilException.wrap(ex);
 		}
+	}
+	
+	public SaneJSONParser(Reader input) {
+		try {
+			JsonFactory jf = new JsonFactory();
+			jp = jf.createJsonParser(input);
+		} catch (Exception ex) {
+			throw UtilException.wrap(ex);
+		}
+	}
+
+	public JsonParser getParser() {
+		if (ctok != null)
+			throw new UtilException("Cannot extract parser while in lookahead mode");
+		return jp;
 	}
 	
 	void accept() {
@@ -79,6 +95,10 @@ public class SaneJSONParser {
 		T ret;
 		if (tok == JsonToken.VALUE_STRING)
 			ret = (T)text;
+		else if (tok == JsonToken.VALUE_NUMBER_INT)
+			ret = (T)Integer.valueOf(text);
+		else if (tok == JsonToken.VALUE_NUMBER_FLOAT)
+			ret = (T)Double.valueOf(text);
 		else if (tok == JsonToken.VALUE_TRUE)
 			ret = (T)(Boolean)true;
 		else if (tok == JsonToken.VALUE_FALSE)
@@ -91,7 +111,7 @@ public class SaneJSONParser {
 
 	public <T> T extractField(String field) {
 		JsonToken tok = get();
-		if (tok != JsonToken.FIELD_NAME)
+		if (tok != JsonToken.FIELD_NAME || !text.equals(field))
 			throw new UtilException("Expected FIELD_NAME (" + field + ") but was '" + tok + "' (" + text + ")");
 		accept();
 		return extractField();

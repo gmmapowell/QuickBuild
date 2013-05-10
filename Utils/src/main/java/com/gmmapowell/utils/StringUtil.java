@@ -69,21 +69,32 @@ public class StringUtil {
 
 	public static String hex(int quant, int nd) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(Integer.toHexString(quant).toUpperCase());
-		if (sb.length() > nd)
-			sb.delete(0, sb.length()-nd);
-		while (sb.length() < nd)
-			sb.insert(0, "0");
+		hex(sb, 0, quant, nd);
 		return sb.toString();
+	}
+
+	private static void hex(StringBuilder sb, int off, int quant, int nd) {
+		sb.append(Integer.toHexString(quant).toUpperCase());
+		if (sb.length() > off+nd)
+			sb.delete(off, sb.length()-nd);
+		while (sb.length() < off+nd)
+			sb.insert(off, "0");
 	}
 	  
 	public static String hex(byte[] b) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < b.length; i++)
-			sb.append(hex(b[i] & 0xff, 2));
-		return sb.toString().toUpperCase();
+			hex(sb, i*2, b[i] & 0xff, 2);
+		return sb.toString();
 	}
-	
+
+	public static String hex(byte[] b, int off, int len) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < len; i++)
+			hex(sb, i*2, b[off+i] & 0xff, 2);
+		return sb.toString();
+	}
+
 	public static String capitalize(String s)
 	{
 		if (s == null)
