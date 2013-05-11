@@ -9,7 +9,7 @@ import java.util.concurrent.TimeoutException;
 
 import com.gmmapowell.exceptions.UtilException;
 
-public class Promise<T> implements Future<T>, RecoveryFutureCommon<T> {
+public class Promise<T> implements Future<T> {
 	enum Outcome { PENDING, SUCCESS, FAILURE };
 	private Outcome done;
 	private T obj;
@@ -23,6 +23,11 @@ public class Promise<T> implements Future<T>, RecoveryFutureCommon<T> {
 	public Promise(T obj) {
 		this.obj = obj;
 		done = Outcome.SUCCESS;
+	}
+
+	public Promise(Throwable error) {
+		this.error = error;
+		done = Outcome.FAILURE;
 	}
 
 	@Override
@@ -53,6 +58,20 @@ public class Promise<T> implements Future<T>, RecoveryFutureCommon<T> {
 		return this;
 	}
 	
+	public Promise<T> tell(final Promise<T> other) {
+		this.then(new Handler<T>() {
+			@Override
+			public void handle(T obj) {
+				other.completed(obj);
+			}
+
+			@Override
+			public void failed(Throwable t) {
+				other.failed(t);
+			}
+		});
+		return this;
+	}
 	@Override
 	public boolean cancel(boolean mayInterruptIfRunning) {
 		return false;
@@ -105,12 +124,6 @@ public class Promise<T> implements Future<T>, RecoveryFutureCommon<T> {
 			h.handle(object);
 	}
 
-	@Override
-	public void recoverFrom(T obj) {
-		completed(obj);
-	}
-
-	@Override
 	public synchronized void failed(Throwable t) {
 		this.error = t;
 		this.done = Outcome.FAILURE;
