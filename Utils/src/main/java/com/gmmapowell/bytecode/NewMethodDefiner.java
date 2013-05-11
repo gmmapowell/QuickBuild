@@ -110,6 +110,8 @@ public interface NewMethodDefiner {
 	void makeFinal();
 	void makeTransient();
 
+	void addAttribute(String named, String text);
+
 	Annotation addRTVAnnotation(String annClass);
 
 	Annotation addRTVPAnnotation(String attrClass, int param);

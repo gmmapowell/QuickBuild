@@ -57,7 +57,7 @@ public class IfExpr extends Expr {
 		{
 			meth.resetStack(depth);
 			Marker m2 = null;
-			if (!(then instanceof ReturnX) && !(then instanceof ThrowExpr)) // don't generate a jump if we've already returned ...
+			if (!isTransfer(then)) // don't generate a jump if we've already returned ...
 				m2 = meth.jump();
 			m1.setHere();
 			orelse.spitOutByteCode(meth);
@@ -71,6 +71,14 @@ public class IfExpr extends Expr {
 	@Override
 	public String getType() {
 		throw new UtilException("This is void, which might, in some cases, be valid, but I haven't seen one yet");
+	}
+
+	public static boolean isTransfer(Expr expr) {
+		if (expr instanceof ReturnX || expr instanceof ThrowExpr)
+			return true;
+		if (expr instanceof BlockExpr)
+			return ((BlockExpr)expr).endsWithTransfer();
+		return false;
 	}
 
 }

@@ -4,8 +4,6 @@ import java.io.IOException;
 
 public interface MethodDefiner extends NewMethodDefiner {
 
-	void addAttribute(String named, String text);
-
 	void complete() throws IOException;
 
 	void aaload();

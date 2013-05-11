@@ -22,4 +22,10 @@ public class BlockExpr extends Expr {
 		return null;
 	}
 
+	public boolean endsWithTransfer() {
+		if (exprs.length == 0)
+			return false;
+		return IfExpr.isTransfer(exprs[exprs.length-1]);
+	}
+
 }
