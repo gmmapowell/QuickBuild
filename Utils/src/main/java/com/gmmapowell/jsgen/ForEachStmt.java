@@ -19,13 +19,13 @@ public class ForEachStmt extends AbstractForStmt {
 		sb.ident("var");
 		idx.toScript(sb);
 		sb.append("=0");
-		sb.semi();
+		sb.semi(false);
 		idx.toScript(sb);
 		sb.append("<");
 		over.toScript(sb);
 		sb.append(".");
 		sb.ident("length");
-		sb.semi();
+		sb.semi(false);
 		idx.toScript(sb);
 		sb.append("++");
 		sb.crb();

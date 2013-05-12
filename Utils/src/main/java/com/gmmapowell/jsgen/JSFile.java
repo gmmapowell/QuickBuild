@@ -7,6 +7,12 @@ public class JSFile {
 	private final JSScope scope = new JSScope(null);
 	private final JSBlock block = new JSBlock(scope, null, false);
 	private final Map<String, JSNamespace> namespaces = new HashMap<String, JSNamespace>();
+
+	public JSBuilder getBuilder() {
+		JSBuilder builder = new JSBuilder();
+		builder.setPretty(true);
+		return builder;
+	}
 	
 	public JSBlock getBlock() {
 		return block;
@@ -34,9 +40,8 @@ public class JSFile {
 
 	@Override
 	public String toString() {
-		JSBuilder sb = new JSBuilder();
-		sb.setPretty(true);
-		block.toScript(sb);
-		return sb.toString();
+		JSBuilder builder = getBuilder();
+		block.toScript(builder);
+		return builder.toString();
 	}
 }

@@ -11,6 +11,6 @@ public class VoidExprStmt extends Stmt {
 	public void toScript(JSBuilder sb) {
 		voidExpr.toScript(sb);
 		if (!(voidExpr instanceof JSFunction))
-			sb.semi();
+			sb.semi(true);
 	}
 }

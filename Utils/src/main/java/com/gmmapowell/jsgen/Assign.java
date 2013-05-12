@@ -31,7 +31,7 @@ public class Assign extends Stmt {
 		to.toScript(sb);
 		sb.assign();
 		expr.toScript(sb);
-		sb.semi();
+		sb.semi(true);
 	}
 
 }

@@ -8,144 +8,10 @@ import com.gmmapowell.exceptions.UtilException;
 
 
 public class JSBlock {
-	private final List<Stmt> stmts = new ArrayList<Stmt>();
-	private final JSScope scope;
+	final List<Stmt> stmts = new ArrayList<Stmt>();
+	final JSScope scope;
 	private final boolean useParens;
-	private final JSEntry ownedBy;
-
-	public abstract class JSCompiler extends JSExpr {
-		public JSCompiler() {
-			compile();
-		}
-		
-		public void assign(JSVar var, JSExpr rvalue) {
-			stmts.add(new Assign(var, rvalue, false));
-		}
-
-
-		public void assign(LValue member, JSExpr rvalue) {
-			stmts.add(new Assign(member, rvalue));
-		}
-
-		public void blockComment(String text) {
-			stmts.add(new JSBlockComment(text));
-		}
-
-		public JSFunction declareFunction(String name, String... args) {
-			JSFunction decl = createFunction(name, args);
-			return decl;
-		}
-
-		public VarDecl declareVar(String var, JSExpr expr) {
-			VarDecl decl = declareExactVar(var);
-			decl.value(expr);
-			return decl;
-		}
-
-		public VarDecl declareExactVar(String var) {
-			return JSBlock.this.declareExactVar(var);
-		}
-
-		public FunctionCall functionExpr(String function, JSExpr... args) {
-			FunctionCall expr = new FunctionCall(scope, function);
-			for (JSExpr arg : args)
-				expr.arg(arg);
-			return expr;
-		}
-
-		public FunctionCall functionExpr(JSExpr fn, JSExpr... args) {
-			FunctionCall expr = new FunctionCall(scope, fn);
-			for (JSExpr arg : args)
-				expr.arg(arg);
-			return expr;
-		}
-
-		public IfElseStmt ifEq(JSExpr lhs, JSExpr rhs) {
-			IfElseStmt ret = new IfElseStmt(scope);
-			ret.test = new BinaryOp("==", lhs, rhs);
-			stmts.add(ret);
-			return ret;
-		}
-		
-		public IfElseStmt ifEEq(JSExpr lhs, JSExpr rhs) {
-			IfElseStmt ret = new IfElseStmt(scope);
-			ret.test = new BinaryOp("===", lhs, rhs);
-			stmts.add(ret);
-			return ret;
-		}
-		
-		public IfElseStmt ifTruthy(JSExpr expr) {
-			IfElseStmt ret = new IfElseStmt(scope);
-			ret.test = expr;
-			stmts.add(ret);
-			return ret;
-		}
-		
-		public FunctionCall jquery(String s) {
-			return functionExpr("$", string(s));
-		}
-
-		public MethodCall methodExpr(String callOn, String method, JSExpr... args) {
-			return methodExpr(scope.getDefinedVar(callOn), method, args);
-		}
-		
-		public MethodCall methodExpr(JSExpr callOn, String method, JSExpr... args) {
-			JSExprGenerator gen = new JSExprGenerator(scope);
-			MethodCall expr = gen.methodCall(callOn, method);
-			for (JSExpr arg : args)
-				expr.arg(arg);
-			return expr;
-		}
-
-		public JSObjectExpr objectHash() {
-			JSExprGenerator gen = new JSExprGenerator(scope);
-			return gen.literalObject();
-		}
-		
-		public void returnVoid() {
-			stmts.add(new JSReturn());
-		}
-
-		public JSExpr string(String s) {
-			return new JSValue(s);
-		}
-
-		public JSVar var(String var) {
-			return scope.getDefinedVar(var);
-		}
-		
-		public void voidFunction(String function, JSExpr... args) {
-			stmts.add(new VoidExprStmt(functionExpr(function, args)));
-		}
-
-		public void voidFunction(JSExpr function, JSExpr... args) {
-			stmts.add(new VoidExprStmt(functionExpr(function, args)));
-		}
-
-		public void voidMethod(String callOn, String method, JSExpr... args) {
-			stmts.add(new VoidExprStmt(methodExpr(callOn, method, args)));
-		}
-
-		public void voidMethod(JSExpr callOn, String method, JSExpr... args) {
-			stmts.add(new VoidExprStmt(methodExpr(callOn, method, args)));
-		}
-
-		public JSExpr This() {
-			return new JSThis(scope);
-		}
-
-		public abstract void compile();
-
-		public JSScope getScope() {
-			return scope;
-		}
-		
-		@Override
-		public void toScript(JSBuilder sb) {
-			if (ownedBy != null)
-				ownedBy.toScript(sb);
-		}
-	}
+	final JSEntry ownedBy;
 
 	JSBlock(JSScope scope, JSEntry ownedBy) {
 		this(scope, ownedBy, true);
@@ -184,13 +50,18 @@ public class JSBlock {
 	}
 
 	public void toScript(JSBuilder sb) {
+		toScript(sb, true);
+	}
+	
+	public void toScript(JSBuilder sb, boolean withFinalNL) {
 		if (useParens)
 			sb.ocb();
 		for (Stmt s : stmts)
 			s.toScript(sb);
 		if (useParens)
-			sb.ccb();
+			sb.ccb(withFinalNL);
 	}
+
 
 	public boolean isEmpty() {
 		return stmts.isEmpty();

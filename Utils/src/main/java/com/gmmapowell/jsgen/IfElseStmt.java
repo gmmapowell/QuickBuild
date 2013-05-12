@@ -8,6 +8,21 @@ public class IfElseStmt extends Stmt {
 	public final JSBlock no;
 	private final JSScope scope;
 	
+	public abstract class YesNo extends JSCompiler {
+		public YesNo() {
+			super(yes);
+		}
+		
+		public void compile() {
+			yes();
+			changeBlock(no);
+			no();
+		}
+		
+		public abstract void yes();
+		public abstract void no();
+	}
+	
 	IfElseStmt(JSScope scope) {
 		this.scope = scope;
 		yes = new JSBlock(scope, this);
@@ -77,7 +92,7 @@ public class IfElseStmt extends Stmt {
 			throw new UtilException("test cannot be null in an if statement");
 		test.toScript(sb);
 		sb.append(")");
-		yes.toScript(sb);
+		yes.toScript(sb, no.isEmpty());
 		if (!no.isEmpty()) {
 			sb.append(" else ");
 			no.toScript(sb);

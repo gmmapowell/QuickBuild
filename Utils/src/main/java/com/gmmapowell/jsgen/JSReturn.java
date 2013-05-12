@@ -5,7 +5,7 @@ public class JSReturn extends Stmt {
 	@Override
 	public void toScript(JSBuilder sb) {
 		sb.append("return");
-		sb.semi();
+		sb.semi(true);
 	}
 
 }

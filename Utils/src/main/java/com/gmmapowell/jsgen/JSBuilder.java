@@ -41,13 +41,16 @@ public class JSBuilder {
 	}
 	
 	public void ccb() {
+		ccb(true);
+	}
+	public void ccb(boolean withFinalNL) {
 		if (!openedCurly && isPretty)
 			pp.indentLess();
 		this.objectComma = false;
 		this.openedCurly = false;
 		append("}");
 		if (isPretty)
-			requireCommaOrNewLine = true;
+			requireCommaOrNewLine = withFinalNL;
 	}
 
 	public void osb() {
@@ -65,9 +68,9 @@ public class JSBuilder {
 //			requireCommaOrNewLine = true;
 	}
 
-	public void semi() {
+	public void semi(boolean wantNL) {
 		append(";");
-		if (isPretty)
+		if (isPretty && wantNL)
 			pp.requireNewline();
 	}
 
