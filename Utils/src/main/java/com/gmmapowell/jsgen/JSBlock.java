@@ -67,6 +67,10 @@ public class JSBlock {
 		return stmts.isEmpty();
 	}
 
+	public void continueLoop() {
+		add(new JSContinue());
+	}
+
 	public VarDecl declareExactVar(String var) {
 		JSVar jsvar = scope.getExactVar(var);
 		VarDecl ret = new VarDecl(scope, jsvar);
@@ -118,7 +122,7 @@ public class JSBlock {
 		return stmt;
 	}
 
-	public ForPropsStmt forProps(String takes, JSExpr fields) {
+	public ForPropsStmt forProps(String takes, LValue fields) {
 		ForPropsStmt ret = new ForPropsStmt(scope, takes, fields);
 		add(ret);
 		return ret;

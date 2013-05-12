@@ -2,6 +2,13 @@ package com.gmmapowell.jsgen;
 
 public abstract class JSCompiler extends JSExpr {
 	private JSBlock block;
+	private JSVar loopVar;
+
+	public JSCompiler(AbstractForStmt forLoop) {
+		this.block = forLoop.nestedBlock();
+		this.loopVar = forLoop.getLoopVar();
+		compile();
+	}
 
 	public JSCompiler(JSBlock block) {
 		this.block = block;
@@ -9,12 +16,13 @@ public abstract class JSCompiler extends JSExpr {
 	}
 
 	void changeBlock(JSBlock other) { this.block = other; }
-	JSBlock getBlock() { return block; }
+	protected JSBlock getBlock() { return block; }
+	protected JSVar getLoopVar() { return loopVar; }
 	
-	public JSBlock arrayIterator(String control, JSExpr array) {
+	public AbstractForStmt arrayIterator(String control, JSExpr array) {
 		ForEachStmt ret = new ForEachStmt(block.scope, control, array);
 		block.stmts.add(ret);
-		return ret.nestedBlock();
+		return ret;
 	}
 	
 	public void assign(JSVar var, JSExpr rvalue) {
@@ -33,6 +41,10 @@ public abstract class JSCompiler extends JSExpr {
 
 	public void blockComment(String text) {
 		block.stmts.add(new JSBlockComment(text));
+	}
+
+	public void continueLoop() {
+		block.stmts.add(new JSContinue());
 	}
 
 	public JSFunction declareFunction(String name, String... args) {
@@ -114,7 +126,7 @@ public abstract class JSCompiler extends JSExpr {
 		return functionExpr("$", string(s));
 	}
 
-	public JSExpr list(JSExpr... elts) {
+	public JSListExpr list(JSExpr... elts) {
 		JSListExpr ret = new JSListExpr(block.scope);
 		for (JSExpr e : elts)
 			ret.add(e);
@@ -136,6 +148,12 @@ public abstract class JSCompiler extends JSExpr {
 	public JSObjectExpr objectHash() {
 		JSExprGenerator gen = new JSExprGenerator(block.scope);
 		return gen.literalObject();
+	}
+	
+	public AbstractForStmt objectIterator(String control, LValue obj) {
+		ForPropsStmt ret = new ForPropsStmt(block.scope, control, obj);
+		block.stmts.add(ret);
+		return ret;
 	}
 	
 	public void returnVoid() {
