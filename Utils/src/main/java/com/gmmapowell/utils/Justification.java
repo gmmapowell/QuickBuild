@@ -1,7 +1,7 @@
 package com.gmmapowell.utils;
 
 public enum Justification {
-	LEFT, RIGHT, PADLEFT_TRUNCRIGHT, PADRIGHT_TRUNCLEFT;
+	LEFT, RIGHT, PADLEFT_TRUNCRIGHT, PADRIGHT_TRUNCLEFT, PADLEFT, PADRIGHT;
 
 	public String format(String text, int len) {
 		if (text == null)
@@ -15,9 +15,11 @@ public enum Justification {
 			{
 			case LEFT:
 			case PADRIGHT_TRUNCLEFT:
+			case PADRIGHT:
 				return text + pad(len-tlen);
 			case RIGHT:
 			case PADLEFT_TRUNCRIGHT:
+			case PADLEFT:
 				return pad(len-tlen) + text;
 			}
 		}
@@ -31,6 +33,9 @@ public enum Justification {
 			case RIGHT:
 			case PADRIGHT_TRUNCLEFT:
 				return text.substring(tlen-len);
+			case PADLEFT:
+			case PADRIGHT:
+				return text;
 			}
 		}
 		return null;

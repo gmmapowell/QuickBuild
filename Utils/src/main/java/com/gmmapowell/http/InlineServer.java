@@ -198,7 +198,9 @@ public class InlineServer implements Runnable {
 	public void pleaseExit(int status) {
 		exitStatus = status;
 		doLoop = false;
-		inThread.interrupt();
+		
+		// I claim this is not needed ... the accept times out and checks every 2s
+//		inThread.interrupt();
 	}
 	
 	public int getTerminationStatus() {

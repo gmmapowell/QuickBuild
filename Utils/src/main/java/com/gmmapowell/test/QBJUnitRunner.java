@@ -20,15 +20,21 @@ public class QBJUnitRunner {
 		JUnitListener lsnr = new JUnitListener();
 		RunNotifier nfy = new RunNotifier();
 		nfy.addFirstListener(lsnr);
-		for (String arg : args)
+		boolean ignoreQIs = false;
+		for (String arg : args) 
 			try {
+				if (arg.equals("--quick")) {
+					ignoreQIs = true;
+					continue;
+				}
 				Class<?> clz = Class.forName(arg);
 				Description desc = Description.createSuiteDescription(clz);
 				lsnr.testRunStarted(desc);
 				RunWith runWith = clz.getAnnotation(RunWith.class);
 				if (runWith != null) {
 					Ignore ign = clz.getAnnotation(Ignore.class);
-					if (ign != null)
+					QuickIgnore qi = clz.getAnnotation(QuickIgnore.class);
+					if (ign != null || (ignoreQIs && qi != null))
 						nfy.fireTestIgnored(desc);
 					else {
 						Runner suite = Reflection.create(runWith.value(), clz, new AllDefaultPossibilitiesBuilder(true));

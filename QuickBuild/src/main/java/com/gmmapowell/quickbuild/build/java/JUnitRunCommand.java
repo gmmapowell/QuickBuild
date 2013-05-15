@@ -44,7 +44,6 @@ public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 	private final StructureHelper files;
 	private JUnitResource writeTo;
 
-
 	public JUnitRunCommand(Strategem parent, StructureHelper files, JavaBuildCommand jbc) {
 		this.parent = parent;
 		this.files = files;
@@ -83,6 +82,8 @@ public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 //		proc.arg("-Djava.util.logging.config.class=com.gmmapowell.http.LoggingConfiguration");
 //		proc.arg("-Xmx1g");
 		proc.arg("com.gmmapowell.test.QBJUnitRunner");
+		if (true) // should be a flag
+			proc.arg("--quick");
 		List<String> testsToRun = new ArrayList<String>();
 		for (File f : FileUtils.findFilesUnderMatching(srcdir, "*.java"))
 		{
