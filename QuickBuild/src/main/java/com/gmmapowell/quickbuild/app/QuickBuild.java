@@ -24,6 +24,7 @@ import com.gmmapowell.utils.ProcessArgs;
 public class QuickBuild {
 	private static ArgumentDefinition[] argumentDefinitions = new ArgumentDefinition[] {
 		new ArgumentDefinition("*.qb", Cardinality.REQUIRED, "file", "configuration file"),
+		new ArgumentDefinition("--alltests", Cardinality.OPTION, "allTests", "run all tests, including ones marked @QuickIgnore"),
 		new ArgumentDefinition("--args", Cardinality.LIST, "showArgsFor", null),
 		new ArgumentDefinition("--blank", Cardinality.OPTION, "blank", "blank memory"),
 		new ArgumentDefinition("--build-all", Cardinality.OPTION, "buildAll", null),
@@ -123,7 +124,7 @@ public class QuickBuild {
 		buildAll |= mainFiles.isDirty();
 		
 		// now we need to read back anything we've cached ...
-		BuildContext cxt = new BuildContext(conf, configFactory, output, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar, arguments.upTo, arguments.nthreads, arguments.doubleQuick);
+		BuildContext cxt = new BuildContext(conf, configFactory, output, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar, arguments.upTo, arguments.nthreads, arguments.doubleQuick, arguments.allTests);
 		cxt.configure();
 		
 		if (!arguments.quiet && !output.forTeamCity())

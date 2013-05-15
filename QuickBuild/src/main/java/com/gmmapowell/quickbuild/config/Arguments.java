@@ -6,6 +6,7 @@ import java.util.List;
 
 public class Arguments {
 
+	public boolean allTests;
 	public boolean buildAll;
 	public boolean blank;
 	public boolean configOnly;
