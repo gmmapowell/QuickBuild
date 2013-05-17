@@ -21,20 +21,24 @@ public class QBJUnitRunner {
 		RunNotifier nfy = new RunNotifier();
 		nfy.addFirstListener(lsnr);
 		boolean ignoreQIs = false;
-		for (String arg : args) 
+		for (String arg : args) { 
+			if (arg.equals("--quick")) {
+				System.out.println("Enabling @QuickIgnore");
+				ignoreQIs = true;
+				continue;
+			}
 			try {
-				if (arg.equals("--quick")) {
-					ignoreQIs = true;
-					continue;
-				}
 				Class<?> clz = Class.forName(arg);
 				Description desc = Description.createSuiteDescription(clz);
 				lsnr.testRunStarted(desc);
+				QuickIgnore qi = clz.getAnnotation(QuickIgnore.class);
 				RunWith runWith = clz.getAnnotation(RunWith.class);
-				if (runWith != null) {
+				if (ignoreQIs && qi != null) {
+					nfy.fireTestIgnored(desc);
+					continue;
+				} else if (runWith != null) {
 					Ignore ign = clz.getAnnotation(Ignore.class);
-					QuickIgnore qi = clz.getAnnotation(QuickIgnore.class);
-					if (ign != null || (ignoreQIs && qi != null))
+					if (ign != null)
 						nfy.fireTestIgnored(desc);
 					else {
 						Runner suite = Reflection.create(runWith.value(), clz, new AllDefaultPossibilitiesBuilder(true));
@@ -58,7 +62,8 @@ public class QBJUnitRunner {
 			finally {
 				try { lsnr.testRunFinished(null); } catch (Exception ex) { ex.printStackTrace(); }
 			}
-
+		}
+		
 		System.out.println("Active Threads:");
 		Set<Thread> threads = new HashSet<Thread>(Thread.getAllStackTraces().keySet());
 		int counter = 1;
