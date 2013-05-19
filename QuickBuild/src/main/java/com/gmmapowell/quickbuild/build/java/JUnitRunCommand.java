@@ -47,6 +47,8 @@ public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 	private ResourcePacket<PendingResource> addlResources = new ResourcePacket<PendingResource>();
 	private final StructureHelper files;
 	private JUnitResource writeTo;
+	private final List<String> defines = new ArrayList<String>();
+	private String memory;
 
 	public JUnitRunCommand(Strategem parent, StructureHelper files, JavaBuildCommand jbc) {
 		this.parent = parent;
@@ -55,6 +57,14 @@ public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 		this.srcdir = new File(files.getBaseDir(), "src/test/java");
 		this.bindir = files.getOutput("test-classes");
 		this.errdir = files.getOutput("test-results");
+	}
+
+	public void setJUnitMemory(String junitMemory) {
+		this.memory = junitMemory;
+	}
+
+	public void define(String d) {
+		this.defines.add(d);
 	}
 
 	@Override
@@ -88,6 +98,10 @@ public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 		// TODO: use bootclasspath
 		proc.arg("-classpath");
 		proc.arg(classpath.toString());
+		for (String s : defines)
+			proc.arg(s);
+		if (memory != null)
+			proc.arg("-Xmx" + memory);
 //		proc.arg("-Djava.util.logging.config.class=com.gmmapowell.http.LoggingConfiguration");
 //		proc.arg("-Xmx1g");
 		proc.arg("com.gmmapowell.test.QBJUnitRunner");
@@ -259,7 +273,8 @@ public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 			else if (lpm.is("duration"))
 			{
 				output.finishTest(currentTest, Integer.parseInt(lpm.get("ms")));
-				handleError.fineWith(currentTest);
+				if (handleError != null)
+					handleError.fineWith(currentTest);
 				currentTest = null;
 			}
 			else if (lpm.is("summary"))

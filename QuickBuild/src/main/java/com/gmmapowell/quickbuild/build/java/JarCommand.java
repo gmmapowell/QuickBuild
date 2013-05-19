@@ -35,7 +35,9 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	protected List<File> includePackages;
 	protected List<File> excludePackages;
 	private final List<PendingResource> junitLibs = new ArrayList<PendingResource>();
+	private final List<String> junitDefines = new ArrayList<String>();
 	private final List<PendingResource> jarLibs = new ArrayList<PendingResource>();
+	private String junitMemory;
 	private boolean runJunit = true;
 	protected ResourcePacket<BuildResource> willProvide = new ResourcePacket<BuildResource>();
 	private JavaSourceDirResource mainSources;
@@ -130,6 +132,14 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			{
 				addJUnitLib((JUnitLibCommand)opt);
 			}
+			else if (opt instanceof JUnitMemoryCommand)
+			{
+				setJUnitMemory((JUnitMemoryCommand)opt);
+			}
+			else if (opt instanceof JUnitDefineCommand)
+			{
+				addJUnitDefine((JUnitDefineCommand)opt);
+			}
 			else if (opt instanceof NoJUnitCommand)
 			{
 				runJunit  = false;
@@ -153,6 +163,14 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 
 	private void addJUnitLib(JUnitLibCommand opt) {
 		junitLibs.add(opt.getResource());
+	}
+
+	private void setJUnitMemory(JUnitMemoryCommand opt) {
+		junitMemory = opt.getMemory();
+	}
+
+	private void addJUnitDefine(JUnitDefineCommand opt) {
+		junitDefines.add(opt.getDefine());
 	}
 
 	private void addJarLib(JarLibCommand opt) {
@@ -259,6 +277,10 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		{
 			JUnitRunCommand cmd = new JUnitRunCommand(this, files, jbc);
 			cmd.addLibs(junitLibs);
+			if (junitMemory != null)
+				cmd.setJUnitMemory(junitMemory);
+			for (String d : junitDefines)
+				cmd.define(d);
 			ret.add(cmd);
 			return cmd;
 		}

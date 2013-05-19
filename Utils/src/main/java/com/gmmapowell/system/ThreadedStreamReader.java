@@ -47,12 +47,18 @@ public class ThreadedStreamReader extends Thread {
 			byte[] bs = new byte[400];
 			int cnt = 0;
 			while ((cnt = readFrom.read(bs, 0, 400)) > 0) {
-				if (writeTo != null)
+				if (writeTo != null) {
 					writeTo.write(bs, 0, cnt);
-				if (doEcho)
+					writeTo.flush();
+				}
+				if (doEcho) {
 					System.out.write(bs, 0, cnt);
-				if (copyTo != null)
+					System.out.flush();
+				}
+				if (copyTo != null) {
 					copyTo.write(bs, 0, cnt);
+					copyTo.flush();
+				}
 				for (String s : completeLines(bs, cnt)) {
 					for (LPPMatcher lpm : matchers) {
 						List<LinePatternMatch> ret = new ArrayList<LinePatternMatch>();
