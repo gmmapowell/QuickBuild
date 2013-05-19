@@ -61,7 +61,13 @@ public class JUnitListener extends RunListener {
 			failed++;
 			inTest = false;
 		} else {
-			System.out.println("Saw repeated failure in " + failure.getDescription());
+			System.out.println("Saw repeated (or setup/teardown) failure in " + failure.getDescription());
+			System.err.println(failure.getMessage());
+			System.err.println(failure.getTrace());
+			if (failed == 0) { // make sure it's at least slightly red
+				runCount++;
+				failed++;
+			}
 		}
 	}
 

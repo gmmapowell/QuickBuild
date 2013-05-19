@@ -79,14 +79,16 @@ public class RunProcess {
 		stderr = new ThreadedStreamReader();
 	}
 	
-	public void captureStdout() {
+	public ThreadedStreamReader captureStdout() {
 		outCapture = new ByteArrayOutputStream();
 		stdout = new ThreadedStreamReader(outCapture);
+		return stdout;
 	}
 	
-	public void captureStderr() {
+	public ThreadedStreamReader captureStderr() {
 		errCapture = new ByteArrayOutputStream();
 		stderr = new ThreadedStreamReader(errCapture);
+		return stderr;
 	}
 
 	public void showArgs(boolean b)
@@ -117,6 +119,7 @@ public class RunProcess {
 			env.putAll(envMap);
 			builder.directory(workingDir);
 			proc = builder.start();
+			stderr.echoStream(showArgs);
 			stdout.read(proc.getInputStream());
 			stderr.read(proc.getErrorStream());
 			Runtime.getRuntime().addShutdownHook(new Thread() {

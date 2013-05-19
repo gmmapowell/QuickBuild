@@ -4,15 +4,17 @@ import java.io.File;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.gmmapowell.bytecode.ByteCodeFile;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.LinePatternMatch;
 import com.gmmapowell.parser.LinePatternParser;
+import com.gmmapowell.parser.LinePatternParser.MatchIterator;
 import com.gmmapowell.quickbuild.app.BuildOutput;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
@@ -28,7 +30,9 @@ import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
+import com.gmmapowell.sync.SyncUtils;
 import com.gmmapowell.system.RunProcess;
+import com.gmmapowell.system.ThreadedStreamReader;
 import com.gmmapowell.utils.FileUtils;
 
 public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
@@ -73,8 +77,13 @@ public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 		proc.executeInDir(files.getBaseDir());
 		proc.showArgs(showArgs);
 		proc.debug(showDebug);
-		proc.captureStdout();
-		proc.captureStderr();
+		ThreadedStreamReader stdout = proc.captureStdout();
+		ThreadedStreamReader stderr = proc.captureStderr();
+		FileUtils.assertDirectory(errdir);
+		stdout.copyTo(new File(errdir, "stdout"));
+		stderr.copyTo(new File(errdir, "stderr"));
+		HandleError handleError = new HandleError(stderr);
+		stdout.parseLines(stdoutParser(), new HandleOutput(cxt.output, handleError));
 
 		// TODO: use bootclasspath
 		proc.arg("-classpath");
@@ -104,10 +113,6 @@ public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 		for (String s : testsToRun)
 			proc.arg(s);
 		proc.execute();
-		FileUtils.assertDirectory(errdir);
-		FileUtils.createFile(new File(errdir, "stdout"), proc.getStdout());
-		FileUtils.createFile(new File(errdir, "stderr"), proc.getStderr());
-		handleOutput(cxt.output, proc);
 		if (proc.getExitCode() == 0)
 		{
 			reportSuccess(cxt);
@@ -147,108 +152,6 @@ public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 		}
 		return BuildStatus.TEST_FAILURES;
 	}
-
-	private void handleOutput(BuildOutput output, RunProcess proc) {
-		LinePatternParser lpp = new LinePatternParser();
-		Iterator<LinePatternMatch> tagStderr = null;
-		if (output.forTeamCity())
-			tagStderr = breakUpStderr(proc.getStderr()).iterator();
-		lpp.matchAll("Running batch (.*)", "startBatch", "details");
-		lpp.matchAll("Ran batch (.*)", "endBatch", "details");
-		lpp.matchAll("Starting test (.*)", "startTest", "name");
-		lpp.matchAll("Ignoring test (.*)", "ignoreTest", "name");
-		lpp.matchAll("Failure: (.*)", "failure", "name");
-		lpp.matchAll("Duration: ([0-9]*)", "duration", "ms");
-		lpp.matchAll("(Summary: .*)", "summary", "info");
-		
-		String currentTest = null;
-		int failed = 0;
-		for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStdout())))
-		{
-			if (lpm.is("startBatch"))
-			{
-				output.startTestBatch(lpm.get("details"));
-			}
-			else if (lpm.is("endBatch"))
-			{
-				output.endTestBatch(lpm.get("details"));
-			}
-			else if (lpm.is("startTest"))
-			{
-				currentTest = lpm.get("name");
-				output.startTest(currentTest);
-			}
-			else if (lpm.is("ignoreTest"))
-			{
-				currentTest = null;
-				output.ignoreTest(lpm.get("name"));
-			}
-			else if (lpm.is("failure"))
-			{
-				String messageAndStackTrace = null;
-				if (tagStderr != null)
-					messageAndStackTrace = handleTeamCityStderr(output, tagStderr, lpm.get("name"));
-				output.failTest(lpm.get("name"), messageAndStackTrace);
-				failed++;
-			}
-			else if (lpm.is("duration"))
-			{
-				output.finishTest(currentTest, Integer.parseInt(lpm.get("ms")));
-				currentTest = null;
-			}
-			else if (lpm.is("summary"))
-			{
-				if (failed > 0)
-					output.testSummary(lpm.get("info"));
-			}
-			else
-				throw new QuickBuildException("Do not know how to handle match " + lpm);
-		}
-	}
-
-	private List<LinePatternMatch> breakUpStderr(String stderr) {
-		LinePatternParser lpp = new LinePatternParser();
-		lpp.match("Starting test (.*)", "start", "case");
-		lpp.match("Finished test", "finished");
-		lpp.match("(.*)", "always", "line");
-		lpp.match("Failed test", "traceMarker");
-		return lpp.applyTo(new StringReader(stderr));
-	}
-
-	private String handleTeamCityStderr(BuildOutput output, Iterator<LinePatternMatch> tagStderr, String s) {
-		while (tagStderr.hasNext()) {
-			LinePatternMatch lpm = tagStderr.next();
-			if (lpm.is("start") && lpm.get("case").equals(s))
-				break;
-		}
-		StringBuilder copyStderr = new StringBuilder();
-		StringBuilder messageAndStack = new StringBuilder();
-		boolean collectTrace = false;
-		boolean doBreak = false;
-		while (tagStderr.hasNext()) {
-			LinePatternMatch lpm = tagStderr.next();
-			if (lpm.is("finished"))
-				doBreak = true;
-			else if (lpm.is("always")) {
-				String msg = lpm.get("line") + "\n";
-				copyStderr.append(msg);
-				if (doBreak)
-					break;
-				if (collectTrace)
-					messageAndStack.append(msg);
-			} else if (lpm.is("traceMarker"))
-				collectTrace = true;
-		}
-		if (copyStderr.length() > 0)
-			output.testStderr(s, copyStderr.toString());
-		return messageAndStack.toString();
-	}
-
-	@Override
-	public String toString() {
-		return "JUnit Runner: " + srcdir;
-	}
-	
 	public void addToBootClasspath(File resource) {
 		bootclasspath.add(resource);
 	}
@@ -280,7 +183,6 @@ public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 		this.writeTo = jur;
 	}
 
-
 	private Set <Tactic> procDeps = new HashSet<Tactic>();
 	
 	@Override
@@ -295,5 +197,156 @@ public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 	@Override
 	public boolean skipMe(BuildContext cxt) {
 		return cxt.doubleQuick;
+	}
+
+	@Override
+	public String toString() {
+		return "JUnit Runner: " + srcdir;
+	}
+	
+	private LinePatternParser stdoutParser() {
+		LinePatternParser lpp = new LinePatternParser();
+		lpp.matchAll("Running batch (.*)", "startBatch", "details");
+		lpp.matchAll("Ran batch (.*)", "endBatch", "details");
+		lpp.matchAll("Starting test (.*)", "startTest", "name");
+		lpp.matchAll("Ignoring test (.*)", "ignoreTest", "name");
+		lpp.matchAll("Failure: (.*)", "failure", "name");
+		lpp.matchAll("Duration: ([0-9]*)", "duration", "ms");
+		lpp.matchAll("(Summary: .*)", "summary", "info");
+		return lpp;
+	}
+	
+	private class HandleOutput implements MatchIterator {
+		String currentTest = null;
+		int failed = 0;
+		private final BuildOutput output;
+		private HandleError handleError = null;
+		
+		private HandleOutput(BuildOutput output, HandleError handleError) {
+			this.output = output;
+			if (output.forTeamCity())
+				this.handleError = handleError;
+		}
+
+		@Override
+		public void handleMatch(LinePatternMatch lpm) {
+			if (lpm.is("startBatch"))
+			{
+				output.startTestBatch(lpm.get("details"));
+			}
+			else if (lpm.is("endBatch"))
+			{
+				output.endTestBatch(lpm.get("details"));
+			}
+			else if (lpm.is("startTest"))
+			{
+				currentTest = lpm.get("name");
+				output.startTest(currentTest);
+			}
+			else if (lpm.is("ignoreTest"))
+			{
+				currentTest = null;
+				output.ignoreTest(lpm.get("name"));
+			}
+			else if (lpm.is("failure"))
+			{
+				String messageAndStackTrace = null;
+				if (handleError != null)
+					messageAndStackTrace = handleError.tellMeAbout(output, lpm.get("name"));
+				output.failTest(lpm.get("name"), messageAndStackTrace);
+				failed++;
+			}
+			else if (lpm.is("duration"))
+			{
+				output.finishTest(currentTest, Integer.parseInt(lpm.get("ms")));
+				handleError.fineWith(currentTest);
+				currentTest = null;
+			}
+			else if (lpm.is("summary"))
+			{
+				if (failed > 0)
+					output.testSummary(lpm.get("info"));
+			}
+			else
+				throw new QuickBuildException("Do not know how to handle match " + lpm);
+		}
+	}
+
+	public class HandleError implements MatchIterator {
+		private LinePatternParser lpp;
+		private StringBuilder copyStderr;
+		private StringBuilder messageAndStack;
+		private String currentCase;
+		private boolean collectTrace = false;
+		private Set<String> decline = new HashSet<String>();
+		private Map<String, StderrCopy> cases = new HashMap<String, StderrCopy>();
+
+		public HandleError(ThreadedStreamReader stderr) {
+			lpp = new LinePatternParser();
+			lpp.match("Starting test (.*)", "start", "case");
+			lpp.match("Finished test", "finished");
+			lpp.match("(.*)", "always", "line");
+			lpp.match("Failed test", "traceMarker");
+			stderr.parseLines(lpp, this);
+		}
+
+		public void fineWith(String test) {
+			decline.add(test);
+			if (cases.containsKey(test))
+				cases.remove(test);
+		}
+
+		public String tellMeAbout(BuildOutput output, String test) {
+			if (decline.contains(test))
+				throw new UtilException("You declined " + test + " already");
+			synchronized (this) {
+				while (test.equals(currentCase) || !cases.containsKey(test))
+					SyncUtils.waitFor(this, 0);
+				StderrCopy thisCase = cases.get(test);
+				if (thisCase.copyStderr.length() > 0)
+					output.testStderr(test, thisCase.copyStderr.toString());
+				return thisCase.messageAndStack.toString();
+			}
+		}
+
+		@Override
+		public void handleMatch(LinePatternMatch lpm) {
+			if (lpm.is("start")) {
+				synchronized (this) {
+					currentCase = lpm.get("case");
+					copyStderr = new StringBuilder();
+					messageAndStack = new StringBuilder();
+					if (!decline.contains(currentCase)) {
+						cases.put(currentCase, new StderrCopy(copyStderr, messageAndStack));
+					}
+				}
+			} else if (currentCase == null)
+				return;
+			
+			if (lpm.is("finished")) {
+				synchronized (this) {
+					currentCase = null;
+					this.notify();
+				}
+			}
+			else if (lpm.is("always")) {
+				String msg = lpm.get("line") + "\n";
+				copyStderr.append(msg);
+				if (collectTrace)
+					messageAndStack.append(msg);
+			} else if (lpm.is("traceMarker"))
+				collectTrace = true;
+		}
+	}
+
+	public class StderrCopy {
+		private final StringBuilder copyStderr;
+		private final StringBuilder messageAndStack;
+
+		public StderrCopy(StringBuilder copyStderr,	StringBuilder messageAndStack) {
+			this.copyStderr = copyStderr;
+			this.messageAndStack = messageAndStack;
+		}
+
 	}
 }

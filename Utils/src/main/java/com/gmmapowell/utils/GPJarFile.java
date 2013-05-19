@@ -13,17 +13,49 @@ import com.gmmapowell.exceptions.GPJarException;
 import com.gmmapowell.exceptions.UtilException;
 
 public class GPJarFile implements Iterable<GPJarEntry> {
+	public class JEIterable implements Iterable<GPJarEntry> {
+		private final String prefix;
+
+		public JEIterable(String prefix) {
+			this.prefix = prefix;
+		}
+
+		@Override
+		public Iterator<GPJarEntry> iterator() {
+			return new JEIterator(prefix);
+		}
+
+	}
+
 	class JEIterator implements Iterator<GPJarEntry> {
-		private Enumeration<JarEntry> en = jf.entries(); 
+		private Enumeration<JarEntry> en = jf.entries();
+		private final String prefix;
+		private JarEntry cuedUp; 
 		
+		public JEIterator(String prefix) {
+			this.prefix = prefix;
+		}
+
 		@Override
 		public boolean hasNext() {
-			return en.hasMoreElements();
+			if (cuedUp != null)
+				return true;
+			while (en.hasMoreElements()) {
+				cuedUp = en.nextElement();
+				if (prefix == null || cuedUp.getName().startsWith(prefix))
+					return true;
+				cuedUp = null;
+			}
+			return false;
 		}
 
 		@Override
 		public GPJarEntry next() {
-			return new GPJarEntry(GPJarFile.this, en.nextElement());
+			if (!hasNext())
+				throw new IndexOutOfBoundsException();
+			GPJarEntry ret = new GPJarEntry(GPJarFile.this, cuedUp);
+			cuedUp = null;
+			return ret;
 		}
 
 		@Override
@@ -51,7 +83,11 @@ public class GPJarFile implements Iterable<GPJarEntry> {
 
 	@Override
 	public Iterator<GPJarEntry> iterator() {
-		return new JEIterator();
+		return new JEIterator(null);
+	}
+
+	public Iterable<GPJarEntry> startsWith(String prefix) {
+		return new JEIterable(prefix);
 	}
 
 	public InputStream getInputStream(JarEntry entry) {
