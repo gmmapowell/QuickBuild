@@ -345,21 +345,23 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		}
 		cxt.output.openBlock("noWell");
 		cxt.output.println("There is nothing in the well that can be added!");
-		cxt.output.println("Well contents:");
-		for (ItemToBuild p : well)
-		{
-			cxt.output.println("  " + p.name() + " drift: " + p.drift());
-			boolean hasDependency = false;
-			for (BuildResource pr : p.getDependencies(dependencies))
+		if (!cxt.grandFallacy) {
+			cxt.output.println("Well contents:");
+			for (ItemToBuild p : well)
 			{
-				if (!isBuilt(pr))
+				cxt.output.println("  " + p.name() + " drift: " + p.drift());
+				boolean hasDependency = false;
+				for (BuildResource pr : p.getDependencies(dependencies))
 				{
-					cxt.output.println("    Rejecting because " + pr + " is not built");
-					hasDependency = true;
-					continue;
+					if (!isBuilt(pr))
+					{
+						cxt.output.println("    Rejecting because " + pr + " is not built");
+						hasDependency = true;
+						continue;
+					}
+					else if (hasDependency)
+						continue;
 				}
-				else if (hasDependency)
-					continue;
 			}
 		}
 		cxt.output.closeBlock("noWell");

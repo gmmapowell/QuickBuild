@@ -213,33 +213,34 @@ public class BuildExecutor {
 
 	
 	public BuildStatus execute(ItemToBuild itb) {
+		boolean verbose = !cxt.quietMode();
 		if (hasBrokenDependencies(itb)) {
-			itb.announce(cxt.output, !cxt.quietMode(), currentTactic, BuildStatus.BROKEN_DEPENDENCIES);
+			itb.announce(cxt.output, verbose, currentTactic, BuildStatus.BROKEN_DEPENDENCIES);
 			cxt.output.finishBuildStep();
 			return BuildStatus.BROKEN_DEPENDENCIES;
 		}
 		if (!itb.needsBuild.needsBuild())
 		{
-			itb.export(cxt.output, rm);
-			itb.announce(cxt.output, !cxt.quietMode(), currentTactic, itb.needsBuild);
+			itb.export(cxt.output, rm, verbose);
+			itb.announce(cxt.output, verbose, currentTactic, itb.needsBuild);
 			cxt.output.finishBuildStep();
 			return itb.needsBuild;
 		}
 		else if (!isOnCriticalPath(itb))
 		{
-			itb.export(cxt.output, rm);
-			itb.announce(cxt.output, !cxt.quietMode(), currentTactic, BuildStatus.NOTCRITICAL);
+			itb.export(cxt.output, rm, verbose);
+			itb.announce(cxt.output, verbose, currentTactic, BuildStatus.NOTCRITICAL);
 			itb.revert();
 			cxt.output.finishBuildStep();
 			return BuildStatus.NOTCRITICAL;
 		}
 		else if (itb.considerAutoSkipping(cxt)) {
-			itb.announce(cxt.output, !cxt.quietMode(), currentTactic, BuildStatus.NOTCRITICAL);
+			itb.announce(cxt.output, verbose, currentTactic, BuildStatus.NOTCRITICAL);
 			itb.revert();
 			cxt.output.finishBuildStep();
 			return BuildStatus.NOTCRITICAL;
 		}
-		itb.announce(cxt.output, !cxt.quietMode(), currentTactic, itb.needsBuild);
+		itb.announce(cxt.output, verbose, currentTactic, itb.needsBuild);
 
 		// Record when first build started
 		if (buildStarted == null)
@@ -265,7 +266,7 @@ public class BuildExecutor {
 			itb.fail();
 		else if (ret.isGood()) {
 			itb.commitAll();
-			itb.export(cxt.output, rm);
+			itb.export(cxt.output, rm, verbose);
 			buildOrder.saveBuildOrder();
 			manager.saveDependencies();
 		}
