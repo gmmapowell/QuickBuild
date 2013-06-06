@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -16,6 +18,10 @@ public class FileReaderIterator implements Iterator<String> {
 
 	public FileReaderIterator(File file) throws FileNotFoundException {
 		reader = new LineNumberReader(new FileReader(file));
+	}
+
+	public FileReaderIterator(InputStream resourceAsStream) {
+		reader = new LineNumberReader(new InputStreamReader(resourceAsStream));
 	}
 
 	@Override
@@ -59,6 +65,16 @@ public class FileReaderIterator implements Iterator<String> {
 		} catch (FileNotFoundException e) {
 			throw UtilException.wrap(e);
 		}
+	}
+
+	public static Iterable<String> overStream(InputStream stream) {
+		final FileReaderIterator it = new FileReaderIterator(stream);
+		return new Iterable<String>() {
+			@Override
+			public Iterator<String> iterator() {
+				return it;
+			}
+		};
 	}
 
 }

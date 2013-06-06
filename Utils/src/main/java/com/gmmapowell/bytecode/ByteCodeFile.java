@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeSet;
 
 import com.gmmapowell.bytecode.CPInfo.ClassInfo;
@@ -184,8 +186,10 @@ public class ByteCodeFile implements AnnotationHolder {
 	
 			for (FieldInfo fi : fields)
 				fi.complete();
-			for (MethodInfo mi : methods)
-				((MethodDefiner)mi).complete();
+			for (MethodInfo mi : methods) {
+				if (mi instanceof MethodDefiner)
+					((MethodDefiner)mi).complete();
+			}
 			complete();
 		}
 		
@@ -501,6 +505,8 @@ public class ByteCodeFile implements AnnotationHolder {
 	public String toString() {
 		if (qualifiedName != null)
 			return "BCF[" + qualifiedName + "]";
+		else if (getName() != null)
+			return "BCF[" + getName() + "]";
 		return super.toString();
 	}
 
@@ -561,5 +567,19 @@ public class ByteCodeFile implements AnnotationHolder {
 	public void destroy() {
 		// TODO Auto-generated method stub
 		
+	}
+
+	public Iterable<ClassPoolEntry> getClassNames() {
+		ArrayList<ClassPoolEntry> ret = new ArrayList<ClassPoolEntry>();
+		for (Entry<Integer, ClassInfo> i : pool.entries(ClassInfo.class))
+			ret.add(new ClassPoolEntry(i.getValue()));
+		return ret;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T extends CPInfo> Iterable<Map.Entry<Integer, T>> poolEntries(Class<T> clz) {
+		if (clz == null)
+			clz = (Class<T>) CPInfo.class;
+		return pool.entries(clz);
 	}
 }

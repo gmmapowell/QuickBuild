@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import com.gmmapowell.bytecode.ByteCodeInspector.HexDumpStream;
 import com.gmmapowell.bytecode.CPInfo.DoubleEntry;
@@ -154,5 +156,17 @@ public class ConstPool {
 
 	public int size() {
 		return nextPoolEntry;
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T extends CPInfo> Iterable<Map.Entry<Integer, T>> entries(Class<T> cls) {
+		Map<Integer, T> ret = new TreeMap<Integer, T>();
+		for (int i=1;i<size();i++) {
+			if (pool[i] == null) // possible for Long and Double entries
+				continue;
+			if (cls.isInstance(pool[i]))
+				ret.put(i, (T) pool[i]);
+		}
+		return ret.entrySet();
 	}
 }

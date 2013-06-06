@@ -788,6 +788,13 @@ public class ByteCodeInspector extends ByteCodeFile {
 			hexdump.print(op + " " + StringUtil.hex(offset+jumpTo, 4));
 			return 3;
 		}
+		case 0xa5: case 0xa6:
+		{
+			String op = "if_acmp" + new String[] { "eq", "ne" }[opcode-0xa5];
+			short jumpTo = dis.readShort();
+			hexdump.print(op + " " + StringUtil.hex(offset+jumpTo, 4));
+			return 3;
+		}
 		case 0xa7:
 		{
 			short jumpTo = dis.readShort();

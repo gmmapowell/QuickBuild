@@ -202,6 +202,9 @@ public abstract class CPInfo {
 			return ((Utf8Info)pool.get(idx)).asClean();
 		}
 
+		public void setName(String rw) {
+			pool.setPoolEntry(idx, new Utf8Info(rw));
+		}
 	}
 
 	public static class StringInfo extends CPInfo {
@@ -344,6 +347,14 @@ public abstract class CPInfo {
 
 		public boolean matches(String name, String sig) {
 			return ((Utf8Info)pool.get(this.name)).matches(name) && ((Utf8Info)pool.get(this.descriptor)).matches(sig);
+		}
+		
+		public String justDescriptorName() {
+			return pool.get(descriptor).asClean();
+		}
+
+		public void setDescriptorName(String rw) {
+			pool.setPoolEntry(descriptor, new Utf8Info(rw));
 		}
 	}
 	

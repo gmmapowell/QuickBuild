@@ -7,7 +7,25 @@ fi
 
 ROOTDIR="`dirname $0`"
 
-#files=`jar tf $1 | sed -n 's/\\.class//p' | sed 's%/%.%'g`
-files=`jar tf $1 | grep '\\.class' | sed 's%^%/%'`
-java -cp $ROOTDIR/../../Ziniki/Zamples/bin/classes:$ROOTDIR/utils.jar:$1 com.gmmapowell.bytecode.ByteCodeInspector $files
-#  /org/ziniki/zamples/ChatZone.class
+classpath="$ROOTDIR/../../Ziniki/Zamples/bin/classes:$ROOTDIR/utils.jar"
+files=""
+while [ $# -gt 0 ] ; do
+  case $1 in
+    -path)
+      shift
+      classpath="$classpath:$1"
+      shift
+      ;;
+    *.class)
+      files="$files /$1"
+      shift
+       ;;
+    *.jar)
+      classpath="$classpath:$1"
+      files="$files `jar tf $1 | grep '\\.class' | sed 's%^%/%'`"
+      shift
+      ;;
+  esac
+done
+
+java -cp $classpath com.gmmapowell.bytecode.ByteCodeInspector $files

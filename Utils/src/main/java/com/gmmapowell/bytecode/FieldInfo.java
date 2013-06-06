@@ -32,6 +32,10 @@ public class FieldInfo extends JavaInfo implements AnnotationHolder {
 		this.descriptor_idx = (short) descriptor;
 	}
 
+	public FieldExpr asExpr(NewMethodDefiner meth) {
+		return meth.getField(getName());
+	}
+
 	public void write(DataOutputStream dos) throws IOException {
 		dos.writeShort(access_flags);
 		dos.writeShort(name_idx);

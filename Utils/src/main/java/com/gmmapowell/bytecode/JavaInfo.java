@@ -1,6 +1,8 @@
 package com.gmmapowell.bytecode;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.FileUtils;
@@ -72,10 +74,44 @@ public class JavaInfo {
 			return unmap(mapped.substring(1));
 		if (mapped.equals("*"))
 			return "?";
+		if (mapped.startsWith("("))
+			throw new UtilException("Use unmapSignature for signatures");
 		int dims = 0;
 		while (mapped.charAt(dims) == '[')
 			dims++;
 		return mapped.substring(0, dims) + unmapScalar(mapped.substring(dims));
+	}
+
+	public static String mapSignature(List<String> rewrite) {
+		StringBuilder ret = new StringBuilder();
+		ret.append("(");
+		for (int i=1;i<rewrite.size();i++)
+			ret.append(map(rewrite.get(i)));
+		ret.append(")");
+		ret.append(map(rewrite.get(0)));
+		return ret.toString();
+	}
+
+	// ret[0] = return
+	// ret[1..] = args
+	public static List<String> unmapSignature(String mapped) {
+		if (!mapped.startsWith("("))
+			throw new UtilException("Not a signature");
+		int crbidx = mapped.indexOf(')');
+		List<String> ret = new ArrayList<String>();
+		ret.add(unmap(mapped.substring(crbidx+1)));
+		int from=1;
+		while (from < crbidx) {
+			int end = from;
+			while (mapped.charAt(end) == '[')
+				end++;
+			if (mapped.charAt(end) == 'L')
+				end = mapped.indexOf(';', end);
+			++end;
+			ret.add(unmap(mapped.substring(from,end)));
+			from = end;
+		}
+		return ret; // .toArray(new String[ret.size()]);
 	}
 
 	private static String mapScalar(String type, boolean mapLongTypes)

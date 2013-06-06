@@ -14,18 +14,6 @@ import com.gmmapowell.utils.StringUtil;
 
 
 public class Reflection {
-	private static ClassLoader useClassLoader;
-	
-	public static void setClassLoader(ClassLoader cl) {
-		if (useClassLoader != null)
-			throw new UtilException("Cannot set multiple class loaders");
-		useClassLoader = cl;
-	}
-	
-	public static void clearClassLoader() {
-		useClassLoader = null;
-	}
-	
 	@SuppressWarnings("unchecked")
 	public static <T> T getStaticField(Class<?> inClz, String fieldName) {
 		try
@@ -117,12 +105,12 @@ public class Reflection {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> T create(String cls, Object... args) {
+	public static <T> T create(ClassLoader loader, String cls, Object... args) {
 		try
 		{
 			final Class<T> clz;
-			if (useClassLoader != null)
-				clz = (Class<T>) Class.forName(cls, false, useClassLoader);
+			if (loader != null)
+				clz = (Class<T>) Class.forName(cls, false, loader);
 			else
 				clz = (Class<T>) Class.forName(cls);
 			return create(clz, args);

@@ -66,4 +66,12 @@ public class MethodInfo extends JavaInfo implements AnnotationHolder {
 		annotations.add(type, ann);
 		return ann;
 	}
+
+	public short getDescriptorIdx() {
+		return descriptorIdx;
+	}
+
+	public void setSignature(String rw) {
+		bcf.pool.setPoolEntry(descriptorIdx, new Utf8Info(rw));
+	}
 }
