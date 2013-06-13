@@ -119,16 +119,21 @@ public class Promise<T> implements Future<T> {
 	public synchronized void completed(T object) {
 		this.obj = object;
 		this.done = Outcome.SUCCESS;
+		for (Handler<T> h : then) {
+			try {
+				h.handle(object);
+			} catch (Throwable t) {
+				h.failed(t);
+			}
+		}
 		this.notifyAll();
-		for (Handler<T> h : then)
-			h.handle(object);
 	}
 
 	public synchronized void failed(Throwable t) {
 		this.error = t;
 		this.done = Outcome.FAILURE;
-		this.notifyAll();
 		for (Handler<T> h : then)
 			h.failed(t);
+		this.notifyAll();
 	}
 }
