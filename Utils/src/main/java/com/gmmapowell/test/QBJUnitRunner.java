@@ -33,17 +33,13 @@ public class QBJUnitRunner {
 				lsnr.testRunStarted(desc);
 				QuickIgnore qi = clz.getAnnotation(QuickIgnore.class);
 				RunWith runWith = clz.getAnnotation(RunWith.class);
-				if (ignoreQIs && qi != null) {
+				Ignore ign = clz.getAnnotation(Ignore.class);
+				if (ign != null || (ignoreQIs && qi != null)) {
 					nfy.fireTestIgnored(desc);
 					continue;
 				} else if (runWith != null) {
-					Ignore ign = clz.getAnnotation(Ignore.class);
-					if (ign != null)
-						nfy.fireTestIgnored(desc);
-					else {
-						Runner suite = Reflection.create(runWith.value(), clz, new AllDefaultPossibilitiesBuilder(true));
-						suite.run(nfy);
-					}
+					Runner suite = Reflection.create(runWith.value(), clz, new AllDefaultPossibilitiesBuilder(true));
+					suite.run(nfy);
 				} else
 					new BlockJUnit4ClassRunner(clz).run(nfy);
 			} catch (ClassNotFoundException e) {
