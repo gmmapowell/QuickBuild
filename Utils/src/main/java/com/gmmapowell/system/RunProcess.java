@@ -15,6 +15,7 @@ import com.gmmapowell.exceptions.UtilException;
 public class RunProcess {
 
 	private final List<String> cmdarray = new ArrayList<String>();
+	private int preClassPos = -1;
 	private boolean clearEnv;
 	private final Map<String, String> envMap = new HashMap<String, String>();
 	private File workingDir = null;
@@ -37,6 +38,12 @@ public class RunProcess {
 
 	public void arg(String string) {
 		cmdarray.add(string);
+	}
+
+	public void preClassArg(String string) {
+		if (preClassPos == -1)
+			throw new UtilException("Can only use preClassArg with java command");
+		cmdarray.add(preClassPos++, string);
 	}
 
 	public void clearEnv(boolean b) {
@@ -223,5 +230,14 @@ public class RunProcess {
 			} catch (InterruptedException e) {
 			}
 		finished = true;
+	}
+
+	public static RunProcess childJava(Class<?> cls) {
+		RunProcess ret = new RunProcess("java");
+		ret.arg("-classpath");
+		ret.arg(System.getProperty("java.class.path"));
+		ret.preClassPos = ret.cmdarray.size();
+		ret.arg(cls.getName());
+		return ret;
 	}
 }

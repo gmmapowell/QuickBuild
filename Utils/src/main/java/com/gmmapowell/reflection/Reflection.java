@@ -180,11 +180,14 @@ public class Reflection {
 			if (args.length != jtypes.length)
 				continue;
 			for (int i=0;i<args.length;i++)
-				if (args[i] != null && !jtypes[i].isInstance(args[i])) // &&
+				if (args[i] != null && !jtypes[i].isInstance(args[i])) {
 					if (jtypes[i].getSimpleName().equals("boolean") && args[i] instanceof Boolean)
 						continue;
+					else if (jtypes[i].getSimpleName().equals("int") && args[i] instanceof Integer)
+						continue;
 					else
-					continue loop;
+						continue loop;
+				}
 			return j;
 		}
 		throw new UtilException("There is no matching " + what + " for class " + clz.getName() + " with args " + args.length);

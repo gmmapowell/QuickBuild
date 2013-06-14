@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MarkerFactory;
 
 public class CLObjectInputStream extends ObjectInputStream {
 	private static Logger logger = LoggerFactory.getLogger("CLOIS");
@@ -20,7 +20,7 @@ public class CLObjectInputStream extends ObjectInputStream {
 	@Override
 	protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException,
 			ClassNotFoundException {
-		logger.debug(MarkerFactory.getMarker("finer"), "Requesting class " + desc.getName());
+		logger.debug("CLOIS requesting class " + desc.getName());
 		try
 		{
 			Class<?> ret = Class.forName(desc.getName(), false, loader);

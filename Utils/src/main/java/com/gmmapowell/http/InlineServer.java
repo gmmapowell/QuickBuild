@@ -120,7 +120,7 @@ public class InlineServer implements Runnable {
 	public void run(boolean wantLoop) {
 		if (inThread != Thread.currentThread())
 			throw new UtilException("Cannot run in different thread to creation thread");
-		logger.info("Starting execution of InlineServer " + this);
+		logger.info("Starting execution of InlineServer " + this + " with wantLoop = " + wantLoop);
 		try {
 			this.doLoop = wantLoop;
 			remote.init();
@@ -129,6 +129,7 @@ public class InlineServer implements Runnable {
 			remote.announce(this.interestedParties);
 			HashSet<ConnectionThread> threads = new HashSet<ConnectionThread>();
 			while (doLoop) {
+				logger.debug("Looking for connection on " + remote + " with doLoop = " + doLoop);
 				RemoteIO.Connection conn = remote.accept();
 				if (conn != null)
 				{
@@ -147,6 +148,8 @@ public class InlineServer implements Runnable {
 					}
 				}
 			}
+
+			logger.debug("doLoop = " + doLoop + " at end of loop, waiting for threads: " + threads);
 			// Wait for all non-dead threads (at least for a while)
 			try {
 				for (ConnectionThread ct : threads)
@@ -196,6 +199,7 @@ public class InlineServer implements Runnable {
 	}
 
 	public void pleaseExit(int status) {
+		logger.info("InlineServer exit requested with status " + status);
 		exitStatus = status;
 		doLoop = false;
 		
