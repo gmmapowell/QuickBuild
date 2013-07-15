@@ -107,7 +107,7 @@ public class Endpoint implements Serializable {
 				if (host == null)
 					throw new UtilException("Could not find any host address");
 			}
-			logger.info("Identifying local host as " + host);
+			logger.debug("Identifying local host as " + host);
 			return host;
 		} catch (UnknownHostException e) {
 			throw UtilException.wrap(e);
