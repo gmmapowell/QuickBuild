@@ -16,15 +16,16 @@ public class Hollerith {
 		return fmt.assemble(fields);
 	}
 
-	public void set(String field, String value) {
+	public Hollerith set(String field, String value) {
 		if (fmt.hasField(field))
 			fields.put(field, value);
+		return this;
 	}
 
-	public void setToString(String field, Object value) {
+	public Hollerith setToString(String field, Object value) {
 		if (fmt.hasField(field) && value != null)
 			fields.put(field, value.toString());
-		
+		return this;
 	}
 
 }

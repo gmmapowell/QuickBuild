@@ -2,25 +2,11 @@ package com.gmmapowell.utils;
 
 import java.util.Map;
 
-public class HollerithField {
+public class HollerithField extends HollerithItem {
 	private final String field;
-	private Justification justify = Justification.LEFT;
-	private int width = -1;
-	private String heading;
-
 	public HollerithField(String field) {
 		this.field = field;
 		this.heading = field;
-	}
-
-	public HollerithField setWidth(int i) {
-		width  = i;
-		return this;
-	}
-
-	public HollerithField setJustification(Justification j) {
-		justify = j;
-		return this;
 	}
 
 	@Override
@@ -33,9 +19,5 @@ public class HollerithField {
 		if (field != null && values.containsKey(field))
 			val = values.get(field);
 		return justify.format(val, width);
-	}
-
-	public String getHeading() {
-		return heading;
 	}
 }

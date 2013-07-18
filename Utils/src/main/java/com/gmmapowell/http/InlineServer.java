@@ -134,7 +134,7 @@ public class InlineServer implements Runnable {
 				if (conn != null)
 				{
 					ConnectionThread thr = new ConnectionThread(this, conn);
-					logger.info("Accepting connection request and dispatching to thread " + thr);
+					logger.debug("Accepting connection request and dispatching to thread " + thr);
 					thr.start();
 					threads.add(thr);
 					for (ConnectionThread ct : threads)
@@ -249,7 +249,7 @@ public class InlineServer implements Runnable {
 				return new GPRequest(sd.getConfig(), method, rawUri, protocol, is);
 			}
 
-		logger.info("No servlet found; going with static");
+		logger.info("No servlet found for " + rawUri + "; looking for static file");
 		return new GPRequest(staticConfig, method, rawUri, protocol, is);
 	}
 

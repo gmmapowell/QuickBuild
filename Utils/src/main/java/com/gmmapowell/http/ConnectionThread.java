@@ -116,6 +116,7 @@ public class ConnectionThread extends Thread {
 		}
 		InlineServer.logger.debug(Thread.currentThread().getName()+ ": " +"Done Headers");
 		request.endHeaders();
+		InlineServer.logger.info("Handling request for " + request.getRequestURI());
 		
 		String connhdr;
 		{
