@@ -43,11 +43,11 @@ public class Promise<T> implements Future<T> {
 	public <V> Promise<V> transform(TransformHandler<T,V> handler) {
 		Promise<V> ret = new Promise<V>();
 		handler.sendTo(ret);
-		this.then.add(handler);
+		this.then(handler);
 		return ret;
 	}
 
-	public Promise<T> then(Handler<T> then) {
+	public synchronized Promise<T> then(Handler<T> then) {
 		if (done == Outcome.SUCCESS)
 			then.handle(obj);
 		else if (done == Outcome.FAILURE)
@@ -72,6 +72,7 @@ public class Promise<T> implements Future<T> {
 		});
 		return this;
 	}
+	
 	@Override
 	public boolean cancel(boolean mayInterruptIfRunning) {
 		return false;
