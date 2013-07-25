@@ -238,10 +238,6 @@ public class DistributeCommand extends AbstractBuildCommand implements ConfigBui
 							openChannel.put(g.getPath(), saveAs + f.getPath());
 						}
 					}
-					catch (Exception ex)
-					{
-						ex.printStackTrace();
-					}
 					finally {
 						if (s != null)
 							s.disconnect();
