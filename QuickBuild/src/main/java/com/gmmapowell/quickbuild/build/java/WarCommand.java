@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
@@ -16,6 +17,7 @@ import com.gmmapowell.utils.FileUtils;
 public class WarCommand extends JarCommand {
 	private List<PendingResource> warlibs = new ArrayList<PendingResource>();
 	private List<Pattern> warexcl = new ArrayList<Pattern>();
+	private GitIdCommand gitIdCommand;
 
 	public WarCommand(TokenizedLine toks) {
 		super(toks);
@@ -33,6 +35,13 @@ public class WarCommand extends JarCommand {
 			PendingResource pr = ((ResourceCommand)cmd).getPendingResource();
 			warlibs.add(pr);
 			needsResources.add(pr);
+			return true;
+		}
+		else if (cmd instanceof GitIdCommand)
+		{
+			if (gitIdCommand != null)
+				throw new UtilException("You cannot specify more than one git id variable");
+			gitIdCommand = (GitIdCommand) cmd;
 			return true;
 		}
 
@@ -57,7 +66,7 @@ public class WarCommand extends JarCommand {
 				break;
 			}
 		}
-		WarBuildCommand cmd = new WarBuildCommand(this, files, targetName, warlibs, warexcl);
+		WarBuildCommand cmd = new WarBuildCommand(this, files, targetName, warlibs, warexcl, gitIdCommand);
 		tactics.add(cmd);
 		willProvide.add(cmd.getResource());
 	}

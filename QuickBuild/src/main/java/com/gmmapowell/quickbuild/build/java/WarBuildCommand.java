@@ -33,12 +33,14 @@ public class WarBuildCommand implements Tactic {
 	private final List<PendingResource> warlibs;
 	private final List<Pattern> warexcl;
 	private final WarResource warResource;
+	private GitIdCommand gitIdCommand;
 
-	public WarBuildCommand(WarCommand parent, StructureHelper files, String targetName, List<PendingResource> warlibs, List<Pattern> warexcl) {
+	public WarBuildCommand(WarCommand parent, StructureHelper files, String targetName, List<PendingResource> warlibs, List<Pattern> warexcl, GitIdCommand gitIdCommand) {
 		this.parent = parent;
 		this.files = files;
 		this.warlibs = warlibs;
 		this.warexcl = warexcl;
+		this.gitIdCommand = gitIdCommand;
 		this.warfile = new File(files.getOutputDir(), targetName);
 		this.warResource = new WarResource(this, files.getOutput(targetName));
 	}
@@ -58,6 +60,8 @@ public class WarBuildCommand implements Tactic {
 		{
 //			System.out.println("Opening file " + warfile);
 			JarOutputStream jos = new JarOutputStream(new FileOutputStream(warfile.getPath()));
+			if (gitIdCommand != null)
+				gitIdCommand.writeTrackerFile(jos);
 	
 			// Copy the local items - WebRoot, classes and resources
 			boolean worthIt = addOurFiles(jos, files.getRelative("WebRoot"), "", false);

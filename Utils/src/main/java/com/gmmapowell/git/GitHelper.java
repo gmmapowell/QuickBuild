@@ -15,11 +15,16 @@ import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
 public class GitHelper {
+	public static String currentHead() {
+		RunProcess rp = runGit(null, "rev-parse", "HEAD");
+		return rp.getStdout().replaceAll("[^0-9a-fA-Z]", "");
+	}
 
 	public static RunProcess runGit(File inDir, String... args) {
 		RunProcess proc = new RunProcess("git");
 //		proc.debug(true);
-		proc.executeInDir(inDir);
+		if (inDir != null)
+			proc.executeInDir(inDir);
 		proc.captureStdout();
 
 		for (String a : args)
@@ -144,5 +149,4 @@ public class GitHelper {
 		}
 		return gittx;
 	}
-
 }

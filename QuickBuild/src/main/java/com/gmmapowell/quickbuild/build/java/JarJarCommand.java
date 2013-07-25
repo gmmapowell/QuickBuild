@@ -42,6 +42,7 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private final List<ResourceCommand> resources = new ArrayList<ResourceCommand>();
 	private MainClassCommand mainClass;
+	private GitIdCommand gitIdCommand;
 
 	@SuppressWarnings("unchecked")
 	public JarJarCommand(TokenizedLine toks) {
@@ -74,6 +75,12 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 				if (mainClass != null)
 					throw new UtilException("You cannot specify more than one main class");
 				mainClass = (MainClassCommand) opt;
+			}
+			else if (opt instanceof GitIdCommand)
+			{
+				if (gitIdCommand != null)
+					throw new UtilException("You cannot specify more than one git id variable");
+				gitIdCommand = (GitIdCommand) opt;
 			}
 			else
 				throw new UtilException("The option " + opt + " is not valid for JarCommand");
@@ -134,6 +141,10 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 			jos = new JarOutputStream(new FileOutputStream(FileUtils.relativePath(outputTo)));
 			Set<String> entries = new HashSet<String>();
 			writeManifest(jos);
+			if (gitIdCommand != null) {
+				gitIdCommand.writeTrackerFile(jos);
+			}
+				
 			for (ResourceCommand rc : resources)
 			{
 				PendingResource pr = rc.getPendingResource();
