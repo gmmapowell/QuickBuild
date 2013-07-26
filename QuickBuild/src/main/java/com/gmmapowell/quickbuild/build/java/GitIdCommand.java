@@ -25,12 +25,13 @@ public class GitIdCommand extends NoChildCommand implements ConfigApplyCommand {
 	public void applyTo(Config config) {
 	}
 
-	public void writeTrackerFile(JarOutputStream jos) throws IOException {
-		jos.putNextEntry(new JarEntry("META-INF/" + label + ".git"));
+	public void writeTrackerFile(JarOutputStream jos, String dir) throws IOException {
+		jos.putNextEntry(new JarEntry(dir + "/" + label + ".git"));
 		PrintWriter pw = new PrintWriter(jos);
 		String head = System.getenv("BUILD_VCS_NUMBER");
 		if (head == null || head.trim().length() == 0)
 			head = GitHelper.currentHead();
+		System.out.println("Setting " + label + ".git to " + head);
 		pw.print(head);
 		pw.flush();
 	}

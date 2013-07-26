@@ -124,7 +124,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 			ret.add(junitRun);
 		}
 		*/
-		JarBuildCommand jar = new JarBuildCommand(this, files, targetName, null, null);
+		JarBuildCommand jar = new JarBuildCommand(this, files, targetName, null, null, null);
 		androidJar = jar.getJarResource();
 		jar.add(files.getOutput("classes"));
 		if (resdir.exists())

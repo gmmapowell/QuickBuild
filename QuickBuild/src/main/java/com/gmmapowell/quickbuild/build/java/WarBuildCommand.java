@@ -61,7 +61,7 @@ public class WarBuildCommand implements Tactic {
 //			System.out.println("Opening file " + warfile);
 			JarOutputStream jos = new JarOutputStream(new FileOutputStream(warfile.getPath()));
 			if (gitIdCommand != null)
-				gitIdCommand.writeTrackerFile(jos);
+				gitIdCommand.writeTrackerFile(jos, "WEB-INF/classes");
 	
 			// Copy the local items - WebRoot, classes and resources
 			boolean worthIt = addOurFiles(jos, files.getRelative("WebRoot"), "", false);

@@ -142,7 +142,7 @@ public class JarJarCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 			Set<String> entries = new HashSet<String>();
 			writeManifest(jos);
 			if (gitIdCommand != null) {
-				gitIdCommand.writeTrackerFile(jos);
+				gitIdCommand.writeTrackerFile(jos, "META-INF");
 			}
 				
 			for (ResourceCommand rc : resources)

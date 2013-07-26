@@ -1,7 +1,11 @@
 package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
@@ -10,13 +14,14 @@ import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
 public class JarBuildCommand extends ArchiveCommand {
 	private final Strategem parent;
-	public JarBuildCommand(Strategem parent, StructureHelper files, String targetName, List<File> includePackages, List<File> excludePackages) {
+	private GitIdCommand gitIdCommand;
+	public JarBuildCommand(Strategem parent, StructureHelper files, String targetName, List<File> includePackages, List<File> excludePackages, GitIdCommand gitIdCommand) {
 		super(includePackages, excludePackages);
+		this.gitIdCommand = gitIdCommand;
 		this.jarResource = new JarResource(this, files.getOutput(FileUtils.ensureExtension(targetName, ".jar")));
 		this.jarfile = this.jarResource.getFile();
 		this.parent = parent;
@@ -24,62 +29,59 @@ public class JarBuildCommand extends ArchiveCommand {
 	
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
-		if (jarfile.exists() && !jarfile.delete())
-			throw new QuickBuildException("Could not delete " + jarfile);
-		RunProcess proc = new RunProcess("jar");
-		if (showArgs)
-			proc.showArgs(showArgs);
-		proc.captureStdout();
-		proc.redirectStderr(System.out);
-		proc.arg("cvf");
-		proc.arg(jarfile.getPath());
-		boolean hasFiles = hasFiles(proc);
-		if (!hasFiles)
-		{
-			// we didn't actually build it, but it wants reassurance ...
-			try
+		try {
+			if (jarfile.exists() && !jarfile.delete())
+				throw new QuickBuildException("Could not delete " + jarfile);
+			JarOutputStream jos = new JarOutputStream(new FileOutputStream(jarfile.getPath()));
+			if (gitIdCommand != null)
+				gitIdCommand.writeTrackerFile(jos, "META-INF");
+			boolean hasFiles = hasFiles(jos);
+			if (!hasFiles)
 			{
-				if (jarResource != null)
-					jarResource.getFile().createNewFile();
-				cxt.builtResource(jarResource, false);
+				// we didn't actually build it, but it wants reassurance ...
+				try
+				{
+					if (jarResource != null)
+						jarResource.getFile().createNewFile();
+					cxt.builtResource(jarResource, false);
+				}
+				catch (Exception ex)
+				{
+					throw UtilException.wrap(ex);
+				}
+				return BuildStatus.SKIPPED;
 			}
-			catch (Exception ex)
-			{
-				throw UtilException.wrap(ex);
-			}
-			return BuildStatus.SKIPPED;
-		}
-		proc.execute();
-		if (proc.getExitCode() == 0)
-		{
+			jos.close();
 			cxt.builtResource(jarResource);
 			return BuildStatus.SUCCESS;
+		} catch (Exception ex) {
+			throw UtilException.wrap(ex);
 		}
-		return BuildStatus.BROKEN;
 	}
 
-	boolean hasFiles(RunProcess proc) {
+	boolean hasFiles(JarOutputStream jos) throws IOException {
 		boolean hasFiles = false;
 		for (File dir : dirsToJar)
 		{
-			for (File f : FileUtils.findFilesUnderMatching(dir, "*"))
+			for (File f : FileUtils.findFilesMatching(dir, "*"))
 			{
-				if (new File(dir, f.getPath()).isDirectory())
+				if (!f.exists() || f.isDirectory())
 					continue;
 				if (blockedByFilters(f))
 					continue;
 				if (f.getName().startsWith(".git"))
 					continue;
-				if (proc != null)
-				{
-					proc.arg("-C");
-					proc.arg(dir.getPath());
-					proc.arg(f.getPath());
-				}
+				writeToJar(jos, f, FileUtils.makeRelativeTo(f, dir));
 				hasFiles = true;
 			}
 		}
 		return hasFiles;
+	}
+
+	private void writeToJar(JarOutputStream jos, File f, File relative) throws IOException {
+		JarEntry je = new JarEntry(relative.getPath().replaceAll("\\\\", "/"));
+		jos.putNextEntry(je);
+		FileUtils.copyFileToStream(f, jos);
 	}
 
 	private boolean blockedByFilters(File f) {

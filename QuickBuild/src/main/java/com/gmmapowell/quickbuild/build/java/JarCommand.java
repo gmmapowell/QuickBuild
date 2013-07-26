@@ -45,6 +45,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	protected OrderedFileList mainSourceFileList;
 	private String javaVersion;
 	private final boolean justJunit;
+	protected GitIdCommand gitIdCommand;
 
 	@SuppressWarnings("unchecked")
 	public JarCommand(TokenizedLine toks) {
@@ -105,7 +106,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 
 	// strategy pattern
 	protected ArchiveCommand createAssemblyCommand() {
-		return new JarBuildCommand(this, files, targetName, includePackages, excludePackages);
+		return new JarBuildCommand(this, files, targetName, includePackages, excludePackages, gitIdCommand);
 	}
 
 	protected void additionalCommands(Config config) {
@@ -147,6 +148,12 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 			else if (opt instanceof JavaVersionCommand)
 			{
 				javaVersion = ((JavaVersionCommand)opt).getVersion();
+			}
+			else if (opt instanceof GitIdCommand)
+			{
+				if (gitIdCommand != null)
+					throw new UtilException("You cannot specify more than one git id variable");
+				gitIdCommand = (GitIdCommand) opt;
 			}
 			else if (processOption(opt))
 				;
