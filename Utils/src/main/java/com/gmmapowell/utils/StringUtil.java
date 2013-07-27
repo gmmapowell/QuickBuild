@@ -144,13 +144,17 @@ public class StringUtil {
 		return tmp.substring(0, columns);
 	}
 
-	public static String join(Collection<Object> object) {
+	public static String join(Collection<? extends Object> object) {
+		return join(object, " ");
+	}
+	
+	public static String join(Collection<? extends Object> object, String seperator) {
 		StringBuilder sb = new StringBuilder();
 		String sep = "";
 		for (Object o : object) {
 			sb.append(sep);
 			sb.append(o);
-			sep = " ";
+			sep = seperator;
 		}
 		return sb.toString();
 	}
