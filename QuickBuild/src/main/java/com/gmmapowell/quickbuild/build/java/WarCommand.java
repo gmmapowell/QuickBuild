@@ -17,7 +17,6 @@ import com.gmmapowell.utils.FileUtils;
 public class WarCommand extends JarCommand {
 	private List<PendingResource> warlibs = new ArrayList<PendingResource>();
 	private List<Pattern> warexcl = new ArrayList<Pattern>();
-	private GitIdCommand gitIdCommand;
 
 	public WarCommand(TokenizedLine toks) {
 		super(toks);
@@ -35,13 +34,6 @@ public class WarCommand extends JarCommand {
 			PendingResource pr = ((ResourceCommand)cmd).getPendingResource();
 			warlibs.add(pr);
 			needsResources.add(pr);
-			return true;
-		}
-		else if (cmd instanceof GitIdCommand)
-		{
-			if (gitIdCommand != null)
-				throw new UtilException("You cannot specify more than one git id variable");
-			gitIdCommand = (GitIdCommand) cmd;
 			return true;
 		}
 
