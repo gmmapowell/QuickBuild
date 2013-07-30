@@ -111,6 +111,10 @@ public class JavaBuildCommand implements Tactic, CanBeSkipped {
 		}
 		proc.arg("-sourcepath");
 		proc.arg(srcdir.getPath());
+		
+		// This should really be an option!!!!
+		proc.arg("-g");
+		
 		proc.arg("-d");
 		proc.arg(bindir.getPath());
 		if (!classpath.empty())

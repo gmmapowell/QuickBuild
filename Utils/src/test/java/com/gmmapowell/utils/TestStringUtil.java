@@ -5,8 +5,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-import com.gmmapowell.collections.CollectionUtils;
-
 import junit.framework.TestCase;
 
 public class TestStringUtil extends TestCase {
