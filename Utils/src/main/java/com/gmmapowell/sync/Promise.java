@@ -7,14 +7,21 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.utils.DateUtils;
+import com.gmmapowell.utils.DateUtils.Timer;
 
 public class Promise<T> implements Future<T> {
+	private static final Logger logger = LoggerFactory.getLogger("Promise");
 	enum Outcome { PENDING, SUCCESS, FAILURE };
 	private Outcome done;
 	private T obj;
 	private Throwable error;
 	private final Set<Handler<T>> then = new HashSet<Handler<T>>();
+	private Object antecedent;
 
 	public Promise() {
 		done = Outcome.PENDING;
@@ -40,7 +47,7 @@ public class Promise<T> implements Future<T> {
 		return false;
 	}
 
-	public <V> Promise<V> transform(TransformHandler<T,V> handler) {
+	public synchronized <V> Promise<V> transform(TransformHandler<T,V> handler) {
 		Promise<V> ret = new Promise<V>();
 		handler.sendTo(ret);
 		this.then(handler);
@@ -81,9 +88,15 @@ public class Promise<T> implements Future<T> {
 	@Override
 	public T get() {
 		try {
+			Timer t = new DateUtils.Timer();
 			synchronized (this) {
-				while (done == Outcome.PENDING)
-					this.wait();
+				boolean looping = false;
+				while (done == Outcome.PENDING && t.notYet(7500)) {
+					if (looping)
+						logger.info("Promise pending after " + t.getElapsed(DateUtils.Format.hhmmss3));
+					this.wait(TimeUnit.MILLISECONDS.toMillis(750));
+					looping = true;
+				}
 
 				if (done == Outcome.FAILURE)
 					throw UtilException.wrap(error);
@@ -136,5 +149,9 @@ public class Promise<T> implements Future<T> {
 		for (Handler<T> h : then)
 			h.failed(t);
 		this.notifyAll();
+	}
+
+	public void waitingFor(Object antecedent) {
+		this.antecedent = antecedent;
 	}
 }

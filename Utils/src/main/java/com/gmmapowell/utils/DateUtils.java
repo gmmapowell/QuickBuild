@@ -64,9 +64,17 @@ public class DateUtils {
 			start = new Date();
 		}
 		
+		public boolean notYet(long msElapsed) {
+			return elapsedMs() < msElapsed;
+		}
+		
 		public String getElapsed(Format format)
 		{
 			return elapsedTime(start, new Date(), format);
+		}
+
+		public long elapsedMs() {
+			return new Date().getTime()-start.getTime();
 		}
 	}
 }

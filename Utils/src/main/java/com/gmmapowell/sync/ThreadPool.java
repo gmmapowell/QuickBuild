@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import com.gmmapowell.utils.StringUtil;
+
 
 public class ThreadPool {
 	public class PooledThread extends Thread {
@@ -48,7 +50,7 @@ public class ThreadPool {
 		synchronized (pool) {
 			closeLatch = new CountDownLatch(cnt);
 			for (int i=0;i<cnt;i++) {
-				PooledThread thr = new PooledThread("Pool " + i);
+				PooledThread thr = new PooledThread("Pool " + StringUtil.digits(i, 2));
 				thr.start();
 			}
 		}

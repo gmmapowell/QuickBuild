@@ -96,6 +96,21 @@ public class StringUtil {
 		return sb.toString();
 	}
 
+	public static char uniqueLetter(int idx) {
+		if (idx < 0)
+			return '-';
+		else if (idx < 10)
+			return (char) ('0' + idx);
+		else if (idx < 36)
+			return (char) ('A' + idx-10);
+		else if (idx < 62)
+			return (char) ('a' + idx-36);
+		else if (idx < 72)
+			return (char) ('!' + idx-72);
+		else
+			return '+';
+	}
+
 	public static String capitalize(String s)
 	{
 		if (s == null)
@@ -157,5 +172,11 @@ public class StringUtil {
 			sep = seperator;
 		}
 		return sb.toString();
+	}
+
+	public static String defaultValue(String value, String def) {
+		if (value != null)
+			return value;
+		return def;
 	}
 }

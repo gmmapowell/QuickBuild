@@ -35,7 +35,6 @@ public class HttpFormatter extends Formatter {
 			ex.printStackTrace(sw);
 			exInfo = baos.toString();
 		}
-		return sdf.format(new Date(time)) + " " + name + " " + level + ": " + record.getMessage() + "\n" + exInfo;
+		return sdf.format(new Date(time)) + " " + name + "[" + record.getThreadID() + "] " + level + ": " + record.getMessage() + "\n" + exInfo;
 	}
-
 }

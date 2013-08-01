@@ -45,7 +45,8 @@ public class Log4JHttpLayout extends Layout {
 			}
 		}
 		
-		return sdf.format(new Date(time)) + " " + name + " " + level + ": " + event.getMessage() + "\n" + exInfo;
+		String thread = event.getThreadName();
+		return sdf.format(new Date(time)) + " " + name + "/" + thread.substring(thread.length()-2) + " " + level + ": " + event.getMessage() + "\n" + exInfo;
 	}
 
 	@Override
