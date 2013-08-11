@@ -142,6 +142,25 @@ public class XMLElement implements Externalizable {
 		return ret;
 	}
 
+	public ArrayList<Object> mixed() {
+		ArrayList<Object> ret = new ArrayList<Object>();
+		NodeList nl = elt.getChildNodes();
+		int len = nl.getLength();
+		for (int i=0; i<len; i++)
+		{
+			Node n = nl.item(i);
+			
+			if (n instanceof Element) {
+				XMLElement child = new XMLElement(inside, (Element)n);
+				child.setErrorHandler(handler);
+				ret.add(child);
+			} else if (n instanceof Text) {
+				ret.add(((Text)n).getData());
+			}
+		}
+		return ret;
+	}
+
 	// The idea of this is to use introspection and reflection to figure out what the object wants,
 	// and then give it that in the most appropriate order.
 	// I would like this to involve dynamically re-ordering the input file if the alternative would be an error,
@@ -304,8 +323,8 @@ public class XMLElement implements Externalizable {
 	}
 
 
-	public void addText(String description) {
-		elt.appendChild(inside.doc.createTextNode(description));
+	public void addText(String text) {
+		elt.appendChild(inside.doc.createTextNode(text));
 	}
 
 	public XMLElement addElement(XMLElement xe) {

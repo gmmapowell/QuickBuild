@@ -174,22 +174,33 @@ public class ConnectionThread extends Thread {
 		}
 		else if (request.getMethod().equalsIgnoreCase("GET")) {
 			GPStaticResource staticResource = request.getStaticResource();
+			String pathInfo = request.getPathInfo();
 			if (staticResource != null)
 			{
 				InlineServer.logger.debug(Thread.currentThread().getName()+ ": " +"Found static resource");
 				response.setStatus(200);
 				response.setContentLength((int)staticResource.len);
+				guessContentType(response, pathInfo);
 				FileUtils.copyStream(staticResource.stream, response.getOutputStream());
 				staticResource.close();
 			}
 			else
 			{
-				InlineServer.logger.info(Thread.currentThread().getName()+ ": " +"404: Not found - " + request.getPathInfo());
+				InlineServer.logger.info(Thread.currentThread().getName()+ ": " +"404: Not found - " + pathInfo);
 				response.setStatus(404);
 			}
 		}
 		request.getInputStream().flush();
 		return response;
+	}
+
+	public void guessContentType(GPResponse response, String pathInfo) {
+		if (pathInfo.endsWith(".html"))
+			response.setContentType("text/html");
+		else if (pathInfo.endsWith(".js"))
+			response.setContentType("application/javascript");
+		else if (pathInfo.endsWith(".css"))
+			response.setContentType("text/css");
 	}
 
 	private void dealWithWebsocket(GPRequest request, GPResponse response) {
