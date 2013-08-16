@@ -9,3 +9,6 @@ javaVersion 1.6
 
 jar QuickBuild
 jar Utils
+jarjar scripts/Quickbuilder.jar
+  resource QuickBuild.jar
+  resource Utils.jar

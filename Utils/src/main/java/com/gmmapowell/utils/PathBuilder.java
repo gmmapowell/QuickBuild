@@ -6,6 +6,8 @@ public class PathBuilder {
 	private StringBuilder sb = new StringBuilder();
 	
 	public void add(File f) {
+		if (f == null)
+			return;
 		if (f.exists() && (f.length() > 0 || f.isDirectory()))
 		{
 			if (sb.length() > 0)

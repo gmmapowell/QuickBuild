@@ -10,6 +10,8 @@ public class BuildClassPath {
 	private Set<File> files = new HashSet<File>();
 
 	public void add(File file) {
+		if (file == null)
+			return;
 		files.add(file);
 	}
 

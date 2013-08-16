@@ -17,7 +17,7 @@ public class RunClassPath extends BuildClassPath {
 	
 	@Override
 	public void add(File file) {
-		if (basedOn.contains(file))
+		if (file == null || basedOn.contains(file))
 			return;
 		super.add(file);
 	}

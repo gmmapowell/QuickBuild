@@ -49,7 +49,7 @@ public class QuickBuild {
 		List<File> pathElts = FileUtils.splitJavaPath(System.getProperty("java.class.path"));
 		File utilsJar = null;
 		for (File f : pathElts) {
-			if (f.getName().endsWith("Utils.jar") || f.getPath().endsWith("Utils/bin"))
+			if (f.getName().endsWith("Utils.jar") || f.getPath().endsWith("Utils/bin") || f.getName().endsWith("Quickbuilder.jar"))
 				utilsJar = f;
 		}
 		if (utilsJar == null)

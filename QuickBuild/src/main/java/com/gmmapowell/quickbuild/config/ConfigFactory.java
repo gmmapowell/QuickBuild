@@ -108,7 +108,12 @@ public class ConfigFactory implements CommandObjectFactory {
 	}
 
 	public void addCommandExtension(String cmd, Class<? extends Parent<?>> clz) {
-		addCommandHandler(cmd, clz);
+		try {
+			addCommandHandler(cmd, clz);
+		} catch (Throwable t) {
+			// could not install the extension
+			System.out.println("Could not install extension " + clz);
+		}
 	}
 
 	public void addCommandHandler(String cmd, Class<? extends Parent<?>> handler)
