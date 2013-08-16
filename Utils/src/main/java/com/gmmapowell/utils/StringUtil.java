@@ -3,6 +3,7 @@ package com.gmmapowell.utils;
 import java.io.LineNumberReader;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.gmmapowell.exceptions.UtilException;
@@ -133,5 +134,28 @@ public class StringUtil {
 
 	public static boolean isHexDigit(char ch) {
 		return Character.isDigit(ch) || (ch >='a' && ch <='f') || (ch >='A' && ch <='F');
+	}
+
+	public static String truncate(String tmp, int columns) {
+		if (tmp == null)
+			return "";
+		if (tmp.length() <= columns)
+			return tmp;
+		return tmp.substring(0, columns);
+	}
+
+	public static String join(Collection<Object> object) {
+		return join(object, " ");
+	}
+
+	public static String join(Collection<Object> object, String sep) {
+		StringBuilder sb = new StringBuilder();
+		String tmp = "";
+		for (Object o : object) {
+			sb.append(tmp);
+			sb.append(o);
+			tmp = sep;
+		}
+		return sb.toString();
 	}
 }

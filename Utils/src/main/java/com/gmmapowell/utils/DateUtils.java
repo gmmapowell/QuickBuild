@@ -1,12 +1,14 @@
 package com.gmmapowell.utils;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 import com.gmmapowell.exceptions.UtilException;
 
 public class DateUtils {
 	public enum Format {
-		hhmmss3, sss3;
+		hhmmss3, sss3, isodate;
 
 		public String format(long elapsed) {
 			final int millis = (int)elapsed%1000;
@@ -25,7 +27,18 @@ public class DateUtils {
 				return StringUtil.concat(Integer.toString(inSeconds), ".", StringUtil.digits(millis, 3));
 			}
 			default:
-				throw new UtilException("The format " + this + " is not handled");
+				throw new UtilException("The format " + this + " is not handled in format");
+			}
+		}
+		
+		public String showDate(Date d) {
+			switch (this) {
+			case isodate:
+				SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd-HH:mm:ss.SSS");
+				format.setTimeZone(TimeZone.getTimeZone("UTC"));
+				return format.format(d);
+			default:
+				throw new UtilException("The format " + this + " is not handled in showDate");
 			}
 		}
 	}
@@ -36,6 +49,10 @@ public class DateUtils {
 		long elapsed = toMillis-fromMillis;
 		
 		return fmt.format(elapsed);
+	}
+
+	public static Date add(Date date, int ms) {
+		return new Date(date.getTime() + ms);
 	}
 	
 	public static class Timer

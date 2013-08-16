@@ -249,7 +249,7 @@ public class InlineServer implements Runnable {
 				return new GPRequest(sd.getConfig(), method, rawUri, protocol, is);
 			}
 
-		logger.info("No servlet found; going with static");
+		logger.info("No servlet found for " + rawUri +"; going with static");
 		return new GPRequest(staticConfig, method, rawUri, protocol, is);
 	}
 
