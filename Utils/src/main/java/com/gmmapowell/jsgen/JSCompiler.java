@@ -29,15 +29,17 @@ public abstract class JSCompiler extends JSExpr {
 		block.stmts.add(new Assign(var, rvalue, false));
 	}
 
-
 	public void assign(LValue member, JSExpr rvalue) {
 		block.stmts.add(new Assign(member, rvalue));
+	}
+
+	public void assignWith(String op, LValue member, JSExpr rvalue) {
+		block.stmts.add(new Assign(op, member, rvalue));
 	}
 
 	public JSExpr binop(String op, JSExpr lhs, JSExpr rhs) {
 		return new BinaryOp(block.scope, op).arg(lhs).arg(rhs);
 	}
-
 
 	public void blockComment(String text) {
 		block.stmts.add(new JSBlockComment(text));
@@ -50,6 +52,10 @@ public abstract class JSCompiler extends JSExpr {
 	public JSFunction declareFunction(String name, String... args) {
 		JSFunction decl = block.createFunction(name, args);
 		return decl;
+	}
+
+	public VarDecl declareVarLike(String var, JSExpr expr) {
+		return block.declareVarLike(var, expr);
 	}
 
 	public VarDecl declareVar(String var, JSExpr expr) {
@@ -156,8 +162,16 @@ public abstract class JSCompiler extends JSExpr {
 		return ret;
 	}
 	
+	public void returnValue(JSExpr expr) {
+		block.stmts.add(new JSReturn(expr));
+	}
+	
 	public void returnVoid() {
 		block.stmts.add(new JSReturn());
+	}
+
+	public JSExpr parens(JSExpr sc) {
+		return new JSParens(sc);
 	}
 
 	public JSExpr string(String s) {

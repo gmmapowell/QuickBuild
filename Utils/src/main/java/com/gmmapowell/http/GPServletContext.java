@@ -166,7 +166,8 @@ public class GPServletContext implements ServletContext {
 				try {
 					if (f.isDirectory())
 						f = new File(f, "index.html");
-					return new GPStaticResource(f, f.length(), new FileInputStream(f));
+					if (f.exists())
+						return new GPStaticResource(f, f.length(), new FileInputStream(f));
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 				}

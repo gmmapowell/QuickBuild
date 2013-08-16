@@ -78,9 +78,9 @@ public class JSBuilder {
 		this.objectComma = true;
 	}
 
-	public void assign() {
-		if (isPretty) append(" = ");
-		else append("=");
+	public void assign(String op) {
+		if (isPretty) append(" " + op + " ");
+		else append(op);
 	}
 	
 	public void ident(String s) {

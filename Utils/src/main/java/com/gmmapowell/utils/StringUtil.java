@@ -163,13 +163,13 @@ public class StringUtil {
 		return join(object, " ");
 	}
 	
-	public static String join(Collection<? extends Object> object, String seperator) {
+	public static String join(Collection<? extends Object> object, String separator) {
 		StringBuilder sb = new StringBuilder();
 		String sep = "";
 		for (Object o : object) {
 			sb.append(sep);
 			sb.append(o);
-			sep = seperator;
+			sep = separator;
 		}
 		return sb.toString();
 	}

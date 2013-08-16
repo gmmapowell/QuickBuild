@@ -78,16 +78,17 @@ public class JSBlock {
 		return ret;
 	}
 
-	public JSVar declareVarLike(String var, Object expr) {
-		JSVar ret = scope.getVarLike(var);
-		JSExpr value;
+	public VarDecl declareVarLike(String var, Object expr) {
+		JSVar jsvar = scope.getVarLike(var);
+		VarDecl ret = new VarDecl(scope, jsvar);
+		JSExpr value = null;
 		if (expr instanceof JSExpr)
 			value = (JSExpr)expr;
 		else if (expr instanceof String || expr instanceof Integer)
 			value = new JSValue(expr);
 		else
 			throw new UtilException("Cannot handle value of type " + expr.getClass());
-		add(new Assign(ret, value, true));
+		add(new Assign(jsvar, value, true));
 		return ret;
 	}
 

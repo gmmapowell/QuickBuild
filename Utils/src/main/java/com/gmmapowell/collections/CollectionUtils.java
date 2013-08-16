@@ -76,4 +76,13 @@ public class CollectionUtils {
 			ret[i+arr.length] = append[i];
 		return ret;
 	}
+
+	public static <T> Iterable<T> iterableOf(final Iterator<T> keys) {
+		return new Iterable<T>() {
+			public Iterator<T> iterator() {
+				return keys;
+			}
+			
+		};
+	}
 }
