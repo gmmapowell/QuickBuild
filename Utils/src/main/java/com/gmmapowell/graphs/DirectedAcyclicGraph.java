@@ -125,6 +125,15 @@ public class DirectedAcyclicGraph<N> {
 			throw new UtilException("The graph had more than one root");
 	}
 
+
+	public Iterable<N> children(N node) {
+		Set<N> ret = new HashSet<N>();
+		Node<N> root = find(node);
+		for (Link<N> l : root.linksFrom())
+			ret.add(l.to.node);
+		return ret;
+	}
+
 	public Iterable<N> allChildren(N node) {
 		Set<N> ret = new HashSet<N>();
 		int cnt;

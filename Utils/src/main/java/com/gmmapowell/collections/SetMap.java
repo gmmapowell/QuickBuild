@@ -50,4 +50,26 @@ public class SetMap<K, V> implements Iterable<K> {
 		for (V v : vals)
 			add(k,  v);
 	}
+
+	public int totalSize() {
+		int ret = 0;
+		for (Set<V> x : map.values())
+			ret += x.size();
+		return ret;
+	}
+
+	public int size(K k)
+	{
+		if (!map.containsKey(k))
+			return 0;
+		return map.get(k).size();
+	}
+
+	public boolean isEmpty() {
+		return map.isEmpty();
+	}
+
+	public Set<K> keySet() {
+		return map.keySet();
+	}
 }

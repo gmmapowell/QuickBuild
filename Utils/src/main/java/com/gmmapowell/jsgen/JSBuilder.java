@@ -120,6 +120,8 @@ public class JSBuilder {
 				jg.writeString((String) value);
 			else if (value instanceof Integer)
 				jg.writeNumber((Integer)value);
+			else if (value instanceof Double)
+				jg.writeNumber((Double)value);
 			else
 				throw new UtilException("JSBuilder cannot write a value of type " + value.getClass());
 		} catch (Exception ex) {

@@ -82,7 +82,9 @@ public class JSBlock {
 		JSVar jsvar = scope.getVarLike(var);
 		VarDecl ret = new VarDecl(scope, jsvar);
 		JSExpr value = null;
-		if (expr instanceof JSExpr)
+		if (expr == null)
+			value = new NullExpr();
+		else if (expr instanceof JSExpr)
 			value = (JSExpr)expr;
 		else if (expr instanceof String || expr instanceof Integer)
 			value = new JSValue(expr);
