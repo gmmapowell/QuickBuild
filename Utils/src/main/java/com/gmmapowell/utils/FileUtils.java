@@ -515,6 +515,22 @@ public class FileUtils {
 		dir.delete();
 	}
 
+	public static File combine(Object... paths) {
+		File ret = null;
+		if (paths[0] instanceof File)
+			ret = (File) paths[0];
+		else if (paths[0] instanceof String)
+			ret = new File((String) paths[0]);
+		
+		for (int i=1;i<paths.length;i++) {
+			if (paths[i] instanceof File)
+				ret = combine(ret, (File)paths[i]);
+			else if (paths[i] instanceof String)
+				ret = combine(ret, (String)paths[i]);
+		}
+		return ret;
+	}
+	
 	public static File combine(File path1, String path2) {
 		if (path1 == null && path2 == null)
 			return null;

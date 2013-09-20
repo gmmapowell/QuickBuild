@@ -45,9 +45,15 @@ public class BinaryOp extends JSExpr {
 	@Override
 	public void toScript(JSBuilder sb) {
 		// TODO: We probably need to consider precedence at some point
-		left.toScript(sb);
+		if (left == null)
+			sb.append("null");
+		else
+			left.toScript(sb);
 		sb.append(" " + op + " ");
-		right.toScript(sb);
+		if (right == null)
+			sb.append("null");
+		else
+			right.toScript(sb);
 	}
 
 }

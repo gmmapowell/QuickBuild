@@ -44,6 +44,10 @@ public abstract class JSCompiler extends JSExpr {
 	public void blockComment(String text) {
 		block.stmts.add(new JSBlockComment(text));
 	}
+	
+	public void breakOut() {
+		block.stmts.add(new JSBreak());
+	}
 
 	public void continueLoop() {
 		block.stmts.add(new JSContinue());
@@ -128,6 +132,11 @@ public abstract class JSCompiler extends JSExpr {
 		return new JSValue(k);
 	}
 
+
+	public JSExpr doubleValue(double value) {
+		return new JSValue(value);
+	}
+
 	public FunctionCall jquery(String s) {
 		return functionExpr("$", string(s));
 	}
@@ -162,6 +171,10 @@ public abstract class JSCompiler extends JSExpr {
 		return ret;
 	}
 	
+	public JSExpr postOp(LValue value, String op) {
+		return new PostOp(op, value);
+	}
+
 	public void returnValue(JSExpr expr) {
 		block.stmts.add(new JSReturn(expr));
 	}
@@ -180,6 +193,10 @@ public abstract class JSCompiler extends JSExpr {
 
 	public JSVar var(String var) {
 		return block.scope.getDefinedVar(var);
+	}
+	
+	public void voidExpr(JSExpr expr) {
+		block.stmts.add(new VoidExprStmt(expr));
 	}
 	
 	public void voidFunction(String function, JSExpr... args) {

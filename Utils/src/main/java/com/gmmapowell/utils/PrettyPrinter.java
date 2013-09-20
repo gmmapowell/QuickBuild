@@ -1,11 +1,25 @@
 package com.gmmapowell.utils;
 
+import java.io.PrintStream;
+
+import com.gmmapowell.reflection.Reflection;
+
 public class PrettyPrinter {
 	private StringBuilder sb = new StringBuilder();
 	private int indWidth = 4;
 	private int levels = 0;
 	private Hollerith hollerith;
 	private boolean nlAtEnd = true;
+	
+	public static String format(Object o, String method) {
+		PrettyPrinter pp = new PrettyPrinter();
+		Reflection.call(o, method, pp);
+		return pp.toString();
+	}
+	
+	public static void print(PrintStream stream, Object o, String method) {
+		stream.print(format(o, method));
+	}
 	
 	/** Number of spaces to indent each level.  The default is 4.
 	 * 

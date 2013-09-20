@@ -49,6 +49,13 @@ public class ListMap<K, V> implements Iterable<K> {
 			throw new UtilException("There is no key '" + k + "' in " + this);
 		return map.get(k);
 	}
+
+	public int totalSize() {
+		int ret = 0;
+		for (List<V> l : map.values())
+			ret += l.size();
+		return ret;
+	}
 	
 	public int size(K k)
 	{
@@ -77,9 +84,9 @@ public class ListMap<K, V> implements Iterable<K> {
 		return ret;
 	}
 
-	public void removeAll(K key)
+	public List<V> removeAll(K key)
 	{
-		map.remove(key);
+		return map.remove(key);
 	}
 	
 	public void remove(K k, V v)
