@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 public class CSVMap {
-
 	private Map<String, String> map = new HashMap<String, String>();
 	private final ArrayList<String> headers;
 
@@ -30,6 +29,11 @@ public class CSVMap {
 
 	public List<String> headers() {
 		return headers;
+	}
+	
+	@Override
+	public String toString() {
+		return "CSV["+map+"]";
 	}
 
 }

@@ -5,6 +5,7 @@ maven org.atmosphere:atmosphere-runtime:jar:1.1.0.beta1
 maven org.atmosphere:wasync:jar:1.0.0-SNAPSHOT
 maven org.slf4j:slf4j-api:jar:1.7.5
 maven log4j:log4j:jar:1.2.17
+maven com.codahale.metrics:metrics-core:jar:3.0.1
 javaVersion 1.6
 
 jar QuickBuild
