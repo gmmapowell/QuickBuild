@@ -1,8 +1,8 @@
 repo http://oss.sonatype.org/content/repositories/snapshots
 maven junit:junit:jar:4.8.2
 maven com.rabbitmq:amqp-client:jar:2.8.1
-maven org.atmosphere:atmosphere-runtime:jar:1.1.0.beta1
-maven org.atmosphere:wasync:jar:1.0.0-SNAPSHOT
+maven org.atmosphere:atmosphere-runtime:jar:2.0.3
+maven org.atmosphere:wasync:jar:1.1.0
 maven org.slf4j:slf4j-api:jar:1.7.5
 maven log4j:log4j:jar:1.2.17
 maven com.codahale.metrics:metrics-core:jar:3.0.1
