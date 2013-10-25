@@ -234,7 +234,6 @@ public class ConnectionThread extends Thread {
 			InlineServer.logger.info(Thread.currentThread().getName()+ ": " + "End of async stream");
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.exit(1);
 		}
 	}
 
