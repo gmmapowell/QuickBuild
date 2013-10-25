@@ -13,7 +13,8 @@ public class BlockExpr extends Expr {
 	public void spitOutByteCode(MethodDefiner meth) {
 		for (Expr e: exprs)
 		{
-			e.spitOutByteCode(meth);
+			if (e != null)
+				e.spitOutByteCode(meth);
 		}
 	}
 
