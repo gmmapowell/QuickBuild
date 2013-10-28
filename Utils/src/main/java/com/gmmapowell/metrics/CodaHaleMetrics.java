@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.MetricRegistry;
 
-public class CodeHaleMetrics {
+public class CodaHaleMetrics {
 	
 	public final static MetricRegistry metrics = new MetricRegistry();
 	
