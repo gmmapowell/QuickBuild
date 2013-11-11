@@ -87,4 +87,9 @@ public class AsyncProcessor extends AsynchronousProcessor {
 		}
 		return false;
 	}
+
+	@Override
+	public String getContainerName() {
+		return "InlineServer";
+	}
 }

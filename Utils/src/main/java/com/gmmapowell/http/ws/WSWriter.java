@@ -10,16 +10,17 @@ import com.gmmapowell.http.GPResponse;
 
 public class WSWriter extends WebSocket {
 	private final GPResponse response;
+	private boolean isopen;
 
 	public WSWriter(GPResponse response, AtmosphereConfig atmosphereConfig) {
 		super(atmosphereConfig);
 		this.response = response;
+		this.isopen = true;
 	}
 
 	@Override
 	public boolean isOpen() {
-		// TODO Auto-generated method stub
-		return false;
+		return isopen;
 	}
 
 	@Override
@@ -71,5 +72,6 @@ public class WSWriter extends WebSocket {
 	@Override
 	public void close() {
 		response.close();
+		this.isopen = false;
 	}
 }

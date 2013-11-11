@@ -13,6 +13,6 @@
 	<classpathentry kind="lib" path="/utils-qb/mvncache/log4j/log4j/1.2.17/log4j-1.2.17.jar"/>
 	<classpathentry kind="lib" path="/utils-qb/mvncache/org/slf4j/slf4j-api/1.7.5/slf4j-api-1.7.5.jar"/>
 	<classpathentry kind="lib" path="/qb/mvncache/com/codahale/metrics/metrics-core/3.0.1/metrics-core-3.0.1.jar" sourcepath="/home/eric/code/jarsource/metrics-core-3.0.1-sources.jar"/>
-	<classpathentry kind="lib" path="/utils-qb/mvncache/org/atmosphere/atmosphere-runtime/2.0.3/atmosphere-runtime-2.0.3.jar"/>
+	<classpathentry kind="lib" path="/utils-qb/mvncache/org/atmosphere/atmosphere-runtime/2.0.3/atmosphere-runtime-2.0.3.jar" sourcepath="/Users/gareth/user/Clients/MGH/atmosphere/modules/cpr/src/main/java"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
