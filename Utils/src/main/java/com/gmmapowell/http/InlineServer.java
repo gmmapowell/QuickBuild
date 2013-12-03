@@ -253,6 +253,14 @@ public class InlineServer implements Runnable {
 		return new GPRequest(staticConfig, method, rawUri, protocol, is);
 	}
 
+	public GPServletDefn servletFor(String s) {
+		for (GPServletDefn sd : servlets) {
+			if (sd.isForMe(s))
+				return sd;
+		}
+		return null;
+	}
+	
 	public synchronized void requestTime(Date start, Date end) {
 		long elapsed = end.getTime()-start.getTime();
 		totalRequests += elapsed;

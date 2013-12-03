@@ -1,6 +1,7 @@
 package com.gmmapowell.utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.gmmapowell.collections.StateMap;
@@ -152,9 +153,13 @@ public class ProcessArgs {
 	private static void applyArgument(Object config,
 			StateMap<ArgumentDefinition, Integer> argcount, ArgumentDefinition ad,
 			String val) {
-		for (String s : val.split(ad.splitChar))
-			if (s != null && s.length() > 0)
-				Reflection.setField(config, ad.toVar, s); // append to collection
+		Class<?> clz = Reflection.fieldType(config, ad.toVar);
+		if (Collection.class.isAssignableFrom(clz)) {
+			for (String s : val.split(ad.splitChar))
+				if (s != null && s.length() > 0)
+					Reflection.setField(config, ad.toVar, s); // append to collection
+		} else
+			Reflection.setField(config, ad.toVar, val);
 		argcount.op(ad, 1, new FuncR1<Integer, Integer>() {
 			@Override
 			public Integer apply(Integer arg) {

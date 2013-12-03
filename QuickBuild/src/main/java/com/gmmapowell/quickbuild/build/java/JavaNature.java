@@ -167,8 +167,11 @@ public class JavaNature implements Nature, BuildContextAware {
 					if (haveOne != null)
 						System.out.println("Multiple choices in context " + context + " for package " + needsJavaPackage + ": chose " + haveOne + " and not " + jr);
 					else {
-						if (addMany)
+						if (addMany) {
+							if (debug)
+								System.out.println(" Found " + jr);
 							ret |= cxt.addDependency(dependent, jr, debug);
+						}
 						else
 							haveOne = jr;
 					}
@@ -176,8 +179,11 @@ public class JavaNature implements Nature, BuildContextAware {
 			}
 			if (ret)
 				return true;
-			if (haveOne != null)
+			if (haveOne != null) {
+				if (debug)
+					System.out.println(" Found " + haveOne);
 				return cxt.addDependency(dependent, haveOne, debug);
+			}
 		}
 		
 		// OK, try and move the projects around a bit
@@ -188,16 +194,22 @@ public class JavaNature implements Nature, BuildContextAware {
 			{
 				if (p.equals(dependent))
 					continue;
-				if (p != null && conf.matchesContext(p, context))
+				if (p != null && conf.matchesContext(p, context)) {
+					if (debug)
+						System.out.println(" Considering Jar " + p + " for as yet unbuilt " + needsJavaPackage);
 					didSomething |= cxt.addDependency(dependent, p, debug);
+				}
 			}
 			return didSomething;
 		}
 
 		// It's possible the first reference we come to is a nested class.  Try this hack:
 		int idx = needsJavaPackage.lastIndexOf(".");
-		if (idx != -1 && Character.isUpperCase(needsJavaPackage.charAt(idx+1)))
+		if (idx != -1 && Character.isUpperCase(needsJavaPackage.charAt(idx+1))) {
+			if (debug)
+				System.out.println("Considering nested class hack for " + needsJavaPackage);
 			return addDependency(dependent, needsJavaPackage.substring(0,idx), context, debug);
+		}
 
 		return false;
 //		throw new JavaBuildFailure("cannot find any code that defines package " + needsJavaPackage);
