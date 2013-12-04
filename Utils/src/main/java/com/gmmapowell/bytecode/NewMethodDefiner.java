@@ -109,6 +109,7 @@ public interface NewMethodDefiner {
 	void setAccess(Access a);
 	void makeFinal();
 	void makeTransient();
+	void makeBridge();
 
 	void addAttribute(String named, String text);
 

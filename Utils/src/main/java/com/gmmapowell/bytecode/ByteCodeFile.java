@@ -38,6 +38,7 @@ public class ByteCodeFile implements AnnotationHolder {
 	public final static short ACC_FINAL        = 0x0010;
 	public final static short ACC_SUPER        = 0x0020;
 	public final static short ACC_SYNCHRONIZED = 0x0020;
+	public final static short ACC_BRIDGE	   = 0x0040;
 	public final static short ACC_TRANSIENT    = 0x0080;
 	public final static short ACC_NATIVE       = 0x0100;
 	public final static short ACC_INTERFACE    = 0x0200;
