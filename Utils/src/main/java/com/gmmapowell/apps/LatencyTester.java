@@ -24,6 +24,7 @@ public class LatencyTester {
 				System.out.println("Listening for a connection ...");
 				socket = lsnr.accept();
 				pingPong(socket.getInputStream(), socket.getOutputStream(), false);
+				lsnr.close();
 			} else {
 				socket = new Socket(server, 5133);
 				pingPong(socket.getInputStream(), socket.getOutputStream(), true);

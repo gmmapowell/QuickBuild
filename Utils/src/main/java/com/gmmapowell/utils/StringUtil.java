@@ -179,4 +179,11 @@ public class StringUtil {
 			return value;
 		return def;
 	}
+
+	public static String afterLast(String value, String lookFor) {
+		int idx = value.lastIndexOf(lookFor);
+		if (idx == -1)
+			return value;
+		return value.substring(idx+lookFor.length());
+	}
 }

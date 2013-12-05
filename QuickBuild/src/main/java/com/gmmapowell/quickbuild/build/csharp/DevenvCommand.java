@@ -90,8 +90,10 @@ public class DevenvCommand extends SpecificChildrenParent<ConfigApplyCommand> im
 						}
 						else if (lpm.is("xap"))
 							xap = lpm.get("filename");
-						else
+						else {
+							fr.close();
 							throw new QuickBuildException("Cannot handle " + lpm);
+						}
 					}
 					if (type.equals("Library"))
 					{

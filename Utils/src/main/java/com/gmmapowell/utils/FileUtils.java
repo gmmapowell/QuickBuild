@@ -574,6 +574,7 @@ public class FileUtils {
 			String s;
 			while ((s = lnr.readLine()) != null)
 				System.out.println(s);
+			lnr.close();
 		} catch (IOException e) {
 			throw UtilException.wrap(e);
 		}
@@ -729,19 +730,24 @@ public class FileUtils {
 			fis = new FileInputStream(f);
 			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
 			Character c;
-			while((c = (char) br.read()) != null)
-			{
-				if(c == '\n')
-					return LineSeparator.UNIX;
-				if(c == '\r')
+			try {
+				while((c = (char) br.read()) != null)
 				{
-					if(br.read() == '\n')
-						return LineSeparator.WINDOWS;
-					else
-						return LineSeparator.OLDMAC; //This seems very unlikely
+					if(c == '\n')
+						return LineSeparator.UNIX;
+					if(c == '\r')
+					{
+						if(br.read() == '\n')
+							return LineSeparator.WINDOWS;
+						else
+							return LineSeparator.OLDMAC; //This seems very unlikely
+					}
 				}
+				return LineSeparator.OTHER; //This is perhaps even less likely
+			} finally {
+				if (br != null)
+					br.close();
 			}
-			return LineSeparator.OTHER; //This is perhaps even less likely
 		}
 		catch (IOException ex)
 		{
