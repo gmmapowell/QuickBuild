@@ -170,7 +170,7 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public String getParameter(String arg0) {
-		String q = uri.getQuery();
+		String q = uri.getRawQuery();
 		if (q == null)
 			return null;
 		int k = q.indexOf(arg0 + "=");
@@ -178,10 +178,12 @@ public class GPRequest implements HttpServletRequest {
 		{
 			int from = k+arg0.length()+1;
 			int t = q.indexOf('&', from);
+			String value;
 			if (t == -1)
-				return q.substring(from);
+				value = q.substring(from);
 			else
-				return q.substring(from, t);
+				value = q.substring(from, t);
+			return urlDecode(value);
 		}
 		return null;
 	}
@@ -190,10 +192,10 @@ public class GPRequest implements HttpServletRequest {
 	public Map<String, String[]> getParameterMap() {
 		if (parameterMap != null)
 			return parameterMap;
-		String q = uri.getQuery();
+		String q = uri.getRawQuery();
 		ListMap<String, String> tmp = new ListMap<String, String>();
 		if (q != null)
-			analyzeQueryString(tmp, q, false);
+			analyzeQueryString(tmp, q, true);
 		if (getContentType() != null && getContentType().startsWith("application/x-www-form-urlencoded"))
 			try {
 				analyzeQueryString(tmp, FileUtils.readNStream(getContentLength(), getInputStream()), true);
@@ -391,7 +393,7 @@ public class GPRequest implements HttpServletRequest {
 
 	@Override
 	public String getQueryString() {
-		return uri.getQuery();
+		return uri.getRawQuery();
 	}
 
 	@Override
