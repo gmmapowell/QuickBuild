@@ -14,7 +14,7 @@ public class EqualsExpr extends Expr {
 	public void spitOutByteCode(MethodDefiner meth) {
 		left.spitOutByteCode(meth);
 		right.spitOutByteCode(meth);
-		meth.invokeVirtualMethod("java.lang.Object", "boolean", "equals", "java.lang.Object");
+		meth.invokeVirtualMethod(left.getType(), "boolean", "equals", "java.lang.Object");
 	}
 
 	@Override
