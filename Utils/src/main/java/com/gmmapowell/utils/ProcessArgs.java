@@ -38,7 +38,10 @@ public class ProcessArgs {
 							pendingField = ad;
 							continue loop;
 						}
-						Reflection.setField(config, ad.toVar, true);
+						// if option starts with "--no-", set the value to "false", otherwise "true"
+						// it's legal for the option list to include both, pointing to the same var
+						boolean val = !(ad.text.startsWith("--no-"));
+						Reflection.setField(config, ad.toVar, val);
 						argcount.op(ad, 1, new FuncR1<Integer, Integer>() {
 							@Override
 							public Integer apply(Integer arg) {

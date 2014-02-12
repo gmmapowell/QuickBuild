@@ -2,7 +2,6 @@ package com.gmmapowell.http;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
@@ -32,8 +31,6 @@ public interface RemoteIO {
 	String getEndpoint();
 
 	void close() throws Exception;
-
-	void setAlertTo(String alert);
 
 	public class Connection {
 		private final InputStream is;
@@ -71,7 +68,6 @@ public interface RemoteIO {
 		private final int port;
 		private ServerSocket s;
 		private final InlineServer server;
-		private Endpoint alertEP;
 
 		public UsingSocket(InlineServer server, int port) {
 			this.server = server;
@@ -88,10 +84,6 @@ public interface RemoteIO {
 		@Override
 		public void announce(List<NotifyOnServerReady> interestedParties) {
 			Endpoint addr = new Endpoint(s);
-			if (alertEP != null) {
-				InlineServer.logger.info("Sending " + addr + " to " + alertEP);
-				alertEP.send(addr.toString());
-			}
 			if (interestedParties != null)
 				for (NotifyOnServerReady nosr : interestedParties)
 					nosr.serverReady(server, addr);
@@ -134,11 +126,6 @@ public interface RemoteIO {
 		}
 
 		@Override
-		public void setAlertTo(String alert) {
-			alertEP = Endpoint.parse(alert);
-		}
-
-		@Override
 		public String getEndpoint() {
 			return new Endpoint(s).toString();
 		}
@@ -165,7 +152,6 @@ public interface RemoteIO {
 		private Channel channel;
 		private QueueingConsumer consumer;
 		private com.rabbitmq.client.Connection connection;
-		private String alertEP;
 		private final InlineServer server;
 
 		public UsingAMQP(InlineServer inlineServer, String amqpUri) {
@@ -189,14 +175,6 @@ public interface RemoteIO {
 
 		@Override
 		public void announce(List<NotifyOnServerReady> interestedParties) {
-			if (alertEP != null)
-				try {
-					InlineServer.logger.info("Publishing ready message to " + alertEP);
-					BasicProperties props = new BasicProperties.Builder().deliveryMode(2).expiration("5000").build();
-					channel.basicPublish("", alertEP, props, "Ready".getBytes());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
 			for (NotifyOnServerReady nosr : interestedParties)
 				nosr.serverReady(server, null);
 		}
@@ -250,11 +228,6 @@ public interface RemoteIO {
 		public void close() throws Exception {
 			InlineServer.logger.info("Closing connection");
 			connection.close();
-		}
-
-		@Override
-		public void setAlertTo(String alert) {
-			alertEP = alert;
 		}
 
 		@Override

@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServlet;
 
 import com.gmmapowell.collections.IteratorEnumerator;
 import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.utils.FileUtils;
 
 public class GPServletContext implements ServletContext {
 	private final GPServletConfig config;
@@ -124,8 +125,9 @@ public class GPServletContext implements ServletContext {
 	public String getRealPath(String path) {
 		if (path.startsWith("/WEB-INF/classes"))
 		{
-			if (classdirs.isEmpty())
-				throw new UtilException("No class directories have been set in inline server: asked for " + path);
+			if (classdirs.isEmpty()) {
+				return FileUtils.combine(FileUtils.getCurrentDir(), path).getAbsolutePath();
+			}
 			String tmp = path.replace("WEB-INF/classes", "");
 			if (tmp.startsWith("/"))
 				tmp.replace("/", "");

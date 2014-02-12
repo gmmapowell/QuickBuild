@@ -38,6 +38,7 @@ public class CollectionUtils {
 		return ret;
 	}
 
+	@SafeVarargs
 	public static <T> List<T> listOf(T... items) {
 		List<T> ret = new ArrayList<T>();
 		for (T x : items)
@@ -45,6 +46,7 @@ public class CollectionUtils {
 		return ret;
 	}
 
+	@SafeVarargs
 	public static <T> Set<T> setOf(T... items) {
 		Set<T> ret = new HashSet<T>();
 		for (T x : items)
@@ -67,6 +69,7 @@ public class CollectionUtils {
 		return ret;
 	}
 
+	@SafeVarargs
 	public static <T> T[] arrayAppend(Class<T> cls, T[] arr, T... append) {
 		@SuppressWarnings("unchecked")
 		T[] ret = (T[]) Array.newInstance(cls, arr.length + append.length);

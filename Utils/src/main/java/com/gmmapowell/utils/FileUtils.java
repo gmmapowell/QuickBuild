@@ -219,32 +219,36 @@ public class FileUtils {
 	}
 
 	// TODO: this feels very functional in its combinations of things
+	public static List<File> findFilesMatchingIn(File dir, String string) {
+		return findFiles(dir, null, string, null, null, false);
+	}
+
 	public static List<File> findFilesMatchingIncluding(File dir, String string, List<File> includePackages) {
-		return findFiles(dir, null, string, includePackages, null);
+		return findFiles(dir, null, string, includePackages, null, true);
 	}
 
 	public static List<File> findFilesMatchingExcluding(File dir, String string, List<File> excludePackages) {
-		return findFiles(dir, null, string, null, excludePackages);
+		return findFiles(dir, null, string, null, excludePackages, true);
 	}
 
 	public static List<File> findFilesMatching(File file, String string) {
-		return findFiles(file, null, string, null, null);
+		return findFiles(file, null, string, null, null, true);
 	}
 
 	public static List<File> findFilesUnderMatching(File file, String string) {
-		return findFiles(file, file, string, null, null);
+		return findFiles(file, file, string, null, null, true);
 	}
 
 	public static List<File> findFilesUnderRelativeToMatching(File file, File relativeTo, String string) {
-		return findFiles(file, relativeTo, string, null, null);
+		return findFiles(file, relativeTo, string, null, null, true);
 	}
 
-	private static List<File> findFiles(File file, File under, String string, Collection<File> includeOnlyDirs, Collection<File> excludeOnlyDirs) {
+	private static List<File> findFiles(File file, File under, String string, Collection<File> includeOnlyDirs, Collection<File> excludeOnlyDirs, boolean recurse) {
 		List<File> ret = new ArrayList<File>();
 		if (!file.exists())
 			throw new NoSuchDirectoryException("There is no file " + file);
 		FileFilter filter = new GlobFilter(file, string, includeOnlyDirs, excludeOnlyDirs);
-		findRecursive(ret, filter, under, file);
+		findRecursive(ret, filter, under, file, recurse);
 		return ret;
 	}
 
@@ -252,19 +256,21 @@ public class FileUtils {
 		List<File> ret = new ArrayList<File>();
 		if (!dir.exists())
 			throw new NoSuchDirectoryException("There is no file " + dir);
-		findRecursive(ret, isdirectory, dir, dir);
+		findRecursive(ret, isdirectory, dir, dir, true);
 		return ret;
 	}
 
-	private static void findRecursive(List<File> ret, FileFilter filter, File under, File dir) {
+	private static void findRecursive(List<File> ret, FileFilter filter, File under, File dir, boolean recurse) {
 		File[] contents = dir.listFiles(filter);
 		if (contents == null)
 			return;
 		for (File f : contents)
 			ret.add(makeRelativeTo(f, under));
-		File[] subdirs = dir.listFiles(isdirectory);
-		for (File d : subdirs)
-			findRecursive(ret, filter, under, d);
+		if (recurse) {
+			File[] subdirs = dir.listFiles(isdirectory);
+			for (File d : subdirs)
+				findRecursive(ret, filter, under, d, recurse);
+		}
 	}
 
 	public static String convertToDottedName(File path) {
@@ -482,7 +488,7 @@ public class FileUtils {
 
 	public static void cleanDirectory(File dir) {
 		List<File> ret = new ArrayList<File>();
-		findRecursive(ret, anyFile, dir, dir);
+		findRecursive(ret, anyFile, dir, dir, true);
 		// sort longest to shortest to resolve empty directories
 		Collections.sort(ret, filePathComparator);
 		for (File f : ret)
@@ -662,6 +668,8 @@ public class FileUtils {
 	}
 
 	public static String ensureExtension(String name, String ext) {
+		if (name == null)
+			return null;
 		if (name.endsWith(ext))
 			return name;
 		

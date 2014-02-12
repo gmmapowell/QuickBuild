@@ -46,6 +46,10 @@ public class ByteCodeJar implements ByteCodeHolder {
 	public boolean hasEntries() {
 		return !files.isEmpty();
 	}
+	
+	public int entryCount() {
+		return files.size();
+	}
 
 	@Override
 	public void close() {

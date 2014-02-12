@@ -93,10 +93,6 @@ public class InlineServer implements Runnable {
 		servlets.get(0).initParam(key, value);
 	}
 
-	public void setAlert(String alert) {
-		remote.setAlertTo(alert);
-	}
-
 	public void run() {
 		run(true);
 	}

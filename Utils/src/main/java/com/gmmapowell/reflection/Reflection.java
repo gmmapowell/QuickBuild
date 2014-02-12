@@ -95,9 +95,12 @@ public class Reflection {
 				f.setInt(target, Integer.parseInt((String)value));
 			else if (value == null || f.getType().isAssignableFrom(value.getClass()))
 				f.set(target, value);
-			else if (value != null && Collection.class.isAssignableFrom(f.getType()))
-				((Collection<Object>)f.get(target)).add(value);
-			else
+			else if (value != null && Collection.class.isAssignableFrom(f.getType())) {
+				Collection<Object> coll = (Collection<Object>)f.get(target);
+				if (coll == null)
+					throw new UtilException("The collection in field '" + fieldName + "' has not been initialized");
+				coll.add(value);
+			} else
 				throw new UtilException("The field " + fieldName + " is not assignable from " + value.getClass());
 		}
 		catch (Exception ex)
