@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.gmmapowell.bytecode.ByteCodeFile;
+import com.gmmapowell.collections.CollectionUtils;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.LinePatternMatch;
 import com.gmmapowell.parser.LinePatternParser;
@@ -83,30 +84,8 @@ public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 		for (BuildResource f : deps)
 			if (f != null && !(f instanceof ProcessResource))
 				classpath.add(f.getPath());
-		RunProcess proc = new RunProcess("java");
-		proc.executeInDir(files.getBaseDir());
-		proc.showArgs(showArgs);
-		proc.debug(showDebug);
-		ThreadedStreamReader stdout = proc.captureStdout();
-		ThreadedStreamReader stderr = proc.captureStderr();
-		FileUtils.assertDirectory(errdir);
-		stdout.copyTo(new File(errdir, "stdout"));
-		stderr.copyTo(new File(errdir, "stderr"));
-		HandleError handleError = new HandleError(stderr);
-		stdout.parseLines(stdoutParser(), new HandleOutput(cxt.output, handleError));
 
-		// TODO: use bootclasspath
-		proc.arg("-classpath");
-		proc.arg(classpath.toString());
-		for (String s : defines)
-			proc.arg(s);
-		if (memory != null)
-			proc.arg("-Xmx" + memory);
-//		proc.arg("-Djava.util.logging.config.class=com.gmmapowell.http.LoggingConfiguration");
-//		proc.arg("-Xmx1g");
-		proc.arg("com.gmmapowell.test.QBJUnitRunner");
-		if (!cxt.allTests) // should be a flag
-			proc.arg("--quick");
+		// Collect list of tests to run ...
 		List<String> testsToRun = new ArrayList<String>();
 		for (File f : FileUtils.findFilesUnderMatching(srcdir, "*.java"))
 		{
@@ -124,16 +103,55 @@ public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 			return BuildStatus.SKIPPED;
 		}
 		Collections.sort(testsToRun);
+
+		new File(errdir, "stdout").delete();
+		new File(errdir, "stderr").delete();
+		BuildStatus ret = BuildStatus.SUCCESS;
+		
+		for (String t : testsToRun) {
+			List<String> oneTest = CollectionUtils.listOf(t);
+			RunProcess proc = runTestBatch(cxt, showArgs, showDebug, classpath, oneTest);
+			if (proc.getExitCode() != 0)
+			{
+				handleFailure(cxt, proc);
+				ret = BuildStatus.TEST_FAILURES;
+			}
+			proc.destroy();
+		}
+		
+		if (ret == BuildStatus.SUCCESS)
+			reportSuccess(cxt);
+		
+		return ret;
+	}
+
+	public RunProcess runTestBatch(BuildContext cxt, boolean showArgs, boolean showDebug, RunClassPath classpath, List<String> testsToRun) {
+		RunProcess proc = new RunProcess("java");
+		proc.executeInDir(files.getBaseDir());
+		proc.showArgs(showArgs);
+		proc.debug(showDebug);
+		ThreadedStreamReader stdout = proc.captureStdout();
+		ThreadedStreamReader stderr = proc.captureStderr();
+		FileUtils.assertDirectory(errdir);
+		stdout.appendTo(new File(errdir, "stdout"));
+		stderr.appendTo(new File(errdir, "stderr"));
+		HandleError handleError = new HandleError(stderr);
+		stdout.parseLines(stdoutParser(), new HandleOutput(cxt.output, handleError));
+
+		// TODO: use bootclasspath
+		proc.arg("-classpath");
+		proc.arg(classpath.toString());
+		for (String s : defines)
+			proc.arg(s);
+		if (memory != null)
+			proc.arg("-Xmx" + memory);
+		proc.arg("com.gmmapowell.test.QBJUnitRunner");
+		if (!cxt.allTests) // should be a flag
+			proc.arg("--quick");
 		for (String s : testsToRun)
 			proc.arg(s);
 		proc.execute();
-		if (proc.getExitCode() == 0)
-		{
-			reportSuccess(cxt);
-			return BuildStatus.SUCCESS;
-		}
-		
-		return handleFailure(cxt, proc);
+		return proc;
 	}
 
 	private void reportSuccess(BuildContext cxt) {
@@ -166,6 +184,7 @@ public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 		}
 		return BuildStatus.TEST_FAILURES;
 	}
+	
 	public void addToBootClasspath(File resource) {
 		bootclasspath.add(resource);
 	}

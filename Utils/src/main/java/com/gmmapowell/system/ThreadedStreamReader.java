@@ -100,6 +100,14 @@ public class ThreadedStreamReader extends Thread {
 			throw UtilException.wrap(ex);
 		}
 	}
+
+	public void appendTo(File file) {
+		try {
+			this.copyTo = new FileOutputStream(file, true);
+		} catch (Exception ex) {
+			throw UtilException.wrap(ex);
+		}
+	}
 	
 	public void read(InputStream inputStream) {
 		if (inputStream == null)

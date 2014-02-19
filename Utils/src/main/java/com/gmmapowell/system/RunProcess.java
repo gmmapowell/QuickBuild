@@ -29,6 +29,7 @@ public class RunProcess {
 	private boolean debug;
 	private boolean runBackground;
 	private Process proc;
+	private Thread hook;
 
 	public RunProcess(String cmd) {
 		cmdarray.add(cmd);
@@ -129,12 +130,16 @@ public class RunProcess {
 			stderr.echoStream(showArgs);
 			stdout.read(proc.getInputStream());
 			stderr.read(proc.getErrorStream());
-			Runtime.getRuntime().addShutdownHook(new Thread() {
+			hook = new Thread() {
 			  @Override
 			  public void run() {
-			    proc.destroy();
+				  if (proc != null) {
+					  proc.destroy();
+					  proc = null;
+				  }
 			  }
-			});
+			};
+			Runtime.getRuntime().addShutdownHook(hook);
 			if (runBackground)
 			{
 				new WaitForThread(this).start();
@@ -239,5 +244,16 @@ public class RunProcess {
 		ret.preClassPos = ret.cmdarray.size();
 		ret.arg(cls.getName());
 		return ret;
+	}
+	
+	public void destroy() {
+		if (proc != null) {
+			proc.destroy();
+			proc = null;
+		}
+		if (hook != null) {
+			Runtime.getRuntime().removeShutdownHook(hook);
+			hook = null;
+		}
 	}
 }
