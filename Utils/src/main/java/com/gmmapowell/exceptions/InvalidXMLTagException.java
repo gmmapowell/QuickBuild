@@ -9,7 +9,7 @@ public class InvalidXMLTagException extends XMLUtilException implements XMLProce
 	public final Object callbacks;
 
 	public InvalidXMLTagException(XMLElement xe, String which, Object callbacks) {
-		super("The object " + callbacks + " does not have a handler for tag " + which + " in element " + xe);
+		super(xe.getStartLocation(), xe.getEndLocation(), "The object " + callbacks + " does not have a handler for tag " + which + " in element " + xe);
 		this.xe = xe;
 		this.which = which;
 		this.callbacks = callbacks;

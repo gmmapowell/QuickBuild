@@ -55,7 +55,7 @@ public class XMLElement implements Externalizable {
 	// Linear Access to attributes
 	public String required(String attr) {
 		if (!elt.hasAttribute(attr)) {
-			XMLMissingAttributeException ex = new XMLMissingAttributeException("The required attribute '" + attr + "' was not found on " + this);
+			XMLMissingAttributeException ex = new XMLMissingAttributeException(getStartLocation(), getEndLocation(), "The required attribute '" + attr + "' was not found on " + this);
 			if (handler != null)
 				handler.missingAttribute(getStartLocation(), getEndLocation(), ex);
 			throw ex;
@@ -100,7 +100,7 @@ public class XMLElement implements Externalizable {
 			for (String a : attributes())
 				if (!attrsProcessed.contains(a)) {
 					msg.append(" " + a);
-					ex = new XMLUnprocessedAttributeException(a, msg.toString());
+					ex = new XMLUnprocessedAttributeException(getStartLocation(), getEndLocation(), a, msg.toString());
 					if (handler != null)
 						handler.unprocessedAttribute(getStartLocation(), getEndLocation(), ex);
 				}
@@ -112,7 +112,7 @@ public class XMLElement implements Externalizable {
 	// Random Access
 	public String get(String attr) {
 		if (!elt.hasAttribute(attr)) {
-			XMLMissingAttributeException ex = new XMLMissingAttributeException("The required attribute '" + attr + "' was not found on " + this);
+			XMLMissingAttributeException ex = new XMLMissingAttributeException(getStartLocation(), getEndLocation(), "The required attribute '" + attr + "' was not found on " + this);
 			if (handler != null)
 				handler.missingAttribute(getStartLocation(), getEndLocation(), ex);
 			throw ex;
