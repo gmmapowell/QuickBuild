@@ -17,14 +17,13 @@ import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
 
 public class JarBuildCommand extends ArchiveCommand {
-	private final Strategem parent;
 	private GitIdCommand gitIdCommand;
+
 	public JarBuildCommand(Strategem parent, StructureHelper files, String targetName, List<File> includePackages, List<File> excludePackages, GitIdCommand gitIdCommand) {
-		super(includePackages, excludePackages);
+		super(parent, includePackages, excludePackages);
 		this.gitIdCommand = gitIdCommand;
 		this.jarResource = new JarResource(this, files.getOutput(FileUtils.ensureExtension(targetName, ".jar")));
 		this.jarfile = this.jarResource.getFile();
-		this.parent = parent;
 	}
 	
 	@Override
@@ -32,10 +31,12 @@ public class JarBuildCommand extends ArchiveCommand {
 		try {
 			if (jarfile.exists() && !jarfile.delete())
 				throw new QuickBuildException("Could not delete " + jarfile);
+			if (showDebug)
+				System.out.println("Writing JAR file to " + jarfile.getPath());
 			JarOutputStream jos = new JarOutputStream(new FileOutputStream(jarfile.getPath()));
 			if (gitIdCommand != null)
 				gitIdCommand.writeTrackerFile(jos, "META-INF");
-			boolean hasFiles = hasFiles(jos);
+			boolean hasFiles = writeFilesToJar(jos, showDebug);
 			if (!hasFiles)
 			{
 				// we didn't actually build it, but it wants reassurance ...
@@ -59,7 +60,7 @@ public class JarBuildCommand extends ArchiveCommand {
 		}
 	}
 
-	boolean hasFiles(JarOutputStream jos) throws IOException {
+	boolean writeFilesToJar(JarOutputStream jos, boolean showDebug) throws IOException {
 		boolean hasFiles = false;
 		for (File dir : dirsToJar)
 		{
@@ -71,6 +72,8 @@ public class JarBuildCommand extends ArchiveCommand {
 					continue;
 				if (f.getName().startsWith(".git"))
 					continue;
+				if (showDebug)
+					System.out.println("Adding " + f + " to jar");
 				writeToJar(jos, f, FileUtils.makeRelativeTo(f, dir));
 				hasFiles = true;
 			}

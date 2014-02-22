@@ -3,9 +3,7 @@ package com.gmmapowell.quickbuild.build.java;
 import java.io.File;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.LinePatternMatch;
@@ -14,22 +12,21 @@ import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.build.CanBeSkipped;
+import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
-import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
-public class JavaBuildCommand implements Tactic, CanBeSkipped {
+public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 	private final File srcdir;
 	private final File bindir;
 	private final BuildClassPath classpath;
 	private final BuildClassPath bootclasspath;
 	private boolean doClean = true;
-	private final Strategem parent;
 	private List<File> sources;
 	private final String label;
 	private final String context;
@@ -37,7 +34,7 @@ public class JavaBuildCommand implements Tactic, CanBeSkipped {
 	private final boolean runAlways;
 
 	public JavaBuildCommand(Strategem parent, StructureHelper files, String src, String bin, String label, List<File> sources, String context, String target, boolean runAlways) {
-		this.parent = parent;
+		super(parent);
 		this.label = label;
 		this.sources = sources;
 		this.context = context;
@@ -208,23 +205,7 @@ public class JavaBuildCommand implements Tactic, CanBeSkipped {
 	}
 
 	@Override
-	public Strategem belongsTo() {
-		return parent;
-	}
-
-	@Override
 	public String identifier() {
 		return BuildOrder.tacticIdentifier(parent, label);
-	}
-
-	private Set <Tactic> procDeps = new HashSet<Tactic>();
-	
-	@Override
-	public void addProcessDependency(Tactic earlier) {
-		procDeps.add(earlier);
-	}
-	
-	public Set<Tactic> getProcessDependencies() {
-		return procDeps;
 	}
 }

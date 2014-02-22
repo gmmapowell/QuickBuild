@@ -14,19 +14,17 @@ import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
 public class PDEAssembleCommand extends ArchiveCommand {
-	private final Strategem parent;
 	private final List<File> pdelibs;
 	private final StructureHelper files;
 	
 	public PDEAssembleCommand(Strategem parent, StructureHelper files, String targetName, List<File> pdelibs, List<File> includePackages, List<File> excludePackages) {
-		super(includePackages, excludePackages);
+		super(parent, includePackages, excludePackages);
 		this.files = files;
 		this.pdelibs = pdelibs;
 		if (files.getRelative("libs").isDirectory())
 			this.pdelibs.add(files.getRelative("libs"));
 		this.jarResource = new JarResource(this, files.getOutput(FileUtils.ensureExtension(targetName, ".jar")));
 		this.jarfile = this.jarResource.getFile();
-		this.parent = parent;
 	}
 	
 	@Override

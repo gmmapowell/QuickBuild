@@ -2,19 +2,17 @@ package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
-import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.StringUtil;
@@ -26,7 +24,7 @@ import com.gmmapowell.utils.StringUtil;
 	# emulator.exe -avd my_avd
 */
 
-public class AdbCommand implements Tactic {
+public class AdbCommand extends AbstractTactic {
 	public class Command {
 
 		final Object[] args;
@@ -45,12 +43,11 @@ public class AdbCommand implements Tactic {
 	private final AndroidContext acxt;
 	private List<Command> commands = new ArrayList<Command>();
 	private final BuildResource apk;
-	private final Strategem parent;
 	private final BuildResource builds;
 
 	public AdbCommand(AndroidContext acxt, Strategem parent, StructureHelper files, BuildResource apk, BuildResource builds) {
+		super(parent);
 		this.acxt = acxt;
-		this.parent = parent;
 		this.apk = apk;
 		this.builds = builds;
 	}
@@ -146,23 +143,7 @@ public class AdbCommand implements Tactic {
 	}
 
 	@Override
-	public Strategem belongsTo() {
-		return parent;
-	}
-
-	@Override
 	public String identifier() {
 		return BuildOrder.tacticIdentifier(parent, "adb");
-	}
-
-	private Set <Tactic> procDeps = new HashSet<Tactic>();
-	
-	@Override
-	public void addProcessDependency(Tactic earlier) {
-		procDeps.add(earlier);
-	}
-	
-	public Set<Tactic> getProcessDependencies() {
-		return procDeps;
 	}
 }

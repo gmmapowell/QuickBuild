@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.TreeSet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -16,6 +14,7 @@ import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.build.csharp.XAPResource;
+import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ProcessResource;
@@ -25,9 +24,7 @@ import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
 
-public class WarBuildCommand implements Tactic {
-
-	private final WarCommand parent;
+public class WarBuildCommand extends AbstractTactic {
 	private final File warfile;
 	private final StructureHelper files;
 	private final List<PendingResource> warlibs;
@@ -36,7 +33,7 @@ public class WarBuildCommand implements Tactic {
 	private GitIdCommand gitIdCommand;
 
 	public WarBuildCommand(WarCommand parent, StructureHelper files, String targetName, List<PendingResource> warlibs, List<Pattern> warexcl, GitIdCommand gitIdCommand) {
-		this.parent = parent;
+		super(parent);
 		this.files = files;
 		this.warlibs = warlibs;
 		this.warexcl = warexcl;
@@ -187,17 +184,5 @@ public class WarBuildCommand implements Tactic {
 			return relative.getPath().compareTo(o.relative.getPath());
 		}
 	}
-
-	private Set <Tactic> procDeps = new HashSet<Tactic>();
-	
-	@Override
-	public void addProcessDependency(Tactic earlier) {
-		procDeps.add(earlier);
-	}
-	
-	public Set<Tactic> getProcessDependencies() {
-		return procDeps;
-	}
 }
-
 

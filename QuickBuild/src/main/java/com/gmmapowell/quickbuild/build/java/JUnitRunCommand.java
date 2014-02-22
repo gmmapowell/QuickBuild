@@ -22,6 +22,7 @@ import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.build.CanBeSkipped;
 import com.gmmapowell.quickbuild.build.ErrorCase;
+import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.DependencyFloat;
 import com.gmmapowell.quickbuild.core.PendingResource;
@@ -29,21 +30,19 @@ import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
-import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.sync.SyncUtils;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.system.ThreadedStreamReader;
 import com.gmmapowell.utils.FileUtils;
 
-public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
+public class JUnitRunCommand extends AbstractTactic implements DependencyFloat, CanBeSkipped {
 	private final File srcdir;
 	private File bindir;
 	private File errdir;
 	
 	// TODO: this is currently unused ... it should be, I think, for Android
 	private final BuildClassPath bootclasspath = new BuildClassPath();
-	private final Strategem parent;
 	private final JavaBuildCommand jbc;
 	private ResourcePacket<PendingResource> addlResources = new ResourcePacket<PendingResource>();
 	private final StructureHelper files;
@@ -52,7 +51,7 @@ public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 	private String memory;
 
 	public JUnitRunCommand(Strategem parent, StructureHelper files, JavaBuildCommand jbc) {
-		this.parent = parent;
+		super(parent);
 		this.files = files;
 		this.jbc = jbc;
 		this.srcdir = new File(files.getBaseDir(), "src/test/java");
@@ -189,11 +188,6 @@ public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 		bootclasspath.add(resource);
 	}
 
-	@Override
-	public Strategem belongsTo() {
-		return parent;
-	}
-
 	public void addLibs(List<PendingResource> junitLibs) {
 		if (junitLibs.isEmpty())
 			return;
@@ -212,21 +206,10 @@ public class JUnitRunCommand implements Tactic, DependencyFloat, CanBeSkipped {
 		return BuildOrder.tacticIdentifier(parent, "junit");
 	}
 
+
 	public void writeTo(JUnitResource jur) {
 		this.writeTo = jur;
 	}
-
-	private Set <Tactic> procDeps = new HashSet<Tactic>();
-	
-	@Override
-	public void addProcessDependency(Tactic earlier) {
-		procDeps.add(earlier);
-	}
-	
-	public Set<Tactic> getProcessDependencies() {
-		return procDeps;
-	}
-
 	@Override
 	public boolean skipMe(BuildContext cxt) {
 		return cxt.doubleQuick;

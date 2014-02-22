@@ -3,7 +3,6 @@ package com.gmmapowell.quickbuild.build.android;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,14 +15,13 @@ import com.gmmapowell.collections.ListMap;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
-import com.gmmapowell.quickbuild.core.Strategem;
-import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.xml.XML;
 import com.gmmapowell.xml.XMLElement;
 import com.gmmapowell.xml.XMLNamespace;
 
-public class ManifestBuildCommand implements Tactic {
+public class ManifestBuildCommand extends AbstractTactic {
 
 	public class IntentFilterOpts {
 		public String action;
@@ -32,13 +30,12 @@ public class ManifestBuildCommand implements Tactic {
 
 	private final AndroidContext acxt;
 	private final File manifestFile;
-	private final AndroidCommand parent;
 	private final boolean justEnough;
 	private final File srcdir;
 	private final File bindir;
 
 	public ManifestBuildCommand(AndroidCommand parent, AndroidContext acxt, File manifest, boolean justEnough, File srcdir, File bindir) {
-		this.parent = parent;
+		super(parent);
 		this.acxt = acxt;
 		this.manifestFile = manifest;
 		this.justEnough = justEnough;
@@ -48,6 +45,7 @@ public class ManifestBuildCommand implements Tactic {
 	
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
+		AndroidCommand parent = (AndroidCommand) this.parent;
 		parent.configureJRR(cxt);
 		String packageName = null;
 		String applClass = null;
@@ -321,11 +319,6 @@ public class ManifestBuildCommand implements Tactic {
 	}
 
 	@Override
-	public Strategem belongsTo() {
-		return parent;
-	}
-
-	@Override
 	public String identifier() {
 		return BuildOrder.tacticIdentifier(parent, justEnough?"maninit":"manifest");
 	}
@@ -335,16 +328,5 @@ public class ManifestBuildCommand implements Tactic {
 		public String icon;
 		public String label;
 		public String theme;
-	}
-
-	private Set <Tactic> procDeps = new HashSet<Tactic>();
-	
-	@Override
-	public void addProcessDependency(Tactic earlier) {
-		procDeps.add(earlier);
-	}
-	
-	public Set<Tactic> getProcessDependencies() {
-		return procDeps;
 	}
 }

@@ -1,25 +1,23 @@
 package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.gmmapowell.parser.TokenizedLine;
+import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.config.AbstractBuildCommand;
 import com.gmmapowell.quickbuild.config.Config;
-import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
-import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
-public class AdbInstallCommand extends AbstractBuildCommand implements ConfigBuildCommand, Strategem {
+public class AdbInstallCommand extends AbstractBuildCommand {
 	private String root;
 	private String resource;
 //	private String emulator;
@@ -29,7 +27,6 @@ public class AdbInstallCommand extends AbstractBuildCommand implements ConfigBui
 	private File rootDir;
 	private final ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
-	private List<Tactic> tactics;
 	private AdbInstalledResource buildsInstalled;
 
 	@SuppressWarnings("unchecked")
@@ -47,25 +44,11 @@ public class AdbInstallCommand extends AbstractBuildCommand implements ConfigBui
 		acxt = config.getAndroidContext();
 		apk = new PendingResource(resource);
 		needs.add(apk);
-		tactics();
-		buildsInstalled = new AdbInstalledResource(tactics.get(0), resource);
+		buildsInstalled = new AdbInstalledResource(this, resource);
 		builds.add(buildsInstalled);
 		return this;
 	}
 	
-
-	@Override
-	public List<? extends Tactic> tactics() {
-		if (tactics == null)
-		{
-			tactics = new ArrayList<Tactic>();
-			AdbCommand cmd = new AdbCommand(acxt, this, files, apk, buildsInstalled);
-			cmd.reinstall();
-			tactics.add(cmd);
-		}
-		return tactics;
-	}
-
 	@Override
 	public String toString() {
 		return "adbinstall " + resource;
@@ -109,5 +92,12 @@ public class AdbInstallCommand extends AbstractBuildCommand implements ConfigBui
 	@Override
 	public boolean analyzeExports() {
 		return false;
+	}
+
+	@Override
+	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
+		AdbCommand cmd = new AdbCommand(acxt, this, files, apk, buildsInstalled);
+		cmd.reinstall();
+		return cmd.execute(cxt, showArgs, showDebug);
 	}
 }

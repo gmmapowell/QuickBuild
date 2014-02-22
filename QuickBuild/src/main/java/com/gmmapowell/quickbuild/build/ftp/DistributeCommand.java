@@ -4,11 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -24,13 +20,11 @@ import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.config.AbstractBuildCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
-import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.FloatToEnd;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
-import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
@@ -40,10 +34,9 @@ import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
-public class DistributeCommand extends AbstractBuildCommand implements ConfigBuildCommand, Strategem, Tactic, FloatToEnd {
+public class DistributeCommand extends AbstractBuildCommand implements FloatToEnd {
 	private String directory;
 	private String destination;
-	private final List<Tactic> tactics = new ArrayList<Tactic>();
 	private File execdir;
 	private File privateKeyPath;
 	private final ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
@@ -64,7 +57,6 @@ public class DistributeCommand extends AbstractBuildCommand implements ConfigBui
 	public DistributeCommand(TokenizedLine toks) {
 		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "directory", "directory"),
 				new ArgumentDefinition("*", Cardinality.REQUIRED, "destination", "destination"));
-		tactics.add(this);
 	}
 
 	@Override
@@ -150,11 +142,6 @@ public class DistributeCommand extends AbstractBuildCommand implements ConfigBui
 	}
 
 	@Override
-	public Strategem belongsTo() {
-		return this;
-	}
-
-	@Override
 	public String identifier() {
 		return "Distribute[" + host + "-" + saveAs + "]";
 	}
@@ -177,11 +164,6 @@ public class DistributeCommand extends AbstractBuildCommand implements ConfigBui
 	@Override
 	public File rootDirectory() {
 		return execdir;
-	}
-
-	@Override
-	public List<? extends Tactic> tactics() {
-		return tactics;
 	}
 
 	@Override
@@ -379,16 +361,5 @@ public class DistributeCommand extends AbstractBuildCommand implements ConfigBui
 				broken = true;
 			}
 		}
-	}
-
-	private Set <Tactic> procDeps = new HashSet<Tactic>();
-	
-	@Override
-	public void addProcessDependency(Tactic earlier) {
-		procDeps.add(earlier);
-	}
-	
-	public Set<Tactic> getProcessDependencies() {
-		return procDeps;
 	}
 }

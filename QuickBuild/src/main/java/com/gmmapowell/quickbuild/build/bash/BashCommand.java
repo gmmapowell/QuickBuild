@@ -10,28 +10,25 @@ import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.config.Config;
+import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ProducesCommand;
 import com.gmmapowell.quickbuild.config.ReadsFileCommand;
 import com.gmmapowell.quickbuild.config.ResourceCommand;
-import com.gmmapowell.quickbuild.config.Config;
-import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
-import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
-import com.gmmapowell.quickbuild.config.SpecificChildrenParent;
+import com.gmmapowell.quickbuild.core.AbstractStrategemTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
-import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
-public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem, Tactic {
+public class BashCommand extends AbstractStrategemTactic {
 	private String scriptName;
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
-	private final List<Tactic> tactics = new ArrayList<Tactic>();
 	private final ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
 	private final ResourcePacket<BuildResource> provides = new ResourcePacket<BuildResource>();
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
@@ -42,10 +39,8 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 	private final Set<BuildResource> analysis = new HashSet<BuildResource>();
 	private final Set<File> readsFiles = new HashSet<File>();
 	
-	@SuppressWarnings("unchecked")
 	public BashCommand(TokenizedLine toks) {
-		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "scriptName", "script to run"));
-		tactics.add(this);
+		super(toks, new ArgumentDefinition("*", Cardinality.REQUIRED, "scriptName", "script to run"));
 	}
 
 	@Override
@@ -118,11 +113,6 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 	}
 
 	@Override
-	public List<? extends Tactic> tactics() {
-		return tactics;
-	}
-
-	@Override
 	public OrderedFileList sourceFiles() {
 		OrderedFileList ret = new OrderedFileList();
 		ret.add(new File(scriptName));
@@ -140,11 +130,6 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 	@Override
 	public boolean onCascade() {
 		return false;
-	}
-
-	@Override
-	public Strategem belongsTo() {
-		return this;
 	}
 
 	@Override
@@ -193,16 +178,4 @@ public class BashCommand extends SpecificChildrenParent<ConfigApplyCommand> impl
 	public boolean analyzeExports() {
 		return false;
 	}
-
-	private Set <Tactic> procDeps = new HashSet<Tactic>();
-	
-	@Override
-	public void addProcessDependency(Tactic earlier) {
-		procDeps.add(earlier);
-	}
-	
-	public Set<Tactic> getProcessDependencies() {
-		return procDeps;
-	}
-
 }

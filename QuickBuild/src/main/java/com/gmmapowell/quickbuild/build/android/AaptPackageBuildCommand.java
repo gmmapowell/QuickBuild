@@ -1,28 +1,24 @@
 package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
-import com.gmmapowell.quickbuild.core.Strategem;
-import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
-public class AaptPackageBuildCommand implements Tactic {
+public class AaptPackageBuildCommand extends AbstractTactic {
 
 	private final AndroidContext acxt;
 	private final File zipfile;
 	private final File manifestFile;
 	private final File resdir;
 	private final File assetsDir;
-	private final AndroidCommand parent;
 
 	public AaptPackageBuildCommand(AndroidCommand parent, AndroidContext acxt, File manifest, File zipfile, File resdir, File assetsDir) {
-		this.parent = parent;
+		super(parent);
 		this.acxt = acxt;
 		this.zipfile = zipfile;
 		this.manifestFile = manifest;
@@ -66,23 +62,7 @@ public class AaptPackageBuildCommand implements Tactic {
 	}
 
 	@Override
-	public Strategem belongsTo() {
-		return parent;
-	}
-
-	@Override
 	public String identifier() {
 		return BuildOrder.tacticIdentifier(parent, "aaptpkg");
-	}
-
-	private Set <Tactic> procDeps = new HashSet<Tactic>();
-	
-	@Override
-	public void addProcessDependency(Tactic earlier) {
-		procDeps.add(earlier);
-	}
-	
-	public Set<Tactic> getProcessDependencies() {
-		return procDeps;
 	}
 }

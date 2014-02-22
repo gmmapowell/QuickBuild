@@ -2,7 +2,6 @@ package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,28 +11,27 @@ import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.build.java.JarResource;
+import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
-import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 
-public class DexBuildCommand implements Tactic {
+public class DexBuildCommand extends AbstractTactic {
 	private final AndroidContext acxt;
 	private final File bindir;
 	private final File dexFile;
 	private final List<File> jars = new ArrayList<File>();
 	private final File libdir;
-	private final Strategem parent;
 	private final Set<Pattern> exclusions;
 	private ResourcePacket<PendingResource> uselibs;
 
 	public DexBuildCommand(AndroidContext acxt, Strategem parent, StructureHelper files, File bindir, File libdir, File dexFile, Set<Pattern> exclusions, ResourcePacket<PendingResource> uselibs) {
+		super(parent);
 		this.acxt = acxt;
-		this.parent = parent;
 		this.bindir = bindir;
 		this.libdir = libdir;
 		this.dexFile = dexFile;
@@ -110,24 +108,7 @@ public class DexBuildCommand implements Tactic {
 	}
 
 	@Override
-	public Strategem belongsTo() {
-		return parent;
-	}
-
-
-	@Override
 	public String identifier() {
 		return BuildOrder.tacticIdentifier(parent, "dex");
-	}
-
-	private Set <Tactic> procDeps = new HashSet<Tactic>();
-	
-	@Override
-	public void addProcessDependency(Tactic earlier) {
-		procDeps.add(earlier);
-	}
-	
-	public Set<Tactic> getProcessDependencies() {
-		return procDeps;
 	}
 }

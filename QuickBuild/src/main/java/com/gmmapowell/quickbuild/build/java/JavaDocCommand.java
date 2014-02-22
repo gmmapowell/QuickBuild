@@ -3,12 +3,10 @@ package com.gmmapowell.quickbuild.build.java;
 import java.io.File;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.gmmapowell.collections.CollectionUtils;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.LinePatternMatch;
 import com.gmmapowell.parser.LinePatternParser;
@@ -25,7 +23,6 @@ import com.gmmapowell.quickbuild.core.FloatToEnd;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
-import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.ArgumentDefinition;
@@ -33,8 +30,7 @@ import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
-public class JavaDocCommand extends AbstractBuildCommand implements Strategem, Tactic, FloatToEnd, CanBeSkipped {
-
+public class JavaDocCommand extends AbstractBuildCommand implements FloatToEnd, CanBeSkipped {
 	private String overview;
 	private final File rootdir;
 	private String outdir;
@@ -80,11 +76,6 @@ public class JavaDocCommand extends AbstractBuildCommand implements Strategem, T
 		return true;
 	}
 	
-	@Override
-	public Strategem belongsTo() {
-		return this;
-	}
-
 	@Override
 	public String toString() {
 		return "Javadoc " + outdir;
@@ -234,11 +225,6 @@ public class JavaDocCommand extends AbstractBuildCommand implements Strategem, T
 	}
 
 	@Override
-	public List<? extends Tactic> tactics() {
-		return CollectionUtils.listOf(this);
-	}
-
-	@Override
 	public OrderedFileList sourceFiles() {
 		return new OrderedFileList();
 	}
@@ -258,16 +244,5 @@ public class JavaDocCommand extends AbstractBuildCommand implements Strategem, T
 	@Override
 	public boolean analyzeExports() {
 		return true;
-	}
-
-	private Set <Tactic> procDeps = new HashSet<Tactic>();
-	
-	@Override
-	public void addProcessDependency(Tactic earlier) {
-		procDeps.add(earlier);
-	}
-	
-	public Set<Tactic> getProcessDependencies() {
-		return procDeps;
 	}
 }

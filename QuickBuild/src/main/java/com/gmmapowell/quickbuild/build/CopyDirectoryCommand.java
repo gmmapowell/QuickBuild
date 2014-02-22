@@ -1,29 +1,22 @@
 package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import com.gmmapowell.collections.CollectionUtils;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
-import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
-import com.gmmapowell.quickbuild.config.SpecificChildrenParent;
+import com.gmmapowell.quickbuild.core.AbstractStrategemTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.CloningResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
-import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
-public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem, Tactic {
+public class CopyDirectoryCommand extends AbstractStrategemTactic {
 	private String rootDirectoryName;
 	private String fromResourceName;
 	private String toPath;
@@ -33,10 +26,9 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 	private StructureHelper files;
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 
-	@SuppressWarnings("unchecked")
 	public CopyDirectoryCommand(TokenizedLine toks) {
 		// TODO: want 4 args
-		toks.process(this,
+		super(toks,
 			new ArgumentDefinition("*", Cardinality.REQUIRED, "rootDirectoryName", "root"),
 			new ArgumentDefinition("*", Cardinality.REQUIRED, "fromResourceName", "from resource"),
 			new ArgumentDefinition("*", Cardinality.REQUIRED, "toPath", "destination")
@@ -58,11 +50,6 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 	}
 
 	@Override
-	public List<? extends Tactic> tactics() {
-		return CollectionUtils.listOf((Tactic)this);
-	}
-
-	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		try
 		{
@@ -81,11 +68,6 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 	@Override
 	public String toString() {
 		return "Copy " + fromResource + " to " + toResource;
-	}
-
-	@Override
-	public Strategem belongsTo() {
-		return this;
 	}
 
 	@Override
@@ -130,17 +112,5 @@ public class CopyDirectoryCommand extends SpecificChildrenParent<ConfigApplyComm
 	public boolean analyzeExports() {
 		return false;
 	}
-
-	private Set <Tactic> procDeps = new HashSet<Tactic>();
-	
-	@Override
-	public void addProcessDependency(Tactic earlier) {
-		procDeps.add(earlier);
-	}
-	
-	public Set<Tactic> getProcessDependencies() {
-		return procDeps;
-	}
-
 }
 
