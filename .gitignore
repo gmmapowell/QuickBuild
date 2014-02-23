@@ -6,5 +6,6 @@ dumpClass.txt
 javadoc/
 mvncache/
 qbout/
+qb/quickbuild/
 testbin/
 Utils/testbin/

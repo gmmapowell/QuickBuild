@@ -20,8 +20,7 @@ import com.gmmapowell.quickbuild.build.java.JavaNature;
 import com.gmmapowell.quickbuild.build.java.JavaVersionCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
-import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
-import com.gmmapowell.quickbuild.config.SpecificChildrenParent;
+import com.gmmapowell.quickbuild.core.AbstractStrategem;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
@@ -33,7 +32,7 @@ import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
-public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem {
+public class AndroidCommand extends AbstractStrategem {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private String projectName;
 	private final File rootDir;
@@ -45,14 +44,12 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 	private ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
 	private Set<Pattern> exclusions = new HashSet<Pattern>();
 	final JavaRuntimeReplica jrr;
-	private ArrayList<Tactic> tactics;
 	private File bindir;
 	private ApkBuildCommand apkTactic;
 	private String javaVersion;
 
-	@SuppressWarnings("unchecked")
 	public AndroidCommand(TokenizedLine toks) {
-		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
+		super(toks, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
 		rootDir = FileUtils.findDirectoryNamed(projectName);
 		this.jrr = new JavaRuntimeReplica();
 	}
@@ -64,7 +61,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		files = new StructureHelper(rootDir, config.getOutput());
 		acxt = config.getAndroidContext();
 		apkFile = files.getOutput(projectName+".apk");
-		tactics(); // ensure they're generated
+		createTactics(); // ensure they're generated
 		apkResource = apkTactic.getResource();
 		
 		javaVersion = config.getVarIfDefined("javaVersion", null);
@@ -92,12 +89,7 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		return this;
 	}
 
-	@Override
-	public List<? extends Tactic> tactics() {
-		if (tactics != null)
-			return tactics;
-		
-		ArrayList<Tactic> tactics = new ArrayList<Tactic>();
+	public void createTactics() {
 		File manifest = files.getRelative("src/android/AndroidManifest.xml");
 		File gendir = files.getRelative("src/android/gen");
 		File resdir = files.getRelative("src/android/res");
@@ -174,8 +166,6 @@ public class AndroidCommand extends SpecificChildrenParent<ConfigApplyCommand> i
 		tactics.add(pkg);
 		apkTactic = new ApkBuildCommand(this, acxt, zipfile, dexFile, apkFile, apkResource);
 		tactics.add(apkTactic);
-		this.tactics = tactics;
-		return tactics;
 	}
 
 	@Override

@@ -14,12 +14,16 @@ public interface Strategem {
 		}
 	};
 	String identifier();
+	@Deprecated
 	ResourcePacket<PendingResource> needsResources();
+	@Deprecated
 	ResourcePacket<BuildResource> providesResources();
+	@Deprecated
 	ResourcePacket<BuildResource> buildsResources();
+	@Deprecated
+	OrderedFileList sourceFiles();
 	File rootDirectory();
 	List<? extends Tactic> tactics();
-	OrderedFileList sourceFiles();
 	boolean onCascade();
 	boolean analyzeExports();
 }

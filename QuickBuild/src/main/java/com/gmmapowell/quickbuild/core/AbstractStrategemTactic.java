@@ -1,8 +1,6 @@
 package com.gmmapowell.quickbuild.core;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import com.gmmapowell.parser.TokenizedLine;
@@ -10,7 +8,6 @@ import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.utils.ArgumentDefinition;
 
 public abstract class AbstractStrategemTactic extends AbstractStrategem implements Tactic {
-	private final List<Tactic> tactics = new ArrayList<Tactic>();
 	private final Set <Tactic> procDeps = new HashSet<Tactic>();
 
 	public AbstractStrategemTactic(TokenizedLine toks, ArgumentDefinition... args) {
@@ -23,11 +20,6 @@ public abstract class AbstractStrategemTactic extends AbstractStrategem implemen
 		tactics.add(this);
 	}
 
-	@Override
-	public final List<? extends Tactic> tactics() {
-		return tactics;
-	}
-	
 	public final Strategem belongsTo() {
 		return this;
 	}

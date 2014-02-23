@@ -9,8 +9,7 @@ import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.HasAncillaryFiles;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
-import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
-import com.gmmapowell.quickbuild.config.SpecificChildrenParent;
+import com.gmmapowell.quickbuild.core.AbstractStrategem;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
@@ -23,7 +22,7 @@ import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
-public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem, HasAncillaryFiles {
+public class JarCommand extends AbstractStrategem implements HasAncillaryFiles {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private final ResourcePacket<BuildResource> sources = new ResourcePacket<BuildResource>();
 	protected final ResourcePacket<PendingResource> needsResources = new ResourcePacket<PendingResource>();
@@ -31,7 +30,6 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	private final File rootdir;
 	protected StructureHelper files;
 	protected String targetName;
-	protected List<Tactic> tactics;
 	protected List<File> includePackages;
 	protected List<File> excludePackages;
 	private final List<PendingResource> junitLibs = new ArrayList<PendingResource>();
@@ -47,10 +45,9 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 	private final boolean justJunit;
 	protected GitIdCommand gitIdCommand;
 
-	@SuppressWarnings("unchecked")
 	public JarCommand(TokenizedLine toks) {
+		super(toks, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
 		justJunit = (toks.cmd().equals("junit"));
-		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
 		rootdir = FileUtils.findDirectoryNamed(projectName);
 	}
 
@@ -64,7 +61,6 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 
 		ArchiveCommand jar = createAssemblyCommand();
 		
-		tactics = new ArrayList<Tactic>();
 		JavaBuildCommand javac;
 		if (justJunit)
 			javac = null;
@@ -216,12 +212,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		return sb.toString();
 	}
 
-	@Override
-	public List<? extends Tactic> tactics() {
-		return tactics;
-	}
-
-	private JavaBuildCommand addJavaBuild(List<Tactic> accum, ArchiveCommand jar, String src, String bin, String label, boolean runAlways) {
+	private JavaBuildCommand addJavaBuild(List<? super Tactic> accum, ArchiveCommand jar, String src, String bin, String label, boolean runAlways) {
 		File dir = new File(rootdir, src);
 		if (dir.isDirectory())
 		{
@@ -279,7 +270,7 @@ public class JarCommand extends SpecificChildrenParent<ConfigApplyCommand> imple
 		}
 	}
 
-	private JUnitRunCommand addJUnitRun(List<Tactic> ret, JavaBuildCommand jbc) {
+	private JUnitRunCommand addJUnitRun(List<? super Tactic> ret, JavaBuildCommand jbc) {
 		if (runJunit && jbc != null)
 		{
 			JUnitRunCommand cmd = new JUnitRunCommand(this, files, jbc);

@@ -4,6 +4,7 @@ import java.util.Set;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.utils.OrderedFileList;
 
 public interface Tactic {
 
@@ -13,6 +14,11 @@ public interface Tactic {
 
 	public String identifier();
 	
+	ResourcePacket<PendingResource> needsResources();
+	ResourcePacket<BuildResource> providesResources();
+	ResourcePacket<BuildResource> buildsResources();
+	OrderedFileList sourceFiles();
+
 	public void addProcessDependency(Tactic earlier);
 
 	Set<Tactic> getProcessDependencies();

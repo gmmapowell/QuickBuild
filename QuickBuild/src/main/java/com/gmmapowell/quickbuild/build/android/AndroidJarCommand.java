@@ -14,20 +14,17 @@ import com.gmmapowell.quickbuild.build.java.JavaSourceDirResource;
 import com.gmmapowell.quickbuild.build.java.JavaVersionCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
-import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
-import com.gmmapowell.quickbuild.config.SpecificChildrenParent;
+import com.gmmapowell.quickbuild.core.AbstractStrategem;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
-import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
-import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
-public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem {
+public class AndroidJarCommand extends AbstractStrategem {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private String projectName;
 	private String targetName;
@@ -36,12 +33,10 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 	private StructureHelper files;
 	private File srcdir;
 	private JarResource androidJar;
-	private List<Tactic> tactics;
 	private String javaVersion;
 
-	@SuppressWarnings("unchecked")
 	public AndroidJarCommand(TokenizedLine toks) {
-		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
+		super(toks, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
 		projectDir = FileUtils.findDirectoryNamed(projectName);
 	}
 	
@@ -62,7 +57,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 			else
 				throw new UtilException("Cannot handle " + cmd);
 		}
-		tactics();
+		createTactics();
 		return this;
 	}
 
@@ -71,12 +66,7 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 		options.add(obj);
 	}
 
-	@Override
-	public List<? extends Tactic> tactics() {
-		if (tactics != null)
-			return tactics;
-		tactics = new ArrayList<Tactic>();
-		
+	public void createTactics() {
 		// Hasten, hasten ... cutten and pasten from AndroidCommand
 		File manifest = files.getRelative("src/android/AndroidManifest.xml");
 		File gendir = files.getRelative("src/android/gen");
@@ -130,8 +120,6 @@ public class AndroidJarCommand extends SpecificChildrenParent<ConfigApplyCommand
 		if (resdir.exists())
 			jar.add(resdir);
 		tactics.add(jar);
-
-		return tactics;
 	}
 
 	@Override
