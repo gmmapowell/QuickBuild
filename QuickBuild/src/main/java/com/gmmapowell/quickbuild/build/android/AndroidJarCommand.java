@@ -8,21 +8,15 @@ import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.DeferredFileList;
 import com.gmmapowell.quickbuild.build.java.JarBuildCommand;
-import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.build.java.JavaBuildCommand;
-import com.gmmapowell.quickbuild.build.java.JavaSourceDirResource;
 import com.gmmapowell.quickbuild.build.java.JavaVersionCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategem;
-import com.gmmapowell.quickbuild.core.BuildResource;
-import com.gmmapowell.quickbuild.core.PendingResource;
-import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
-import com.gmmapowell.utils.OrderedFileList;
 
 public class AndroidJarCommand extends AbstractStrategem {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
@@ -32,7 +26,6 @@ public class AndroidJarCommand extends AbstractStrategem {
 	private AndroidContext acxt;
 	private StructureHelper files;
 	private File srcdir;
-	private JarResource androidJar;
 	private String javaVersion;
 
 	public AndroidJarCommand(TokenizedLine toks) {
@@ -115,7 +108,6 @@ public class AndroidJarCommand extends AbstractStrategem {
 		}
 		*/
 		JarBuildCommand jar = new JarBuildCommand(this, files, targetName, null, null, null);
-		androidJar = jar.getJarResource();
 		jar.add(files.getOutput("classes"));
 		if (resdir.exists())
 			jar.add(resdir);
@@ -128,32 +120,8 @@ public class AndroidJarCommand extends AbstractStrategem {
 	}
 
 	@Override
-	public ResourcePacket<PendingResource> needsResources() {
-		return new ResourcePacket<PendingResource>();
-	}
-
-	@Override
-	public ResourcePacket<BuildResource> providesResources() {
-		ResourcePacket<BuildResource> ret = new ResourcePacket<BuildResource>();
-		ret.add(new JavaSourceDirResource(srcdir, FileUtils.findFilesMatching(files.getRelative("src/main/java"), "*.java")));
-		return ret;
-	}
-
-	@Override
-	public ResourcePacket<BuildResource> buildsResources() {
-		ResourcePacket<BuildResource> ret = new ResourcePacket<BuildResource>();
-		ret.add(androidJar);
-		return ret;
-	}
-
-	@Override
 	public File rootDirectory() {
 		return projectDir;
-	}
-
-	@Override
-	public OrderedFileList sourceFiles() {
-		return new OrderedFileList(projectDir, "*.java");
 	}
 
 	@Override
@@ -164,10 +132,5 @@ public class AndroidJarCommand extends AbstractStrategem {
 	@Override
 	public boolean onCascade() {
 		return false;
-	}
-
-	@Override
-	public boolean analyzeExports() {
-		return true;
 	}
 }

@@ -8,7 +8,6 @@ import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ConfigBuildCommand;
 import com.gmmapowell.quickbuild.config.SpecificChildrenParent;
 import com.gmmapowell.utils.ArgumentDefinition;
-import com.gmmapowell.utils.OrderedFileList;
 
 public abstract class AbstractStrategem extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigBuildCommand, Strategem {
 	protected final List<Tactic> tactics = new ArrayList<Tactic>();
@@ -26,62 +25,4 @@ public abstract class AbstractStrategem extends SpecificChildrenParent<ConfigApp
 	public final List<? extends Tactic> tactics() {
 		return tactics;
 	}
-
-	@Override
-	public ResourcePacket<PendingResource> needsResources() {
-		return new ResourcePacket<PendingResource>();
-	}
-
-	@Override
-	public ResourcePacket<BuildResource> providesResources() {
-		return new ResourcePacket<BuildResource>();
-	}
-
-	@Override
-	public ResourcePacket<BuildResource> buildsResources() {
-		return new ResourcePacket<BuildResource>();
-	}
-
-	@Override
-	public OrderedFileList sourceFiles() {
-		return new OrderedFileList();
-	}
-
-	/*
-	@Override
-	public void addChild(ConfigApplyCommand obj) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public File rootDirectory() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<? extends Tactic> tactics() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public boolean onCascade() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean analyzeExports() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public Strategem applyConfig(Config config) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-*/
 }

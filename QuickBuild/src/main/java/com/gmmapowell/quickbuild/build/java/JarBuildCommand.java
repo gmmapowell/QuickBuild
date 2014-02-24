@@ -116,6 +116,11 @@ public class JarBuildCommand extends ArchiveCommand {
 	}
 
 	@Override
+	public boolean analyzeExports() {
+		return true;
+	}
+
+	@Override
 	public String identifier() {
 		return BuildOrder.tacticIdentifier(parent, "jar");
 	}

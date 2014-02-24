@@ -90,11 +90,6 @@ public class AdbInstallCommand extends AbstractBuildCommand {
 	}
 
 	@Override
-	public boolean analyzeExports() {
-		return false;
-	}
-
-	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		AdbCommand cmd = new AdbCommand(acxt, this, files, apk, buildsInstalled);
 		cmd.reinstall();

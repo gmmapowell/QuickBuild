@@ -14,7 +14,6 @@ import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.build.csharp.XAPResource;
-import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ProcessResource;
@@ -24,7 +23,7 @@ import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
 
-public class WarBuildCommand extends AbstractTactic {
+public class WarBuildCommand extends ArchiveCommand {
 	private final File warfile;
 	private final StructureHelper files;
 	private final List<PendingResource> warlibs;
@@ -33,7 +32,7 @@ public class WarBuildCommand extends AbstractTactic {
 	private GitIdCommand gitIdCommand;
 
 	public WarBuildCommand(WarCommand parent, StructureHelper files, String targetName, List<PendingResource> warlibs, List<Pattern> warexcl, GitIdCommand gitIdCommand) {
-		super(parent);
+		super(parent, null, null);
 		this.files = files;
 		this.warlibs = warlibs;
 		this.warexcl = warexcl;

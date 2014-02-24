@@ -6,10 +6,13 @@ import java.util.Set;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.utils.OrderedFileList;
 
 public abstract class AbstractStrategemTactic extends AbstractStrategem implements Tactic, Comparable<Tactic> {
 	private final Set <Tactic> procDeps = new HashSet<Tactic>();
-	private ResourcePacket<PendingResource> needsResources;
+	private final ResourcePacket<PendingResource> needsResources = new ResourcePacket<PendingResource>();;
+	private final ResourcePacket<BuildResource> providesResources = new ResourcePacket<BuildResource>();
+	private final ResourcePacket<BuildResource> buildsResources = new ResourcePacket<BuildResource>();
 
 	public AbstractStrategemTactic(TokenizedLine toks, ArgumentDefinition... args) {
 		super(toks, args);
@@ -22,16 +25,27 @@ public abstract class AbstractStrategemTactic extends AbstractStrategem implemen
 	}
 
 	public void needs(PendingResource pr) {
-		if (needsResources == null)
-			needsResources = new ResourcePacket<PendingResource>();
 		needsResources.add(pr);
 	}
 	
 	@Override
 	public ResourcePacket<PendingResource> needsResources() {
-		if (needsResources != null)
-			return needsResources;
-		return super.needsResources();
+		return needsResources;
+	}
+
+	@Override
+	public ResourcePacket<BuildResource> providesResources() {
+		return providesResources;
+	}
+
+	@Override
+	public ResourcePacket<BuildResource> buildsResources() {
+		return buildsResources;
+	}
+
+	@Override
+	public OrderedFileList sourceFiles() {
+		return null;
 	}
 
 	public final Strategem belongsTo() {
@@ -50,5 +64,10 @@ public abstract class AbstractStrategemTactic extends AbstractStrategem implemen
 	@Override
 	public int compareTo(Tactic o) {
 		return identifier().compareTo(o.identifier());
+	}
+
+	@Override
+	public boolean analyzeExports() {
+		return false;
 	}
 }

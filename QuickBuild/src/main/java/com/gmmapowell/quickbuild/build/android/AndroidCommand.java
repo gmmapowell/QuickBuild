@@ -30,7 +30,6 @@ import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
-import com.gmmapowell.utils.OrderedFileList;
 
 public class AndroidCommand extends AbstractStrategem {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
@@ -107,6 +106,8 @@ public class AndroidCommand extends AbstractStrategem {
 		tactics.add(gen);
 		List<File> genFiles = new DeferredFileList(gendir, "*.java");
 		JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", "gen", genFiles, "android", javaVersion, true);
+		for (PendingResource pr : needs)
+			genRes.needs(pr);
 		genRes.addToBootClasspath(acxt.getPlatformJar());
 		jrr.add(acxt.getPlatformJar());
 		tactics.add(genRes);
@@ -165,6 +166,7 @@ public class AndroidCommand extends AbstractStrategem {
 		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(this, acxt, manifest, zipfile, resdir, assetsDir);
 		tactics.add(pkg);
 		apkTactic = new ApkBuildCommand(this, acxt, zipfile, dexFile, apkFile, apkResource);
+		apkTactic.builds(apkResource);
 		tactics.add(apkTactic);
 	}
 
@@ -181,30 +183,8 @@ public class AndroidCommand extends AbstractStrategem {
 	}
 
 	@Override
-	public ResourcePacket<PendingResource> needsResources() {
-		return needs;
-	}
-
-	@Override
-	public ResourcePacket<BuildResource> providesResources() {
-		return new ResourcePacket<BuildResource>();
-	}
-
-	@Override
-	public ResourcePacket<BuildResource> buildsResources() {
-		ResourcePacket<BuildResource> ret = new ResourcePacket<BuildResource>();
-		ret.add(apkResource);
-		return ret;
-	}
-
-	@Override
 	public File rootDirectory() {
 		return rootDir;
-	}
-
-	@Override
-	public OrderedFileList sourceFiles() {
-		return new OrderedFileList(new File(rootDir, "src"), "*");
 	}
 
 	@Override
@@ -215,11 +195,6 @@ public class AndroidCommand extends AbstractStrategem {
 	@Override
 	public boolean onCascade() {
 		return false;
-	}
-
-	@Override
-	public boolean analyzeExports() {
-		return true;
 	}
 
 	public void configureJRR(BuildContext cxt) {

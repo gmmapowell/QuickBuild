@@ -166,9 +166,4 @@ public class BashCommand extends AbstractStrategemTactic {
 	public String toString() {
 		return "Bash[" + scriptName + "-"+args+"]";
 	}
-
-	@Override
-	public boolean analyzeExports() {
-		return false;
-	}
 }

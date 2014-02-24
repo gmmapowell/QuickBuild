@@ -192,7 +192,6 @@ public class DevenvCommand extends AbstractStrategemTactic {
 		return identifier();
 	}
 
-
 	@Override
 	public boolean analyzeExports() {
 		return true;

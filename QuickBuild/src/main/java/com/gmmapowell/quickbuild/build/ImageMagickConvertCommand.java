@@ -30,7 +30,6 @@ public class ImageMagickConvertCommand extends AbstractStrategemTactic {
 	private File imagick;
 	private File projectDir;
 
-	@SuppressWarnings("unchecked")
 	public ImageMagickConvertCommand(TokenizedLine toks) {
 		super(toks, 
 				new ArgumentDefinition("*", Cardinality.REQUIRED, "ruleset", "set of rules to use"),
@@ -159,11 +158,6 @@ public class ImageMagickConvertCommand extends AbstractStrategemTactic {
 
 	@Override
 	public boolean onCascade() {
-		return false;
-	}
-
-	@Override
-	public boolean analyzeExports() {
 		return false;
 	}
 

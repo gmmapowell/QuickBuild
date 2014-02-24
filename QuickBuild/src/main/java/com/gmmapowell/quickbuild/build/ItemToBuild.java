@@ -66,7 +66,7 @@ public class ItemToBuild {
 			return;
 		if (!verbose)
 			output.complete(tactic.belongsTo().identifier());
-		rm.exportAll(tactic.belongsTo());
+		rm.exportAll(tactic);
 	}
 
 	public boolean considerAutoSkipping(BuildContext cxt) {

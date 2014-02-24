@@ -183,10 +183,6 @@ public class BuildContext {
 		return rm.getResources(cls);
 	}
 
-	public <T extends BuildResource> T getBuiltResource(Strategem p, Class<T> ofCls) {
-		return rm.getBuiltResource(p, ofCls);
-	}
-
 	public String printableDependencyGraph() {
 		return manager.printableDependencyGraph();
 	}

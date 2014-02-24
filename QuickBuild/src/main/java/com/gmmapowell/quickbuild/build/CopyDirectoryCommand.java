@@ -107,10 +107,5 @@ public class CopyDirectoryCommand extends AbstractStrategemTactic {
 	public boolean onCascade() {
 		return false;
 	}
-
-	@Override
-	public boolean analyzeExports() {
-		return false;
-	}
 }
 

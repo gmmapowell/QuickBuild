@@ -4,8 +4,6 @@ import java.io.File;
 import java.util.Comparator;
 import java.util.List;
 
-import com.gmmapowell.utils.OrderedFileList;
-
 public interface Strategem {
 	Comparator<? super Strategem> Comparator = new Comparator<Strategem>() {
 		@Override
@@ -14,16 +12,7 @@ public interface Strategem {
 		}
 	};
 	String identifier();
-	@Deprecated
-	ResourcePacket<PendingResource> needsResources();
-	@Deprecated
-	ResourcePacket<BuildResource> providesResources();
-	@Deprecated
-	ResourcePacket<BuildResource> buildsResources();
-	@Deprecated
-	OrderedFileList sourceFiles();
 	File rootDirectory();
 	List<? extends Tactic> tactics();
 	boolean onCascade();
-	boolean analyzeExports();
 }

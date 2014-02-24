@@ -9,7 +9,6 @@ import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategem;
-import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
@@ -23,8 +22,6 @@ import com.gmmapowell.utils.OrderedFileList;
 
 public class JarCommand extends AbstractStrategem {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
-	private final ResourcePacket<BuildResource> sources = new ResourcePacket<BuildResource>();
-	protected final ResourcePacket<PendingResource> needsResources = new ResourcePacket<PendingResource>();
 	private String projectName;
 	private final File rootdir;
 	protected StructureHelper files;
@@ -34,9 +31,9 @@ public class JarCommand extends AbstractStrategem {
 	private final List<PendingResource> junitLibs = new ArrayList<PendingResource>();
 	private final List<String> junitDefines = new ArrayList<String>();
 	private final List<PendingResource> jarLibs = new ArrayList<PendingResource>();
+	protected final ResourcePacket<PendingResource> needsResources = new ResourcePacket<PendingResource>();
 	private String junitMemory;
 	private boolean runJunit = true;
-	protected ResourcePacket<BuildResource> willProvide = new ResourcePacket<BuildResource>();
 	private JavaSourceDirResource mainSources;
 	private JavaSourceDirResource testSources;
 	protected OrderedFileList mainSourceFileList;
@@ -84,7 +81,7 @@ public class JarCommand extends AbstractStrategem {
 		
 		JarResource jarResource = jar.getJarResource();
 		if (jarResource != null && javac != null)
-			willProvide.add(jarResource);
+			jar.builds(jarResource);
 		/* I can see the value of this, but it isn't actually implemented as far as I can tell
 		 * It would need some additional JarBuildCommand ...
 		else if (junit != null)
@@ -232,9 +229,11 @@ public class JarCommand extends AbstractStrategem {
 			
 			JavaBuildCommand ret = new JavaBuildCommand(this, files, src, bin, label, sourceFiles, "jdk", javaVersion, runAlways);
 			accum.add(ret);
+			for (PendingResource br : needsResources)
+				ret.needs(br);
 			
 			JavaSourceDirResource sourcesResource = new JavaSourceDirResource(dir, sourceFiles);
-			sources.add(sourcesResource);
+			ret.provides(sourcesResource);
 
 			if (jar != null)
 			{
@@ -287,34 +286,9 @@ public class JarCommand extends AbstractStrategem {
 		return null;
 	}
 
-	// Certainly the idea is that this is the "static" resources this guy needs
-	// Dynamic resources come in some other way
-	@Override
-	public ResourcePacket<PendingResource> needsResources() {
-		return needsResources;
-	}
-
-	@Override
-	public ResourcePacket<BuildResource> providesResources() {
-		return sources;
-	}
-
-	@Override
-	public ResourcePacket<BuildResource> buildsResources() {
-		return willProvide;
-	}
-
 	@Override
 	public File rootDirectory() {
 		return rootdir;
-	}
-
-	private OrderedFileList mapOFL(JavaSourceDirResource jsd)
-	{
-		List<File> files = new ArrayList<File>();
-		if (jsd != null)
-			files.addAll(jsd.getSources());
-		return new OrderedFileList(files);
 	}
 
 	@Override
@@ -326,10 +300,4 @@ public class JarCommand extends AbstractStrategem {
 	public boolean onCascade() {
 		return false;
 	}
-
-	@Override
-	public boolean analyzeExports() {
-		return true;
-	}
-
 }

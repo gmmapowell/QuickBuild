@@ -9,7 +9,9 @@ import com.gmmapowell.utils.OrderedFileList;
 public abstract class AbstractTactic implements Tactic, Comparable<Tactic> {
 	protected final Strategem parent;
 	private final Set <Tactic> procDeps = new HashSet<Tactic>();
-	private ResourcePacket<PendingResource> needsResources;
+	private final ResourcePacket<PendingResource> needsResources = new ResourcePacket<PendingResource>();
+	private final ResourcePacket<BuildResource> providesResources = new ResourcePacket<BuildResource>();
+	private final ResourcePacket<BuildResource> buildsResources = new ResourcePacket<BuildResource>();
 
 	public AbstractTactic(Strategem parent) {
 		this.parent = parent;
@@ -21,31 +23,40 @@ public abstract class AbstractTactic implements Tactic, Comparable<Tactic> {
 	}
 
 	public void needs(PendingResource pr) {
-		if (needsResources == null)
-			needsResources = new ResourcePacket<PendingResource>();
 		needsResources.add(pr);
 	}
 	
 	@Override
 	public ResourcePacket<PendingResource> needsResources() {
-		if (needsResources != null)
-			return needsResources;
-		return parent.needsResources();
+		return needsResources;
+	}
+	
+	public void provides(BuildResource br) {
+		providesResources.add(br);
 	}
 
 	@Override
 	public ResourcePacket<BuildResource> providesResources() {
-		return parent.providesResources();
+		return providesResources;
+	}
+
+	public void builds(BuildResource br) {
+		buildsResources.add(br);
 	}
 
 	@Override
 	public ResourcePacket<BuildResource> buildsResources() {
-		return parent.buildsResources();
+		return buildsResources;
 	}
 
 	@Override
 	public OrderedFileList sourceFiles() {
-		return parent.sourceFiles();
+		return null;
+	}
+
+	@Override
+	public boolean analyzeExports() {
+		return false;
 	}
 
 	@Override

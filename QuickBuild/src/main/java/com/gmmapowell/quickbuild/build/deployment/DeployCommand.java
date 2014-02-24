@@ -129,9 +129,4 @@ public class DeployCommand extends AbstractStrategemTactic {
 	public String toString() {
 		return identifier();
 	}
-
-	@Override
-	public boolean analyzeExports() {
-		return false;
-	}
 }

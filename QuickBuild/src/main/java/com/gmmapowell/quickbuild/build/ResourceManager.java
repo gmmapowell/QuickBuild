@@ -10,7 +10,6 @@ import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.ResourceListener;
-import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 
@@ -64,15 +63,6 @@ public class ResourceManager implements ResourceListener {
 		return availableResources;
 	}
 	
-	@SuppressWarnings("unchecked")
-	public <T extends BuildResource> T getBuiltResource(Strategem p, Class<T> ofCls) {
-		for (BuildResource br : p.buildsResources())
-			if (ofCls.isInstance(br))
-				return (T)br;
-		return null;
-//		throw new QuickBuildException("There is no resource of type " + ofCls + " produced by " + p.identifier());
-	}
-
 	public Iterable<BuildResource> getResources(Class<? extends BuildResource> ofType)
 	{
 		List<BuildResource> ret = new ArrayList<BuildResource>();
@@ -86,47 +76,8 @@ public class ResourceManager implements ResourceListener {
 		return availableResources.contains(br);
 	}
 
-	public void stratComplete(BuildStatus ret, Strategem strat)
-	{
-		// Test the contract when the strategem comes to an end
-		if (ret.builtResources())
-		{
-			List<BuildResource> fails = new ArrayList<BuildResource>();
-			for (BuildResource br : strat.buildsResources())
-				if (!isResourceAvailable(br))
-					fails.add(br);
-			if (!fails.isEmpty())
-			{
-				System.out.println("The strategem " + strat + " failed in its contract to build " + fails);
-				throw new QuickBuildException("The strategem " + strat + " failed in its contract to build " + fails);
-			}
-		}
-		if (ret.isGood()) {
-			System.out.println("MISSING CODE RM");
-			/*
-			es.commitAll();
-			public void addGitTx(GitRecord tx) {
--               gittxs.add(tx);
--       }
--
--       public void commitAll() {
--               if (deferredComplete.size() < deferred.size())
--                       return;
--               for (GitRecord gr : gittxs)
--                       gr.commit();
--       }
--
--       @Override
--       public void fail() {
--               for (GitRecord gr : gittxs)
--                       gr.setError();
--       }
-*/
-		}
-	}
-
-	public void exportAll(Strategem strat) {
-		for (BuildResource br : strat.buildsResources())
-			resourceAvailable(br, strat.analyzeExports());
+	public void exportAll(Tactic tactic) {
+		for (BuildResource br : tactic.buildsResources())
+			resourceAvailable(br, tactic.analyzeExports());
 	}
 }

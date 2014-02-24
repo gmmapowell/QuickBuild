@@ -39,12 +39,6 @@ public class ZinikiCommand extends AbstractStrategem {
 	}
 
 	@Override
-	public boolean analyzeExports() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
 	public void addChild(ConfigApplyCommand obj) {
 		// TODO Auto-generated method stub
 		

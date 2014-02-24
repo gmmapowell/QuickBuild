@@ -294,11 +294,6 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 		return "Distribute[" + host + "-" + saveAs + "]";
 	}
 
-	@Override
-	public boolean analyzeExports() {
-		return false;
-	}
-
 	public class SenderThread extends Thread
 	{
 		protected final WriteThruStream wts;

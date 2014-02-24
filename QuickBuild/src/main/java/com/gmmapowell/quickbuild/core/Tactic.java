@@ -22,4 +22,6 @@ public interface Tactic {
 	public void addProcessDependency(Tactic earlier);
 
 	Set<Tactic> getProcessDependencies();
+
+	public boolean analyzeExports();
 }
