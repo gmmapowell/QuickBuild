@@ -51,7 +51,7 @@ public class CopyResourceCommand extends AbstractStrategemTactic {
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		try
 		{
-			BuildResource br = toResource.getActual();
+			BuildResource br = toResource;
 			FileUtils.assertDirectory(br.getPath().getParentFile());
 			FileUtils.copy(fromResource.getPath(), br.getPath());
 			cxt.builtResource(br, false);

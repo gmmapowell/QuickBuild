@@ -23,7 +23,7 @@ public class BuildContext {
 	private final Config conf;
 	
 	private final ErrorHandler ehandler;
-	private List<Strategem> strats = new ArrayList<Strategem>();
+	private final List<Tactic> tactics = new ArrayList<Tactic>();
 	private final List<Pattern> showArgsFor = new ArrayList<Pattern>();
 	private final List<Pattern> showDebugFor = new ArrayList<Pattern>();
 	private final ResourceManager rm;
@@ -67,7 +67,7 @@ public class BuildContext {
 		for (Nature n : configFactory.installedNatures())
 			registerNature(n.getClass(), n);
 		for (Strategem s : conf.getStrategems())
-			strats.add(s);
+			tactics.addAll(s.tactics());
 	}
 	
 	public BuildOrder getBuildOrder() {
@@ -97,21 +97,21 @@ public class BuildContext {
 	
 	public void configure()
 	{
-		rm.configure(strats);
+		rm.configure(tactics);
 		try
 		{
-			for (Strategem s : strats) {
-				buildOrder.knowAbout(s);
+			for (Tactic t : tactics) {
+				buildOrder.knowAbout(t);
 			}
 			buildOrder.loadBuildOrderCache();
 			if (blankMemory)
 				throw new QuickBuildCacheException("Blanking memory because root files changed", null);
 			manager.loadDependencyCache();
-			manager.attachStrats(strats);
-			for (Strategem s : strats)
-			{			
-				s.buildsResources().resolveClones();
-			}
+			manager.attachStrats(tactics);
+//			for (Strategem s : strats)
+//			{			
+//				s.buildsResources().resolveClones();
+//			}
 		}
 		catch (QuickBuildCacheException ex) {
 			// the cache failed to load because of inconsistencies or whatever
@@ -120,7 +120,7 @@ public class BuildContext {
 			output.println("  " + ex.getMessage());
 			if (ex.getCause() != null)
 				output.println("  > "+ ex.getCause().getMessage());
-			manager.figureOutDependencies(strats);
+			manager.figureOutDependencies(tactics);
 			buildOrder.buildAll();
 		}
 
@@ -184,6 +184,10 @@ public class BuildContext {
 	
 	public Iterable<BuildResource> getDependencies(Tactic t) {
 		return manager.getDependencies(t);
+	}
+
+	public Iterable<BuildResource> getTransitiveDependencies(Tactic t) {
+		return manager.getTransitiveDependencies(t);
 	}
 	
 	public void builtResource(BuildResource r) {

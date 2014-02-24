@@ -20,6 +20,7 @@ import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
+import com.gmmapowell.utils.OrderedFileList;
 
 public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 	private final File srcdir;
@@ -27,7 +28,7 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 	private final BuildClassPath classpath;
 	private final BuildClassPath bootclasspath;
 	private boolean doClean = true;
-	private List<File> sources;
+	private final List<File> sources;
 	private final String label;
 	private final String context;
 	private final String target;
@@ -50,6 +51,11 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 		this.classpath = new BuildClassPath();
 		this.classpath.add(bindir);
 		this.bootclasspath = new BuildClassPath();
+	}
+	
+	@Override
+	public OrderedFileList sourceFiles() {
+		return new OrderedFileList(sources);
 	}
 	
 	public void addToClasspath(File file) {
@@ -77,7 +83,7 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		JavaNature nature = cxt.getNature(JavaNature.class);
-		if (nature == null)
+		if (nature == null || nature == null)
 			throw new UtilException("There is no JavaNature installed (huh?)");
 		if (!srcdir.isDirectory())
 			return BuildStatus.SKIPPED;
@@ -97,6 +103,7 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 		}
 		RunProcess proc = new RunProcess("javac");
 		proc.showArgs(showArgs);
+//		proc.showArgs(true);
 		proc.debug(showDebug);
 		proc.captureStdout();
 		proc.captureStderr();

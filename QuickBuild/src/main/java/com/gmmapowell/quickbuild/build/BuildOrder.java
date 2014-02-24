@@ -84,12 +84,10 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		buildAll = true;
 	}
 
-	public void knowAbout(Strategem s) {
-		for (Tactic t : s.tactics()) {
-			ItemToBuild itb = new ItemToBuild(t, t.identifier(), t.identifier());
-			mapping.put(t.identifier(), itb);
-			well.add(itb);
-		}
+	public void knowAbout(Tactic t) {
+		ItemToBuild itb = new ItemToBuild(t, t.identifier(), t.identifier());
+		mapping.put(t.identifier(), itb);
+		well.add(itb);
 	}
 
 	void loadBuildOrderCache() {

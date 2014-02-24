@@ -3,12 +3,11 @@ package com.gmmapowell.quickbuild.core;
 import java.io.File;
 
 import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 
+// rename this to CopiedResource
 public class CloningResource implements BuildResource {
 	private final File clonedPath;
 	private final Tactic builtBy;
-	private BuildResource actual;
 	private final PendingResource pending;
 
 	public CloningResource(Tactic builtBy, PendingResource fromResource, File clonedPath) {
@@ -25,22 +24,15 @@ public class CloningResource implements BuildResource {
 		return clonedPath;
 	}
 
-	public void bind(BuildResource actual) {
-		this.actual = actual;
-	}
-	
-	public BuildResource getActual() {
-		return actual;
-	}
 	
 	@Override
 	public File getPath() {
-		throw new QuickBuildException("Just don't use it like this");
+		return clonedPath;
 	}
 
 	@Override
 	public String compareAs() {
-		throw new QuickBuildException("Just don't use it like this");
+		return "Copied[" + clonedPath + "]";
 	}
 
 	@Override
@@ -79,9 +71,13 @@ public class CloningResource implements BuildResource {
 		throw new UtilException("Think Again");
 	}
 
+	@Override
+	public int compareTo(BuildResource o) {
+		return compareAs().compareTo(o.compareAs());
+	}
 
 	@Override
 	public String toString() {
-		return "CloneTo[" + clonedPath + (actual != null ? "*": "") + "]";
+		return "CloneTo[" + clonedPath + "]";
 	}
 }

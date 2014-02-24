@@ -24,10 +24,8 @@ import com.gmmapowell.quickbuild.build.CanBeSkipped;
 import com.gmmapowell.quickbuild.build.ErrorCase;
 import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
-import com.gmmapowell.quickbuild.core.DependencyFloat;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ProcessResource;
-import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
@@ -36,7 +34,7 @@ import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.system.ThreadedStreamReader;
 import com.gmmapowell.utils.FileUtils;
 
-public class JUnitRunCommand extends AbstractTactic implements DependencyFloat, CanBeSkipped {
+public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	private final File srcdir;
 	private File bindir;
 	private File errdir;
@@ -44,7 +42,6 @@ public class JUnitRunCommand extends AbstractTactic implements DependencyFloat, 
 	// TODO: this is currently unused ... it should be, I think, for Android
 	private final BuildClassPath bootclasspath = new BuildClassPath();
 	private final JavaBuildCommand jbc;
-	private ResourcePacket<PendingResource> addlResources = new ResourcePacket<PendingResource>();
 	private final StructureHelper files;
 	private JUnitResource writeTo;
 	private final List<String> defines = new ArrayList<String>();
@@ -74,13 +71,9 @@ public class JUnitRunCommand extends AbstractTactic implements DependencyFloat, 
 		if (writeTo != null)
 			writeTo.getFile().delete();
 		RunClassPath classpath = new RunClassPath(cxt, jbc);
-		if (addlResources != null)
-			for (BuildResource r : addlResources)
-			{
-				classpath.add(r.getPath());
-			}
-		Iterable<BuildResource> deps = cxt.getDependencies(this);
-		for (BuildResource f : deps)
+		for (BuildResource r : needsResources())
+			classpath.add(r.getPath());
+		for (BuildResource f : cxt.getTransitiveDependencies(this))
 			if (f != null && !(f instanceof ProcessResource))
 				classpath.add(f.getPath());
 
@@ -193,19 +186,13 @@ public class JUnitRunCommand extends AbstractTactic implements DependencyFloat, 
 			return;
 		
 		for (PendingResource r : junitLibs)
-			addlResources.add(r);
-	}
-
-	@Override
-	public ResourcePacket<PendingResource> needsAdditionalBuiltResources() {
-		return addlResources;
+			needs(r);
 	}
 
 	@Override
 	public String identifier() {
 		return BuildOrder.tacticIdentifier(parent, "junit");
 	}
-
 
 	public void writeTo(JUnitResource jur) {
 		this.writeTo = jur;

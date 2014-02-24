@@ -57,6 +57,11 @@ public class AdbInstalledResource implements BuildResource {
 	}
 
 	@Override
+	public int compareTo(BuildResource o) {
+		return toString().compareTo(o.toString());
+	}
+
+	@Override
 	public String toString() {
 		return compareAs();
 	}

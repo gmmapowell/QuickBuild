@@ -17,7 +17,6 @@ import com.gmmapowell.quickbuild.config.ReadsFileCommand;
 import com.gmmapowell.quickbuild.config.ResourceCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategemTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
-import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.system.RunProcess;
@@ -29,7 +28,6 @@ import com.gmmapowell.utils.OrderedFileList;
 public class BashCommand extends AbstractStrategemTactic {
 	private String scriptName;
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
-	private final ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
 	private final ResourcePacket<BuildResource> provides = new ResourcePacket<BuildResource>();
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 	private File execdir;
@@ -57,7 +55,7 @@ public class BashCommand extends AbstractStrategemTactic {
 			if (opt instanceof ArgCommand)
 				args.add(((ArgCommand)opt).getArg());
 			else if (opt instanceof ResourceCommand)
-				needs.add(((ResourceCommand)opt).getPendingResource());
+				needs(((ResourceCommand)opt).getPendingResource());
 			else if (opt instanceof ProducesCommand)
 			{
 				ProducesCommand bpc = (ProducesCommand)opt;
@@ -90,11 +88,6 @@ public class BashCommand extends AbstractStrategemTactic {
 	public String identifier() {
 		// I don't think this is identification enough, but what would be?  An Id?  A hash of all the things it produces?
 		return "Bash["+scriptName+"-"+args+"]";
-	}
-
-	@Override
-	public ResourcePacket<PendingResource> needsResources() {
-		return needs;
 	}
 
 	@Override

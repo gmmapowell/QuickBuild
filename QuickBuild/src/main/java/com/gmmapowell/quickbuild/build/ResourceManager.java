@@ -5,11 +5,13 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.ResourceListener;
 import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 
 public class ResourceManager implements ResourceListener {
@@ -25,12 +27,12 @@ public class ResourceManager implements ResourceListener {
 		notifications.add(new Notification(cls, nature));
 	}
 
-	public void configure(List<Strategem> strats) {
+	public void configure(List<Tactic> tactics) {
 		conf.tellMeAboutInitialResources(this);
 
 		// Find all the pre-existing items that strategems "produce" without effort ...
 		// (e.g. source code artifacts, resources, etc.)
-		for (Strategem s : strats)
+		for (Tactic s : tactics)
 		{			
 			for (BuildResource br : s.providesResources())
 			{

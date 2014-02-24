@@ -57,6 +57,11 @@ public class ProcessResource implements BuildResource {
 	}
 
 	@Override
+	public int compareTo(BuildResource o) {
+		return toString().compareTo(o.toString());
+	}
+
+	@Override
 	public boolean equals(Object obj) {
 		if (obj == null)
 			return false;

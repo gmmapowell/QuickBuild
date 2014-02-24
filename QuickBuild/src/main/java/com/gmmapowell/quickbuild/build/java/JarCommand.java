@@ -6,7 +6,6 @@ import java.util.List;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
-import com.gmmapowell.quickbuild.build.HasAncillaryFiles;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategem;
@@ -22,7 +21,7 @@ import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
-public class JarCommand extends AbstractStrategem implements HasAncillaryFiles {
+public class JarCommand extends AbstractStrategem {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private final ResourcePacket<BuildResource> sources = new ResourcePacket<BuildResource>();
 	protected final ResourcePacket<PendingResource> needsResources = new ResourcePacket<PendingResource>();
@@ -70,7 +69,8 @@ public class JarCommand extends AbstractStrategem implements HasAncillaryFiles {
 		if (junit != null)
 		{
 			junit.addToClasspath(new File(files.getOutputDir(), "classes"));
-			junit.addProcessDependency(javac);
+			if (javac != null)
+				junit.addProcessDependency(javac);
 		}
 		addResources(jar, junit, "src/main/resources");
 		addResources(null, junit, "src/test/resources");
@@ -79,7 +79,7 @@ public class JarCommand extends AbstractStrategem implements HasAncillaryFiles {
 			throw new QuickBuildException("None of the required source directories exist (or have source files) to build " + targetName);
 		if (javac != null)
 			tactics.add(jar);
-		if (jrun != null)
+		if (jrun != null && junit != null)
 			jrun.addProcessDependency(junit);
 		
 		JarResource jarResource = jar.getJarResource();
@@ -96,7 +96,8 @@ public class JarCommand extends AbstractStrategem implements HasAncillaryFiles {
 		*/
 
 		additionalCommands(config);
-		jar.addProcessDependency(javac);
+		if (javac != null)
+			jar.addProcessDependency(javac);
 		return this;
 	}
 
@@ -228,19 +229,20 @@ public class JarCommand extends AbstractStrategem implements HasAncillaryFiles {
 			if (sourceFiles.size() == 0)
 				return null;
 			
+			
 			JavaBuildCommand ret = new JavaBuildCommand(this, files, src, bin, label, sourceFiles, "jdk", javaVersion, runAlways);
 			accum.add(ret);
 			
 			JavaSourceDirResource sourcesResource = new JavaSourceDirResource(dir, sourceFiles);
 			sources.add(sourcesResource);
-			
+
 			if (jar != null)
 			{
 				sourcesResource.buildsInto(jar.getJarResource());
 
 				// Do this for main, but not test ...
 				mainSources = sourcesResource;
-				OrderedFileList tmp = mapOFL(mainSources);
+				OrderedFileList tmp = ret.sourceFiles();
 				if (mainSourceFileList == null)
 					mainSourceFileList = tmp;
 				else
@@ -307,17 +309,7 @@ public class JarCommand extends AbstractStrategem implements HasAncillaryFiles {
 		return rootdir;
 	}
 
-	@Override
-	public OrderedFileList sourceFiles() {
-		return mainSourceFileList;
-	}
-	
-	@Override
-	public OrderedFileList getAncillaryFiles() {
-		return mapOFL(testSources);
-	}
-	
-	public OrderedFileList mapOFL(JavaSourceDirResource jsd)
+	private OrderedFileList mapOFL(JavaSourceDirResource jsd)
 	{
 		List<File> files = new ArrayList<File>();
 		if (jsd != null)

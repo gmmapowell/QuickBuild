@@ -29,26 +29,22 @@ public abstract class AbstractStrategem extends SpecificChildrenParent<ConfigApp
 
 	@Override
 	public ResourcePacket<PendingResource> needsResources() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ResourcePacket<PendingResource>();
 	}
 
 	@Override
 	public ResourcePacket<BuildResource> providesResources() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ResourcePacket<BuildResource>();
 	}
 
 	@Override
 	public ResourcePacket<BuildResource> buildsResources() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ResourcePacket<BuildResource>();
 	}
 
 	@Override
 	public OrderedFileList sourceFiles() {
-		// TODO Auto-generated method stub
-		return null;
+		return new OrderedFileList();
 	}
 
 	/*

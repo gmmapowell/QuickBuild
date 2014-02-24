@@ -3,12 +3,14 @@ package com.gmmapowell.quickbuild.core;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.OrderedFileList;
 
-public abstract class AbstractTactic implements Tactic {
+public abstract class AbstractTactic implements Tactic, Comparable<Tactic> {
 	protected final Strategem parent;
 	private final Set <Tactic> procDeps = new HashSet<Tactic>();
-	
+	private ResourcePacket<PendingResource> needsResources;
+
 	public AbstractTactic(Strategem parent) {
 		this.parent = parent;
 	}
@@ -18,8 +20,16 @@ public abstract class AbstractTactic implements Tactic {
 		return parent;
 	}
 
+	public void needs(PendingResource pr) {
+		if (needsResources == null)
+			needsResources = new ResourcePacket<PendingResource>();
+		needsResources.add(pr);
+	}
+	
 	@Override
 	public ResourcePacket<PendingResource> needsResources() {
+		if (needsResources != null)
+			return needsResources;
 		return parent.needsResources();
 	}
 
@@ -40,10 +50,17 @@ public abstract class AbstractTactic implements Tactic {
 
 	@Override
 	public void addProcessDependency(Tactic earlier) {
+		if (earlier == null)
+			throw new UtilException("Cannot add null dependency");
 		procDeps.add(earlier);
 	}
 	
 	public Set<Tactic> getProcessDependencies() {
 		return procDeps;
+	}
+
+	@Override
+	public int compareTo(Tactic o) {
+		return identifier().compareTo(o.identifier());
 	}
 }

@@ -5,7 +5,7 @@ import java.io.File;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.FileUtils;
 
-public abstract class SolidResource implements BuildResource {
+public abstract class SolidResource implements BuildResource, Comparable<BuildResource> {
 
 	protected final File file;
 	protected final File relative;
@@ -66,6 +66,11 @@ public abstract class SolidResource implements BuildResource {
 	@Override
 	public boolean doAnalysis() {
 		return analyze;
+	}
+
+	@Override
+	public int compareTo(BuildResource o) {
+		return toString().compareTo(o.toString());
 	}
 
 	public String toString()
