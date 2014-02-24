@@ -13,11 +13,12 @@ import com.gmmapowell.system.RunProcess;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
-public class ZinikiGenerateCommand extends AbstractTactic {
+public class ZinikiDeployCommand extends AbstractTactic {
 	private final File pmzPath;
 	private BuildResource jarResource;
+	private String mode = null;
 
-	public ZinikiGenerateCommand(Strategem parent, File pmzPath) {
+	public ZinikiDeployCommand(Strategem parent, File pmzPath) {
 		super(parent);
 		this.pmzPath = pmzPath;
 		this.jarResource = new JarResource(this, new File(parent.rootDirectory(), "gen/chat-proj.jar"));
@@ -26,6 +27,10 @@ public class ZinikiGenerateCommand extends AbstractTactic {
 	@Override
 	public OrderedFileList sourceFiles() {
 		return new OrderedFileList(FileUtils.findFilesMatching(new File(parent.rootDirectory(), "src/main/resources"), "*.xml"));
+	}
+
+	public void setMode(String mode) {
+		this.mode = mode;
 	}
 
 	@Override
@@ -40,13 +45,17 @@ public class ZinikiGenerateCommand extends AbstractTactic {
 		proc.captureStdout();
 		proc.captureStderr();
 		proc.showArgs(showArgs);
-//		proc.showArgs(true);
+		proc.showArgs(true);
 		proc.debug(showDebug);
 		proc.arg("-classpath");
 		proc.arg(classpath.toString());
-		proc.arg("org.ziniki.tools.generator.ZinikiGenerator");
+		proc.arg("org.ziniki.tools.deploy.ZinikiDeploy");
+		if (mode != null)
+			proc.arg(mode);
+		proc.arg("--bindir");
+		proc.arg("qbout/classes");
 		proc.arg("-o");
-		proc.arg("gen/chat-proj.jar");
+		proc.arg("chat.jar");
 		proc.arg(".");
 		proc.arg("--reference");
 		proc.arg(new File(pmzPath, "builtins/builtin.jar").getPath());
@@ -54,7 +63,7 @@ public class ZinikiGenerateCommand extends AbstractTactic {
 		proc.arg(new File(pmzPath, "privileged/datamodel.jar").getPath());
 		proc.execute();
 		if (proc.getExitCode() == 0) {
-			cxt.builtResource(jarResource);
+			cxt.builtResource(jarResource, false);
 			return BuildStatus.SUCCESS;
 		}
 		cxt.output.buildErrors(proc.getStdout());
@@ -63,12 +72,12 @@ public class ZinikiGenerateCommand extends AbstractTactic {
 
 	@Override
 	public String identifier() {
-		return "ZinikiGen["+parent.rootDirectory()+"]";
+		return "ZinikiDeploy["+parent.rootDirectory()+"]";
 	}
 
 	@Override
 	public String toString() {
-		return "Generate Ziniki[" + FileUtils.makeRelative(parent.rootDirectory()) + "]";
+		return "Deploy Ziniki[" + FileUtils.makeRelative(parent.rootDirectory()) + "]";
 	}
 
 	public BuildResource getResource() {

@@ -2,6 +2,7 @@ package com.gmmapowell.quickbuild.build.ziniki;
 
 import java.io.File;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.build.java.JavaBuildCommand;
@@ -19,6 +20,7 @@ public class ZinikiCommand extends AbstractStrategem {
 	private String projectName;
 	private final File rootdir;
 	private String javaVersion;
+	private String mode;
 
 	public ZinikiCommand(TokenizedLine toks) {
 		super(toks, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
@@ -27,8 +29,12 @@ public class ZinikiCommand extends AbstractStrategem {
 
 	@Override
 	public void addChild(ConfigApplyCommand obj) {
-		// TODO Auto-generated method stub
-		
+		if (obj instanceof ZinikiModeCommand) {
+			if (mode != null)
+				throw new UtilException("Cannot specify more than one mode");
+			mode = ((ZinikiModeCommand)obj).getMode();
+		} else
+			throw new UtilException("Cannot handle command " + obj);
 	}
 
 	@Override
@@ -36,15 +42,26 @@ public class ZinikiCommand extends AbstractStrategem {
 		javaVersion = config.getVarIfDefined("javaVersion", null);
 		File pmz = config.getPath("pmziniki");
 		StructureHelper files = new StructureHelper(rootdir, config.getOutput());
+
+		// Generate Ziniki proj jar
 		ZinikiGenerateCommand gen = new ZinikiGenerateCommand(this, pmz);
 		gen.builds(gen.getResource());
 		tactics.add(gen);
+		
+		// Build all the Java files
 		JavaBuildCommand jbc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", FileUtils.findFilesMatching(new File(rootdir, "src/main/java"), "*.java"), "jdk", javaVersion, true);
 		jbc.needs(new PendingResource(gen.getResource()));
 		jbc.addProcessDependency(gen);
 		tactics.add(jbc);
-//		tactics.add(new ZinikiDeployCommand());
-		// TODO Auto-generated method stub
+		
+		// Create the deploy archinve
+		ZinikiDeployCommand deploy = new ZinikiDeployCommand(this, pmz);
+		if (mode != null)
+			deploy.setMode("--"+mode);
+//		deploy.builds(deploy.getResource());
+		jbc.addProcessDependency(gen);
+		jbc.addProcessDependency(jbc);
+		tactics.add(deploy);
 		return this;
 	}
 
