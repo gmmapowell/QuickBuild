@@ -188,8 +188,6 @@ public class JavaNature implements Nature, BuildContextAware {
 				return cxt.addDependency(dependent, haveOne, debug);
 			}
 		}
-		else
-			System.out.println("No such package " + needsJavaPackage);
 		
 		// OK, try and move the projects around a bit
 		if (projectPackages.contains(needsJavaPackage))

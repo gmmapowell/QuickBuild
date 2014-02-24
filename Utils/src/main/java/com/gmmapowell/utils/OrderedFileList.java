@@ -52,4 +52,9 @@ public class OrderedFileList implements Iterable<File> {
 	public static OrderedFileList empty() {
 		return new OrderedFileList();
 	}
+	
+	@Override
+	public String toString() {
+		return list.toString();
+	}
 }

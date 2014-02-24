@@ -1,10 +1,13 @@
 package com.gmmapowell.quickbuild.build.ziniki;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.TokenizedLine;
-import com.gmmapowell.quickbuild.build.java.JarResource;
+import com.gmmapowell.quickbuild.build.java.JUnitLibCommand;
+import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
 import com.gmmapowell.quickbuild.build.java.JavaBuildCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
@@ -21,6 +24,7 @@ public class ZinikiCommand extends AbstractStrategem {
 	private final File rootdir;
 	private String javaVersion;
 	private String mode;
+	private final List<PendingResource> junitLibs = new ArrayList<PendingResource>();
 
 	public ZinikiCommand(TokenizedLine toks) {
 		super(toks, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
@@ -28,13 +32,18 @@ public class ZinikiCommand extends AbstractStrategem {
 	}
 
 	@Override
-	public void addChild(ConfigApplyCommand obj) {
-		if (obj instanceof ZinikiModeCommand) {
+	public void addChild(ConfigApplyCommand opt) {
+		if (opt instanceof ZinikiModeCommand) {
 			if (mode != null)
 				throw new UtilException("Cannot specify more than one mode");
-			mode = ((ZinikiModeCommand)obj).getMode();
-		} else
-			throw new UtilException("Cannot handle command " + obj);
+			mode = ((ZinikiModeCommand)opt).getMode();
+		}
+		else if (opt instanceof JUnitLibCommand)
+		{
+			junitLibs.add(((JUnitLibCommand)opt).getResource());
+		}
+		else
+			throw new UtilException("Cannot handle command " + opt);
 	}
 
 	@Override
@@ -44,23 +53,48 @@ public class ZinikiCommand extends AbstractStrategem {
 		StructureHelper files = new StructureHelper(rootdir, config.getOutput());
 
 		// Generate Ziniki proj jar
-		ZinikiGenerateCommand gen = new ZinikiGenerateCommand(this, pmz);
+		ZinikiGenerateCommand gen = new ZinikiGenerateCommand(this, pmz, projectName.toLowerCase());
 		gen.builds(gen.getResource());
 		tactics.add(gen);
 		
 		// Build all the Java files
-		JavaBuildCommand jbc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", FileUtils.findFilesMatching(new File(rootdir, "src/main/java"), "*.java"), "jdk", javaVersion, true);
-		jbc.needs(new PendingResource(gen.getResource()));
-		jbc.addProcessDependency(gen);
-		tactics.add(jbc);
+		List<File> srcFiles = FileUtils.findFilesMatching(new File(rootdir, "src/main/java"), "*.java");
+		JavaBuildCommand jbc = null;
+		if (srcFiles != null && !srcFiles.isEmpty()) {
+			jbc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", srcFiles, "jdk", javaVersion, true);
+			jbc.needs(new PendingResource(gen.getResource()));
+			jbc.addProcessDependency(gen);
+			tactics.add(jbc);
+		}
+
+		// Test it 
+		List<File> testFiles = FileUtils.findFilesMatching(new File(rootdir, "src/test/java"), "*.java");
+		if (testFiles != null && !testFiles.isEmpty()) {
+			JavaBuildCommand juc = new JavaBuildCommand(this, files, "src/test/java", "test-classes", "test", testFiles, "jdk", javaVersion, true);
+			juc.needs(new PendingResource(gen.getResource()));
+			juc.addProcessDependency(gen);
+			if (jbc != null) {
+				juc.addProcessDependency(jbc);
+				juc.addToClasspath(new File(files.getOutputDir(), "classes"));
+			}
+			tactics.add(juc);
+			
+			{
+				JUnitRunCommand jur = new JUnitRunCommand(this, files, juc);
+				jur.addLibs(junitLibs);
+				jur.addProcessDependency(juc);
+				tactics.add(jur);
+			}
+		}
 		
 		// Create the deploy archinve
-		ZinikiDeployCommand deploy = new ZinikiDeployCommand(this, pmz);
+		ZinikiDeployCommand deploy = new ZinikiDeployCommand(this, pmz, projectName.toLowerCase());
 		if (mode != null)
 			deploy.setMode("--"+mode);
-//		deploy.builds(deploy.getResource());
-		jbc.addProcessDependency(gen);
-		jbc.addProcessDependency(jbc);
+		deploy.builds(deploy.getResource());
+		deploy.addProcessDependency(gen);
+		if (jbc != null)
+			deploy.addProcessDependency(jbc);
 		tactics.add(deploy);
 		return this;
 	}

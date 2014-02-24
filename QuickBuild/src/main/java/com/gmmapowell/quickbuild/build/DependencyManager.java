@@ -122,6 +122,7 @@ public class DependencyManager {
 		}
 		catch (Exception ex)
 		{
+			dependencyFile.delete();
 			throw new UtilException("Could not decipher the dependency cache", ex);
 		}
 		return true;

@@ -106,8 +106,6 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 			if (s == null)
 				throw new UtilException("Applying command " + c + " did not produce a strategem");
 			strategems.add(s);
-
-			// TODO: provide all initial resources
 		}
 	}
 	

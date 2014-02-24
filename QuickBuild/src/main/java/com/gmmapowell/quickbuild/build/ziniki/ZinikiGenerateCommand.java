@@ -15,12 +15,14 @@ import com.gmmapowell.utils.OrderedFileList;
 
 public class ZinikiGenerateCommand extends AbstractTactic {
 	private final File pmzPath;
-	private BuildResource jarResource;
+	private final String name;
+	private final BuildResource jarResource;
 
-	public ZinikiGenerateCommand(Strategem parent, File pmzPath) {
+	public ZinikiGenerateCommand(Strategem parent, File pmzPath, String name) {
 		super(parent);
 		this.pmzPath = pmzPath;
-		this.jarResource = new JarResource(this, new File(parent.rootDirectory(), "gen/chat-proj.jar"));
+		this.name = name;
+		this.jarResource = new JarResource(this, new File(parent.rootDirectory(), "gen/" + name + "-proj.jar"));
 	}
 
 	@Override
@@ -46,7 +48,7 @@ public class ZinikiGenerateCommand extends AbstractTactic {
 		proc.arg(classpath.toString());
 		proc.arg("org.ziniki.tools.generator.ZinikiGenerator");
 		proc.arg("-o");
-		proc.arg("gen/chat-proj.jar");
+		proc.arg("gen/" + name + "-proj.jar");
 		proc.arg(".");
 		proc.arg("--reference");
 		proc.arg(new File(pmzPath, "builtins/builtin.jar").getPath());
@@ -68,7 +70,7 @@ public class ZinikiGenerateCommand extends AbstractTactic {
 
 	@Override
 	public String toString() {
-		return "Generate Ziniki[" + FileUtils.makeRelative(parent.rootDirectory()) + "]";
+		return "Generate Ziniki: " + parent.rootDirectory();
 	}
 
 	public BuildResource getResource() {

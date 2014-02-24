@@ -82,15 +82,6 @@ public class JarCommand extends AbstractStrategem {
 		JarResource jarResource = jar.getJarResource();
 		if (jarResource != null && javac != null)
 			jar.builds(jarResource);
-		/* I can see the value of this, but it isn't actually implemented as far as I can tell
-		 * It would need some additional JarBuildCommand ...
-		else if (junit != null)
-		{
-			JUnitResource jur = new JUnitResource(junit, files.getOutput(FileUtils.ensureExtension(targetName, ".junr")));
-			willProvide.add(jur);
-			jrun.writeTo(jur);
-		}
-		*/
 
 		additionalCommands(config);
 		if (javac != null)

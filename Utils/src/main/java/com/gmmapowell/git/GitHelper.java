@@ -40,15 +40,17 @@ public class GitHelper {
 		proc.captureStdout();
 		proc.arg("hash-object");
 		List<String> paths = new ArrayList<String>();
-		for (File f : files)
-		{
-			String path;
-			if (FileUtils.isUnder(f, FileUtils.getCurrentDir()))
-				path = FileUtils.makeRelative(f).getPath();
-			else
-				path = f.getPath();
-			proc.arg(path);
-			paths.add(path);
+		if (files != null) {
+			for (File f : files)
+			{
+				String path;
+				if (FileUtils.isUnder(f, FileUtils.getCurrentDir()))
+					path = FileUtils.makeRelative(f).getPath();
+				else
+					path = f.getPath();
+				proc.arg(path);
+				paths.add(path);
+			}
 		}
 		proc.execute();
 

@@ -115,8 +115,10 @@ public class ItemToBuild {
 	}
 
 	public void fail() {
-		for (GitRecord gr : gittxs )
+		for (GitRecord gr : gittxs ) {
 			gr.setError();
+			gr.commit();
+		}
 	}
 
 	public void revert() {

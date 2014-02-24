@@ -113,4 +113,8 @@ public class GitRecord {
 		missing = true;
 	}
 
+	@Override
+	public String toString() {
+		return "GitRecord[" + source + "]";
+	}
 }

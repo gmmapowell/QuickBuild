@@ -224,6 +224,7 @@ public class BuildExecutor {
 			itb.export(cxt.output, rm, verbose);
 			itb.announce(cxt.output, verbose, currentTactic, itb.needsBuild);
 			cxt.output.finishBuildStep();
+			itb.commitAll();
 			return itb.needsBuild;
 		}
 		else if (!isOnCriticalPath(itb))

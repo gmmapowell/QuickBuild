@@ -196,7 +196,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 			if (!wasDirty && debug)
 				cxt.output.println("Marking " + itb + " dirty due to NULL file list");
 		}
-		else if (files != null)
+		else
 		{
 			GitRecord gittx = GitHelper.checkFiles(itb.isClean() && !buildAll, files, cxt.getGitCacheFile(itb.name(), ""));
 			itb.addGitTx(gittx);
