@@ -3,7 +3,6 @@ package com.gmmapowell.quickbuild.build.ftp;
 import java.io.File;
 
 import com.gmmapowell.quickbuild.core.BuildResource;
-import com.gmmapowell.quickbuild.core.CloningResource;
 import com.gmmapowell.quickbuild.core.Tactic;
 
 public class DistributeResource implements BuildResource {
@@ -31,11 +30,6 @@ public class DistributeResource implements BuildResource {
 		return "DistributeTo["+host+"]";
 	}
 
-	@Override
-	public BuildResource cloneInto(CloningResource toResource) {
-		throw new RuntimeException("I don't really understand this");
-	}
-	
 	@Override
 	public void enableAnalysis() {
 		analyze = true;

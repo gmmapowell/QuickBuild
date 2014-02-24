@@ -7,7 +7,6 @@ public interface BuildResource extends Comparable<BuildResource> {
 	Tactic getBuiltBy();
 	File getPath();
 	String compareAs();
-	BuildResource cloneInto(CloningResource toResource);
 	void enableAnalysis();
 	boolean doAnalysis();
 }

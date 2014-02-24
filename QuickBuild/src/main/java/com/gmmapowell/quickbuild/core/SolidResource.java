@@ -2,7 +2,6 @@ package com.gmmapowell.quickbuild.core;
 
 import java.io.File;
 
-import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.FileUtils;
 
 public abstract class SolidResource implements BuildResource, Comparable<BuildResource> {
@@ -38,26 +37,6 @@ public abstract class SolidResource implements BuildResource, Comparable<BuildRe
 		return file;
 	}
 
-	@Override
-	public BuildResource cloneInto(CloningResource to) {
-		throw new UtilException("Cannot clone into " + this + " - implement it in the appropriate subclass " + this.getClass());
-	}
-	
-	/*
-	@Override
-	public int hashCode() {
-		return compareAs().hashCode();
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null)
-			return false;
-		if (!(obj instanceof BuildResource))
-			return false;
-		return compareAs().equals(((BuildResource)obj).compareAs());
-	}
-	*/
 	@Override
 	public void enableAnalysis() {
 		analyze = true;

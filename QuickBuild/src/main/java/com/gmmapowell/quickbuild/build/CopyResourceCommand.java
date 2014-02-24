@@ -7,7 +7,7 @@ import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategemTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
-import com.gmmapowell.quickbuild.core.CloningResource;
+import com.gmmapowell.quickbuild.core.CopiedResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
@@ -21,7 +21,7 @@ public class CopyResourceCommand extends AbstractStrategemTactic {
 	private String fromResourceName;
 	private String toPath;
 	private PendingResource fromResource;
-	private CloningResource toResource;
+	private CopiedResource toResource;
 	private StructureHelper files;
 	private final ResourcePacket<PendingResource> needed = new ResourcePacket<PendingResource>();
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
@@ -37,7 +37,7 @@ public class CopyResourceCommand extends AbstractStrategemTactic {
 	public Strategem applyConfig(Config config) {
 		files = new StructureHelper(FileUtils.getCurrentDir(), "");
 		fromResource = new PendingResource(fromResourceName);
-		toResource = new CloningResource(this, fromResource, new File(files.getRelative(toPath), new File(fromResourceName).getName()));
+		toResource = new CopiedResource(this, fromResource, new File(files.getRelative(toPath), new File(fromResourceName).getName()));
 		builds.add(toResource);
 		needed.add(fromResource);
 		return this;

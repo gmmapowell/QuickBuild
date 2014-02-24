@@ -32,4 +32,8 @@ public abstract class ArchiveCommand extends AbstractTactic {
 	public JarResource getJarResource() {
 		return jarResource;
 	}
+
+	public boolean alwaysBuild() {
+		return false;
+	}
 }

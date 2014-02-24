@@ -224,7 +224,7 @@ public class DependencyManager {
 		output.write(dependencyFile);
 	}
 
-	public Iterable<BuildResource> getDependencies(Tactic tactic) {
+	public Set<BuildResource> getDependencies(Tactic tactic) {
 		if (!dependencies.containsKey(tactic)) {
 			dependencies.put(tactic, new TreeSet<BuildResource>());
 		}

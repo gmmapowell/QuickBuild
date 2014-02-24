@@ -4,13 +4,12 @@ import java.io.File;
 
 import com.gmmapowell.exceptions.UtilException;
 
-// rename this to CopiedResource
-public class CloningResource implements BuildResource {
+public class CopiedResource implements BuildResource {
 	private final File clonedPath;
 	private final Tactic builtBy;
 	private final PendingResource pending;
 
-	public CloningResource(Tactic builtBy, PendingResource fromResource, File clonedPath) {
+	public CopiedResource(Tactic builtBy, PendingResource fromResource, File clonedPath) {
 		this.builtBy = builtBy;
 		this.pending = fromResource;
 		this.clonedPath = clonedPath;
@@ -41,34 +40,13 @@ public class CloningResource implements BuildResource {
 	}
 
 	@Override
-	public BuildResource cloneInto(CloningResource to) {
-		throw new UtilException("Cannot clone a cloning resource");
-	}
-	
-	/*
-	@Override
-	public int hashCode() {
-		return hash;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null)
-			return false;
-		if (!(obj instanceof CloningResource))
-			return false;
-		return hash == obj.hashCode();
-	}
-	*/
-	
-	@Override
 	public void enableAnalysis() {
 		throw new UtilException("Think Again");
 	}
 
 	@Override
 	public boolean doAnalysis() {
-		throw new UtilException("Think Again");
+		return false;
 	}
 
 	@Override
@@ -78,6 +56,6 @@ public class CloningResource implements BuildResource {
 
 	@Override
 	public String toString() {
-		return "CloneTo[" + clonedPath + "]";
+		return "CopiedTo[" + clonedPath + "]";
 	}
 }

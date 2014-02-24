@@ -161,6 +161,11 @@ public class WarBuildCommand extends ArchiveCommand {
 	}
 	
 	@Override
+	public boolean alwaysBuild() {
+		return true;
+	}
+
+	@Override
 	public String identifier() {
 		return BuildOrder.tacticIdentifier(parent, "war");
 	}

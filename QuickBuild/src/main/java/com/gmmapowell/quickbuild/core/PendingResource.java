@@ -38,13 +38,6 @@ public class PendingResource implements BuildResource {
 		return boundTo.getBuiltBy();
 	}
 
-	@Override
-	public BuildResource cloneInto(CloningResource toResource) {
-		if (boundTo == null)
-			throw new QuickBuildException("Cannot use PendingResource before bound");
-		return boundTo.cloneInto(toResource);
-	}
-	
 	public BuildResource physicalResource() {
 		if (boundTo == null)
 			throw new QuickBuildException("Cannot use PendingResource before bound");

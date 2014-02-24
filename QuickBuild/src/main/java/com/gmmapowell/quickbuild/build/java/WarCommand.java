@@ -58,7 +58,6 @@ public class WarCommand extends JarCommand {
 		return "War[" + targetName + "]";
 	}
 
-
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

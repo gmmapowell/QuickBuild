@@ -3,7 +3,6 @@ package com.gmmapowell.quickbuild.build.android;
 import java.io.File;
 
 import com.gmmapowell.quickbuild.core.BuildResource;
-import com.gmmapowell.quickbuild.core.CloningResource;
 import com.gmmapowell.quickbuild.core.Tactic;
 
 public class AdbInstalledResource implements BuildResource {
@@ -39,11 +38,6 @@ public class AdbInstalledResource implements BuildResource {
 	@Override
 	public boolean equals(Object obj) {
 		return ((obj instanceof AdbInstalledResource) && comparison.equals(((AdbInstalledResource)obj).comparison));
-	}
-	
-	@Override
-	public BuildResource cloneInto(CloningResource toResource) {
-		throw new RuntimeException("I don't really understand this");
 	}
 	
 	@Override

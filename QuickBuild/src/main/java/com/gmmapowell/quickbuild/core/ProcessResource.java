@@ -32,11 +32,6 @@ public class ProcessResource implements BuildResource {
 	}
 
 	@Override
-	public BuildResource cloneInto(CloningResource toResource) {
-		throw new UtilException("No " + toResource);
-	}
-
-	@Override
 	public void enableAnalysis() {
 		throw new UtilException("No");
 	}

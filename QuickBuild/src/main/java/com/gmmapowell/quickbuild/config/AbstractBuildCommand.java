@@ -6,12 +6,11 @@ import java.util.List;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.quickbuild.core.AbstractStrategemTactic;
 
-
 public abstract class AbstractBuildCommand extends AbstractStrategemTactic {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private List<BuildIfCommand> buildifs = new ArrayList<BuildIfCommand>();
 
-	public AbstractBuildCommand(Class<? extends ConfigApplyCommand>... clzs) {
+	public AbstractBuildCommand(@SuppressWarnings("unchecked") Class<? extends ConfigApplyCommand>... clzs) {
 		super(clzs);
 	}
 

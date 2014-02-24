@@ -74,7 +74,7 @@ public class JarCommand extends AbstractStrategem {
 		JUnitRunCommand jrun = addJUnitRun(tactics, junit);
 		if (tactics.size() == 0)
 			throw new QuickBuildException("None of the required source directories exist (or have source files) to build " + targetName);
-		if (javac != null)
+		if (javac != null || jar.alwaysBuild())
 			tactics.add(jar);
 		if (jrun != null && junit != null)
 			jrun.addProcessDependency(junit);

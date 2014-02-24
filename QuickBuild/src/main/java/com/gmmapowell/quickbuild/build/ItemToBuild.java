@@ -128,9 +128,8 @@ public class ItemToBuild {
 		return tactic.getProcessDependencies();
 	}
 
-	public Iterable<BuildResource> getDependencies(DependencyManager dependencies) {
-		Iterable<BuildResource> ret = dependencies.getDependencies(tactic);
-		return ret;
+	public Set<BuildResource> getDependencies(DependencyManager dependencies) {
+		return dependencies.getDependencies(tactic);
 	}
 
 	public void setDrift(int drift) {

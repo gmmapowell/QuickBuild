@@ -190,7 +190,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		}
 		boolean wasDirty = isDirty;
 		OrderedFileList files = itb.tactic.sourceFiles();
-		if (files == null && itb.getProcessDependencies().isEmpty())
+		if (files == null && itb.getDependencies(manager).isEmpty() && itb.getProcessDependencies().isEmpty())
 		{
 			isDirty = true;
 			if (!wasDirty && debug)
