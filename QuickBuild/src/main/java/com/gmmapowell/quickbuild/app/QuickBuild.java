@@ -124,7 +124,7 @@ public class QuickBuild {
 		buildAll |= mainFiles.isDirty();
 		
 		// now we need to read back anything we've cached ...
-		BuildContext cxt = new BuildContext(conf, configFactory, output, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar, arguments.upTo, arguments.nthreads, arguments.doubleQuick, arguments.allTests);
+		BuildContext cxt = new BuildContext(conf, configFactory, output, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar, arguments.upTo, arguments.doubleQuick, arguments.allTests);
 		cxt.configure();
 		
 		if (!arguments.quiet && !output.forTeamCity())

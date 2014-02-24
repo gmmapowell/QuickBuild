@@ -18,7 +18,6 @@ import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
-import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 import com.gmmapowell.utils.PrettyPrinter;
@@ -58,9 +57,8 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 
 	private final BuildContext cxt;
 	private final DependencyManager dependencies;
-	private final Set<BuildResource> dirtyUnbuilt = new HashSet<BuildResource>();
+	private final Set<BuildResource> dirtyResources = new HashSet<BuildResource>();
 	private final Set<GitRecord> ubtxs = new HashSet<GitRecord>();
-	private final int nthreads;
 
 	private Set<Tactic> completedTactics = new HashSet<Tactic>();
 
@@ -70,7 +68,6 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		dependencies = manager;
 		this.buildAll = buildAll;
 		this.debug = debug;
-		this.nthreads = cxt.getNumThreads();
 		buildOrderFile = cxt.getCacheFile("buildOrder.xml");
 	}	
 
@@ -93,7 +90,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 	void loadBuildOrderCache() {
 		if (!buildOrderFile.canRead())
 		{
-			throw new QuickBuildCacheException("There was no build order cache", null);
+			return;
 		}
 		try
 		{
@@ -113,7 +110,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		} catch (Exception ex)
 		{
 			buildOrderFile.delete();
-			throw new QuickBuildCacheException("Could not parse build order cache", ex);
+			toBuild.addAll(well);
 		}
 	}
 
@@ -170,55 +167,20 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 			GitRecord ubtx = GitHelper.checkFiles(!buildAll, ofl, cxt.getGitCacheFile("Unbuilt_"+relpath.replace("/", "_"), ""));
 			ubtxs.add(ubtx);
 			if (ubtx.isDirty())
-				dirtyUnbuilt.add(br);
+				dirtyResources.add(br);
 		}
 		final List<ItemToBuild> itbQueue = new ArrayList<ItemToBuild>();
 		for (ItemToBuild itb : toBuild)
 			itbQueue.add(itb);
 		for (ItemToBuild itb : well)
 			itbQueue.add(itb);
-		if (nthreads < 2 || itbQueue.size() < 5) {
-			for (ItemToBuild itb : itbQueue)
-				figureDirtyness(manager, itb);
-		} else {
-			System.out.println("Using " + nthreads + " threads to figure dirtyness");
-			int nthrs = Math.min(nthreads, itbQueue.size());
-			Thread[] thrs = new Thread[nthrs];
-			for (int i=0;i<nthrs;i++) {
-				final int j = i;
-				thrs[i] = new Thread() {
-					public void run() {
-						while (true) {
-							ItemToBuild itb;
-							synchronized (itbQueue) {
-								if (itbQueue.isEmpty())
-									break;
-								itb = itbQueue.remove(0);
-							}
-							System.out.println("Thread " + j + " took item " + itb);
-							figureDirtyness(manager, itb);
-							System.out.println("       " + j + " done with " + itb);
-						}
-						System.out.println("  Done: " + j);
-					}
-				};
-				thrs[i].start();
-			}
-			for (int i=0;i<nthrs;i++) {
-				while (thrs[i].isAlive())
-					try {
-						thrs[i].join();
-					} catch (InterruptedException ex) {
-						; // whatever
-					}
-			}
-		}
+		for (ItemToBuild itb : itbQueue)
+			figureDirtyness(manager, itb);
 	}
 
 	public void figureDirtyness(DependencyManager manager, ItemToBuild itb) {
 		if (itb == null || itb.tactic == null)
 			return;
-//		System.out.println("Considering " + itb);
 		boolean isDirty = false;
 		if (buildAll)
 		{
@@ -227,11 +189,8 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 			isDirty = true;
 		}
 		boolean wasDirty = isDirty;
-		OrderedFileList files = itb.tactic.belongsTo().sourceFiles();
-		OrderedFileList ancillaries = null;
-		if (itb.tactic.belongsTo() instanceof HasAncillaryFiles)
-			ancillaries = ((HasAncillaryFiles) itb.tactic.belongsTo()).getAncillaryFiles();
-		if (files == null && ancillaries == null)
+		OrderedFileList files = itb.tactic.sourceFiles();
+		if (files == null)
 		{
 			isDirty = true;
 			if (!wasDirty && debug)
@@ -263,24 +222,18 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 						cxt.output.println("Marking " + itb + " dirty because " + wb.compareAs() + " does not exist");
 					isDirty = true;
 				}
+				else if (dirtyResources.contains(wb) || (wb.getBuiltBy() != null && !mapping.get(wb.getBuiltBy().identifier()).isClean())) {
+					if (debug)
+						cxt.output.println("Marking " + itb + " dirty because " + wb.compareAs() + " is dirty or being dirtied");
+					isDirty = true;
+				}
 			}
 		}
 		if (!isDirty)
 		{
-			for (BuildResource d : manager.getDependencies(itb.tactic))
+			for (Tactic d : itb.tactic.getProcessDependencies())
 			{
-				if (d == null || d instanceof ProcessResource)
-					continue;
-				if (d.getBuiltBy() == null)
-				{
-					if (dirtyUnbuilt.contains(d))
-					{
-						isDirty = true;
-						if (debug)
-							cxt.output.println("Marking " + itb + " dirty due to library " + d + " is dirty");
-					}
-				}
-				else if (!mapping.get(d.getBuiltBy().identifier()).isClean())
+				if (!mapping.get(d.identifier()).isClean())
 				{
 					isDirty = true;
 					if (debug)
@@ -288,23 +241,9 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 				}
 			}
 		}
-		boolean ancDirty = false;
-		if (itb.tactic.belongsTo() instanceof HasAncillaryFiles) {
-			if (ancillaries != null && !ancillaries.isEmpty())
-			{
-				 GitRecord ancTx = GitHelper.checkFiles(itb.isClean() && !buildAll, ancillaries, cxt.getGitCacheFile(itb.name(), ".anc"));
-				 itb.addGitTx(ancTx);
-				 ancDirty = ancTx.isDirty();
-			}
-		}
 		if (isDirty || buildAll)
 		{
 			itb.markDirty();
-		}
-		else if (ancDirty) {
-			if (debug)
-				cxt.output.println("Marking " + itb + " locally dirty due to git hash-object on ancillaries");
-			itb.markDirtyLocally();
 		}
 	}
 

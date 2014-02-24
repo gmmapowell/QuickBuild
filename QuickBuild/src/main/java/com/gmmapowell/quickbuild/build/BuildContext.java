@@ -12,7 +12,6 @@ import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
-import com.gmmapowell.quickbuild.exceptions.QuickBuildCacheException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
 
@@ -38,22 +37,19 @@ public class BuildContext {
 
 	public boolean grandFallacy;
 
-	private final int nthreads;
-
 	public final BuildOutput output;
 
 	public final boolean doubleQuick;
 
 	public final boolean allTests;
 
-	public BuildContext(Config conf, ConfigFactory configFactory, BuildOutput output, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar, String upTo, int nthreads, boolean doubleQuick, boolean allTests) {
+	public BuildContext(Config conf, ConfigFactory configFactory, BuildOutput output, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar, String upTo, boolean doubleQuick, boolean allTests) {
 		this.conf = conf;
 		this.output = output;
 		this.blankMemory = blankMemory;
 		this.quiet = quiet;
 		this.utilsJar = utilsJar;
 		this.upTo = upTo;
-		this.nthreads = nthreads;
 		this.doubleQuick = doubleQuick;
 		this.allTests = allTests;
 		rm = new ResourceManager(conf);
@@ -98,32 +94,16 @@ public class BuildContext {
 	public void configure()
 	{
 		rm.configure(tactics);
-		try
-		{
-			for (Tactic t : tactics) {
-				buildOrder.knowAbout(t);
-			}
+		for (Tactic t : tactics) {
+			buildOrder.knowAbout(t);
+		}
+		if (!blankMemory)
 			buildOrder.loadBuildOrderCache();
-			if (blankMemory)
-				throw new QuickBuildCacheException("Blanking memory because root files changed", null);
-			manager.loadDependencyCache();
-			manager.attachStrats(tactics);
-//			for (Strategem s : strats)
-//			{			
-//				s.buildsResources().resolveClones();
-//			}
-		}
-		catch (QuickBuildCacheException ex) {
-			// the cache failed to load because of inconsistencies or whatever
-			// ignore it and try again
-			output.println("Cache was out of date; rebuilding");
-			output.println("  " + ex.getMessage());
-			if (ex.getCause() != null)
-				output.println("  > "+ ex.getCause().getMessage());
-			manager.figureOutDependencies(tactics);
+		manager.init(tactics);
+		if (blankMemory || !manager.loadDependencyCache(tactics)) {
 			buildOrder.buildAll();
+			manager.figureOutDependencies(tactics);
 		}
-
 		buildOrder.figureDirtyness(manager);
 	}
 
@@ -213,9 +193,5 @@ public class BuildContext {
 
 	public String printableBuildOrder(boolean b) {
 		return buildOrder.printOut(b);
-	}
-
-	public int getNumThreads() {
-		return nthreads;
 	}
 }

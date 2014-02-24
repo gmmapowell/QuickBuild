@@ -3,7 +3,6 @@ package com.gmmapowell.quickbuild.core;
 import java.io.File;
 
 import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.quickbuild.build.DependencyManager.ComparisonResource;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 
 public class PendingResource implements BuildResource {
@@ -55,7 +54,7 @@ public class PendingResource implements BuildResource {
 	public void bindTo(BuildResource uniq) {
 		if (boundTo != null)
 			throw new QuickBuildException("Cannot bind PendingResource multiple times");
-		if (uniq instanceof PendingResource || uniq instanceof ComparisonResource)
+		if (uniq instanceof PendingResource)
 			throw new QuickBuildException("Invalid bind type " + uniq + " of " + uniq.getClass());
 		boundTo = uniq;
 	}
