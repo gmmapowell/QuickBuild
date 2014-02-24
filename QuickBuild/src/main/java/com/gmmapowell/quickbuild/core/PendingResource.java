@@ -13,6 +13,10 @@ public class PendingResource implements BuildResource {
 		this.pendingName = from;
 	}
 	
+	public PendingResource(BuildResource real) {
+		this.boundTo = real;
+	}
+
 	@Override
 	public File getPath() {
 		if (boundTo == null)

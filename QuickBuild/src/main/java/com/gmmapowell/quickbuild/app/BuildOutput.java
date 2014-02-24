@@ -108,7 +108,7 @@ public class BuildOutput {
 			for (String m : messages)
 				System.out.println("##teamcity[message text='" + escape(m) + "' status='ERROR']");
 		} else {
-			System.out.println("!!! Errors were detected in javac, but could not be corrected:");
+			System.out.println("!!! Errors were detected, but could not be corrected:");
 			System.out.println(errors);
 		}
 	}

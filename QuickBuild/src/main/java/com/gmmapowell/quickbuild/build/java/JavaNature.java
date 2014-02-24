@@ -118,6 +118,9 @@ public class JavaNature implements Nature, BuildContextAware {
 //				addedDuplicates = true;
 //				duplicates.add(pkg);
 //			}
+			if (availablePackages.contains(pkg) && availablePackages.get(pkg).contains(br))
+				continue;
+//			System.out.println("Recognizing " + br + " as a possible source for " + pkg);
 			availablePackages.add(pkg, br);
 		}
 		jar.close();
@@ -185,6 +188,8 @@ public class JavaNature implements Nature, BuildContextAware {
 				return cxt.addDependency(dependent, haveOne, debug);
 			}
 		}
+		else
+			System.out.println("No such package " + needsJavaPackage);
 		
 		// OK, try and move the projects around a bit
 		if (projectPackages.contains(needsJavaPackage))
