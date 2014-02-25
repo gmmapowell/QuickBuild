@@ -165,7 +165,7 @@ public class DependencyManager {
 		if (uniq.size() == 0) {
 			StringBuilder sb = new StringBuilder("Could not find any dependency that matched " + pr.compareAs() +"; have:\n");
 			for (BuildResource br : allResources)
-				sb.append("  " + br + "\n");
+				sb.append("  " + br.compareAs() + "\n");
 			throw new QuickBuildException(sb.toString());
 		}
 		if (uniq.size() > 1) {

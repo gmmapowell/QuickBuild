@@ -32,7 +32,7 @@ public class CopiedResource implements BuildResource {
 
 	@Override
 	public String compareAs() {
-		return "Copied[" + clonedPath + "]";
+		return "Copied[" + FileUtils.posixPath(clonedPath) + "]";
 	}
 
 	@Override

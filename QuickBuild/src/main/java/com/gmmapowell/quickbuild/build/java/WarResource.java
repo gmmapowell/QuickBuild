@@ -17,7 +17,7 @@ public class WarResource extends SolidResource {
 
 	@Override
 	public String toString() {
-		return "War["+relative+"]";
+		return compareAs();
 	}
 
 
