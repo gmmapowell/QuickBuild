@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.parser.LinePatternMatch;
@@ -160,7 +161,7 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 		lpp.match("location: package ([a-zA-Z0-9_.]*)", "nopackage", "pkgname");
 		lpp.match("location: class ([a-zA-Z0-9_.]*)\\.[a-zA-Z0-9_]*", "location", "mypackage");
 		List<BuildResource> allAdded = new ArrayList<BuildResource>();
-		List<String> missingPackages = new ArrayList<String>();
+		TreeSet<String> missingPackages = new TreeSet<String>();
 		for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStderr())))
 		{
 			if (lpm.is("nopackage"))
