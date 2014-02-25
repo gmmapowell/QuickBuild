@@ -43,7 +43,6 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	private final BuildClassPath bootclasspath = new BuildClassPath();
 	private final JavaBuildCommand jbc;
 	private final StructureHelper files;
-	private JUnitResource writeTo;
 	private final List<String> defines = new ArrayList<String>();
 	private String memory;
 
@@ -68,8 +67,6 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		if (cxt.doubleQuick)
 			return BuildStatus.SKIPPED;
-		if (writeTo != null)
-			writeTo.getFile().delete();
 		RunClassPath classpath = new RunClassPath(cxt, jbc);
 		for (BuildResource r : needsResources())
 			classpath.add(r.getPath());
@@ -91,7 +88,6 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		}
 		if (testsToRun.isEmpty())
 		{
-			reportSuccess(cxt);
 			return BuildStatus.SKIPPED;
 		}
 		Collections.sort(testsToRun);
@@ -110,9 +106,6 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 			}
 			proc.destroy();
 		}
-		
-		if (ret == BuildStatus.SUCCESS)
-			reportSuccess(cxt);
 		
 		return ret;
 	}
@@ -144,21 +137,6 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 			proc.arg(s);
 		proc.execute();
 		return proc;
-	}
-
-	private void reportSuccess(BuildContext cxt) {
-		try
-		{
-			if (writeTo != null)
-			{
-				writeTo.getFile().createNewFile();
-				cxt.builtResource(writeTo);
-			}
-		}
-		catch (Exception ex)
-		{
-			throw UtilException.wrap(ex);
-		}
 	}
 
 	private BuildStatus handleFailure(BuildContext cxt, RunProcess proc) {
@@ -194,9 +172,6 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		return BuildOrder.tacticIdentifier(parent, "junit");
 	}
 
-	public void writeTo(JUnitResource jur) {
-		this.writeTo = jur;
-	}
 	@Override
 	public boolean skipMe(BuildContext cxt) {
 		return cxt.doubleQuick;

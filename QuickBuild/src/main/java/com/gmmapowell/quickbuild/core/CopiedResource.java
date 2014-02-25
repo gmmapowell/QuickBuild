@@ -3,6 +3,7 @@ package com.gmmapowell.quickbuild.core;
 import java.io.File;
 
 import com.gmmapowell.exceptions.UtilException;
+import com.gmmapowell.utils.FileUtils;
 
 public class CopiedResource implements BuildResource {
 	private final File clonedPath;
@@ -56,6 +57,6 @@ public class CopiedResource implements BuildResource {
 
 	@Override
 	public String toString() {
-		return "CopiedTo[" + clonedPath + "]";
+		return "CopiedTo[" + FileUtils.posixPath(clonedPath) + "]";
 	}
 }

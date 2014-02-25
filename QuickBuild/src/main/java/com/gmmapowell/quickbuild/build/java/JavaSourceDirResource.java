@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 
 import com.gmmapowell.quickbuild.core.SolidResource;
+import com.gmmapowell.utils.FileUtils;
 
 public class JavaSourceDirResource extends SolidResource {
 	private final List<File> sourceFiles;
@@ -16,7 +17,7 @@ public class JavaSourceDirResource extends SolidResource {
 
 	@Override
 	public String compareAs() {
-		return "JavaSource["+relative+"]";
+		return "JavaSource["+FileUtils.posixPath(relative)+"]";
 	}
 
 	public List<File> getSources() {

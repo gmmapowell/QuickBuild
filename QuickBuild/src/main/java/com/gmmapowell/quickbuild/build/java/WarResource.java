@@ -4,6 +4,7 @@ import java.io.File;
 
 import com.gmmapowell.quickbuild.core.SolidResource;
 import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.utils.FileUtils;
 
 public class WarResource extends SolidResource {
 	public WarResource(Tactic parent, File f) {
@@ -22,6 +23,6 @@ public class WarResource extends SolidResource {
 
 	@Override
 	public String compareAs() {
-		return "War[" + relative + "]";
+		return "War[" + FileUtils.posixPath(relative) + "]";
 	}
 }
