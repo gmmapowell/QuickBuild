@@ -45,6 +45,7 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	private final StructureHelper files;
 	private final List<String> defines = new ArrayList<String>();
 	private String memory;
+	private final String idAs;
 
 	public JUnitRunCommand(Strategem parent, StructureHelper files, JavaBuildCommand jbc) {
 		super(parent);
@@ -53,6 +54,7 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		this.srcdir = new File(files.getBaseDir(), "src/test/java");
 		this.bindir = files.getOutput("test-classes");
 		this.errdir = files.getOutput("test-results");
+		this.idAs = parent.rootDirectory().getName();
 	}
 
 	public void setJUnitMemory(String junitMemory) {
@@ -179,7 +181,7 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 
 	@Override
 	public String toString() {
-		return "JUnit Runner: " + srcdir;
+		return "Testing " + idAs;
 	}
 	
 	private LinePatternParser stdoutParser() {

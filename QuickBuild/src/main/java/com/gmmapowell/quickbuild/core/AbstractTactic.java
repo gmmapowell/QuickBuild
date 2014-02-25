@@ -23,6 +23,8 @@ public abstract class AbstractTactic implements Tactic, Comparable<Tactic> {
 	}
 
 	public void needs(PendingResource pr) {
+		if (pr == null)
+			throw new UtilException("Cannot have null pending resource");
 		needsResources.add(pr);
 	}
 	

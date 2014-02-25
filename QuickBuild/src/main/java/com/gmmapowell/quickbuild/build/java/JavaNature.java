@@ -155,14 +155,15 @@ public class JavaNature implements Nature, BuildContextAware {
 		}
 	}
 
-	public boolean addDependency(Tactic dependent, String needsJavaPackage, String context, boolean debug) {
+	public List<BuildResource> addDependency(Tactic dependent, String needsJavaPackage, String context, boolean debug) {
+		List<BuildResource> ret = new ArrayList<BuildResource>();
+
 		// First, try and resolve it with a base jar, or a built jar
 		if (availablePackages.contains(needsJavaPackage))
 		{
 			Set<JarResource> resources = availablePackages.get(needsJavaPackage);
 			JarResource haveOne = null;
 			boolean addMany = true;
-			boolean ret = false;
 			for (JarResource jr : resources)
 			{
 				if (conf.matchesContext(jr, context))
@@ -173,26 +174,29 @@ public class JavaNature implements Nature, BuildContextAware {
 						if (addMany) {
 							if (debug)
 								System.out.println(" Found " + jr);
-							ret |= cxt.addDependency(dependent, jr, debug);
+							if (cxt.addDependency(dependent, jr, debug))
+								ret.add(jr);
 						}
 						else
 							haveOne = jr;
 					}
 				}
 			}
-			if (ret)
-				return true;
+			if (!ret.isEmpty())
+				return ret;
 			if (haveOne != null) {
 				if (debug)
 					System.out.println(" Found " + haveOne);
-				return cxt.addDependency(dependent, haveOne, debug);
+				if (cxt.addDependency(dependent, haveOne, debug))
+					ret.add(haveOne);
+				return ret;
 			}
 		}
 		
 		// OK, try and move the projects around a bit
+		/*
 		if (projectPackages.contains(needsJavaPackage))
 		{
-			boolean didSomething = false;
 			for (JarResource p : projectPackages.get(needsJavaPackage))
 			{
 				if (p.equals(dependent))
@@ -200,11 +204,13 @@ public class JavaNature implements Nature, BuildContextAware {
 				if (p != null && conf.matchesContext(p, context)) {
 					if (debug)
 						System.out.println(" Considering Jar " + p + " for as yet unbuilt " + needsJavaPackage);
-					didSomething |= cxt.addDependency(dependent, p, debug);
+					if (cxt.addDependency(dependent, p, debug))
+						ret.add(p);
 				}
 			}
-			return didSomething;
+			return ret;
 		}
+		*/
 
 		// It's possible the first reference we come to is a nested class.  Try this hack:
 		int idx = needsJavaPackage.lastIndexOf(".");
@@ -214,8 +220,7 @@ public class JavaNature implements Nature, BuildContextAware {
 			return addDependency(dependent, needsJavaPackage.substring(0,idx), context, debug);
 		}
 
-		return false;
-//		throw new JavaBuildFailure("cannot find any code that defines package " + needsJavaPackage);
+		return ret;
 	}
 
 	public boolean isAvailable() {

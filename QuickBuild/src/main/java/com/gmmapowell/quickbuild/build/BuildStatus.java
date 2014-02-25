@@ -9,9 +9,10 @@ public enum BuildStatus {
 	NOTCRITICAL,   // not on the critical path
 	// It didn't work out so well ...
 	RETRY,			// But I made changes, so try again!
+	MAYBE_LATER,    // I couldn't actually make changes, but all hope is not lost ... maybe a later step will help me out
 	TEST_FAILURES,	// Tests failed, but don't break the build
 	BROKEN_DEPENDENCIES, // There were broken dependencies
-	BROKEN;			// I just can't go on!
+	BROKEN,;			// I just can't go on!
 	
 	public boolean isGood() { 
 		return this == SUCCESS || this == CLEAN || this == SKIPPED || this == NOTAPPLICABLE || this == NOTCRITICAL;
@@ -52,5 +53,9 @@ public enum BuildStatus {
 
 	public boolean partialFail() {
 		return this == TEST_FAILURES;
+	}
+
+	public boolean tryLater() {
+		return this == MAYBE_LATER;
 	}
 }

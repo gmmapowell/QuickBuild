@@ -5,19 +5,13 @@ import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 
-public class ZinikiModeCommand extends NoChildCommand implements ConfigApplyCommand {
-	private String mode;
+public class BootZinikiCommand extends NoChildCommand implements ConfigApplyCommand {
 
-	public ZinikiModeCommand(TokenizedLine toks) {
-		mode = toks.cmd();
+	public BootZinikiCommand(TokenizedLine toks) {
 	}
+
 
 	@Override
 	public void applyTo(Config config) {
 	}
-
-	public String getMode() {
-		return mode;
-	}
-
 }

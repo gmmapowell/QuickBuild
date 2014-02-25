@@ -103,11 +103,19 @@ public class BuildExecutor {
 				else if (outcome.tryAgain())
 				{
 					if (debug)
-						System.out.println("  Failed ... returning to ready queue");
+						System.out.println("  Failed but made corrections ... returning to ready queue");
 					if (itb.hasUnbuiltDependencies(cxt.getBuildOrder()))
 						returnToWell(itb);
 					else
 						status = Status.REJECT_AND_SEARCH_WELL;
+//					System.out.println(cxt.printableBuildOrder(false));
+					continue;
+				}
+				else if (outcome.tryLater()) {
+					if (debug)
+						System.out.println("  Failed with possible future corrections ... returning to bottom of ready queue");
+					returnToBottomOfWell(itb);
+					status = Status.REJECT_AND_SEARCH_WELL;
 //					System.out.println(cxt.printableBuildOrder(false));
 					continue;
 				}
@@ -179,6 +187,11 @@ public class BuildExecutor {
 
 	public void returnToWell(ItemToBuild itb) {
 		buildOrder.reject(itb.tactic, false);
+		status = Status.REJECT_AND_SEARCH_WELL;
+	}
+
+	public void returnToBottomOfWell(ItemToBuild itb) {
+		buildOrder.reject(itb.tactic, true);
 		status = Status.REJECT_AND_SEARCH_WELL;
 	}
 

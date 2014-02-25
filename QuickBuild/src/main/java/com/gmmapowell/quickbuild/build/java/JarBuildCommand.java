@@ -17,13 +17,15 @@ import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.FileUtils;
 
 public class JarBuildCommand extends ArchiveCommand {
-	private GitIdCommand gitIdCommand;
+	private final GitIdCommand gitIdCommand;
+	private final String idAs;
 
 	public JarBuildCommand(Strategem parent, StructureHelper files, String targetName, List<File> includePackages, List<File> excludePackages, GitIdCommand gitIdCommand) {
 		super(parent, includePackages, excludePackages);
 		this.gitIdCommand = gitIdCommand;
 		this.jarResource = new JarResource(this, files.getOutput(FileUtils.ensureExtension(targetName, ".jar")));
 		this.jarfile = this.jarResource.getFile();
+		this.idAs = parent.rootDirectory().getName();
 	}
 	
 	@Override
@@ -107,7 +109,7 @@ public class JarBuildCommand extends ArchiveCommand {
 
 	@Override
 	public String toString() {
-		return "Jar Up: " + jarResource;
+		return "Creating jar " + idAs;
 	}
 
 	@Override

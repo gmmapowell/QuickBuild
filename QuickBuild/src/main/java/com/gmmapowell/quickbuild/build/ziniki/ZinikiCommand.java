@@ -23,8 +23,11 @@ public class ZinikiCommand extends AbstractStrategem {
 	private String projectName;
 	private final File rootdir;
 	private String javaVersion;
+	private boolean bootZiniki;
 	private String mode;
 	private final List<PendingResource> junitLibs = new ArrayList<PendingResource>();
+	private final List<ZinikiReferenceCommand> refs = new ArrayList<ZinikiReferenceCommand>();
+	private final List<ZinikiUseModuleCommand> modules = new ArrayList<ZinikiUseModuleCommand>();
 
 	public ZinikiCommand(TokenizedLine toks) {
 		super(toks, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
@@ -37,6 +40,18 @@ public class ZinikiCommand extends AbstractStrategem {
 			if (mode != null)
 				throw new UtilException("Cannot specify more than one mode");
 			mode = ((ZinikiModeCommand)opt).getMode();
+		}
+		else if (opt instanceof ZinikiReferenceCommand)
+		{
+			refs.add((ZinikiReferenceCommand)opt);
+		}
+		else if (opt instanceof ZinikiUseModuleCommand)
+		{
+			modules.add((ZinikiUseModuleCommand)opt);
+		}
+		else if (opt instanceof BootZinikiCommand)
+		{
+			bootZiniki = true;
 		}
 		else if (opt instanceof JUnitLibCommand)
 		{
@@ -51,9 +66,18 @@ public class ZinikiCommand extends AbstractStrategem {
 		javaVersion = config.getVarIfDefined("javaVersion", null);
 		File pmz = config.getPath("pmziniki");
 		StructureHelper files = new StructureHelper(rootdir, config.getOutput());
-
+		for (ZinikiReferenceCommand r : refs)
+			r.applyTo(config);
+		for (ZinikiUseModuleCommand m : modules)
+			m.applyTo(config);
+		
 		// Generate Ziniki proj jar
 		ZinikiGenerateCommand gen = new ZinikiGenerateCommand(this, pmz, projectName.toLowerCase());
+		if (mode != null)
+			gen.setMode("--"+mode);
+		if (bootZiniki)
+			gen.bootZiniki();
+		gen.refersTo(refs);
 		gen.builds(gen.getResource());
 		tactics.add(gen);
 		
@@ -91,6 +115,10 @@ public class ZinikiCommand extends AbstractStrategem {
 		ZinikiDeployCommand deploy = new ZinikiDeployCommand(this, pmz, projectName.toLowerCase());
 		if (mode != null)
 			deploy.setMode("--"+mode);
+		if (bootZiniki)
+			deploy.bootZiniki();
+		deploy.refersTo(refs);
+		deploy.usesModules(modules);
 		deploy.builds(deploy.getResource());
 		deploy.addProcessDependency(gen);
 		if (jbc != null)

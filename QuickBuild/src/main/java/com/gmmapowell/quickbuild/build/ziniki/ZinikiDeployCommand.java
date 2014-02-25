@@ -2,6 +2,7 @@ package com.gmmapowell.quickbuild.build.ziniki;
 
 import java.io.File;
 import java.io.StringReader;
+import java.util.List;
 
 import com.gmmapowell.parser.LinePatternMatch;
 import com.gmmapowell.parser.LinePatternParser;
@@ -21,6 +22,9 @@ public class ZinikiDeployCommand extends AbstractTactic {
 	private final String name;
 	private final BuildResource jarResource;
 	private String mode = null;
+	private boolean bootZiniki;
+	private List<ZinikiReferenceCommand> refs;
+	private List<ZinikiUseModuleCommand> modules;
 
 	public ZinikiDeployCommand(Strategem parent, File pmzPath, String name) {
 		super(parent);
@@ -31,6 +35,22 @@ public class ZinikiDeployCommand extends AbstractTactic {
 
 	public void setMode(String mode) {
 		this.mode = mode;
+	}
+
+	public void bootZiniki() {
+		this.bootZiniki = true;
+	}
+
+	public void refersTo(List<ZinikiReferenceCommand> refs) {
+		this.refs = refs;
+		for (ZinikiReferenceCommand r : refs)
+			needs(r.getResource());
+	}
+
+	public void usesModules(List<ZinikiUseModuleCommand> modules) {
+		this.modules = modules;
+		for (ZinikiUseModuleCommand r : modules)
+			needs(r.getResource());
 	}
 
 	@Override
@@ -57,10 +77,24 @@ public class ZinikiDeployCommand extends AbstractTactic {
 		proc.arg("-o");
 		proc.arg(name+".jar");
 		proc.arg(".");
-		proc.arg("--reference");
-		proc.arg(new File(pmzPath, "builtins/builtin.jar").getPath());
-		proc.arg("--reference");
-		proc.arg(new File(pmzPath, "privileged/datamodel.jar").getPath());
+		if (!bootZiniki) {
+			proc.arg("--reference");
+			proc.arg(new File(pmzPath, "builtins/builtin.jar").getPath());
+			proc.arg("--reference");
+			proc.arg(new File(pmzPath, "privileged/datamodel.jar").getPath());
+		}
+		if (refs != null) {
+			for (ZinikiReferenceCommand r : refs) {
+				proc.arg("--reference");
+				proc.arg(r.getResource().getPath().getPath());
+			}
+		}
+		if (modules != null) {
+			for (ZinikiUseModuleCommand r : modules) {
+				proc.arg("--module");
+				proc.arg(r.getResource().getPath().getPath());
+			}
+		}
 		proc.execute();
 		if (proc.getExitCode() == 0) {
 			cxt.builtResource(jarResource, false);
@@ -68,6 +102,7 @@ public class ZinikiDeployCommand extends AbstractTactic {
 		}
 		LinePatternParser lpp = new LinePatternParser();
 		lpp.match("no valid definition of (.*) during whitelist", "whitelist", "class");
+		lpp.match("ERROR: (.*)", "error", "msg");
 		int cnt = 0;
 		for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStderr())))
 		{
@@ -75,6 +110,12 @@ public class ZinikiDeployCommand extends AbstractTactic {
 			{
 				String pkg = lpm.get("class");
 				System.out.println("  Can't whitelist: " + pkg);
+				cnt++;
+			}
+			else if (lpm.is("error"))
+			{
+				String msg = lpm.get("msg");
+				System.out.println("  " + msg);
 				cnt++;
 			}
 			else

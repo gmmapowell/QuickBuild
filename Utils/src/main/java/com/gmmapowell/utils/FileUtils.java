@@ -737,9 +737,9 @@ public class FileUtils {
 		{
 			fis = new FileInputStream(f);
 			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-			Character c;
+			int c = -1;
 			try {
-				while((c = (char) br.read()) != null)
+				while((c = br.read()) != -1)
 				{
 					if(c == '\n')
 						return LineSeparator.UNIX;

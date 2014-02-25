@@ -10,7 +10,11 @@ public class ZinikiNature implements Nature {
 	public static void init(ConfigFactory config)
 	{
 		config.addCommandExtension("ziniki", ZinikiCommand.class);
+		config.addCommandExtension("builtin", ZinikiModeCommand.class);
 		config.addCommandExtension("privileged", ZinikiModeCommand.class);
+		config.addCommandExtension("bootZiniki", BootZinikiCommand.class);
+		config.addCommandExtension("reference", ZinikiReferenceCommand.class);
+		config.addCommandExtension("useModule", ZinikiUseModuleCommand.class);
 	}
 
 	public ZinikiNature(Config conf)

@@ -33,6 +33,7 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 	private final String context;
 	private final String target;
 	private final boolean runAlways;
+	private final String idAs;
 
 	public JavaBuildCommand(Strategem parent, StructureHelper files, String src, String bin, String label, List<File> sources, String context, String target, boolean runAlways) {
 		super(parent);
@@ -51,6 +52,7 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 		this.classpath = new BuildClassPath();
 		this.classpath.add(bindir);
 		this.bootclasspath = new BuildClassPath();
+		this.idAs = parent.rootDirectory().getName();
 	}
 	
 	@Override
@@ -157,7 +159,8 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 		lpp.match("class file for ([a-zA-Z0-9_.]*)\\.[a-zA-Z0-9_]* not found", "nopackage", "pkgname");
 		lpp.match("location: package ([a-zA-Z0-9_.]*)", "nopackage", "pkgname");
 		lpp.match("location: class ([a-zA-Z0-9_.]*)\\.[a-zA-Z0-9_]*", "location", "mypackage");
-		int cnt = 0;
+		List<BuildResource> allAdded = new ArrayList<BuildResource>();
+		List<String> missingPackages = new ArrayList<String>();
 		for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStderr())))
 		{
 			if (lpm.is("nopackage"))
@@ -165,23 +168,33 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 				String pkg = lpm.get("pkgname");
 				if (showDebug)
 					System.out.println("Looking for " + pkg);
-				if (nature.addDependency(this, pkg, context, showDebug))
+				List<BuildResource> added = nature.addDependency(this, pkg, context, showDebug);
+				if (!added.isEmpty())
 				{
 					if (showDebug)
 						System.out.println("  ... added for package " + pkg);
-					cnt++;
+					allAdded.addAll(added);
 				}
+				else
+					missingPackages.add(pkg);
 			}
 			else if (lpm.is("location"))
 				mypackages.add(lpm.get("mypackage"));
 			else
 				throw new QuickBuildException("Do not know how to handle match " + lpm);
 		}
-		if (cnt > 0)
+		if (!allAdded.isEmpty())
 		{
-			System.out.println("       Corrected errors by adding " + cnt + " dependencies");
+			System.out.println("       Corrected errors by adding dependencies: " + allAdded);
 			return BuildStatus.RETRY;
+		} else if (!missingPackages.isEmpty()) {
+			System.out.println("       Could not resolve packages: " + missingPackages);
+			return BuildStatus.MAYBE_LATER;
 		}
+
+		// TODO: this is where I think we want to say "REJECT_TO_BOTTOM_OF_WELL" if there were "nopackage" messages and we didn't add anything
+
+		
 		/* This just seems to cause trouble ...
 		// There is an element of desperation here, but what can you do?
 		// See if we can find other jars that produce the same package as we are currently compiling
@@ -208,7 +221,10 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 
 	@Override
 	public String toString() {
-		return "Java Compile: " + srcdir;
+		if (label.equals("main"))
+			return "Compiling " + idAs;
+		else
+			return "Compiling test classes for " + idAs;
 	}
 
 	@Override
