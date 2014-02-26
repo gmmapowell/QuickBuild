@@ -13,7 +13,6 @@ import java.util.Map;
 import com.gmmapowell.exceptions.UtilException;
 
 public class RunProcess {
-
 	private final List<String> cmdarray = new ArrayList<String>();
 	private int preClassPos = -1;
 	private boolean clearEnv;
@@ -255,5 +254,10 @@ public class RunProcess {
 			Runtime.getRuntime().removeShutdownHook(hook);
 			hook = null;
 		}
+	}
+	
+	@Override
+	public String toString() {
+		return "RunProcess[" + (proc.isAlive()?"*":"-") + cmdarray.get(0) + "]";
 	}
 }

@@ -6,7 +6,6 @@ import java.util.concurrent.CountDownLatch;
 
 import com.gmmapowell.utils.StringUtil;
 
-
 public class ThreadPool {
 	public class PooledThread extends Thread {
 		private ChokePoint myChoke;
