@@ -70,6 +70,10 @@ public class JavaInfo {
 	}
 
 	public static String unmap(String mapped) {
+		return unmap(mapped, true);
+	}
+	
+	public static String unmap(String mapped, boolean dot) {
 		if (mapped.startsWith("@"))
 			return unmap(mapped.substring(1));
 		if (mapped.equals("*"))
@@ -79,7 +83,7 @@ public class JavaInfo {
 		int dims = 0;
 		while (mapped.charAt(dims) == '[')
 			dims++;
-		return mapped.substring(0, dims) + unmapScalar(mapped.substring(dims));
+		return mapped.substring(0, dims) + unmapScalar(mapped.substring(dims), dot);
 	}
 
 	public static String mapSignature(List<String> rewrite) {
@@ -94,12 +98,12 @@ public class JavaInfo {
 
 	// ret[0] = return
 	// ret[1..] = args
-	public static List<String> unmapSignature(String mapped) {
+	public static List<String> unmapSignature(String mapped, boolean unmapContained) {
 		if (!mapped.startsWith("("))
 			throw new UtilException("Not a signature");
 		int crbidx = mapped.indexOf(')');
 		List<String> ret = new ArrayList<String>();
-		ret.add(unmap(mapped.substring(crbidx+1)));
+		ret.add(unmap(mapped.substring(crbidx+1), unmapContained));
 		int from=1;
 		while (from < crbidx) {
 			int end = from;
@@ -108,10 +112,16 @@ public class JavaInfo {
 			if (mapped.charAt(end) == 'L')
 				end = mapped.indexOf(';', end);
 			++end;
-			ret.add(unmap(mapped.substring(from,end)));
+			ret.add(unmap(mapped.substring(from,end), unmapContained));
 			from = end;
 		}
-		return ret; // .toArray(new String[ret.size()]);
+		return ret;
+	}
+
+	public static List<String> simplify(String sig) {
+		List<String> ret = new ArrayList<String>();
+		ret.add(unmap(sig, false));
+		return ret;
 	}
 
 	private static String mapScalar(String type, boolean mapLongTypes)
@@ -140,7 +150,7 @@ public class JavaInfo {
 			return type;
 	}
 
-	private static String unmapScalar(String mapped)
+	private static String unmapScalar(String mapped, boolean cnvDotted)
 	{
 		if (mapped.equals("V"))
 			return "void";
@@ -160,7 +170,10 @@ public class JavaInfo {
 			return "short";
 		else if (mapped.equals("Z"))
 			return "boolean";
-		return FileUtils.convertToDottedName(new File(mapped.substring(1, mapped.length()-1)));
+		String ret = mapped.substring(1, mapped.length()-1);
+		if (cnvDotted)
+			return FileUtils.convertToDottedName(new File(ret));
+		return ret;
 	}
 
 }

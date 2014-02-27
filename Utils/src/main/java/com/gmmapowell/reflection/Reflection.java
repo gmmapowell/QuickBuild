@@ -91,13 +91,18 @@ public class Reflection {
 				f.setBoolean(target, (Boolean)value);
 			else if (f.getType().getName().equals("boolean"))
 				f.setBoolean(target, Boolean.parseBoolean((String)value));
-			else if (f.getType().getName().equals("int")) {
-				if (value instanceof String) {
-					f.setInt(target, Integer.parseInt((String)value));
-				} else if (value instanceof Integer)
-					f.setInt(target, (Integer)value);
+			else if (f.getType().getName().equals("int") || f.getType().getName().equals("java.lang.Integer")) {
+				int k;
+				if (value instanceof String)
+					k = Integer.parseInt((String)value);
+				else if (value instanceof Integer)
+					k = (Integer)value;
 				else
 					throw new UtilException("Cannot cast " + value.getClass() + " to integer");
+				if (f.getType().getName().equals("int"))
+					f.setInt(target, k);
+				else
+					f.set(target, k);
 			}
 			else if (value == null || f.getType().isAssignableFrom(value.getClass()))
 				f.set(target, value);

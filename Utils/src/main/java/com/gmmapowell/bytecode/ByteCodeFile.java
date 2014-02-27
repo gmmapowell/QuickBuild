@@ -577,6 +577,13 @@ public class ByteCodeFile implements AnnotationHolder {
 		return ret;
 	}
 	
+	public Iterable<ClassPoolEntry> getSignatures() {
+		ArrayList<ClassPoolEntry> ret = new ArrayList<ClassPoolEntry>();
+		for (Entry<Integer, NTInfo> i : pool.entries(NTInfo.class))
+			ret.add(new ClassPoolEntry(i.getValue()));
+		return ret;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public <T extends CPInfo> Iterable<Map.Entry<Integer, T>> poolEntries(Class<T> clz) {
 		if (clz == null)

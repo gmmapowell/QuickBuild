@@ -201,10 +201,6 @@ public abstract class CPInfo {
 		public String justName() {
 			return ((Utf8Info)pool.get(idx)).asClean();
 		}
-
-		public void setName(String rw) {
-			pool.setPoolEntry(idx, new Utf8Info(rw));
-		}
 	}
 
 	public static class StringInfo extends CPInfo {
@@ -313,7 +309,7 @@ public abstract class CPInfo {
 	public static class NTInfo extends CPInfo {
 
 		private final int name;
-		private final int descriptor;
+		final int descriptor;
 
 		public NTInfo(ConstPool pool, int name, int descriptor) {
 			super(pool, 0);
