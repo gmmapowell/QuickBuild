@@ -3,9 +3,7 @@ package com.gmmapowell.quickbuild.config;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class Arguments {
-
 	public boolean allTests;
 	public boolean buildAll;
 	public boolean blank;
@@ -13,6 +11,7 @@ public class Arguments {
 	public boolean debug;
 	public boolean doubleQuick;
 	public boolean quiet;
+	public boolean gfMode = true;
 	public boolean teamcity;
 	public int nthreads;
 	public String file;

@@ -30,6 +30,7 @@ public class BuildContext {
 	private final boolean blankMemory;
 
 	private final boolean quiet;
+	private final boolean grandFallacyMode;
 
 	private final File utilsJar;
 
@@ -43,7 +44,8 @@ public class BuildContext {
 
 	public final boolean allTests;
 
-	public BuildContext(Config conf, ConfigFactory configFactory, BuildOutput output, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar, String upTo, boolean doubleQuick, boolean allTests) {
+
+	public BuildContext(Config conf, ConfigFactory configFactory, BuildOutput output, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar, String upTo, boolean doubleQuick, boolean allTests, boolean gfMode) {
 		this.conf = conf;
 		this.output = output;
 		this.blankMemory = blankMemory;
@@ -52,6 +54,7 @@ public class BuildContext {
 		this.upTo = upTo;
 		this.doubleQuick = doubleQuick;
 		this.allTests = allTests;
+		grandFallacyMode = gfMode;
 		rm = new ResourceManager(conf);
 		manager = new DependencyManager(conf, rm, debug);
 		buildOrder = new BuildOrder(this, manager, buildAll, debug);
@@ -87,6 +90,10 @@ public class BuildContext {
 		return quiet;
 	}
 	
+	public boolean grandFallacyMode() {
+		return grandFallacyMode;
+	}
+
 	public File getUtilsJar() {
 		return utilsJar;
 	}

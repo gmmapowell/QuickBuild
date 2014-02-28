@@ -94,6 +94,8 @@ public class BuildExecutor {
 				if (outcome.isBroken())
 				{
 					buildOrder.completeTactic(itb.tactic);
+					if (!cxt.grandFallacyMode())
+						break;
 					System.out.println("  Failed ... pressing on to the grand fallacy");
 					cxt.grandFallacy = true;
 					brokenTactics.add(itb.tactic);

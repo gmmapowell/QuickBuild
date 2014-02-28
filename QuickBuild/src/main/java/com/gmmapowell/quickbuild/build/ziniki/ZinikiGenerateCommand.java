@@ -12,6 +12,8 @@ import com.gmmapowell.quickbuild.build.java.BuildClassPath;
 import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.PendingResource;
+import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.system.RunProcess;
@@ -39,6 +41,9 @@ public class ZinikiGenerateCommand extends AbstractTactic {
 
 	public void bootZiniki() {
 		bootZiniki = true;
+		needs(new PendingResource("qbout/Config.jar"));
+		needs(new PendingResource("slf4j-log4j"));
+		needs(new PendingResource("log4j:jar"));
 	}
 
 	public void refersTo(List<ZinikiReferenceCommand> refs) {
@@ -55,10 +60,16 @@ public class ZinikiGenerateCommand extends AbstractTactic {
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		BuildClassPath classpath = new BuildClassPath();
-		for (File f : FileUtils.findFilesMatching(new File(pmzPath, "root"), "*.jar"))
-			classpath.add(f);
-		for (File f : FileUtils.findFilesMatching(new File(pmzPath, "libs"), "*.jar"))
-			classpath.add(f);
+		if (pmzPath != null) {
+			for (File f : FileUtils.findFilesMatching(new File(pmzPath, "root"), "*.jar"))
+				classpath.add(f);
+			for (File f : FileUtils.findFilesMatching(new File(pmzPath, "libs"), "*.jar"))
+				classpath.add(f);
+		} else {
+			for (BuildResource f : cxt.getTransitiveDependencies(this))
+				if (f != null && !(f instanceof ProcessResource))
+					classpath.add(f.getPath());
+		}
 		RunProcess proc = new RunProcess("java");
 		proc.executeInDir(parent.rootDirectory());
 		proc.captureStdout();

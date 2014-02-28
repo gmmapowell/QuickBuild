@@ -35,6 +35,7 @@ public class QuickBuild {
 		new ArgumentDefinition("--doublequick", Cardinality.OPTION, "doubleQuick", "avoid time-consuming non-critical-path items"),
 		new ArgumentDefinition("--nthreads", Cardinality.OPTION, "nthreads", "number of threads"),
 		new ArgumentDefinition("--quiet", Cardinality.LIST, "quiet", "super quiet mode"),
+		new ArgumentDefinition("--no-grand-fallacy", Cardinality.OPTION, "gfMode", "invert grand fallacy mode"),
 		new ArgumentDefinition("--teamcity", Cardinality.OPTION, "teamcity", "TeamCity integration mode"),
 		new ArgumentDefinition("--upto", Cardinality.OPTION, "upTo", "last target to build")
 	};
@@ -124,7 +125,7 @@ public class QuickBuild {
 		buildAll |= mainFiles.isDirty();
 		
 		// now we need to read back anything we've cached ...
-		BuildContext cxt = new BuildContext(conf, configFactory, output, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar, arguments.upTo, arguments.doubleQuick, arguments.allTests);
+		BuildContext cxt = new BuildContext(conf, configFactory, output, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar, arguments.upTo, arguments.doubleQuick, arguments.allTests, arguments.gfMode);
 		cxt.configure();
 		
 		if (!arguments.quiet && !output.forTeamCity())

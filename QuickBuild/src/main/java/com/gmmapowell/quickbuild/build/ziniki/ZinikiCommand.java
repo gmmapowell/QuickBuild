@@ -64,7 +64,9 @@ public class ZinikiCommand extends AbstractStrategem {
 	@Override
 	public Strategem applyConfig(Config config) {
 		javaVersion = config.getVarIfDefined("javaVersion", null);
-		File pmz = config.getPath("pmziniki");
+		File pmz = null;
+		if (!bootZiniki)
+			pmz = config.getPath("pmziniki");
 		StructureHelper files = new StructureHelper(rootdir, config.getOutput());
 		for (ZinikiReferenceCommand r : refs)
 			r.applyTo(config);
