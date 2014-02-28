@@ -12,7 +12,8 @@ public enum BuildStatus {
 	MAYBE_LATER,    // I couldn't actually make changes, but all hope is not lost ... maybe a later step will help me out
 	TEST_FAILURES,	// Tests failed, but don't break the build
 	BROKEN_DEPENDENCIES, // There were broken dependencies
-	BROKEN,;			// I just can't go on!
+	BROKEN,			// I just can't go on!
+	LOOPING;		// I appear to be stuck in an infinite loop
 	
 	public boolean isGood() { 
 		return this == SUCCESS || this == CLEAN || this == SKIPPED || this == NOTAPPLICABLE || this == NOTCRITICAL;
@@ -27,7 +28,7 @@ public enum BuildStatus {
 	}
 	
 	public boolean isBroken() {
-		return this == BROKEN;
+		return this == BROKEN || this == LOOPING;
 	}
 
 	public boolean needsRebuild() {
@@ -39,7 +40,7 @@ public enum BuildStatus {
 	}
 	
 	public boolean isWorthReporting() {
-		return this == BROKEN || this == TEST_FAILURES;
+		return this == LOOPING || this == BROKEN || this == TEST_FAILURES;
 	}
 
 	public boolean builtResources() {
@@ -57,5 +58,9 @@ public enum BuildStatus {
 
 	public boolean tryLater() {
 		return this == MAYBE_LATER;
+	}
+
+	public boolean isReallyFatal() {
+		return this == LOOPING;
 	}
 }

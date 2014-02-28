@@ -30,6 +30,7 @@ public class ItemToBuild {
 	public final String label;
 	private final List<GitRecord> gittxs = new ArrayList<GitRecord>();
 	private int drift;
+	public int sentToBottomAt = -1;
 
 	public ItemToBuild(Tactic tactic, String id, String label) {
 		this.needsBuild = BuildStatus.CLEAN;

@@ -353,17 +353,21 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		return false;
 	}
 
-	public void reject(Tactic t, boolean toBottom) {
+	public void reject(Tactic t, int breakAt) {
 		if (!mapping.containsKey(t.identifier()))
 			throw new UtilException("Cannot reject non-existent " + t.identifier() + " have " + mapping.keySet());
 		int rc;
-		if (toBottom)
+		if (breakAt != -1)
 			rc = well.size(); // place at bottom of well
 		else
 			rc = 0; // place in well in basically the same order they currently are in the build order
 		for (int i=0;i<toBuild.size();i++) {
 			ItemToBuild itb = toBuild.get(i);
-			boolean reject = itb.tactic == t;
+			boolean reject = false;
+			if (itb.tactic == t) {
+				itb.sentToBottomAt = breakAt;
+				reject = true;
+			}
 			if (!reject) {
 				Iterable<BuildResource> deps = dependencies.getDependencies(itb.tactic);
 				for (BuildResource br : deps) {

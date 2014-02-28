@@ -94,7 +94,7 @@ public class BuildExecutor {
 				if (outcome.isBroken())
 				{
 					buildOrder.completeTactic(itb.tactic);
-					if (!cxt.grandFallacyMode())
+					if (!cxt.grandFallacyMode() || outcome.isReallyFatal())
 						break;
 					System.out.println("  Failed ... pressing on to the grand fallacy");
 					cxt.grandFallacy = true;
@@ -188,12 +188,12 @@ public class BuildExecutor {
 	}
 
 	public void returnToWell(ItemToBuild itb) {
-		buildOrder.reject(itb.tactic, false);
+		buildOrder.reject(itb.tactic, -1);
 		status = Status.REJECT_AND_SEARCH_WELL;
 	}
 
 	public void returnToBottomOfWell(ItemToBuild itb) {
-		buildOrder.reject(itb.tactic, true);
+		buildOrder.reject(itb.tactic, currentTactic);
 		status = Status.REJECT_AND_SEARCH_WELL;
 	}
 
@@ -229,6 +229,8 @@ public class BuildExecutor {
 	
 	public BuildStatus execute(ItemToBuild itb) {
 		boolean verbose = !cxt.quietMode();
+		if (itb.sentToBottomAt == currentTactic)
+			return BuildStatus.LOOPING;
 		if (hasBrokenDependencies(itb)) {
 			itb.announce(cxt.output, verbose, currentTactic, BuildStatus.BROKEN_DEPENDENCIES);
 			cxt.output.finishBuildStep();
