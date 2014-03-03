@@ -85,4 +85,8 @@ public class CollectionUtils {
 			
 		};
 	}
+
+	public static <T> PeekableIterator<T> peekableIterator(T[] args) {
+		return new PeekableIterator<T>(listOf(args));
+	}
 }
