@@ -258,6 +258,6 @@ public class RunProcess {
 	
 	@Override
 	public String toString() {
-		return "RunProcess[" + (proc.isAlive()?"*":"-") + cmdarray.get(0) + "]";
+		return "RunProcess[" + cmdarray.get(0) + "]";
 	}
 }
