@@ -65,9 +65,9 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 		super.handleOptions(config);
 
 		fromdir = FileUtils.combine(execdir, directory);
-		destination = destination.replaceAll("\\$\\{date}", new SimpleDateFormat("yyyyMMdd").format(new Date()));
+		String sendTo = destination.replaceAll("\\$\\{date}", new SimpleDateFormat("yyyyMMdd").format(new Date()));
 //		System.out.println("Sending to: " + destination);
-		if (destination.startsWith("sftp:"))
+		if (sendTo.startsWith("sftp:"))
 		{
 			method = "sftp";
 			fullyConfigured = true;
@@ -86,16 +86,16 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 				fullyConfigured = false;
 			}
 			Pattern p = Pattern.compile("sftp:([a-zA-Z0-9_]+)@([a-zA-Z0-9_.]+)/(.+)");
-			Matcher matcher = p.matcher(destination);
+			Matcher matcher = p.matcher(sendTo);
 			if (!matcher.matches())
-				throw new UtilException("Could not match path " + destination);
+				throw new UtilException("Could not match path " + sendTo);
 			
 			username = matcher.group(1);
 			host = matcher.group(2);
 			saveAs = matcher.group(3);
 			builds.add(new DistributeResource(this, host));
 		}
-		else if (destination.startsWith("s3:"))
+		else if (sendTo.startsWith("s3:"))
 		{
 			method = "s3";
 			fullyConfigured = true;
@@ -107,9 +107,9 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 				fullyConfigured = false;
 			}
 			Pattern p = Pattern.compile("s3:([a-zA-Z0-9_]+)(.s3.amazonaws.com)/(.+)");
-			Matcher matcher = p.matcher(destination);
+			Matcher matcher = p.matcher(sendTo);
 			if (!matcher.matches())
-				throw new UtilException("Could not match s3 path " + destination);
+				throw new UtilException("Could not match s3 path " + sendTo);
 			
 			bucket = matcher.group(1);
 			host = matcher.group(1)+matcher.group(2);
@@ -117,7 +117,7 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 			builds.add(new DistributeResource(this, host));
 		}
 		else
-			throw new UtilException("Unrecognized protocol in " + destination +". Supported protocols are: sftp, s3");
+			throw new UtilException("Unrecognized protocol in " + sendTo +". Supported protocols are: sftp, s3");
 		return this;
 	}
 
@@ -143,7 +143,7 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 
 	@Override
 	public String identifier() {
-		return "Distribute[" + host + "-" + saveAs + "]";
+		return "Distribute[" + destination + "]";
 	}
 
 	@Override
