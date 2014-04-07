@@ -473,7 +473,7 @@ public class ByteCodeInspector extends ByteCodeFile {
 			}
 			else if (attr.equals("RuntimeVisibleParameterAnnotations")) {
 				int nparams = dis.readUnsignedByte();
-				hexdump.print("Method has " + nparams + " parameters");
+				hexdump.print("Has " + nparams + " parameter annotations");
 				for (int np = 0;np<nparams;np++)
 				{
 					int acnt = dis.readUnsignedShort();

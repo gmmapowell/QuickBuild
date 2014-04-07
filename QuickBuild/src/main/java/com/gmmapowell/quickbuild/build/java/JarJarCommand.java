@@ -17,6 +17,7 @@ import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
+import com.gmmapowell.quickbuild.config.DirectoryResourceCommand;
 import com.gmmapowell.quickbuild.config.ResourceCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategemTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
@@ -36,7 +37,7 @@ public class JarJarCommand extends AbstractStrategemTactic {
 	private final ResourcePacket<BuildResource> provides = new ResourcePacket<BuildResource>();
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
-	private final List<ResourceCommand> resources = new ArrayList<ResourceCommand>();
+	private final List<Object> resources = new ArrayList<Object>();
 	private MainClassCommand mainClass;
 	private GitIdCommand gitIdCommand;
 
@@ -64,6 +65,10 @@ public class JarJarCommand extends AbstractStrategemTactic {
 			{
 				addResource((ResourceCommand)opt);
 			}
+			else if (opt instanceof DirectoryResourceCommand)
+			{
+				resources.add(opt);
+			}
 			else if (opt instanceof MainClassCommand)
 			{
 				if (mainClass != null)
@@ -84,7 +89,7 @@ public class JarJarCommand extends AbstractStrategemTactic {
 
 	private void addResource(ResourceCommand opt) {
 		needs.add(opt.getPendingResource());
-		resources .add(opt);
+		resources.add(opt);
 	}
 
 	@Override
@@ -129,42 +134,58 @@ public class JarJarCommand extends AbstractStrategemTactic {
 				gitIdCommand.writeTrackerFile(jos, "META-INF");
 			}
 				
-			for (ResourceCommand rc : resources)
+			for (Object rc : resources)
 			{
-				PendingResource pr = rc.getPendingResource();
-				BuildResource actual = pr.physicalResource();
-				if (!(actual instanceof JarResource))
-					throw new UtilException(pr + " is not a jar resource");
-				if (showDebug)
-					System.out.println("Considering resource " + actual.getPath());
-				GPJarFile gpj = new GPJarFile(actual.getPath());
-				for (GPJarEntry je : gpj)
-				{
-					String name = je.getName();
+				if (rc instanceof ResourceCommand) {
+					PendingResource pr = ((ResourceCommand) rc).getPendingResource();
+					BuildResource actual = pr.physicalResource();
+					if (!(actual instanceof JarResource))
+						throw new UtilException(pr + " is not a jar resource");
 					if (showDebug)
-						System.out.println("  Looking at path " + name);
-					if (name.equals("META-INF/"))
-						continue;
-					else if (name.equals("META-INF/MANIFEST.MF"))
-						continue;
-					else if (name.startsWith(".git"))
-						continue;
-					else if (name.endsWith("/") && entries.contains(name))
-						continue;
-					else if (name.startsWith("META-INF/") && entries.contains(name))
-						continue;
-					else if (!rc.includes(name))
+						System.out.println("Considering resource " + actual.getPath());
+					GPJarFile gpj = new GPJarFile(actual.getPath());
+					for (GPJarEntry je : gpj)
 					{
+						String name = je.getName();
 						if (showDebug)
-							System.out.println("    not included");
-						continue;
+							System.out.println("  Looking at path " + name);
+						if (name.equals("META-INF/"))
+							continue;
+						else if (name.equals("META-INF/MANIFEST.MF"))
+							continue;
+						else if (name.startsWith(".git"))
+							continue;
+						else if (name.endsWith("/") && entries.contains(name))
+							continue;
+						else if (name.startsWith("META-INF/") && entries.contains(name))
+							continue;
+						else if (!((ResourceCommand) rc).includes(name))
+						{
+							if (showDebug)
+								System.out.println("    not included");
+							continue;
+						}
+						if (showDebug)
+							System.out.println("    adding as " + je.getJava());
+						jos.putNextEntry(new JarEntry(je.getJava()));
+						FileUtils.copyStream(je.asStream(), jos);
+						entries.add(name);
 					}
-					if (showDebug)
-						System.out.println("    adding as " + je.getJava());
-					jos.putNextEntry(new JarEntry(je.getJava()));
-					FileUtils.copyStream(je.asStream(), jos);
-					entries.add(name);
-				}
+				} else if (rc instanceof DirectoryResourceCommand) {
+					DirectoryResourceCommand drc = (DirectoryResourceCommand) rc;
+					for (File f : FileUtils.findFilesMatching(drc.rootDir, "*")) {
+						if (f.isDirectory())
+							continue;
+						String name = FileUtils.makeRelativeTo(f, drc.rootDir).getPath();
+						if (drc.includes(name)) {
+							String prfName = drc.prefix(name);
+							jos.putNextEntry(new JarEntry(prfName));
+							FileUtils.copyFileToStream(FileUtils.relativePath(drc.rootDir, name), jos);
+							entries.add(prfName);
+						}
+					}
+				} else
+					throw new UtilException("Cannot handle " + rc);
 			}
 			jos.close();
 			jos = null;

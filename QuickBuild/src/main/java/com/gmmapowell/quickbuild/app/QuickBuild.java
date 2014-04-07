@@ -61,12 +61,15 @@ public class QuickBuild {
 		BuildOutput output = new BuildOutput(arguments.teamcity);
 		output.openBlock("Config");
 
-//		System.out.println("user.home = " + System.getProperty("user.home"));
+		if (arguments.debug)
+			System.out.println("user.home = " + System.getProperty("user.home"));
 		File file = new File(arguments.file);
 		OrderedFileList ofl = new OrderedFileList(FileUtils.relativePath(file));
 		Config conf = new Config(configFactory, output, file.getParentFile(), FileUtils.dropExtension(file.getName()), arguments.cachedir);
 		{
 			File hostfile = new File(file.getParentFile(), FileUtils.getHostName() + ".host.qb");
+			if (arguments.debug)
+				System.out.println("Reading host file " + hostfile + " " + (hostfile.exists()?"*":"-"));
 			if (hostfile.exists())
 			{
 				SignificantWhiteSpaceFileReader.read(conf, configFactory, hostfile);
@@ -75,6 +78,8 @@ public class QuickBuild {
 		}
 		{
 			File roothostfile = new File(new File(System.getProperty("user.home")), ".qbinit." + FileUtils.getHostName());
+			if (arguments.debug)
+				System.out.println("Reading root host file " + roothostfile + " " + (roothostfile.exists()?"*":"-"));
 			if (roothostfile.exists())
 			{
 				SignificantWhiteSpaceFileReader.read(conf, configFactory, roothostfile);
@@ -83,6 +88,8 @@ public class QuickBuild {
 		}
 		{
 			File rootfile = new File(new File(System.getProperty("user.home")), ".qbinit");
+			if (arguments.debug)
+				System.out.println("Reading root file " + rootfile + " " + (rootfile.exists()?"*":"-"));
 			if (rootfile.exists())
 			{
 				SignificantWhiteSpaceFileReader.read(conf, configFactory, rootfile);
