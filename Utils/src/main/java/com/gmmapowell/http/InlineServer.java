@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +23,7 @@ public class InlineServer implements Runnable {
 
 	private final RemoteIO remote;
 	private final List<File> staticPaths = new ArrayList<File>();
+	final List<String> staticResources = new ArrayList<String>();
 	private final List<VirtualPath> virtualPaths = new ArrayList<VirtualPath>();
 	
 	// There is a list of servlets, but, by default, there is only one, the first in the list
@@ -45,13 +47,15 @@ public class InlineServer implements Runnable {
 
 	public InlineServer(int port, String servletClass) {
 		this.remote = new RemoteIO.UsingSocket(this, port);
-		servlets.add(new GPServletDefn(this, servletClass));
+		if (servletClass != null)
+			servlets.add(new GPServletDefn(this, servletClass));
 		inThread = Thread.currentThread();
 	}
 
 	public InlineServer(String amqpUri, String servletClass) {
 		this.remote = new RemoteIO.UsingAMQP(this, amqpUri);
-		servlets.add(new GPServletDefn(this, servletClass));
+		if (servletClass != null)
+			servlets.add(new GPServletDefn(this, servletClass));
 		inThread = Thread.currentThread();
 	}
 
@@ -161,7 +165,7 @@ public class InlineServer implements Runnable {
 			}
 			logger.info("Closing remote " + remote);
 			remote.close();
-		} catch (Exception ex) {
+		} catch (Throwable ex) {
 			if (ex.getClass().getName().equals("com.sun.jersey.api.container.ContainerException"))
 				logger.error(ex.getMessage());
 			else
@@ -209,6 +213,10 @@ public class InlineServer implements Runnable {
 
 	public void addStaticDir(File file) {
 		staticPaths.add(file);
+	}
+
+	public void addStaticResource(String s) {
+		staticResources.add(s);
 	}
 
 	public void addVirtualDir(String from, File file) {

@@ -5,6 +5,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import com.gmmapowell.exceptions.UtilException;
 
@@ -20,14 +21,25 @@ public class StringUtil {
 		return sb.toString();
 	}
 
-	// TODO: this needs a proper implementation
+	public static Pattern globMatcher(String pattern) {
+		StringBuilder reVersion = new StringBuilder();
+		for (int i=0;i<pattern.length();i++) {
+			char c = pattern.charAt(i);
+			if (c == '.')
+				reVersion.append("\\.");
+			else if (c == '?')
+				reVersion.append(".");
+			else if (c == '*')
+				reVersion.append(".*");
+			else
+				reVersion.append(c);
+		}
+		return Pattern.compile(reVersion.toString());
+	}
+
 	public static boolean globMatch(String pattern, String string) {
-		if (pattern.startsWith("*"))
-			return string.endsWith(pattern.substring(1));
-		else if (pattern.endsWith("*"))
-			return string.startsWith(pattern.substring(0, pattern.length()-1));
-		else
-			return string.equals(pattern);
+		Pattern patt = globMatcher(pattern);
+		return patt.matcher(string).matches();
 	}
 
 	public static String concat(String...  args) {
@@ -65,6 +77,26 @@ public class StringUtil {
 			sb.delete(0, sb.length()-nd);
 		while (sb.length() < nd)
 			sb.insert(0, "0");
+		return sb.toString();
+	}
+
+	public static String digits(double quant, int left, int right) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(quant);
+		if (sb.indexOf(".") == -1)
+			sb.append(".");
+		int dot = sb.indexOf(".");
+		if (dot > left)
+			sb.delete(0,dot-left);
+		while (dot++ < left)
+			sb.insert(0, "0");
+		int len = left + 1 + right;
+		if (sb.length() > len)
+			sb.delete(len, sb.length());
+		while (sb.length() < len)
+			sb.append("0");
+		if (sb.indexOf(".") == -1)
+			throw new UtilException("Something went wrong");
 		return sb.toString();
 	}
 

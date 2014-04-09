@@ -18,6 +18,13 @@ public class SetMap<K, V> implements Iterable<K> {
 		map.get(k).add(v);
 	}
 
+
+	public boolean remove(K k, V v) {
+		if (!map.containsKey(k))
+			return false;
+		return map.get(k).remove(v);
+	}
+
 	@Override
 	public Iterator<K> iterator() {
 		return map.keySet().iterator();

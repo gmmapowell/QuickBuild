@@ -42,12 +42,15 @@ public class GPServletConfig implements ServletConfig {
 	public String getServletName() {
 		if (servletDefn != null)
 			return servletDefn.getServletClass();
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public List<File> staticPaths(String s) {
 		return inlineServer.staticPaths(s);
+	}
+
+	public List<String> resourceRoots() {
+		return inlineServer.staticResources;
 	}
 
 	HttpServlet getServlet() {

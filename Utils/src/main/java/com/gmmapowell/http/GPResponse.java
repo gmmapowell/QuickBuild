@@ -376,56 +376,41 @@ public class GPResponse implements HttpServletResponse {
 		isWebSocket = b;
 	}
 
-	public void writeTextMessage(String data) {
+	public void writeTextMessage(String data) throws IOException {
 		byte[] bytes = data.getBytes();
 		write(0x1, bytes, 0, bytes.length);
 	}
 
-	public void writeBinaryMessage(byte[] data, int offset, int length) {
+	public void writeBinaryMessage(byte[] data, int offset, int length) throws IOException {
 		write(0x2, data, offset, length);
 	}
 	
-	public void writeClose(int code, String reason) {
-		try
-		{
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			DataOutputStream dos = new DataOutputStream(baos);
-			dos.writeShort(code);
-			dos.writeChars(reason);
-			byte[] bytes = baos.toByteArray();
-			write(0x8, bytes, 0, bytes.length);
-		}
-		catch (Exception ex)
-		{
-			throw UtilException.wrap(ex);
-		}
+	public void writeClose(int code, String reason) throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(baos);
+		dos.writeShort(code);
+		dos.writeChars(reason);
+		byte[] bytes = baos.toByteArray();
+		write(0x8, bytes, 0, bytes.length);
 	}
 	
-	private void write(int opcode, byte[] data, int offset, int length) {
-		try {
-			sos.write(0x80|opcode);
-			if (length < 126)
-				sos.write(length);
-			else if (length < 65536)
-			{
-				sos.write(126);
-				sos.write((length>>8)&0xff);
-				sos.write(length&0xff);
-			}
-			else
-				throw new UtilException("Message too long");
-			sos.write(data, offset, length);
-		} catch (Exception ex) {
-			throw UtilException.wrap(ex);
+	private void write(int opcode, byte[] data, int offset, int length) throws IOException {
+		sos.write(0x80|opcode);
+		if (length < 126)
+			sos.write(length);
+		else if (length < 65536)
+		{
+			sos.write(126);
+			sos.write((length>>8)&0xff);
+			sos.write(length&0xff);
 		}
+		else
+			throw new UtilException("Message too long");
+		sos.write(data, offset, length);
 	}
 
-	public void flush() {
-		try {
-			sos.flush();
-		} catch (Exception ex) {
-			throw UtilException.wrap(ex);
-		}
+	public void flush() throws IOException{
+		sos.flush();
 	}
 
 	public void close() {

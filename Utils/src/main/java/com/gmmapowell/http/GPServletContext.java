@@ -174,9 +174,12 @@ public class GPServletContext implements ServletContext {
 					e.printStackTrace();
 				}
 		}
-		InputStream ret = this.getClass().getResourceAsStream(s);
-		if (ret != null)
-			return new GPStaticResource(null, -1, ret);
+		for (String r : config.resourceRoots()) {
+			System.out.println("Looking for " + s + " as resource prefixed by " + r + ": " + r+s);
+			InputStream ret = this.getClass().getResourceAsStream(r+s);
+			if (ret != null)
+				return new GPStaticResource(null, -1, ret);
+		}
 		return null;
 	}
 

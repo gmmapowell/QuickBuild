@@ -703,7 +703,6 @@ public class FileUtils {
 		return (copy.lastModified() >= orig.lastModified());
 	}
 
-
 	public static String readFile(File f) {
 		FileInputStream fis = null;
 		try
@@ -716,6 +715,32 @@ public class FileUtils {
 			while ((s = br.readLine()) != null)
 				sb.append(s + separator);
 			return sb.toString();
+		}
+		catch (IOException ex)
+		{
+			throw UtilException.wrap(ex);
+		}
+		finally {
+			if (fis != null)
+				try {
+					fis.close();
+				} catch (IOException ex) {
+					throw UtilException.wrap(ex);
+				}
+		}
+	}
+
+	public static List<String> readFileAsLines(File f) {
+		FileInputStream fis = null;
+		List<String> ret = new ArrayList<String>();
+		try
+		{
+			fis = new FileInputStream(f);
+			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+			String s;
+			while ((s = br.readLine()) != null)
+				ret.add(s);
+			return ret;
 		}
 		catch (IOException ex)
 		{
