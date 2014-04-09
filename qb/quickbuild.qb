@@ -6,6 +6,8 @@ maven org.atmosphere:wasync:jar:1.1.0
 maven org.slf4j:slf4j-api:jar:1.7.5
 maven log4j:log4j:jar:1.2.17
 maven com.codahale.metrics:metrics-core:jar:3.0.1
+maven com.codahale.metrics:metrics-graphite:jar:3.0.2
+
 javaVersion 1.6
 
 jar QuickBuild

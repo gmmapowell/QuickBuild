@@ -14,5 +14,7 @@
 	<classpathentry kind="lib" path="/utils-qb/mvncache/org/slf4j/slf4j-api/1.7.5/slf4j-api-1.7.5.jar"/>
 	<classpathentry kind="lib" path="/qb/mvncache/com/codahale/metrics/metrics-core/3.0.1/metrics-core-3.0.1.jar" sourcepath="/home/eric/code/jarsource/metrics-core-3.0.1-sources.jar"/>
 	<classpathentry kind="lib" path="/utils-qb/mvncache/org/atmosphere/atmosphere-runtime/2.0.3/atmosphere-runtime-2.0.3.jar" sourcepath="/Users/gareth/user/Clients/MGH/atmosphere/modules/cpr/src/main/java"/>
+	<classpathentry kind="lib" path="/utils-qb/mvncache/com/codahale/metrics/metrics-graphite/3.0.2/metrics-graphite-3.0.2.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/ZinikiDependencies"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
