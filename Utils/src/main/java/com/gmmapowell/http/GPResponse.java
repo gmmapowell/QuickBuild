@@ -28,6 +28,7 @@ public class GPResponse implements HttpServletResponse {
 	private final ListMap<String, String> headers = new ListMap<String, String>();
 	private final ServletOutputStream sos;
 	private PrintWriter pw;
+	private final boolean toXhr;
 	private boolean committed;
 	private SimpleDateFormat dateFormat;
 	private final String connectionState;
@@ -37,6 +38,7 @@ public class GPResponse implements HttpServletResponse {
 	public GPResponse(GPRequest request, OutputStream os, String connhdr) {
 		this.connectionState = connhdr;
 		request.setResponse(this);
+		toXhr = "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
 		sos = new GPServletOutputStream(os);
 		dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
 		dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -331,6 +333,7 @@ public class GPResponse implements HttpServletResponse {
 				reply("Access-Control-Allow-Methods: POST, GET, PUT, DELETE, OPTIONS");
 				reply("Access-Control-Allow-Headers: Content-Type, X-Requested-With, X-Ziniki-Token, X-Cache-Date"); 
 				reply("Access-Control-Expose-Headers: X-Ziniki-Token"); 
+				if (toXhr) reply("Cache-Control: no-cache");
 				for (String r : sendHeaders())
 					if (!r.toLowerCase().startsWith("upgrade") && !r.toLowerCase().startsWith("connection"))
 						reply(r);
