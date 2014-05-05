@@ -2,8 +2,6 @@ package com.gmmapowell.http.ws;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.atmosphere.cpr.AtmosphereFramework;
 import org.atmosphere.cpr.AtmosphereRequest;
@@ -11,6 +9,8 @@ import org.atmosphere.cpr.AtmosphereResponse;
 import org.atmosphere.websocket.DefaultWebSocketProcessor;
 import org.atmosphere.websocket.WebSocketEventListener;
 import org.atmosphere.websocket.WebSocketProtocol;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.gmmapowell.http.GPResponse;
 
@@ -21,17 +21,19 @@ public class AtmosphereHandler implements InlineServerWebSocketHandler {
 	private DefaultWebSocketProcessor webSocketProcessor;
 	private WSWriter webSocket;
 	private final AtmosphereResponse response;
+	private final boolean morphToTextMessages;
 
-	public AtmosphereHandler(AtmosphereRequest request, AtmosphereResponse response, AtmosphereFramework framework, WebSocketProtocol webSocketProtocol) {
+	public AtmosphereHandler(AtmosphereRequest request, AtmosphereResponse response, AtmosphereFramework framework, WebSocketProtocol webSocketProtocol, boolean morphToTextMessages) {
 		this.request = request;
 		this.response = response;
 		this.framework = framework;
+		this.morphToTextMessages = morphToTextMessages;
 	}
 	
 	@Override
 	public void onOpen(GPResponse gpresp) {
         try {
-        	webSocket = new WSWriter(gpresp, framework.getAtmosphereConfig());
+        	webSocket = new WSWriter(gpresp, framework.getAtmosphereConfig(), morphToTextMessages);
         	response.asyncIOWriter(webSocket);
         	webSocketProcessor = new DefaultWebSocketProcessor(framework);
         	webSocketProcessor.open(webSocket, request, response);

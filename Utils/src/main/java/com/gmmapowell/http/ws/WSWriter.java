@@ -10,11 +10,13 @@ import com.gmmapowell.http.GPResponse;
 
 public class WSWriter extends WebSocket {
 	private final GPResponse response;
+	private final boolean morphToTextMessages;
 	private boolean isopen;
 
-	public WSWriter(GPResponse response, AtmosphereConfig atmosphereConfig) {
+	public WSWriter(GPResponse response, AtmosphereConfig atmosphereConfig, boolean morphToTextMessages) {
 		super(atmosphereConfig);
 		this.response = response;
+		this.morphToTextMessages = morphToTextMessages;
 		this.isopen = true;
 	}
 
@@ -37,7 +39,10 @@ public class WSWriter extends WebSocket {
 
 	@Override
 	public WebSocket write(AtmosphereResponse r, byte[] data) throws IOException {
-		response.writeBinaryMessage(data, 0, data.length);
+		if (morphToTextMessages)
+			write(new String(data));
+		else
+			response.writeBinaryMessage(data, 0, data.length);
 		return this;
 	}
 
@@ -48,7 +53,10 @@ public class WSWriter extends WebSocket {
 
 	@Override
 	public WebSocket write(byte[] data, int offset, int length) throws IOException {
-		response.writeBinaryMessage(data, offset, length);
+		if (morphToTextMessages)
+			write(new String(data, offset, length));
+		else
+			response.writeBinaryMessage(data, offset, length);
 		return this;
 	}
 

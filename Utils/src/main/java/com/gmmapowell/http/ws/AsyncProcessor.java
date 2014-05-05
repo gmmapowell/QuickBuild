@@ -20,9 +20,21 @@ import com.gmmapowell.http.GPRequest;
 import com.gmmapowell.utils.Crypto;
 
 public class AsyncProcessor extends AsynchronousProcessor {
+	private boolean morphToTextMessages;
 
 	public AsyncProcessor(AtmosphereConfig config) {
 		super(config);
+	}
+
+	/** For reasons beyond my understanding, Atmosphere seems to struggle handling
+	 * actual binary messages and expects all messages to actually be text messages
+	 * even when it sends bytes.
+	 * 
+	 * It's possible that actual web servers do this or something; anyway, this
+	 * method turns on this "compatibility" option in InlineServer.
+	 */
+	public void morphToTextMessages() {
+		morphToTextMessages = true;
 	}
 	
 	@Override
@@ -62,7 +74,7 @@ public class AsyncProcessor extends AsynchronousProcessor {
         resp.setHeader("Connection", "upgrade");
         resp.setHeader("Sec-WebSocket-Accept", new BASE64Encoder().encode(Crypto.computeHash(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")));
         
-        unwrap(req).setWebSocketHandler(new AtmosphereHandler(req, resp, config.framework(), config.framework().getWebSocketProtocol()));
+        unwrap(req).setWebSocketHandler(new AtmosphereHandler(req, resp, config.framework(), config.framework().getWebSocketProtocol(), morphToTextMessages));
         return new Action(Action.TYPE.SUSPEND);
 
 	}
