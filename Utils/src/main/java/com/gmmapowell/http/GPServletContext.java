@@ -138,6 +138,21 @@ public class GPServletContext implements ServletContext {
 			}
 			return null;
 		}
+		else if (path.startsWith("/WEB-INF/lib"))
+		{
+			if (classdirs.isEmpty()) {
+				return FileUtils.combine(FileUtils.getCurrentDir(), path).getAbsolutePath();
+			}
+			String tmp = path.replace("WEB-INF/lib", "");
+			if (tmp.startsWith("/"))
+				tmp.replace("/", "");
+			for (File dir : classdirs) {
+				File ret = new File(dir, tmp);
+				if (ret.exists())
+					return ret.getAbsolutePath();
+			}
+			return null;
+		}
 		else
 			throw new UtilException("Cannot resolve real path based on prefix: " + path);
 	}

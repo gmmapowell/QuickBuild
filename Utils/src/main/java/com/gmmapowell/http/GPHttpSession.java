@@ -13,16 +13,17 @@ import com.gmmapowell.exceptions.UtilException;
 
 @SuppressWarnings("deprecation")
 public class GPHttpSession implements HttpSession {
-
 	final String cookie;
 	private Map<String,Object> attributes = new HashMap<String, Object>();
 	private final GPServletContext context;
 	private int maxInactive;
 	private long lastAccess;
+	private boolean isNew = true;
 
 	public GPHttpSession(GPServletContext context, String cookie) {
 		this.context = context;
 		this.cookie = cookie;
+		this.lastAccess = new Date().getTime();
 	}
 
 	@Override
@@ -82,7 +83,7 @@ public class GPHttpSession implements HttpSession {
 
 	@Override
 	public boolean isNew() {
-		throw new UtilException("Not Implemented");
+		return isNew;
 	}
 
 	@Override
@@ -111,7 +112,7 @@ public class GPHttpSession implements HttpSession {
 	}
 
 	public void accessed() {
+		isNew = false;
 		lastAccess = new Date().getTime();
 	}
-
 }
