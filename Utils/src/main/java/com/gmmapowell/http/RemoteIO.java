@@ -6,8 +6,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.nio.channels.Channels;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Iterator;
 import java.util.List;
 
 import com.gmmapowell.exceptions.UtilException;
@@ -35,10 +39,10 @@ public interface RemoteIO {
 	void close() throws Exception;
 
 	public class Connection {
-		private final InputStream is;
-		private final OutputStream os;
 		private final RemoteIO parent;
 		private final SocketChannel chan;
+		private InputStream is;
+		private OutputStream os;
 		private boolean done;
 
 		public Connection(RemoteIO parent, InputStream is, OutputStream os) {
@@ -56,10 +60,14 @@ public interface RemoteIO {
 		}
 
 		public final InputStream getInputStream() {
+			if (is == null)
+				is = Channels.newInputStream(chan);
 			return is;
 		}
 
 		public final OutputStream getOutputStream() {
+			if (os == null)
+				os = Channels.newOutputStream(chan);
 			return os;
 		}
 		
@@ -80,8 +88,10 @@ public interface RemoteIO {
 
 	class UsingSocket implements RemoteIO {
 		private final int port;
-		private ServerSocketChannel s;
+		private int timeout = 10;
 		private final InlineServer server;
+		private ServerSocketChannel s;
+		private Selector sel;
 
 		public UsingSocket(InlineServer server, int port) {
 			this.server = server;
@@ -91,8 +101,10 @@ public interface RemoteIO {
 		@Override
 		public void init() throws Exception {
 			s = ServerSocketChannel.open();
+			s.configureBlocking(false);
 			s.bind(new InetSocketAddress(port));
-//			s.setOption(StandardSocketOptions.SO_TIMEOUT, timeout);
+			sel = Selector.open();
+			s.register(sel, SelectionKey.OP_ACCEPT);
 			InlineServer.logger.info("Listening on port " + s.getLocalAddress());
 		}
 		
@@ -110,8 +122,16 @@ public interface RemoteIO {
 
 		@Override
 		public Connection accept() throws Exception {
-			SocketChannel conn = s.accept();
-			return new Connection(this, conn);
+			int cnt = sel.select(timeout);
+			if (cnt == 0) {
+				timeout = Math.min(timeout*2, 2000);
+				return null;
+			}
+			timeout = 10;
+			Iterator<SelectionKey> it = sel.selectedKeys().iterator();
+			it.next();
+			it.remove();
+			return new Connection(this, s.accept());
 		}
 
 		@Override

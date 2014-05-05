@@ -32,7 +32,7 @@ public class Endpoint implements Serializable {
 	
 	public Endpoint(InetAddress addr, int port) {
 		String host = addr.getHostAddress();
-		if (host.equals("0.0.0.0"))
+		if (host.equals("0.0.0.0") || host.equals("0:0:0:0:0:0:0:0"))
 			host = getLocalHostAddr();
 		this.host = host;
 		this.port = port;
