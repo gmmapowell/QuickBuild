@@ -6,9 +6,11 @@ import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.channels.ServerSocketChannel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +40,10 @@ public class Endpoint implements Serializable {
 
 	public Endpoint(ServerSocket s) {
 		this(s.getInetAddress(), s.getLocalPort());
+	}
+	
+	public Endpoint(ServerSocketChannel s) throws IOException {
+		this(((InetSocketAddress) s.getLocalAddress()).getAddress(), ((InetSocketAddress) s.getLocalAddress()).getPort());
 	}
 	
 	public Endpoint(String host, int port) {

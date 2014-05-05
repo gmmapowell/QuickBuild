@@ -2,9 +2,9 @@ package com.gmmapowell.http;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.BindException;
 import java.net.URISyntaxException;
+import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -241,7 +241,7 @@ public class InlineServer implements Runnable {
 		return ret;
 	}
 
-	public GPRequest requestFor(String s, InputStream is) throws URISyntaxException {
+	public GPRequest requestFor(String s, SocketChannel chan) throws URISyntaxException {
 		String[] command = s.split(" ");
 		String method = command[0];
 		String rawUri = command[1];
@@ -250,11 +250,11 @@ public class InlineServer implements Runnable {
 		for (GPServletDefn sd : servlets)
 			if (sd.isForMe(rawUri)) {
 				logger.debug("Choosing servlet " + sd);
-				return new GPRequest(sd.getConfig(), method, rawUri, protocol, is);
+				return new GPRequest(sd.getConfig(), method, rawUri, protocol, chan);
 			}
 
 		logger.info("No servlet found for " + rawUri + "; looking for static file");
-		return new GPRequest(staticConfig, method, rawUri, protocol, is);
+		return new GPRequest(staticConfig, method, rawUri, protocol, chan);
 	}
 
 	public GPServletDefn servletFor(String s) {

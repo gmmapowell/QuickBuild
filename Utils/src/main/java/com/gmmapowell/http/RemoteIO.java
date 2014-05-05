@@ -2,13 +2,16 @@ package com.gmmapowell.http;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.util.List;
 
+import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.serialization.Endpoint;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.AlreadyClosedException;
@@ -36,12 +39,21 @@ public interface RemoteIO {
 		private final InputStream is;
 		private final OutputStream os;
 		private final RemoteIO parent;
+		private final SocketChannel chan;
 		private boolean done;
 
 		public Connection(RemoteIO parent, InputStream is, OutputStream os) {
 			this.parent = parent;
+			this.chan = null;
 			this.is = is;
 			this.os = os;
+		}
+
+		public Connection(RemoteIO parent, SocketChannel chan) {
+			this.parent = parent;
+			this.chan = chan;
+			this.is = null;
+			this.os = null;
 		}
 
 		public final InputStream getInputStream() {
@@ -50,6 +62,10 @@ public interface RemoteIO {
 
 		public final OutputStream getOutputStream() {
 			return os;
+		}
+		
+		public final SocketChannel getChannel() {
+			return chan;
 		}
 		
 		public void doneSending() throws Exception {
@@ -66,7 +82,7 @@ public interface RemoteIO {
 	class UsingSocket implements RemoteIO {
 		private int timeout = 10;
 		private final int port;
-		private ServerSocket s;
+		private ServerSocketChannel s;
 		private final InlineServer server;
 
 		public UsingSocket(InlineServer server, int port) {
@@ -76,25 +92,30 @@ public interface RemoteIO {
 
 		@Override
 		public void init() throws Exception {
-			s = new ServerSocket(port);
-			s.setSoTimeout(timeout);
-			InlineServer.logger.info("Listening on port " + s.getLocalPort());
+			s = ServerSocketChannel.open();
+			s.bind(new InetSocketAddress(port));
+//			s.setOption(StandardSocketOptions.SO_TIMEOUT, timeout);
+			InlineServer.logger.info("Listening on port " + s.getLocalAddress());
 		}
 		
 		@Override
 		public void announce(List<NotifyOnServerReady> interestedParties) {
-			Endpoint addr = new Endpoint(s);
-			if (interestedParties != null)
-				for (NotifyOnServerReady nosr : interestedParties)
-					nosr.serverReady(server, addr);
+			try {
+				Endpoint addr = new Endpoint(s);
+				if (interestedParties != null)
+					for (NotifyOnServerReady nosr : interestedParties)
+						nosr.serverReady(server, addr);
+			} catch (Exception ex) {
+				throw UtilException.wrap(ex);
+			}
 		}
 
 		@Override
 		public Connection accept() throws Exception {
 			try
 			{
-				Socket conn = s.accept();
-				return new Connection(this, conn.getInputStream(), conn.getOutputStream());
+				SocketChannel conn = s.accept();
+				return new Connection(this, conn);
 			}
 			catch (SocketTimeoutException ex)
 			{
@@ -127,7 +148,11 @@ public interface RemoteIO {
 
 		@Override
 		public String getEndpoint() {
-			return new Endpoint(s).toString();
+			try {
+				return new Endpoint(s).toString();
+			} catch (IOException ex) {
+				throw UtilException.wrap(ex);
+			}
 		}
 
 	}

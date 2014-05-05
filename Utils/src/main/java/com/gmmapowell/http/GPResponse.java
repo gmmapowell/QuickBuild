@@ -3,9 +3,9 @@ package com.gmmapowell.http;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.channels.SocketChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,11 +35,11 @@ public class GPResponse implements HttpServletResponse {
 	private String encoding = "iso-8859-1";
 	private boolean isWebSocket;
 
-	public GPResponse(GPRequest request, OutputStream os, String connhdr) {
+	public GPResponse(GPRequest request, SocketChannel chan, String connhdr) {
 		this.connectionState = connhdr;
 		request.setResponse(this);
 		toXhr = "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
-		sos = new GPServletOutputStream(os);
+		sos = new GPServletOutputStream(chan);
 		dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
 		dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 	}
@@ -384,7 +384,15 @@ public class GPResponse implements HttpServletResponse {
 	public void writeBinaryMessage(byte[] data, int offset, int length) throws IOException {
 		write(0x2, data, offset, length);
 	}
-	
+
+	public void writePingMessage() throws IOException {
+		write(0x9, null, 0, 0);
+	}
+
+	public void writePongMessage() throws IOException {
+		write(0xA, null, 0, 0);
+	}
+
 	public void writeClose(int code, String reason) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(baos);

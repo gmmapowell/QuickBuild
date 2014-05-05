@@ -2,12 +2,13 @@ package com.gmmapowell.http;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.SocketChannel;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Vector;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +51,7 @@ public class GPRequest implements HttpServletRequest {
 	private final GPServletContext context;
 	private GPResponse response;
 	private final String rawUri;
-	private final InputStream is;
+	private final SocketChannel chan;
 	private GPServletInputStream servletInputStream;
 	private GPHttpSession session;
 	private final List<Cookie> cookies = new ArrayList<Cookie>();
@@ -62,15 +64,20 @@ public class GPRequest implements HttpServletRequest {
 	InlineServerWebSocketHandler wshandler;
 	private final String protocol;
 
-	public GPRequest(GPServletConfig config, String method, String rawUri, String protocol, InputStream is) throws URISyntaxException {
+	public GPRequest(GPServletConfig config, String method, String rawUri, String protocol, SocketChannel chan) throws URISyntaxException {
 		this.protocol = protocol;
 		this.context = config.getServletContext();
 		this.method = method;
 		this.rawUri = rawUri;
-		this.is = is;
+		this.chan = chan;
 		uri = new URI(rawUri);
 		logger.debug(Thread.currentThread().getName()+ ": " + "Received " + method + " request for " + rawUri);
 		logger.debug("Created request with servlet " + this.getServlet());
+	}
+
+
+	public SocketChannel getChannel() {
+		return chan;
 	}
 
 	public void addHeader(String s) {
@@ -98,9 +105,9 @@ public class GPRequest implements HttpServletRequest {
 	
 	public void endHeaders() {
 		if (headers.contains("content-length"))
-			servletInputStream = new GPServletInputStream(is, getIntHeader("content-length"));
+			servletInputStream = new GPServletInputStream(chan, getIntHeader("content-length"));
 		else
-			servletInputStream = new GPServletInputStream(is, -1);
+			servletInputStream = new GPServletInputStream(chan, -1);
 	}
 
 	@Override
