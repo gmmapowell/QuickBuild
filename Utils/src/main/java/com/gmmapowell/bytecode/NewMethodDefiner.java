@@ -5,6 +5,8 @@ import com.gmmapowell.bytecode.Var.AVar;
 
 public interface NewMethodDefiner {
 
+	String getName();
+
 	void throwsException(String exception);
 
 	Var getArgument(int i);

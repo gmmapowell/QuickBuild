@@ -181,9 +181,9 @@ public class Reflection {
 		call(invokee, meth, value);
 	}
 
-	public static Map<String, Object> callStatic(String clz, String meth, String applName) {
+	public static <T> T callStatic(String clz, String meth, Object... args) {
 		try {
-			return callStatic(Class.forName(clz), meth, applName);
+			return callStatic(Class.forName(clz), meth, args);
 		} catch (ClassNotFoundException ex) {
 			throw UtilException.wrap(ex);
 		}
