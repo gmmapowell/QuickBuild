@@ -7,7 +7,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
-import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
 import java.security.Principal;
 import java.util.ArrayList;

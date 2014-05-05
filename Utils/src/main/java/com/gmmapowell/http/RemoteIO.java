@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.net.SocketTimeoutException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.List;
@@ -80,7 +79,6 @@ public interface RemoteIO {
 	}
 
 	class UsingSocket implements RemoteIO {
-		private int timeout = 10;
 		private final int port;
 		private ServerSocketChannel s;
 		private final InlineServer server;
@@ -112,22 +110,8 @@ public interface RemoteIO {
 
 		@Override
 		public Connection accept() throws Exception {
-			try
-			{
-				SocketChannel conn = s.accept();
-				return new Connection(this, conn);
-			}
-			catch (SocketTimeoutException ex)
-			{
-				// this is perfectly normal ... continue (or not)
-				if (timeout < 2000)
-				{
-					timeout *= 2;
-					s.setSoTimeout(timeout);
-					InlineServer.logger.trace("Timeout now = " + timeout);
-				}
-				return null;
-			}
+			SocketChannel conn = s.accept();
+			return new Connection(this, conn);
 		}
 
 		@Override
