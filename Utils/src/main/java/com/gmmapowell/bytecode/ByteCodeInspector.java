@@ -438,11 +438,11 @@ public class ByteCodeInspector extends ByteCodeFile {
 					hexdump.print(excLength + " exceptions");
 				for (int j=0;j<excLength;j++)
 				{
-					/* int start_pc = */ dis.readUnsignedShort();
-					/* int end_pc = */ dis.readUnsignedShort();
-					/* int handler_pc = */ dis.readUnsignedShort();
-					/* int catch_type = */ dis.readUnsignedShort();
-					hexdump.print("");
+					int start_pc = dis.readUnsignedShort();
+					int end_pc = dis.readUnsignedShort();
+					int handler_pc = dis.readUnsignedShort();
+					int catch_type = dis.readUnsignedShort();
+					hexdump.print("Catch " + show(catch_type) + " in " + start_pc + "-"+end_pc + " and handle in " + handler_pc);
 				}
 				readAttributes(dis, "Code");
 			}

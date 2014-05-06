@@ -27,4 +27,15 @@ public class Marker {
 		jump.setLocation(offset, count);
 	}
 
+	public int getLocation() {
+		int count = 0;
+		for (int k=0;k<instructions.size() && k < pointer;k++)
+			count += instructions.get(k).length();
+		return count;
+	}
+
+	@Override
+	public String toString() {
+		return "Marker[" + offset + ":" + pointer + "]";
+	}
 }

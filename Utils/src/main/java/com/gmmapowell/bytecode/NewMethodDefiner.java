@@ -98,6 +98,8 @@ public interface NewMethodDefiner {
 
 	Expr throwException(String clz, Expr... args);
 
+	TryCatch tryCatch(Expr inBlock, String exType, Expr andThen);
+
 	Expr trueConst();
 
 	Expr voidExpr(Expr ignoredResult);

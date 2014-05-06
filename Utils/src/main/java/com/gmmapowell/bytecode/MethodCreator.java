@@ -36,6 +36,7 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 	private List<String> exceptions = new ArrayList<String>();
 	private final ListMap<AnnotationType, Annotation> annotations = new ListMap<AnnotationType, Annotation>(AnnotationType.sortOrder);
 	private final boolean isStatic;
+	private final List<ExceptionHandler> exceptionHandlers = new ArrayList<ExceptionHandler>();
 
 	public MethodCreator(ByteCodeCreator byteCodeCreator, ByteCodeFile bcf, boolean isStatic, String returnType, String name) {
 		super(bcf);
@@ -348,6 +349,11 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 	}
 
 	@Override
+	public TryCatch tryCatch(Expr inBlock, String exType, Expr andThen) {
+		return new TryCatch(this, inBlock, exType, andThen);
+	}
+
+	@Override
 	public Expr trueConst() {
 		return as(intConst(1), "boolean");
 	}
@@ -418,7 +424,11 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 					dos.writeInt(len);
 					for (Instruction i : instructions)
 						i.write(dos);
-					dos.writeShort(0); // exceptions
+					// exception handling table
+					dos.writeShort(exceptionHandlers.size());
+					for (ExceptionHandler eh : exceptionHandlers ) {
+						eh.write(dos);
+					}
 					dos.writeShort(0); // code attributes
 					attributes.add(bcf.newAttribute("Code", baos.toByteArray()));
 				}
@@ -462,7 +472,7 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 		opstack(stackChange);
 	}
 
-	private void opstack(int i) {
+	public void opstack(int i) {
 		opdepth += i;
 		if (opdepth < 0 && !lenientMode)
 			throw new UtilException("Stack underflow generating " + name + " in " + bcf);
@@ -822,6 +832,10 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 			locals = i+1;
 	}
 
+	public Marker marker() {
+		return new Marker(instructions, 1);
+	}
+
 	@Override
 	public void newObject(String clz) {
 		int idx = bcf.pool.requireClass(clz);
@@ -881,6 +895,10 @@ public class MethodCreator extends MethodInfo implements MethodDefiner {
 		Annotation ret = new Annotation(bcf, attrClass, param);
 		annotations.add(AnnotationType.RuntimeVisibleParameterAnnotations, ret);
 		return ret;
+	}
+
+	public void addException(String exType, Marker from, Marker to, Marker handler) {
+		exceptionHandlers.add(new ExceptionHandler(bcf.pool.requireClass(exType), from, to, handler));
 	}
 
 	@Override
