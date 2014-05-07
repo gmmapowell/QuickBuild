@@ -43,7 +43,7 @@ public class Endpoint implements Serializable {
 	}
 	
 	public Endpoint(ServerSocketChannel s) throws IOException {
-		this(((InetSocketAddress) s.getLocalAddress()).getAddress(), ((InetSocketAddress) s.getLocalAddress()).getPort());
+		this(((InetSocketAddress) s.socket().getLocalSocketAddress()).getAddress(), ((InetSocketAddress) s.socket().getLocalSocketAddress()).getPort());
 	}
 	
 	public Endpoint(String host, int port) {

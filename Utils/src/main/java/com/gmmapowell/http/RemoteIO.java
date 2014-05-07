@@ -102,10 +102,10 @@ public interface RemoteIO {
 		public void init() throws Exception {
 			s = ServerSocketChannel.open();
 			s.configureBlocking(false);
-			s.bind(new InetSocketAddress(port));
+			s.socket().bind(new InetSocketAddress(port));
 			sel = Selector.open();
 			s.register(sel, SelectionKey.OP_ACCEPT);
-			InlineServer.logger.info("Listening on port " + s.getLocalAddress());
+			InlineServer.logger.info("Listening on port " + s.socket().getInetAddress());
 		}
 		
 		@Override
@@ -148,6 +148,8 @@ public interface RemoteIO {
 		public void close() throws Exception {
 			if (s != null)
 				s.close();
+			if (sel != null)
+				sel.close();
 		}
 
 		@Override
