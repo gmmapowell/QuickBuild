@@ -2,6 +2,7 @@ package com.gmmapowell.http;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
 import javax.servlet.ServletInputStream;
 
 import com.gmmapowell.exceptions.UtilException;
@@ -43,12 +44,9 @@ public class GPServletInputStream extends ServletInputStream {
 	public void flush() throws IOException {
 		if (maxchars == -1)
 			return;
-		InlineServer.logger.info("Flushing: ");
 		while (cnt < maxchars) {
-			int c = read();
-			System.err.print(c);
+			read();
 		}
-		System.err.println("//done");
 	}
 
 	public void pushback(int b) {

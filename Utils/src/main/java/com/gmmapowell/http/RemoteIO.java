@@ -187,17 +187,17 @@ public interface RemoteIO {
 			synchronized (connectionHandler) {
 				while (true) {
 					try {
-						InlineServer.logger.debug("Restoring " + connectionHandler);
-						chan.register(sel, SelectionKey.OP_READ, connectionHandler);
 						sel.wakeup();
+						chan.register(sel, SelectionKey.OP_READ, connectionHandler);
 						break;
 					} catch (CancelledKeyException ex) {
 						// We were just too quick ... need to give the main thread a go
 						SyncUtils.sleep(1);
 					}
 				}
-				if (isSync)
+				if (isSync) {
 					SyncUtils.waitFor(connectionHandler, 0);
+				}
 			}
 		}
 

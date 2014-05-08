@@ -32,7 +32,7 @@ public class ConnectionHandler implements NIOActionable {
 		this.inlineServer = inlineServer;
 		this.conn = conn;
 		this.chan = conn.getChannel();
-		this.buffer = ByteBuffer.allocate(27);
+		this.buffer = ByteBuffer.allocate(4000);
 	}
 	
 	@Override
