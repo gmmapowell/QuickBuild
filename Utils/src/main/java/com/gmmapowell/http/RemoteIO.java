@@ -6,7 +6,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.Channels;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -14,8 +17,10 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.List;
 
+import com.gmmapowell.exceptions.NotImplementedException;
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.serialization.Endpoint;
+import com.gmmapowell.sync.SyncUtils;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
@@ -27,6 +32,10 @@ public interface RemoteIO {
 	void init() throws Exception;
 
 	void announce(List<NotifyOnServerReady> interestedParties);
+
+	void select() throws Exception;
+	
+	void reregister(ConnectionHandler connectionHandler, SocketChannel chan, boolean isSync) throws ClosedChannelException;
 
 	Connection accept() throws Exception;
 	
@@ -86,7 +95,7 @@ public interface RemoteIO {
 		}
 	}
 
-	class UsingSocket implements RemoteIO {
+	class UsingSocket implements RemoteIO, NIOActionable {
 		private final int port;
 		private int timeout = 10;
 		private final InlineServer server;
@@ -104,7 +113,8 @@ public interface RemoteIO {
 			s.configureBlocking(false);
 			s.socket().bind(new InetSocketAddress(port));
 			sel = Selector.open();
-			s.register(sel, SelectionKey.OP_ACCEPT);
+			SelectionKey sk = s.register(sel, SelectionKey.OP_ACCEPT);
+			sk.attach(this);
 			InlineServer.logger.info("Listening on port " + s.socket().getInetAddress());
 		}
 		
@@ -132,6 +142,63 @@ public interface RemoteIO {
 			it.next();
 			it.remove();
 			return new Connection(this, s.accept());
+		}
+
+		@Override
+		public void select() throws Exception {
+			int cnt = sel.select(timeout);
+			if (cnt == 0) {
+				timeout = Math.min(timeout*2, 2000);
+				return;
+			}
+			timeout = 10;
+			Iterator<SelectionKey> it = sel.selectedKeys().iterator();
+			while (it.hasNext()) {
+				SelectionKey sk = it.next();
+				it.remove();
+				try {
+					NIOActionable handler = (NIOActionable)sk.attachment();
+					boolean wantMore = handler.ready(sk.channel());
+					if (!wantMore) {
+						InlineServer.logger.debug("Cancelling " + handler);
+						sk.cancel();
+					}
+				} catch (Exception ex) {
+					sk.cancel();
+					sk.channel().close();
+				}
+			}
+		}
+
+		// When this comes back to us, it's the accept() that's gone off
+		@Override
+		public boolean ready(SelectableChannel channel) throws Exception {
+			SocketChannel newConn = s.accept();
+			newConn.configureBlocking(false);
+			ConnectionHandler handler = new ConnectionHandler(server, new Connection(this, newConn));
+			server.handlers.add(handler);
+			newConn.register(sel, SelectionKey.OP_READ, handler);
+			sel.wakeup();
+			return true;
+		}
+
+		@Override
+		public void reregister(ConnectionHandler connectionHandler, SocketChannel chan, boolean isSync) throws ClosedChannelException {
+			synchronized (connectionHandler) {
+				while (true) {
+					try {
+						InlineServer.logger.debug("Restoring " + connectionHandler);
+						chan.register(sel, SelectionKey.OP_READ, connectionHandler);
+						sel.wakeup();
+						break;
+					} catch (CancelledKeyException ex) {
+						// We were just too quick ... need to give the main thread a go
+						SyncUtils.sleep(1);
+					}
+				}
+				if (isSync)
+					SyncUtils.waitFor(connectionHandler, 0);
+			}
 		}
 
 		@Override
@@ -229,6 +296,16 @@ public interface RemoteIO {
 					channel.basicAck(req.getEnvelope().getDeliveryTag(), false);
 				return null;
 			}
+		}
+
+		@Override
+		public void select() throws Exception {
+			throw new NotImplementedException();
+		}
+
+		@Override
+		public void reregister(ConnectionHandler connectionHandler, SocketChannel chan, boolean isSync) throws ClosedChannelException {
+			throw new NotImplementedException();
 		}
 
 		@Override

@@ -2,26 +2,26 @@ package com.gmmapowell.http;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
-
 import javax.servlet.ServletInputStream;
 
 import com.gmmapowell.exceptions.UtilException;
 
 public class GPServletInputStream extends ServletInputStream {
-
-	private final SocketChannel chan;
+	private final ConnectionHandler conn;
+	private ByteBuffer buffer;
 	int cnt = 0;
 	private final int maxchars;
 	private int pushback = -1;
 
-	public GPServletInputStream(SocketChannel chan, int maxchars) {
-		this.chan = chan;
+	public GPServletInputStream(ConnectionHandler conn, ByteBuffer buffer, int maxchars) {
+		this.conn = conn;
+		this.buffer = buffer;
 		this.maxchars = maxchars;
 	}
 
 	@Override
 	public int read() throws IOException {
+//		InlineServer.logger.info("Read() called");
 		if (pushback != -1)
 		{
 			int b = pushback;
@@ -30,10 +30,11 @@ public class GPServletInputStream extends ServletInputStream {
 		}
 		if (maxchars >= 0 && cnt >= maxchars)
 			return -1;
-		ByteBuffer dst = ByteBuffer.allocate(1);
-		chan.read(dst);
-		dst.rewind();
-		int b = dst.get();
+		while (!buffer.hasRemaining()) {
+			buffer.clear();
+			conn.wantMore(true);
+		}
+		int b = buffer.get();
 		cnt ++; 
 //		InlineServer.logger.info("read = " + (char)b + " cnt = " + cnt);
 		return b;
@@ -42,9 +43,12 @@ public class GPServletInputStream extends ServletInputStream {
 	public void flush() throws IOException {
 		if (maxchars == -1)
 			return;
-		ByteBuffer dst = ByteBuffer.allocate(maxchars-cnt);
-		while (dst.hasRemaining())
-			cnt += chan.read(dst);
+		InlineServer.logger.info("Flushing: ");
+		while (cnt < maxchars) {
+			int c = read();
+			System.err.print(c);
+		}
+		System.err.println("//done");
 	}
 
 	public void pushback(int b) {

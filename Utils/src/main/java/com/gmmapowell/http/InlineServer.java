@@ -1,19 +1,19 @@
 package com.gmmapowell.http;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.BindException;
 import java.net.URISyntaxException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.servlet.ServletException;
 
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.utils.FileUtils;
@@ -44,6 +44,8 @@ public class InlineServer implements Runnable {
 	private int numRequests;
 
 	private int exitStatus;
+
+	Set<ConnectionHandler> handlers = new HashSet<ConnectionHandler>();
 
 	public InlineServer(int port, String servletClass) {
 		this.remote = new RemoteIO.UsingSocket(this, port);
@@ -117,6 +119,7 @@ public class InlineServer implements Runnable {
 		}
 		return true;
 	}
+	
 	public void run(boolean wantLoop) {
 		if (inThread != Thread.currentThread())
 			throw new UtilException("Cannot run in different thread to creation thread");
@@ -127,43 +130,19 @@ public class InlineServer implements Runnable {
 			for (GPServletDefn servlet : servlets)
 				servlet.init();
 			remote.announce(this.interestedParties);
-			HashSet<ConnectionThread> threads = new HashSet<ConnectionThread>();
 			while (doLoop) {
-				logger.debug("Looking for connection on " + remote + " with doLoop = " + doLoop);
-				RemoteIO.Connection conn = remote.accept();
-				if (conn != null)
-				{
-					ConnectionThread thr = new ConnectionThread(this, conn);
-					logger.debug("Accepting connection request and dispatching to thread " + thr);
-					thr.start();
-					threads.add(thr);
-					for (ConnectionThread ct : threads)
-					{
-						if (!ct.isAlive())
-						{
-							threads.remove(ct);
-							// It's good enough to break here after we've removed one, because if we remove at least one every time we add one it can't grow indefinitely ...
-							break;
-						}
-					}
+				logger.debug("Checking for socket input or connections on " + remote + " with doLoop = " + doLoop);
+				remote.select();
+				Iterator<ConnectionHandler> it = handlers.iterator();
+				while (it.hasNext()) {
+					ConnectionHandler ch = it.next();
+					if (!ch.sendPing())
+						it.remove();
 				}
 			}
 
-			logger.debug("doLoop = " + doLoop + " at end of loop, waiting for threads: " + threads);
-			// Wait for all non-dead threads (at least for a while)
-			try {
-				for (ConnectionThread ct : threads)
-				{
-					if (ct.isAlive())
-					{
-						logger.info("Joining thread " + ct);
-						ct.join(1000);
-					}
-				}
-			} catch (InterruptedException ex) {
-				logger.error("Interrupted waiting for threads to join ... trying again");
-			}
-			logger.info("Closing remote " + remote);
+			logger.debug("doLoop = " + doLoop + " at end of loop");
+			logger.info("Closing remote " + remote + " at end of looping in server");
 			remote.close();
 		} catch (Throwable ex) {
 			if (ex.getClass().getName().equals("com.sun.jersey.api.container.ContainerException"))
@@ -183,11 +162,12 @@ public class InlineServer implements Runnable {
 			for (GPServletDefn servlet : servlets)
 				servlet.destroy();
 			logger.info("Server exiting");
-			logger.info("Terminating execution of InlineServer " + this);
 		}
 	}
 
-	public void service(GPRequest req, GPResponse resp) throws ServletException, IOException {
+
+	public void reregister(ConnectionHandler connectionHandler, SocketChannel chan, boolean isSync) throws ClosedChannelException {
+		remote.reregister(connectionHandler, chan, isSync);
 	}
 
 	public void notify(NotifyOnServerReady toNotify) {
@@ -241,7 +221,7 @@ public class InlineServer implements Runnable {
 		return ret;
 	}
 
-	public GPRequest requestFor(String s, SocketChannel chan) throws URISyntaxException {
+	public GPRequest requestFor(ConnectionHandler conn, String s, SocketChannel chan) throws URISyntaxException {
 		String[] command = s.split(" ");
 		String method = command[0];
 		String rawUri = command[1];
@@ -250,11 +230,11 @@ public class InlineServer implements Runnable {
 		for (GPServletDefn sd : servlets)
 			if (sd.isForMe(rawUri)) {
 				logger.debug("Choosing servlet " + sd);
-				return new GPRequest(sd.getConfig(), method, rawUri, protocol, chan);
+				return new GPRequest(conn, sd.getConfig(), method, rawUri, protocol);
 			}
 
-		logger.info("No servlet found for " + rawUri + "; looking for static file");
-		return new GPRequest(staticConfig, method, rawUri, protocol, chan);
+		logger.info("No servlet found for " + rawUri + "; assuming request is for static file");
+		return new GPRequest(conn, staticConfig, method, rawUri, protocol);
 	}
 
 	public GPServletDefn servletFor(String s) {
@@ -265,10 +245,10 @@ public class InlineServer implements Runnable {
 		return null;
 	}
 	
-	public synchronized void requestTime(Date start, Date end) {
+	public synchronized void requestTime(ConnectionHandler handler, Date start, Date end) {
 		long elapsed = end.getTime()-start.getTime();
 		totalRequests += elapsed;
 		numRequests++;
-		logger.info("Request took " + (elapsed/1000.0) + "; total = " + totalRequests/1000.0 + "; average = " + totalRequests*10/numRequests/10000.0);
+		logger.info(handler + ": request took " + (elapsed/1000.0) + "; total = " + totalRequests/1000.0 + "; average = " + totalRequests*10/numRequests/10000.0);
 	}
 }

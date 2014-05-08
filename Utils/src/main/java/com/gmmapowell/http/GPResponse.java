@@ -106,6 +106,10 @@ public class GPResponse implements HttpServletResponse {
 		return committed;
 	}
 
+	public boolean isWebSocket() {
+		return isWebSocket;
+	}
+	
 	@Override
 	public void reset() {
 		// TODO Auto-generated method stub

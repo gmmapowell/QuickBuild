@@ -6,10 +6,13 @@ import java.nio.channels.SocketChannel;
 
 import javax.servlet.ServletOutputStream;
 
+import com.gmmapowell.sync.SyncUtils;
+
 public class GPServletOutputStream extends ServletOutputStream {
 	private final SocketChannel chan;
 	private final int myunique;
 	private static int unique = 0;
+	private int total = 0;
 
 	public GPServletOutputStream(SocketChannel chan) {
 		this.chan = chan;
@@ -43,7 +46,17 @@ public class GPServletOutputStream extends ServletOutputStream {
 		ByteBuffer src = ByteBuffer.allocate(len);
 		src.put(b, off, len);
 		src.rewind();
-		chan.write(src);
+		while (len > 0) {
+			int cnt = chan.write(src);
+			if (cnt == 0) {
+				SyncUtils.sleep(10);
+				continue;
+			}
+			off += cnt;
+			len -= cnt;
+			total += cnt;
+//			InlineServer.logger.info("Wrote " + cnt + "bytes for a total of " + total + " chan = " + chan.isBlocking());
+		}
 	}
 	
 	@Override
