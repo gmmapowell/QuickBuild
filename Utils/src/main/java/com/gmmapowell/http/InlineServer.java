@@ -132,12 +132,14 @@ public class InlineServer implements Runnable {
 			remote.announce(this.interestedParties);
 			while (doLoop) {
 				logger.debug("Checking for socket input or connections on " + remote + " with doLoop = " + doLoop);
-				remote.select();
-				Iterator<ConnectionHandler> it = handlers.iterator();
-				while (it.hasNext()) {
-					ConnectionHandler ch = it.next();
-					if (!ch.sendPing())
-						it.remove();
+				if (remote.select()) {
+					// if it timed out, send pings
+					Iterator<ConnectionHandler> it = handlers.iterator();
+					while (it.hasNext()) {
+						ConnectionHandler ch = it.next();
+						if (!ch.sendPing())
+							it.remove();
+					}
 				}
 			}
 

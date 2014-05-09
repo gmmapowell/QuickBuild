@@ -329,7 +329,7 @@ public class GPResponse implements HttpServletResponse {
 				else
 					reply("Connection: " + connectionState);
 				
-				reply("Server: InlineServer/1.1");
+				reply("Server: InlineServer/1.3g");
 				reply("Date: " + dateFormat.format(new Date())); /* Sat, 18 Jun 2011 21:52:27 GMT */
 				// TODO: this should be an option, set on the InlineServer, to which we should have a pointer
 				// The option should include the option to specify a list of servers.

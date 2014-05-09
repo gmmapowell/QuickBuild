@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Date;
+
 import com.gmmapowell.exceptions.UtilException;
 import com.gmmapowell.http.RemoteIO.Connection;
 
@@ -26,6 +27,7 @@ public class ConnectionHandler implements NIOActionable {
 	private int fhread = 0;
 	private int fhmax;
 	private int fbread;
+	private FrameThread frameThr;
 
 	public ConnectionHandler(InlineServer inlineServer, Connection conn) throws IOException {
 		InlineServer.logger.debug("Creating connection handler " + this + " for " + conn);
@@ -42,6 +44,7 @@ public class ConnectionHandler implements NIOActionable {
 		int pos = buffer.position();
 		int cnt = chan.read(buffer);
 		int lim = buffer.position();
+		InlineServer.logger.info(this + ": " + buffer + " cnt = " + cnt);
 		if (cnt == -1) {
 			InlineServer.logger.info("End of stream seen, closing " + this);
 			chan.close();
@@ -99,7 +102,7 @@ public class ConnectionHandler implements NIOActionable {
 				request.addHeader(s);
 		}
 		request.endHeaders(buffer);
-		InlineServer.logger.debug("Handling request for " + request.getRequestURI());
+		InlineServer.logger.info("Handling request for " + request.getRequestURI());
 		String connhdr;
 		{
 			connhdr = request.getHeader("connection");
@@ -131,8 +134,8 @@ public class ConnectionHandler implements NIOActionable {
 		
 		RequestThread rt = new RequestThread(this, request, response);
 		rt.setName("RequestThr#" + (++rthr));
+		InlineServer.logger.info("Launching request thread for " + request + " from " + this + " in " + rt.getName());
 		rt.start();
-		InlineServer.logger.info("Launching request thread for " + request.getRequestURI() + " from " + this + " in " + rt.getName());
 		return false;
 	}
 
@@ -231,10 +234,11 @@ public class ConnectionHandler implements NIOActionable {
 	
 	public void useWebSocket() {
 		mode = Mode.WEBSOCKET;
-		wantMore(false);
-		request.wshandler.onOpen(response);
+		frameThr = new FrameThread(this, request.wshandler, response);
+		frameThr.setName("FrameThr#" + (++rthr));
+		frameThr.start();
 		resetWSFraming();
-		readFrame();
+		wantMore(false);
 	}
 
 	private void resetWSFraming() {
@@ -245,6 +249,7 @@ public class ConnectionHandler implements NIOActionable {
 	}
 
 	public boolean sendPing() {
+		/*
 		if (mode == Mode.WEBSOCKET) {
 			try {
 				response.writePingMessage();
@@ -255,6 +260,7 @@ public class ConnectionHandler implements NIOActionable {
 				return false;
 			}
 		} else
+		*/
 			return true;
 	}
 	
@@ -315,10 +321,24 @@ public class ConnectionHandler implements NIOActionable {
 				fbread++;
 			}
 			
-			// TODO: starting a separate thread for each request could be (a) wasteful and (b) break an implicit ordering guarantee
-			// Should we instead queue these frames on a single (longer, but not infinitely, lived) FrameThread?
-			FrameThread thr = new FrameThread(this, request.wshandler, currentFrame);
-			thr.start();
+			/*
+			StringBuilder sb = new StringBuilder();
+			for (int i=0;i<fhmax;i++) {
+				sb.append(StringUtil.hex(frameHeader[i]&0xff, 2));
+				sb.append(" ");
+			}
+			sb.append("[" + currentFrame.data.length + ":");
+			for (int i=0;i<currentFrame.data.length;i++) {
+				sb.append(" ");
+				sb.append(StringUtil.hex(currentFrame.data[i]&0xff, 2));
+			}
+			sb.append("]");
+			InlineServer.logger.info("Frame: " + sb);
+			*/
+
+			InlineServer.logger.info("Sending frame " + currentFrame.opcode + " (" + currentFrame.data.length + ") from " + this + " to " + frameThr.getName());
+			frameThr.queue(currentFrame);
+			
 			resetWSFraming();
 		}
 	}

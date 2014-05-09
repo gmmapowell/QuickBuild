@@ -33,7 +33,7 @@ public interface RemoteIO {
 
 	void announce(List<NotifyOnServerReady> interestedParties);
 
-	void select() throws Exception;
+	boolean select() throws Exception;
 	
 	void reregister(ConnectionHandler connectionHandler, SocketChannel chan, boolean isSync) throws ClosedChannelException;
 
@@ -145,11 +145,11 @@ public interface RemoteIO {
 		}
 
 		@Override
-		public void select() throws Exception {
+		public boolean select() throws Exception {
 			int cnt = sel.select(timeout);
 			if (cnt == 0) {
 				timeout = Math.min(timeout*2, 2000);
-				return;
+				return true;
 			}
 			timeout = 10;
 			Iterator<SelectionKey> it = sel.selectedKeys().iterator();
@@ -168,6 +168,7 @@ public interface RemoteIO {
 					sk.channel().close();
 				}
 			}
+			return false;
 		}
 
 		// When this comes back to us, it's the accept() that's gone off
@@ -299,7 +300,7 @@ public interface RemoteIO {
 		}
 
 		@Override
-		public void select() throws Exception {
+		public boolean select() throws Exception {
 			throw new NotImplementedException();
 		}
 

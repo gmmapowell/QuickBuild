@@ -12,7 +12,7 @@ public class GPServletOutputStream extends ServletOutputStream {
 	private final SocketChannel chan;
 	private final int myunique;
 	private static int unique = 0;
-	private int total = 0;
+//	private int total = 0;
 
 	public GPServletOutputStream(SocketChannel chan) {
 		this.chan = chan;
@@ -22,25 +22,20 @@ public class GPServletOutputStream extends ServletOutputStream {
 
 	@Override
 	public void write(int b) throws IOException {
-//		InlineServer.logger.finest("Writing " + new String(new byte[] { (byte)b }));
-		ByteBuffer src = ByteBuffer.allocate(1);
-		src.put((byte)b);
-		src.rewind();
-		chan.write(src);
+//		InlineServer.logger.info("Writing (" + b + ") ");
+		byte[] arr = new byte[1];
+		arr[0] = (byte)b;
+		write(arr, 0, 1);
 	}
 	
 	@Override
 	public void write(byte[] b) throws IOException {
-//		InlineServer.logger.finest("Writing " + new String(b));
-		ByteBuffer src = ByteBuffer.allocate(b.length);
-		src.put(b, 0, b.length);
-		src.rewind();
-		chan.write(src);
+		write(b, 0, b.length);
 	}
 	
 	@Override
 	public void write(byte[] b, int off, int len) throws IOException {
-//		InlineServer.logger.finest("Writing " + new String(b));
+//		InlineServer.logger.info("Writing (" + off + ","+len+") " + StringUtil.hex(b, off, len) + " :: " + new String(b, off, len));
 		if (len <= 0)
 			return;
 		ByteBuffer src = ByteBuffer.allocate(len);
@@ -54,8 +49,8 @@ public class GPServletOutputStream extends ServletOutputStream {
 			}
 			off += cnt;
 			len -= cnt;
-			total += cnt;
-//			InlineServer.logger.info("Wrote " + cnt + "bytes for a total of " + total + " chan = " + chan.isBlocking());
+//			total += cnt;
+//			InlineServer.logger.info("Wrote " + cnt + " bytes for a total of " + total + " chan = " + chan.isBlocking());
 		}
 	}
 	
