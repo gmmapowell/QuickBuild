@@ -315,37 +315,39 @@ public class GPResponse implements HttpServletResponse {
 		try {
 			if (!committed)
 			{
-				pw = new PrintWriter(new OutputStreamWriter(sos, encoding));
-				InlineServer.logger.trace(Thread.currentThread().getName() + " Writing to " + sos);
-				if (status == 0)
-					setStatus(200, "OK");
-				if (status >= 300)
-					InlineServer.logger.debug("Servlet Request returned " + status());
-				reply(status());
-				if (headers.contains("Upgrade"))
-					reply(sendHeaders("Upgrade"));
-				if (headers.contains("Connection"))
-					reply(sendHeaders("Connection"));
-				else
-					reply("Connection: " + connectionState);
-				
-				reply("Server: InlineServer/1.3g");
-				reply("Date: " + dateFormat.format(new Date())); /* Sat, 18 Jun 2011 21:52:27 GMT */
-				// TODO: this should be an option, set on the InlineServer, to which we should have a pointer
-				// The option should include the option to specify a list of servers.
-				reply("Access-Control-Allow-Origin: *");
-				reply("Access-Control-Allow-Methods: POST, GET, PUT, DELETE, OPTIONS");
-				reply("Access-Control-Allow-Headers: Content-Type, X-Requested-With, X-Ziniki-Token, X-Cache-Date"); 
-				reply("Access-Control-Expose-Headers: X-Ziniki-Token"); 
-				if (toXhr) reply("Cache-Control: no-cache");
-				for (String r : sendHeaders())
-					if (!r.toLowerCase().startsWith("upgrade") && !r.toLowerCase().startsWith("connection"))
-						reply(r);
-				if (!isWebSocket && !headers.contains("Content-Length"))
-					reply("Content-Length: 0");
-				reply("");
-				pw.flush();
-				committed = true;
+				synchronized (sos) {
+					pw = new PrintWriter(new OutputStreamWriter(sos, encoding));
+					InlineServer.logger.trace(Thread.currentThread().getName() + " Writing to " + sos);
+					if (status == 0)
+						setStatus(200, "OK");
+					if (status >= 300)
+						InlineServer.logger.debug("Servlet Request returned " + status());
+					reply(status());
+					if (headers.contains("Upgrade"))
+						reply(sendHeaders("Upgrade"));
+					if (headers.contains("Connection"))
+						reply(sendHeaders("Connection"));
+					else
+						reply("Connection: " + connectionState);
+					
+					reply("Server: InlineServer/1.3g");
+					reply("Date: " + dateFormat.format(new Date())); /* Sat, 18 Jun 2011 21:52:27 GMT */
+					// TODO: this should be an option, set on the InlineServer, to which we should have a pointer
+					// The option should include the option to specify a list of servers.
+					reply("Access-Control-Allow-Origin: *");
+					reply("Access-Control-Allow-Methods: POST, GET, PUT, DELETE, OPTIONS");
+					reply("Access-Control-Allow-Headers: Content-Type, X-Requested-With, X-Ziniki-Token, X-Cache-Date"); 
+					reply("Access-Control-Expose-Headers: X-Ziniki-Token"); 
+					if (toXhr) reply("Cache-Control: no-cache");
+					for (String r : sendHeaders())
+						if (!r.toLowerCase().startsWith("upgrade") && !r.toLowerCase().startsWith("connection"))
+							reply(r);
+					if (!isWebSocket && !headers.contains("Content-Length"))
+						reply("Content-Length: 0");
+					reply("");
+					pw.flush();
+					committed = true;
+				}
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -407,18 +409,20 @@ public class GPResponse implements HttpServletResponse {
 	}
 	
 	private void write(int opcode, byte[] data, int offset, int length) throws IOException {
-		sos.write(0x80|opcode);
-		if (length < 126)
-			sos.write(length);
-		else if (length < 65536)
-		{
-			sos.write(126);
-			sos.write((length>>8)&0xff);
-			sos.write(length&0xff);
+		synchronized (sos) {
+			sos.write(0x80|opcode);
+			if (length < 126)
+				sos.write(length);
+			else if (length < 65536)
+			{
+				sos.write(126);
+				sos.write((length>>8)&0xff);
+				sos.write(length&0xff);
+			}
+			else
+				throw new UtilException("Message too long");
+			sos.write(data, offset, length);
 		}
-		else
-			throw new UtilException("Message too long");
-		sos.write(data, offset, length);
 	}
 
 	public void flush() throws IOException{

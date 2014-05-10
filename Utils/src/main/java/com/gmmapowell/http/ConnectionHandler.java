@@ -44,7 +44,7 @@ public class ConnectionHandler implements NIOActionable {
 		int pos = buffer.position();
 		int cnt = chan.read(buffer);
 		int lim = buffer.position();
-		InlineServer.logger.info(this + ": " + buffer + " cnt = " + cnt);
+		InlineServer.logger.debug(this + ": " + buffer + " cnt = " + cnt);
 		if (cnt == -1) {
 			InlineServer.logger.info("End of stream seen, closing " + this);
 			chan.close();
@@ -336,7 +336,7 @@ public class ConnectionHandler implements NIOActionable {
 			InlineServer.logger.info("Frame: " + sb);
 			*/
 
-			InlineServer.logger.info("Sending frame " + currentFrame.opcode + " (" + currentFrame.data.length + ") from " + this + " to " + frameThr.getName());
+			InlineServer.logger.debug("Sending frame " + currentFrame.opcode + " (" + currentFrame.data.length + ") from " + this + " to " + frameThr.getName());
 			frameThr.queue(currentFrame);
 			
 			resetWSFraming();
