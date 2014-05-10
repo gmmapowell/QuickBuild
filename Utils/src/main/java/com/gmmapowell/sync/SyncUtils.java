@@ -24,9 +24,14 @@ public class SyncUtils {
 		if (until != null && new Date().after(until))
 			return false;
 		synchronized (waitOn) {
-			while (until == null || new Date().before(until)) {
+			while (true) {
+				long timeout = 0;
+				if (until != null) {
+					timeout= until == null ? -1 : until.getTime()-new Date().getTime();
+					if (timeout <= 0)
+						break;
+				}
 				try {
-					long timeout = until == null ? 0 : until.getTime()-new Date().getTime();
 					waitOn.wait(timeout);
 					return until == null || new Date().before(until);
 				} catch (InterruptedException e) {
