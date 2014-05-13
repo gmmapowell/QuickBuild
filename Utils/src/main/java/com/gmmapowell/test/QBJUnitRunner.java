@@ -1,5 +1,6 @@
 package com.gmmapowell.test;
 
+import java.lang.annotation.Annotation;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,6 +22,12 @@ public class QBJUnitRunner {
 		RunNotifier nfy = new RunNotifier();
 		nfy.addFirstListener(lsnr);
 		boolean ignoreQIs = false;
+		Class<? extends Annotation> qiclz = null;
+		try {
+			@SuppressWarnings("unchecked")
+			Class<? extends Annotation> tmp = (Class<? extends Annotation>) Class.forName("org.zinutils.test.QuickIgnore");
+			qiclz = tmp;
+		} catch (Exception ex) { }
 		for (String arg : args) { 
 			if (arg.equals("--quick")) {
 				System.out.println("Enabling @QuickIgnore");
@@ -31,7 +38,9 @@ public class QBJUnitRunner {
 				Class<?> clz = Class.forName(arg);
 				Description desc = Description.createSuiteDescription(clz);
 				lsnr.testRunStarted(desc);
-				QuickIgnore qi = clz.getAnnotation(QuickIgnore.class);
+				Annotation qi = clz.getAnnotation(QuickIgnore.class);
+				if (qi == null && qiclz != null)
+					qi = clz.getAnnotation(qiclz);
 				RunWith runWith = clz.getAnnotation(RunWith.class);
 				Ignore ign = clz.getAnnotation(Ignore.class);
 				if (ign != null || (ignoreQIs && qi != null)) {
