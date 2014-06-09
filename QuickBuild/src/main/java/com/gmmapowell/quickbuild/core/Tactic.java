@@ -4,7 +4,7 @@ import java.util.Set;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
-import com.gmmapowell.utils.OrderedFileList;
+import org.zinutils.utils.OrderedFileList;
 
 public interface Tactic {
 

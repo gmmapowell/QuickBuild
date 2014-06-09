@@ -2,7 +2,7 @@ package com.gmmapowell.quickbuild.core;
 
 import java.io.File;
 
-import com.gmmapowell.utils.FileUtils;
+import org.zinutils.utils.FileUtils;
 
 public class StructureHelper {
 	private final File basedir;

@@ -2,8 +2,8 @@ package com.gmmapowell.quickbuild.core;
 
 import java.io.File;
 
-import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.utils.FileUtils;
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.utils.FileUtils;
 
 public class CopiedResource implements BuildResource {
 	private final File clonedPath;

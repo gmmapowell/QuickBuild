@@ -1,7 +1,7 @@
 package com.gmmapowell.android;
 
-import com.gmmapowell.xml.XMLElement;
-import com.gmmapowell.xml.XMLNamespace;
+import org.zinutils.xml.XMLElement;
+import org.zinutils.xml.XMLNamespace;
 
 public class ManifestActivity {
 

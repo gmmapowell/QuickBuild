@@ -7,10 +7,10 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.gmmapowell.collections.CollectionUtils;
-import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.utils.Justification;
-import com.gmmapowell.utils.PrettyPrinter;
+import org.zinutils.collections.CollectionUtils;
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.utils.Justification;
+import org.zinutils.utils.PrettyPrinter;
 
 public class SchedulePlanner2 {
 

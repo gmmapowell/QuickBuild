@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.gmmapowell.utils.PathBuilder;
+import org.zinutils.utils.PathBuilder;
 
 public class BuildClassPath {
 	private Set<File> files = new HashSet<File>();

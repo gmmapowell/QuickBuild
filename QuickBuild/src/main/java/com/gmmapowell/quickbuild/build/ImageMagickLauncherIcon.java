@@ -2,13 +2,13 @@ package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
 
-import com.gmmapowell.parser.NoChildCommand;
-import com.gmmapowell.parser.TokenizedLine;
+import org.zinutils.parser.NoChildCommand;
+import org.zinutils.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
-import com.gmmapowell.utils.ArgumentDefinition;
-import com.gmmapowell.utils.Cardinality;
-import com.gmmapowell.utils.FileUtils;
+import org.zinutils.utils.ArgumentDefinition;
+import org.zinutils.utils.Cardinality;
+import org.zinutils.utils.FileUtils;
 
 public class ImageMagickLauncherIcon extends NoChildCommand implements ConfigApplyCommand {
 	private String source;

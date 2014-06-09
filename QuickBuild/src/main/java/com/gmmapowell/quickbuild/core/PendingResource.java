@@ -2,7 +2,7 @@ package com.gmmapowell.quickbuild.core;
 
 import java.io.File;
 
-import com.gmmapowell.exceptions.UtilException;
+import org.zinutils.exceptions.UtilException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 
 public class PendingResource implements BuildResource {

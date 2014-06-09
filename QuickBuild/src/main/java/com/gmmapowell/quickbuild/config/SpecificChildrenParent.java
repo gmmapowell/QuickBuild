@@ -1,7 +1,7 @@
 package com.gmmapowell.quickbuild.config;
 
-import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.parser.Parent;
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.parser.Parent;
 
 public abstract class SpecificChildrenParent<T> implements Parent<T> {
 	private final Class<? extends T>[] clzs;

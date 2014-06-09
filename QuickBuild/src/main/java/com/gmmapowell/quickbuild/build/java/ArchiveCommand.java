@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.quickbuild.core.Strategem;
-import com.gmmapowell.utils.FileUtils;
+import org.zinutils.utils.FileUtils;
 
 public abstract class ArchiveCommand extends AbstractTactic {
 	protected File jarfile;

@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.gmmapowell.bytecode.ByteCodeFile;
-import com.gmmapowell.collections.CollectionUtils;
-import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.parser.LinePatternMatch;
-import com.gmmapowell.parser.LinePatternParser;
-import com.gmmapowell.parser.LinePatternParser.MatchIterator;
+import org.zinutils.bytecode.ByteCodeFile;
+import org.zinutils.collections.CollectionUtils;
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.parser.LinePatternMatch;
+import org.zinutils.parser.LinePatternParser;
+import org.zinutils.parser.LinePatternParser.MatchIterator;
 import com.gmmapowell.quickbuild.app.BuildOutput;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
@@ -29,10 +29,10 @@ import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-import com.gmmapowell.sync.SyncUtils;
-import com.gmmapowell.system.RunProcess;
-import com.gmmapowell.system.ThreadedStreamReader;
-import com.gmmapowell.utils.FileUtils;
+import org.zinutils.sync.SyncUtils;
+import org.zinutils.system.RunProcess;
+import org.zinutils.system.ThreadedStreamReader;
+import org.zinutils.utils.FileUtils;
 
 public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	private final File srcdir;
@@ -132,7 +132,7 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 			proc.arg(s);
 		if (memory != null)
 			proc.arg("-Xmx" + memory);
-		proc.arg("com.gmmapowell.test.QBJUnitRunner");
+		proc.arg("org.zinutils.test.QBJUnitRunner");
 		if (!cxt.allTests) // should be a flag
 			proc.arg("--quick");
 		for (String s : testsToRun)

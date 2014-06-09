@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import com.gmmapowell.bytecode.JavaRuntimeReplica;
-import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.parser.TokenizedLine;
+import org.zinutils.bytecode.JavaRuntimeReplica;
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.DeferredFileList;
 import com.gmmapowell.quickbuild.build.java.ExcludeCommand;
@@ -27,9 +27,9 @@ import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
-import com.gmmapowell.utils.ArgumentDefinition;
-import com.gmmapowell.utils.Cardinality;
-import com.gmmapowell.utils.FileUtils;
+import org.zinutils.utils.ArgumentDefinition;
+import org.zinutils.utils.Cardinality;
+import org.zinutils.utils.FileUtils;
 
 public class AndroidCommand extends AbstractStrategem {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();

@@ -5,21 +5,21 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
-import com.gmmapowell.git.GitHelper;
-import com.gmmapowell.git.GitRecord;
-import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
+import org.zinutils.git.GitHelper;
+import org.zinutils.git.GitRecord;
+import org.zinutils.parser.SignificantWhiteSpaceFileReader;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildExecutor;
 import com.gmmapowell.quickbuild.config.Arguments;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-import com.gmmapowell.utils.ArgumentDefinition;
-import com.gmmapowell.utils.Cardinality;
-import com.gmmapowell.utils.DateUtils;
-import com.gmmapowell.utils.FileUtils;
-import com.gmmapowell.utils.OrderedFileList;
-import com.gmmapowell.utils.ProcessArgs;
+import org.zinutils.utils.ArgumentDefinition;
+import org.zinutils.utils.Cardinality;
+import org.zinutils.utils.DateUtils;
+import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.OrderedFileList;
+import org.zinutils.utils.ProcessArgs;
 
 public class QuickBuild {
 	private static ArgumentDefinition[] argumentDefinitions = new ArgumentDefinition[] {

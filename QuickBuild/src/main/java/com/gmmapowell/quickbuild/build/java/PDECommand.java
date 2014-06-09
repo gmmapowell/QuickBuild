@@ -4,11 +4,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.gmmapowell.parser.TokenizedLine;
+import org.zinutils.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ResourceCommand;
-import com.gmmapowell.utils.FileUtils;
-import com.gmmapowell.utils.OrderedFileList;
+import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.OrderedFileList;
 
 public class PDECommand extends JarCommand {
 	private List<File> pdelibs = new ArrayList<File>();

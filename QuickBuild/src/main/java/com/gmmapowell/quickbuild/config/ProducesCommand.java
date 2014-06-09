@@ -2,15 +2,15 @@ package com.gmmapowell.quickbuild.config;
 
 import java.io.File;
 
-import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.parser.NoChildCommand;
-import com.gmmapowell.parser.TokenizedLine;
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.parser.NoChildCommand;
+import org.zinutils.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Tactic;
-import com.gmmapowell.utils.ArgumentDefinition;
-import com.gmmapowell.utils.Cardinality;
-import com.gmmapowell.utils.FileUtils;
+import org.zinutils.utils.ArgumentDefinition;
+import org.zinutils.utils.Cardinality;
+import org.zinutils.utils.FileUtils;
 
 public class ProducesCommand extends NoChildCommand implements ConfigApplyCommand {
 	private String type;

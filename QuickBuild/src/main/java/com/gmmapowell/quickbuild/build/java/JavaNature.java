@@ -7,10 +7,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.gmmapowell.collections.ListMap;
-import com.gmmapowell.collections.SetMap;
-import com.gmmapowell.exceptions.GPJarException;
-import com.gmmapowell.exceptions.UtilException;
+import org.zinutils.collections.ListMap;
+import org.zinutils.collections.SetMap;
+import org.zinutils.exceptions.ZUJarException;
+import org.zinutils.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildContextAware;
 import com.gmmapowell.quickbuild.config.Config;
@@ -18,9 +18,9 @@ import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.Tactic;
-import com.gmmapowell.utils.FileUtils;
-import com.gmmapowell.utils.GPJarEntry;
-import com.gmmapowell.utils.GPJarFile;
+import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.ZUJarEntry;
+import org.zinutils.utils.ZUJarFile;
 
 public class JavaNature implements Nature, BuildContextAware {
 	private static class LibDir {
@@ -96,19 +96,19 @@ public class JavaNature implements Nature, BuildContextAware {
 
 	
 	private void scanJar(JarResource br) {
-		GPJarFile jar;
+		ZUJarFile jar;
 		try
 		{
-			jar = new GPJarFile(br.getPath());
+			jar = new ZUJarFile(br.getPath());
 		}
-		catch (GPJarException ex)
+		catch (ZUJarException ex)
 		{
 			System.out.println("Could not open jar " + br.getPath());
 			ex.printStackTrace();
 			return;
 		}
 //		boolean addedDuplicates = false;
-		for (GPJarEntry e : jar)
+		for (ZUJarEntry e : jar)
 		{
 			if (!e.isClassFile())
 				continue;

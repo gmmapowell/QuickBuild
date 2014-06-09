@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.parser.LinePatternMatch;
-import com.gmmapowell.parser.LinePatternParser;
-import com.gmmapowell.parser.TokenizedLine;
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.parser.LinePatternMatch;
+import org.zinutils.parser.LinePatternParser;
+import org.zinutils.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.build.CanBeSkipped;
@@ -24,11 +24,11 @@ import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-import com.gmmapowell.system.RunProcess;
-import com.gmmapowell.utils.ArgumentDefinition;
-import com.gmmapowell.utils.Cardinality;
-import com.gmmapowell.utils.FileUtils;
-import com.gmmapowell.utils.OrderedFileList;
+import org.zinutils.system.RunProcess;
+import org.zinutils.utils.ArgumentDefinition;
+import org.zinutils.utils.Cardinality;
+import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.OrderedFileList;
 
 public class JavaDocCommand extends AbstractBuildCommand implements FloatToEnd, CanBeSkipped {
 	private String overview;

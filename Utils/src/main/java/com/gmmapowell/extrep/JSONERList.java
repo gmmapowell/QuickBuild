@@ -2,7 +2,7 @@ package com.gmmapowell.extrep;
 
 import org.codehaus.jackson.JsonGenerator;
 
-import com.gmmapowell.exceptions.UtilException;
+import org.zinutils.exceptions.UtilException;
 
 class JSONERList extends ERList {
 	private final JsonGenerator gen;

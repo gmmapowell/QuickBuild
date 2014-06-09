@@ -6,8 +6,8 @@ import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.AbstractTactic;
-import com.gmmapowell.system.RunProcess;
-import com.gmmapowell.utils.FileUtils;
+import org.zinutils.system.RunProcess;
+import org.zinutils.utils.FileUtils;
 
 public class AaptPackageBuildCommand extends AbstractTactic {
 

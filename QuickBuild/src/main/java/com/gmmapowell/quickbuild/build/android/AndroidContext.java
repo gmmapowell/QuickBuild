@@ -4,7 +4,7 @@ import java.io.File;
 
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
-import com.gmmapowell.utils.FileUtils;
+import org.zinutils.utils.FileUtils;
 
 public class AndroidContext {
 

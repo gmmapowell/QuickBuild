@@ -2,7 +2,7 @@ package com.gmmapowell.quickbuild.config;
 
 import java.io.File;
 
-import com.gmmapowell.parser.TokenizedLine;
+import org.zinutils.parser.TokenizedLine;
 
 public class SetPathCommand extends SetVarCommand {
 	private File path;

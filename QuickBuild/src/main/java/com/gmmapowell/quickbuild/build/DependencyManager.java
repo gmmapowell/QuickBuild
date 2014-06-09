@@ -10,16 +10,16 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
-import com.gmmapowell.exceptions.UtilException;
+import org.zinutils.exceptions.UtilException;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-import com.gmmapowell.utils.FileUtils;
-import com.gmmapowell.xml.XML;
-import com.gmmapowell.xml.XMLElement;
+import org.zinutils.utils.FileUtils;
+import org.zinutils.xml.XML;
+import org.zinutils.xml.XMLElement;
 
 /** This is contained within BuildContext
  * and is responsible for figuring out all the dependency stuff.

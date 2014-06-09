@@ -2,10 +2,10 @@ package com.gmmapowell.android;
 
 import java.io.File;
 
-import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.xml.XML;
-import com.gmmapowell.xml.XMLElement;
-import com.gmmapowell.xml.XMLNamespace;
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.xml.XML;
+import org.zinutils.xml.XMLElement;
+import org.zinutils.xml.XMLNamespace;
 
 public class ManifestCreator {
 	private final XML out;

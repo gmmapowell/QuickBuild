@@ -3,8 +3,8 @@ package com.gmmapowell.quickbuild.core;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.utils.OrderedFileList;
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.utils.OrderedFileList;
 
 public abstract class AbstractTactic implements Tactic, Comparable<Tactic> {
 	protected final Strategem parent;

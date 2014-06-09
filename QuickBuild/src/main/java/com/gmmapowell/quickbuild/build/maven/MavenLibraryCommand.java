@@ -3,12 +3,12 @@ package com.gmmapowell.quickbuild.build.maven;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.gmmapowell.parser.NoChildCommand;
-import com.gmmapowell.parser.TokenizedLine;
+import org.zinutils.parser.NoChildCommand;
+import org.zinutils.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
-import com.gmmapowell.utils.ArgumentDefinition;
-import com.gmmapowell.utils.Cardinality;
+import org.zinutils.utils.ArgumentDefinition;
+import org.zinutils.utils.Cardinality;
 
 public class MavenLibraryCommand extends NoChildCommand implements ConfigApplyCommand {
 	private String pkg;

@@ -9,20 +9,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.git.GitHelper;
-import com.gmmapowell.git.GitRecord;
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.git.GitHelper;
+import org.zinutils.git.GitRecord;
 import com.gmmapowell.quickbuild.build.java.JavaSourceDirResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
-import com.gmmapowell.utils.FileUtils;
-import com.gmmapowell.utils.OrderedFileList;
-import com.gmmapowell.utils.PrettyPrinter;
-import com.gmmapowell.xml.XML;
-import com.gmmapowell.xml.XMLElement;
+import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.OrderedFileList;
+import org.zinutils.utils.PrettyPrinter;
+import org.zinutils.xml.XML;
+import org.zinutils.xml.XMLElement;
 
 /**
  * The idea of moving this into its own file is so that it can have a richer structure than it had

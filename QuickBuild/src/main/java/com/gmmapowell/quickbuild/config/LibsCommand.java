@@ -4,12 +4,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.parser.TokenizedLine;
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.java.ExcludeCommand;
 import com.gmmapowell.quickbuild.build.java.JavaNature;
-import com.gmmapowell.utils.ArgumentDefinition;
-import com.gmmapowell.utils.Cardinality;
+import org.zinutils.utils.ArgumentDefinition;
+import org.zinutils.utils.Cardinality;
 
 public class LibsCommand extends SpecificChildrenParent<ConfigApplyCommand>  implements ConfigApplyCommand {
 	private final File libsDir;

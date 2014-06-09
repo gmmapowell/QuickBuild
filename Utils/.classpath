@@ -16,5 +16,6 @@
 	<classpathentry kind="lib" path="/utils-qb/mvncache/org/atmosphere/atmosphere-runtime/2.0.3/atmosphere-runtime-2.0.3.jar" sourcepath="/Users/gareth/user/Clients/MGH/atmosphere/modules/cpr/src/main/java"/>
 	<classpathentry kind="lib" path="/utils-qb/mvncache/com/codahale/metrics/metrics-graphite/3.0.2/metrics-graphite-3.0.2.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/ZinikiDependencies"/>
+	<classpathentry kind="src" path="/Utils"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

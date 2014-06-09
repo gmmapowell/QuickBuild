@@ -8,18 +8,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.gmmapowell.bytecode.Annotation;
-import com.gmmapowell.bytecode.AnnotationValue;
-import com.gmmapowell.bytecode.ByteCodeFile;
-import com.gmmapowell.collections.ListMap;
+import org.zinutils.bytecode.Annotation;
+import org.zinutils.bytecode.AnnotationValue;
+import org.zinutils.bytecode.ByteCodeFile;
+import org.zinutils.collections.ListMap;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.AbstractTactic;
-import com.gmmapowell.utils.FileUtils;
-import com.gmmapowell.xml.XML;
-import com.gmmapowell.xml.XMLElement;
-import com.gmmapowell.xml.XMLNamespace;
+import org.zinutils.utils.FileUtils;
+import org.zinutils.xml.XML;
+import org.zinutils.xml.XMLElement;
+import org.zinutils.xml.XMLNamespace;
 
 public class ManifestBuildCommand extends AbstractTactic {
 

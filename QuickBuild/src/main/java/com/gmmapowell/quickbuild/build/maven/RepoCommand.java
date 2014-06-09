@@ -1,11 +1,11 @@
 package com.gmmapowell.quickbuild.build.maven;
 
-import com.gmmapowell.parser.NoChildCommand;
-import com.gmmapowell.parser.TokenizedLine;
+import org.zinutils.parser.NoChildCommand;
+import org.zinutils.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
-import com.gmmapowell.utils.ArgumentDefinition;
-import com.gmmapowell.utils.Cardinality;
+import org.zinutils.utils.ArgumentDefinition;
+import org.zinutils.utils.Cardinality;
 
 public class RepoCommand extends NoChildCommand implements ConfigApplyCommand {
 	private String repo;

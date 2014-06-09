@@ -1,6 +1,6 @@
 package com.gmmapowell.extrep;
 
-import com.gmmapowell.exceptions.UtilException;
+import org.zinutils.exceptions.UtilException;
 
 @SuppressWarnings("serial")
 public class ERException extends UtilException {

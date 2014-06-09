@@ -4,8 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.parser.TokenizedLine;
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.parser.TokenizedLine;
 
 public class TestTokenizedLine {
 	@Test

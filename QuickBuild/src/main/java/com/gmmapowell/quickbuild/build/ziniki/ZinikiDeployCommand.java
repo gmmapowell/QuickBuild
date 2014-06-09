@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.StringReader;
 import java.util.List;
 
-import com.gmmapowell.parser.LinePatternMatch;
-import com.gmmapowell.parser.LinePatternParser;
+import org.zinutils.parser.LinePatternMatch;
+import org.zinutils.parser.LinePatternParser;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.build.java.BuildClassPath;
@@ -15,8 +15,8 @@ import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-import com.gmmapowell.system.RunProcess;
-import com.gmmapowell.utils.FileUtils;
+import org.zinutils.system.RunProcess;
+import org.zinutils.utils.FileUtils;
 
 public class ZinikiDeployCommand extends AbstractTactic {
 	private final File pmzPath;

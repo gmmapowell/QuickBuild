@@ -17,8 +17,8 @@ import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
-import com.gmmapowell.system.RunProcess;
-import com.gmmapowell.utils.FileUtils;
+import org.zinutils.system.RunProcess;
+import org.zinutils.utils.FileUtils;
 
 public class DexBuildCommand extends AbstractTactic {
 	private final AndroidContext acxt;

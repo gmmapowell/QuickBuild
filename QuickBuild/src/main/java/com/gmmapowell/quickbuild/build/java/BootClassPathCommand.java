@@ -2,13 +2,13 @@ package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
 
-import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.parser.NoChildCommand;
-import com.gmmapowell.parser.TokenizedLine;
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.parser.NoChildCommand;
+import org.zinutils.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
-import com.gmmapowell.utils.ArgumentDefinition;
-import com.gmmapowell.utils.Cardinality;
+import org.zinutils.utils.ArgumentDefinition;
+import org.zinutils.utils.Cardinality;
 
 public class BootClassPathCommand extends NoChildCommand implements ConfigApplyCommand {
 	private String config;

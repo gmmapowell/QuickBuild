@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.gmmapowell.exceptions.UtilException;
+import org.zinutils.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
@@ -14,8 +14,8 @@ import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-import com.gmmapowell.system.RunProcess;
-import com.gmmapowell.utils.StringUtil;
+import org.zinutils.system.RunProcess;
+import org.zinutils.utils.StringUtil;
 
 
 /* Other commands that may come in useful:

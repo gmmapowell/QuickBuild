@@ -3,7 +3,7 @@ package com.gmmapowell.apps;
 import java.util.Arrays;
 import java.util.Random;
 
-import com.gmmapowell.utils.StringUtil;
+import org.zinutils.utils.StringUtil;
 
 public class SchedulePlanner {
 

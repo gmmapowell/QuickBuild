@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.List;
 
 import com.gmmapowell.quickbuild.core.SolidResource;
-import com.gmmapowell.utils.FileUtils;
+import org.zinutils.utils.FileUtils;
 
 public class JavaSourceDirResource extends SolidResource {
 	private final List<File> sourceFiles;

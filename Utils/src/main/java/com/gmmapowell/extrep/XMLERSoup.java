@@ -1,6 +1,6 @@
 package com.gmmapowell.extrep;
 
-import com.gmmapowell.exceptions.UtilException;
+import org.zinutils.exceptions.UtilException;
 import com.gmmapowell.java.xml.stream.XMLStreamWriter;
 
 class XMLERSoup extends ERSoup {

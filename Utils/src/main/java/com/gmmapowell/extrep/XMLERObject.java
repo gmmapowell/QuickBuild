@@ -5,7 +5,7 @@ import java.io.Writer;
 import java.util.Map;
 
 import com.ctc.wstx.stax.WstxOutputFactory;
-import com.gmmapowell.exceptions.UtilException;
+import org.zinutils.exceptions.UtilException;
 import com.gmmapowell.java.xml.stream.XMLStreamWriter;
 
 public class XMLERObject extends ERObject {

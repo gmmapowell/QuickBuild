@@ -3,7 +3,7 @@ package com.gmmapowell.quickbuild.config;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.gmmapowell.parser.TokenizedLine;
+import org.zinutils.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 
 public class ProxyCommand extends SpecificChildrenParent<ConfigApplyCommand> implements ConfigApplyCommand {

@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
 
-import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.parser.LinePatternMatch;
-import com.gmmapowell.parser.LinePatternParser;
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.parser.LinePatternMatch;
+import org.zinutils.parser.LinePatternParser;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
@@ -19,9 +19,9 @@ import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-import com.gmmapowell.system.RunProcess;
-import com.gmmapowell.utils.FileUtils;
-import com.gmmapowell.utils.OrderedFileList;
+import org.zinutils.system.RunProcess;
+import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.OrderedFileList;
 
 public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 	private final File srcdir;

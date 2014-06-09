@@ -3,7 +3,7 @@ package com.gmmapowell.quickbuild.build.java;
 import java.io.File;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
-import com.gmmapowell.utils.PathBuilder;
+import org.zinutils.utils.PathBuilder;
 
 public class RunClassPath extends BuildClassPath {
 	private final BuildClassPath basedOn;

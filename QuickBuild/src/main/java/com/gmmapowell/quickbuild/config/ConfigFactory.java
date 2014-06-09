@@ -7,10 +7,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.parser.CommandObjectFactory;
-import com.gmmapowell.parser.Parent;
-import com.gmmapowell.parser.TokenizedLine;
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.parser.CommandObjectFactory;
+import org.zinutils.parser.Parent;
+import org.zinutils.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.CopyDirectoryCommand;
 import com.gmmapowell.quickbuild.build.CopyResourceCommand;
 import com.gmmapowell.quickbuild.build.ImageMagickConvertCommand;
@@ -22,8 +22,8 @@ import com.gmmapowell.quickbuild.build.ftp.DistributeWrapCommand;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-import com.gmmapowell.utils.ArgumentDefinition;
-import com.gmmapowell.utils.Cardinality;
+import org.zinutils.utils.ArgumentDefinition;
+import org.zinutils.utils.Cardinality;
 
 public class ConfigFactory implements CommandObjectFactory {
 	private Map<String, Constructor<? extends Parent<?>>> handlers = new HashMap<String, Constructor<? extends Parent<?>>>();

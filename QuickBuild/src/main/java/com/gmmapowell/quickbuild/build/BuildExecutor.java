@@ -4,12 +4,12 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.gmmapowell.exceptions.CycleDetectedException;
+import org.zinutils.exceptions.CycleDetectedException;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-import com.gmmapowell.utils.DateUtils;
+import org.zinutils.utils.DateUtils;
 
 public class BuildExecutor {
 	private enum Status { NOT_SET, NEXT_TACTIC, REJECT_AND_SEARCH_WELL };

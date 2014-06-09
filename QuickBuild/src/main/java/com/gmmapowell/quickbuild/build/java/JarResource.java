@@ -4,7 +4,7 @@ import java.io.File;
 
 import com.gmmapowell.quickbuild.core.SolidResource;
 import com.gmmapowell.quickbuild.core.Tactic;
-import com.gmmapowell.utils.FileUtils;
+import org.zinutils.utils.FileUtils;
 
 public class JarResource extends SolidResource {
 	public JarResource(Tactic parent, File f) {

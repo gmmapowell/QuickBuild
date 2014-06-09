@@ -4,7 +4,7 @@ import java.io.StringReader;
 
 import org.junit.Test;
 
-import com.gmmapowell.parser.LLGrammar;
+import org.zinutils.parser.LLGrammar;
 
 
 public class TestLLParser {

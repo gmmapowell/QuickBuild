@@ -7,7 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Date;
 
-import com.gmmapowell.utils.DateUtils;
+import org.zinutils.utils.DateUtils;
 
 public class LatencyTester {
 

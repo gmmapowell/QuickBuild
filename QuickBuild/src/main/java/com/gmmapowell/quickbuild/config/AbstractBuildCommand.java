@@ -3,7 +3,7 @@ package com.gmmapowell.quickbuild.config;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.gmmapowell.exceptions.UtilException;
+import org.zinutils.exceptions.UtilException;
 import com.gmmapowell.quickbuild.core.AbstractStrategemTactic;
 
 public abstract class AbstractBuildCommand extends AbstractStrategemTactic {

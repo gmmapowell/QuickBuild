@@ -10,10 +10,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.gmmapowell.collections.ListMap;
-import com.gmmapowell.exceptions.UtilException;
-import com.gmmapowell.http.ProxyInfo;
-import com.gmmapowell.http.ProxyableConnection;
+import org.zinutils.collections.ListMap;
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.http.ProxyInfo;
+import org.zinutils.http.ProxyableConnection;
 import com.gmmapowell.quickbuild.app.BuildOutput;
 import com.gmmapowell.quickbuild.build.android.AndroidContext;
 import com.gmmapowell.quickbuild.build.java.JarResource;
@@ -23,7 +23,7 @@ import com.gmmapowell.quickbuild.core.ResourceListener;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-import com.gmmapowell.utils.FileUtils;
+import org.zinutils.utils.FileUtils;
 
 public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	private final List<Strategem> strategems = new ArrayList<Strategem>();
