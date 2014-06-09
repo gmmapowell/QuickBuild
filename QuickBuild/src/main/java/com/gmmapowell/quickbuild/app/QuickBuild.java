@@ -8,12 +8,14 @@ import java.util.List;
 import org.zinutils.git.GitHelper;
 import org.zinutils.git.GitRecord;
 import org.zinutils.parser.SignificantWhiteSpaceFileReader;
+
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildExecutor;
 import com.gmmapowell.quickbuild.config.Arguments;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
+
 import org.zinutils.utils.ArgumentDefinition;
 import org.zinutils.utils.Cardinality;
 import org.zinutils.utils.DateUtils;
@@ -127,6 +129,12 @@ public class QuickBuild {
 		output.openBlock("compareFiles");
 		if (!arguments.quiet)
 			output.println("Comparing files ...");
+		List<String> notclean = GitHelper.checkRepositoryClean();
+		for (String s : notclean)
+			System.out.println("WARNING: the directory " + s + " is not owned by git");
+		List<String> missing = GitHelper.checkMissingCommits();
+		for (String s : missing)
+			System.out.println("WARNING: Your repository is missing " + s);
 		GitRecord mainFiles = GitHelper.checkFiles(true, ofl, new File(conf.getCacheDir(), file.getName()));
 		blankMemory |= mainFiles.isDirty();
 		buildAll |= mainFiles.isDirty();

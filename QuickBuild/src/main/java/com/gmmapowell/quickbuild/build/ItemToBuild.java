@@ -44,11 +44,10 @@ public class ItemToBuild {
 	}
 
 	public void markDirty() {
+//		System.out.println("Marking " + tactic + " dirty");
 		needsBuild = BuildStatus.SUCCESS;
-	}
-
-	public void markDirtyLocally() {
-		needsBuild = BuildStatus.SUCCESS;
+		for (GitRecord r : gittxs)
+			r.markDirty();
 	}
 
 	public int compareTo(ItemToBuild other) {
