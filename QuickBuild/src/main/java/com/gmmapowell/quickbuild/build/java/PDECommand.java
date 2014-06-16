@@ -40,7 +40,7 @@ public class PDECommand extends JarCommand {
 	}
 
 	@Override
-	protected ArchiveCommand createAssemblyCommand() {
-		return new PDEAssembleCommand(this, files, targetName, pdelibs, includePackages, excludePackages);
+	protected ArchiveCommand createAssemblyCommand(OrderedFileList ofl) {
+		return new PDEAssembleCommand(this, files, targetName, pdelibs, includePackages, excludePackages, ofl);
 	}
 }

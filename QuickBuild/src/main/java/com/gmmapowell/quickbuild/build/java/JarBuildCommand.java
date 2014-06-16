@@ -8,20 +8,23 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
 import org.zinutils.exceptions.UtilException;
+
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
+
 import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.OrderedFileList;
 
 public class JarBuildCommand extends ArchiveCommand {
 	private final GitIdCommand gitIdCommand;
 	private final String idAs;
 
-	public JarBuildCommand(Strategem parent, StructureHelper files, String targetName, List<File> includePackages, List<File> excludePackages, GitIdCommand gitIdCommand) {
-		super(parent, includePackages, excludePackages);
+	public JarBuildCommand(Strategem parent, StructureHelper files, String targetName, List<File> includePackages, List<File> excludePackages, OrderedFileList resourceFiles, GitIdCommand gitIdCommand) {
+		super(parent, includePackages, excludePackages, resourceFiles);
 		this.gitIdCommand = gitIdCommand;
 		this.jarResource = new JarResource(this, files.getOutput(FileUtils.ensureExtension(targetName, ".jar")));
 		this.jarfile = this.jarResource.getFile();
@@ -37,7 +40,7 @@ public class JarBuildCommand extends ArchiveCommand {
 				System.out.println("Writing JAR file to " + jarfile.getPath());
 			JarOutputStream jos = new JarOutputStream(new FileOutputStream(jarfile.getPath()));
 			if (gitIdCommand != null)
-				gitIdCommand.writeTrackerFile(jos, "META-INF");
+				gitIdCommand.writeTrackerFile(cxt, jos, "META-INF", identifier());
 			boolean hasFiles = writeFilesToJar(jos, showDebug);
 			if (!hasFiles)
 			{

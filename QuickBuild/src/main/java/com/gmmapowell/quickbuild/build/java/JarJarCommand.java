@@ -131,7 +131,7 @@ public class JarJarCommand extends AbstractStrategemTactic {
 			Set<String> entries = new HashSet<String>();
 			writeManifest(jos);
 			if (gitIdCommand != null) {
-				gitIdCommand.writeTrackerFile(jos, "META-INF");
+				gitIdCommand.writeTrackerFile(cxt, jos, "META-INF", identifier());
 			}
 				
 			for (Object rc : resources)

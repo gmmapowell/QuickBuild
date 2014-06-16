@@ -12,12 +12,14 @@ import java.util.Set;
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.git.GitHelper;
 import org.zinutils.git.GitRecord;
+
 import com.gmmapowell.quickbuild.build.java.JavaSourceDirResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
+
 import org.zinutils.utils.FileUtils;
 import org.zinutils.utils.OrderedFileList;
 import org.zinutils.utils.PrettyPrinter;
@@ -203,6 +205,18 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 			isDirty |= gittx.isDirty();
 			if (!wasDirty && isDirty && debug)
 				cxt.output.println("Marking " + itb + " dirty due to git hash-object");
+		}
+		if (!isDirty)
+		{
+			File f = cxt.getGitCacheFile(itb.name(), "-gitid");
+			if (f.exists()) {
+				String prev = FileUtils.readFile(f);
+				String head = System.getenv("BUILD_VCS_NUMBER");
+				if (head == null || head.trim().length() == 0)
+					head = GitHelper.currentHead();
+				if (head == null || prev == null || !head.equals(prev))
+					isDirty = true;
+			}
 		}
 		if (!isDirty)
 		{

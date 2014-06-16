@@ -21,7 +21,9 @@ import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
+
 import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.OrderedFileList;
 
 public class WarBuildCommand extends ArchiveCommand {
 	private final File warfile;
@@ -31,8 +33,8 @@ public class WarBuildCommand extends ArchiveCommand {
 	private final WarResource warResource;
 	private GitIdCommand gitIdCommand;
 
-	public WarBuildCommand(WarCommand parent, StructureHelper files, String targetName, List<PendingResource> warlibs, List<Pattern> warexcl, GitIdCommand gitIdCommand) {
-		super(parent, null, null);
+	public WarBuildCommand(WarCommand parent, StructureHelper files, String targetName, List<PendingResource> warlibs, List<Pattern> warexcl, OrderedFileList ofl, GitIdCommand gitIdCommand) {
+		super(parent, null, null, ofl);
 		this.files = files;
 		this.warlibs = warlibs;
 		this.warexcl = warexcl;
@@ -57,7 +59,7 @@ public class WarBuildCommand extends ArchiveCommand {
 //			System.out.println("Opening file " + warfile);
 			JarOutputStream jos = new JarOutputStream(new FileOutputStream(warfile.getPath()));
 			if (gitIdCommand != null)
-				gitIdCommand.writeTrackerFile(jos, "WEB-INF/classes");
+				gitIdCommand.writeTrackerFile(cxt, jos, "WEB-INF/classes", identifier());
 	
 			// Copy the local items - WebRoot, classes and resources
 			boolean worthIt = addOurFiles(jos, files.getRelative("WebRoot"), "", false);

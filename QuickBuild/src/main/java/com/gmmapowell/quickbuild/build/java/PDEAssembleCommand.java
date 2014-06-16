@@ -4,21 +4,24 @@ import java.io.File;
 import java.util.List;
 
 import org.zinutils.exceptions.UtilException;
+
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
+
 import org.zinutils.system.RunProcess;
 import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.OrderedFileList;
 
 public class PDEAssembleCommand extends ArchiveCommand {
 	private final List<File> pdelibs;
 	private final StructureHelper files;
 	
-	public PDEAssembleCommand(Strategem parent, StructureHelper files, String targetName, List<File> pdelibs, List<File> includePackages, List<File> excludePackages) {
-		super(parent, includePackages, excludePackages);
+	public PDEAssembleCommand(Strategem parent, StructureHelper files, String targetName, List<File> pdelibs, List<File> includePackages, List<File> excludePackages, OrderedFileList ofl) {
+		super(parent, includePackages, excludePackages, ofl);
 		this.files = files;
 		this.pdelibs = pdelibs;
 		if (files.getRelative("libs").isDirectory())

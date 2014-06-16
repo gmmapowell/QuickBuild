@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.parser.TokenizedLine;
+
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategem;
@@ -15,6 +16,7 @@ import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
+
 import org.zinutils.utils.ArgumentDefinition;
 import org.zinutils.utils.Cardinality;
 import org.zinutils.utils.FileUtils;
@@ -34,8 +36,6 @@ public class JarCommand extends AbstractStrategem {
 	protected final ResourcePacket<PendingResource> needsResources = new ResourcePacket<PendingResource>();
 	private String junitMemory;
 	private boolean runJunit = true;
-	private JavaSourceDirResource mainSources;
-	private JavaSourceDirResource testSources;
 	protected OrderedFileList mainSourceFileList;
 	private String javaVersion;
 	private final boolean justJunit;
@@ -55,7 +55,7 @@ public class JarCommand extends AbstractStrategem {
 		javaVersion = config.getVarIfDefined("javaVersion", null);
 		processOptions(config);
 
-		ArchiveCommand jar = createAssemblyCommand();
+		ArchiveCommand jar = createAssemblyCommand(figureResourceFiles("src/main/resources", null));
 		
 		JavaBuildCommand javac;
 		if (justJunit)
@@ -90,8 +90,8 @@ public class JarCommand extends AbstractStrategem {
 	}
 
 	// strategy pattern
-	protected ArchiveCommand createAssemblyCommand() {
-		return new JarBuildCommand(this, files, targetName, includePackages, excludePackages, gitIdCommand);
+	protected ArchiveCommand createAssemblyCommand(OrderedFileList resourceFiles) {
+		return new JarBuildCommand(this, files, targetName, includePackages, excludePackages, resourceFiles, gitIdCommand);
 	}
 
 	protected void additionalCommands(Config config) {
@@ -201,6 +201,34 @@ public class JarCommand extends AbstractStrategem {
 		return sb.toString();
 	}
 
+	private OrderedFileList figureResourceFiles(String main, String test) {
+		OrderedFileList ret = new OrderedFileList();
+		addFiles(ret, main);
+		addFiles(ret, test);
+		if (ret.isEmpty())
+			return null;
+		return ret;
+	}
+
+	protected void addFiles(OrderedFileList ret, String resdir) {
+		if (resdir == null)
+			return;
+		File dir = new File(rootdir, resdir);
+		if (dir.isDirectory())
+		{
+			List<File> allFiles = FileUtils.findFilesMatching(dir, "*");
+			List<File> sourceFiles;
+			if (includePackages != null)
+				sourceFiles = FileUtils.findFilesMatchingIncluding(dir, "*", includePackages);
+			else if (excludePackages != null)
+				sourceFiles = FileUtils.findFilesMatchingExcluding(dir, "*", excludePackages);
+			else
+				sourceFiles = allFiles;
+
+			ret.add(sourceFiles);
+		}
+	}
+
 	private JavaBuildCommand addJavaBuild(List<? super Tactic> accum, ArchiveCommand jar, String src, String bin, String label, boolean runAlways) {
 		File dir = new File(rootdir, src);
 		if (dir.isDirectory())
@@ -231,7 +259,6 @@ public class JarCommand extends AbstractStrategem {
 				sourcesResource.buildsInto(jar.getJarResource());
 
 				// Do this for main, but not test ...
-				mainSources = sourcesResource;
 				OrderedFileList tmp = ret.sourceFiles();
 				if (mainSourceFileList == null)
 					mainSourceFileList = tmp;
@@ -243,8 +270,6 @@ public class JarCommand extends AbstractStrategem {
 				
 				jar.add(new File(files.getOutputDir(), bin));
 			}
-			else
-				testSources = sourcesResource;
 			
 			return ret;
 		}
@@ -265,7 +290,7 @@ public class JarCommand extends AbstractStrategem {
 	private JUnitRunCommand addJUnitRun(List<? super Tactic> ret, JavaBuildCommand jbc) {
 		if (runJunit && jbc != null)
 		{
-			JUnitRunCommand cmd = new JUnitRunCommand(this, files, jbc);
+			JUnitRunCommand cmd = new JUnitRunCommand(this, files, jbc, figureResourceFiles("src/main/resources", "src/test/resources"));
 			cmd.addLibs(junitLibs);
 			if (junitMemory != null)
 				cmd.setJUnitMemory(junitMemory);

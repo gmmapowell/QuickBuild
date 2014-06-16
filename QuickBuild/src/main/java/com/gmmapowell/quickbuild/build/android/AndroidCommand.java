@@ -143,7 +143,7 @@ public class AndroidCommand extends AbstractStrategem {
 				buildTests.addToClasspath(files.getRelative("src/main/resources"));
 				buildTests.addToClasspath(files.getRelative("src/test/resources"));
 				
-				JUnitRunCommand junitRun = new JUnitRunCommand(this, files, buildTests);
+				JUnitRunCommand junitRun = new JUnitRunCommand(this, files, buildTests, null);
 				junitRun.addToBootClasspath(acxt.getPlatformJar());
 				tactics.add(junitRun);
 			}

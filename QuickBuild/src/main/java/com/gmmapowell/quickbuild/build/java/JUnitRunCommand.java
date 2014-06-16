@@ -16,6 +16,7 @@ import org.zinutils.exceptions.UtilException;
 import org.zinutils.parser.LinePatternMatch;
 import org.zinutils.parser.LinePatternParser;
 import org.zinutils.parser.LinePatternParser.MatchIterator;
+
 import com.gmmapowell.quickbuild.app.BuildOutput;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
@@ -29,10 +30,12 @@ import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
+
 import org.zinutils.sync.SyncUtils;
 import org.zinutils.system.RunProcess;
 import org.zinutils.system.ThreadedStreamReader;
 import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.OrderedFileList;
 
 public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	private final File srcdir;
@@ -46,11 +49,13 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	private final List<String> defines = new ArrayList<String>();
 	private String memory;
 	private final String idAs;
+	private final OrderedFileList testResourceFiles;
 
-	public JUnitRunCommand(Strategem parent, StructureHelper files, JavaBuildCommand jbc) {
+	public JUnitRunCommand(Strategem parent, StructureHelper files, JavaBuildCommand jbc, OrderedFileList testResourceFiles) {
 		super(parent);
 		this.files = files;
 		this.jbc = jbc;
+		this.testResourceFiles = testResourceFiles;
 		this.srcdir = new File(files.getBaseDir(), "src/test/java");
 		this.bindir = files.getOutput("test-classes");
 		this.errdir = files.getOutput("test-results");
@@ -63,6 +68,11 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 
 	public void define(String d) {
 		this.defines.add(d);
+	}
+
+	@Override
+	public OrderedFileList sourceFiles() {
+		return testResourceFiles;
 	}
 
 	@Override
