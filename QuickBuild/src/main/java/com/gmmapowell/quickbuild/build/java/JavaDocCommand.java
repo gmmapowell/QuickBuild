@@ -158,6 +158,7 @@ public class JavaDocCommand extends AbstractBuildCommand implements FloatToEnd, 
 				if (failure == null)
 					failure = cxt.failure(proc.getArgs(), proc.getStdout(), proc.getStderr());
 				failure.addMessage("JavaDoc encountered " + lpm.get("count") + " warnings:");
+				cnt++;
 			}
 			else
 				throw new QuickBuildException("Do not know how to handle match " + lpm);
@@ -165,8 +166,9 @@ public class JavaDocCommand extends AbstractBuildCommand implements FloatToEnd, 
 
 		LinePatternParser lppErr = new LinePatternParser();
 		lppErr.match("src/[^/]+/java/(.*): warning - (.*)", "message", "location", "text");
+		lppErr.match("src/[^/]+/java/(.*): warning: (.*)", "message", "location", "text");
+		lppErr.match("src/[^/]+/java/(.*): error: (.*)", "message", "location", "text");
 		lppErr.match("(javadoc: error.*)", "error", "text");
-		lppErr.match("(error: .*)", "error", "text");
 		for (LinePatternMatch lpm : lppErr.applyTo(new StringReader(proc.getStderr())))
 		{
 			if (lpm.is("message"))
@@ -189,7 +191,7 @@ public class JavaDocCommand extends AbstractBuildCommand implements FloatToEnd, 
 		
 		if (proc.getExitCode() == 0)
 		{
-			if (cnt == 0)
+			if (failure == null)
 				return BuildStatus.SUCCESS;
 			return BuildStatus.TEST_FAILURES;
 		}

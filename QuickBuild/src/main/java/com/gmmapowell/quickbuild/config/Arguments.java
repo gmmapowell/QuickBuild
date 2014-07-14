@@ -7,11 +7,13 @@ public class Arguments {
 	public boolean allTests;
 	public boolean buildAll;
 	public boolean blank;
+	public boolean checkGit = true;
 	public boolean configOnly;
 	public boolean debug;
 	public boolean doubleQuick;
+	public boolean ignoreMain;
 	public boolean quiet;
-	public boolean gfMode = true;
+	public boolean gfMode = false;
 	public boolean teamcity;
 	public int nthreads;
 	public String file;

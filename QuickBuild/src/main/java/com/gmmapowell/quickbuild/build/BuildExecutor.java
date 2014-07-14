@@ -43,27 +43,34 @@ public class BuildExecutor {
 
 	private Set<Tactic> figureNecessarySteps(String upTo) {
 		Set<Tactic> ret = new HashSet<Tactic>();
-		Tactic tactic = null;
+		Set<Tactic> newTactics = new HashSet<Tactic>();
 		for (ItemToBuild itb : buildOrder) {
 			if (itb.id.contains(upTo)) {
-				tactic = itb.tactic;
+				newTactics.add(itb.tactic);
 				break;
 			}
 		}
 			
-		if (tactic == null) {
+		if (newTactics.isEmpty()) {
 			System.out.println("Upto target " + upTo + " not found in build order");
 			return null;
 		}
-		ret.add(tactic);
-		Iterable<BuildResource> dependencies = cxt.getDependencyManager().getDependencies(tactic);
-		for (BuildResource br : dependencies) {
-			if (br instanceof ProcessResource) {
-				ProcessResource pr = (ProcessResource) br;
-				ret.add(pr.getBuiltBy());
+		while (!newTactics.isEmpty()) {
+			Set<Tactic> iterateOver = newTactics;
+			newTactics = new HashSet<Tactic>();
+			for (Tactic t : iterateOver) {
+				ret.add(t);
+				for (Tactic dt : t.getProcessDependencies())
+					ret.add(dt);
+				Iterable<BuildResource> dependencies = cxt.getDependencyManager().getDependencies(t);
+				for (BuildResource br : dependencies) {
+					if (br.getBuiltBy() != null) {
+						newTactics.add(br.getBuiltBy());
+					}
+				}
 			}
 		}
-
+		System.out.println("Only building critical path for " + upTo +":\n" + ret);
 		return ret;
 	}
 
