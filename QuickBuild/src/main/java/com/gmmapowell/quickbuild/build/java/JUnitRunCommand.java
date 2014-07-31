@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.zinutils.bytecode.ByteCodeFile;
 import org.zinutils.collections.CollectionUtils;
@@ -47,6 +48,7 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	private final JavaBuildCommand jbc;
 	private final StructureHelper files;
 	private final List<String> defines = new ArrayList<String>();
+	private final List<Pattern> onlyMatchingPattern = new ArrayList<Pattern>();
 	private String memory;
 	private final String idAs;
 	private final OrderedFileList testResourceFiles;
@@ -68,6 +70,10 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 
 	public void define(String d) {
 		this.defines.add(d);
+	}
+
+	public void pattern(String p) {
+		this.onlyMatchingPattern.add(Pattern.compile(p));
 	}
 
 	@Override
@@ -95,6 +101,13 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 			ByteCodeFile bcf = new ByteCodeFile(clsFile, qualifiedName);
 			if (bcf.hasClassAnnotation("org.junit.runner.RunWith") || bcf.hasMethodsWithAnnotation("org.junit.Test"))
 			{
+				if (!onlyMatchingPattern.isEmpty()) {// then it must match at least one of the patterns
+					boolean found = false;
+					for (Pattern s : onlyMatchingPattern)
+						found |= s.matcher(qualifiedName).find();
+					if (!found)
+						continue;
+				}
 				testsToRun.add(qualifiedName);
 			}
 		}

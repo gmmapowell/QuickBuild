@@ -32,6 +32,7 @@ public class JarCommand extends AbstractStrategem {
 	protected List<File> excludePackages;
 	private final List<PendingResource> junitLibs = new ArrayList<PendingResource>();
 	private final List<String> junitDefines = new ArrayList<String>();
+	private final List<String> junitPatterns = new ArrayList<String>();
 	private final List<PendingResource> jarLibs = new ArrayList<PendingResource>();
 	protected final ResourcePacket<PendingResource> needsResources = new ResourcePacket<PendingResource>();
 	private String junitMemory;
@@ -126,6 +127,10 @@ public class JarCommand extends AbstractStrategem {
 			{
 				addJUnitDefine((JUnitDefineCommand)opt);
 			}
+			else if (opt instanceof JUnitPatternCommand)
+			{
+				addJUnitPattern((JUnitPatternCommand)opt);
+			}
 			else if (opt instanceof NoJUnitCommand)
 			{
 				runJunit  = false;
@@ -163,6 +168,10 @@ public class JarCommand extends AbstractStrategem {
 
 	private void addJUnitDefine(JUnitDefineCommand opt) {
 		junitDefines.add(opt.getDefine());
+	}
+
+	private void addJUnitPattern(JUnitPatternCommand opt) {
+		junitPatterns.add(opt.getPattern());
 	}
 
 	private void addJarLib(JarLibCommand opt) {
@@ -296,6 +305,8 @@ public class JarCommand extends AbstractStrategem {
 				cmd.setJUnitMemory(junitMemory);
 			for (String d : junitDefines)
 				cmd.define(d);
+			for (String d : junitPatterns)
+				cmd.pattern(d);
 			ret.add(cmd);
 			return cmd;
 		}
