@@ -98,18 +98,9 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		{
 			String qualifiedName = FileUtils.convertToDottedNameDroppingExtension(f);
 			File clsFile = new File(bindir, FileUtils.ensureExtension(f, ".class").getPath());
-			ByteCodeFile bcf = new ByteCodeFile(clsFile, qualifiedName);
-			if (bcf.hasClassAnnotation("org.junit.runner.RunWith") || bcf.hasMethodsWithAnnotation("org.junit.Test"))
-			{
-				if (!onlyMatchingPattern.isEmpty()) {// then it must match at least one of the patterns
-					boolean found = false;
-					for (Pattern s : onlyMatchingPattern)
-						found |= s.matcher(qualifiedName).find();
-					if (!found)
-						continue;
-				}
+			ByteCodeFile bcf = checkIfContainsTests(qualifiedName, clsFile);
+			if (bcf != null && bcf.isConcrete())
 				testsToRun.add(qualifiedName);
-			}
 		}
 		if (testsToRun.isEmpty())
 		{
@@ -133,6 +124,30 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		}
 		
 		return ret;
+	}
+
+	protected ByteCodeFile checkIfContainsTests(String qualifiedName, File clsFile) {
+		ByteCodeFile bcf = new ByteCodeFile(clsFile, qualifiedName);
+		if (bcf.hasClassAnnotation("org.junit.runner.RunWith") || bcf.hasMethodsWithAnnotation("org.junit.Test"))
+		{
+			if (!onlyMatchingPattern.isEmpty()) {// then it must match at least one of the patterns
+				boolean found = false;
+				for (Pattern s : onlyMatchingPattern)
+					found |= s.matcher(qualifiedName).find();
+				if (!found)
+					return null;
+			}
+			return bcf;
+		}
+		
+		String sc = bcf.getSuperClass();
+		if (sc != null && !sc.equals("java/lang/Object")) {
+			File f = new File(sc);
+			File f2 = new File(bindir, FileUtils.ensureExtension(f, ".class").getPath());
+			if (f2.exists() && checkIfContainsTests(FileUtils.convertToDottedName(f), f2) != null)
+				return bcf;
+		}
+		return null;
 	}
 
 	public RunProcess runTestBatch(BuildContext cxt, boolean showArgs, boolean showDebug, RunClassPath classpath, List<String> testsToRun) {
