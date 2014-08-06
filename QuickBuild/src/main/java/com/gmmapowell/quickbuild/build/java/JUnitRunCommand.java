@@ -230,7 +230,7 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		lpp.matchAll("Ignoring test (.*)", "ignoreTest", "name");
 		lpp.matchAll("Failure: (.*)", "failure", "name");
 		lpp.matchAll("Duration: ([0-9]*)", "duration", "ms");
-		lpp.matchAll("(Summary: .*)", "summary", "info");
+		lpp.matchAll("(Summary of .*)", "summary", "info");
 		return lpp;
 	}
 	
