@@ -87,6 +87,8 @@ public class JarCommand extends AbstractStrategem {
 		additionalCommands(config);
 		if (javac != null)
 			jar.addProcessDependency(javac);
+		if (junit != null)
+			jar.addProcessDependency(junit);
 		return this;
 	}
 
