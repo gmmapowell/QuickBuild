@@ -41,6 +41,7 @@ public class ConfigFactory implements CommandObjectFactory {
 		addCommandExtension("output", OutputCommand.class);
 		addCommandExtension("path", SetPathCommand.class);
 		addCommandExtension("var", SetVarCommand.class);
+		addCommandExtension("vars", IncludeVarsCommand.class);
 		addCommandExtension("libs", LibsCommand.class);
 		addCommandExtension("buildif", BuildIfCommand.class);
 
