@@ -7,7 +7,8 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" path="/Utils"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="/qb/libs/aws-java-sdk-1.3.0.jar"/>
 	<classpathentry kind="lib" path="/utils-qb/libs/jsch-0.1.41.jar"/>
+	<classpathentry kind="lib" path="/qb/mvncache/com/amazonaws/aws-java-sdk-core/1.9.4/aws-java-sdk-core-1.9.4.jar"/>
+	<classpathentry kind="lib" path="/qb/mvncache/com/amazonaws/aws-java-sdk-s3/1.9.4/aws-java-sdk-s3-1.9.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
