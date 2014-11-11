@@ -16,8 +16,12 @@ case `uname -s` in
 esac
 
 CLASSPATH="$CLASSPATH$SEP$ROOTDIR/QuickBuild.jar$SEP$ROOTDIR/Utils.jar"
-for i in $ROOTDIR/../qb/libs/* ; do
+for i in $ROOTDIR/../qb/libs/* `find $ROOTDIR/../qb/mvncache/ -name '*.jar'` ; do
   CLASSPATH="$CLASSPATH$SEP$i"
 done
 
-java -cp "$CLASSPATH" com.gmmapowell.quickbuild.app.QuickBuild "$@"
+if [ "`hostname`" = "oldmajor" ] ; then
+  java -Duser.home=C:/cygwin/home/SYSTEM -cp "$CLASSPATH" com.gmmapowell.quickbuild.app.QuickBuild "$@"
+else
+  java -cp "$CLASSPATH" com.gmmapowell.quickbuild.app.QuickBuild "$@"
+fi
