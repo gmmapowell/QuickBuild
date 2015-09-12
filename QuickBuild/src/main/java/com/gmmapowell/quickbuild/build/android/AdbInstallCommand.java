@@ -2,6 +2,7 @@ package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
 
+import org.zinutils.exceptions.UtilException;
 import org.zinutils.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
@@ -36,6 +37,8 @@ public class AdbInstallCommand extends AbstractBuildCommand {
 				new ArgumentDefinition("*", Cardinality.REQUIRED, "resource", "apk resource"),
 				new ArgumentDefinition("-emulator", Cardinality.OPTION, "emulator", "use emulator"));
 		rootDir = FileUtils.relativePath(new File(root));
+		if (!resource.endsWith(".apk"))
+			throw new UtilException("resource must end in .apk");
 	}
 
 	@Override
@@ -44,7 +47,7 @@ public class AdbInstallCommand extends AbstractBuildCommand {
 		acxt = config.getAndroidContext();
 		apk = new PendingResource(resource);
 		needs.add(apk);
-		buildsInstalled = new AdbInstalledResource(this, resource);
+		buildsInstalled = new AdbInstalledResource(this, resource.replace("_apk", "_installed"));
 		builds.add(buildsInstalled);
 		return this;
 	}

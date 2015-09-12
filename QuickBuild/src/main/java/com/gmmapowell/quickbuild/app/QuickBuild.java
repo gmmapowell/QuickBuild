@@ -37,6 +37,7 @@ public class QuickBuild {
 		new ArgumentDefinition("--doublequick", Cardinality.OPTION, "doubleQuick", "avoid time-consuming non-critical-path items"),
 		new ArgumentDefinition("--ignore-main-changes", Cardinality.OPTION, "ignoreMain", "don't blank memory if you changed something trivial in a main file"),
 		new ArgumentDefinition("--nthreads", Cardinality.OPTION, "nthreads", "number of threads"),
+		new ArgumentDefinition("--no-home", Cardinality.OPTION, "readHome", "don't read files in home directory"),
 		new ArgumentDefinition("--quiet", Cardinality.LIST, "quiet", "super quiet mode"),
 		new ArgumentDefinition("--no-check-git", Cardinality.OPTION, "checkGit", "Don't run git fetch"),
 		new ArgumentDefinition("--grand-fallacy", Cardinality.OPTION, "gfMode", "invert grand fallacy mode"),
@@ -80,26 +81,27 @@ public class QuickBuild {
 				ofl.add(hostfile);
 			}
 		}
-		{
-			File roothostfile = new File(new File(System.getProperty("user.home")), ".qbinit." + FileUtils.getHostName());
-			if (arguments.debug)
-				System.out.println("Reading root host file " + roothostfile + " " + (roothostfile.exists()?"*":"-"));
-			if (roothostfile.exists())
+		if (arguments.readHome) {
 			{
-				SignificantWhiteSpaceFileReader.read(conf, configFactory, roothostfile);
-				ofl.add(roothostfile);
+				File roothostfile = new File(new File(System.getProperty("user.home")), ".qbinit." + FileUtils.getHostName());
+				if (arguments.debug)
+					System.out.println("Reading root host file " + roothostfile + " " + (roothostfile.exists()?"*":"-"));
+				if (roothostfile.exists())
+				{
+					SignificantWhiteSpaceFileReader.read(conf, configFactory, roothostfile);
+					ofl.add(roothostfile);
+				}
 			}
-		}
-		{
-			File rootfile = new File(new File(System.getProperty("user.home")), ".qbinit");
-			if (arguments.debug)
-				System.out.println("Reading root file " + rootfile + " " + (rootfile.exists()?"*":"-"));
-			if (rootfile.exists())
 			{
-				SignificantWhiteSpaceFileReader.read(conf, configFactory, rootfile);
-				ofl.add(rootfile);
+				File rootfile = new File(new File(System.getProperty("user.home")), ".qbinit");
+				if (arguments.debug)
+					System.out.println("Reading root file " + rootfile + " " + (rootfile.exists()?"*":"-"));
+				if (rootfile.exists())
+				{
+					SignificantWhiteSpaceFileReader.read(conf, configFactory, rootfile);
+					ofl.add(rootfile);
+				}
 			}
-
 		}
 		SignificantWhiteSpaceFileReader.read(conf, configFactory, file);
 		conf.done();

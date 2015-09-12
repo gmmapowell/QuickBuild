@@ -44,7 +44,7 @@ public class PendingResource implements BuildResource {
 
 	public BuildResource physicalResource() {
 		if (boundTo == null)
-			throw new QuickBuildException("Cannot use PendingResource before bound");
+			throw new QuickBuildException("Cannot use PendingResource (" + pendingName + ") before bound");
 		return boundTo;
 	}
 

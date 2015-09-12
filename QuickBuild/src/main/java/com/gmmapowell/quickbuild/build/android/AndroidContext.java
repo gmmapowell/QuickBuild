@@ -1,10 +1,15 @@
 package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.utils.FileUtils;
 
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
-import org.zinutils.utils.FileUtils;
 
 public class AndroidContext {
 
@@ -14,6 +19,8 @@ public class AndroidContext {
 	private final File apk;
 	private final File adb;
 	private final String androidPlatform;
+	private final String androidBuild;
+	private final URLClassLoader apkLoader;
 
 	// TODO: this needs to be cross-platform (somehow)
 	public AndroidContext(Config conf) {
@@ -27,30 +34,25 @@ public class AndroidContext {
 		}
 		File androidSDK = conf.getPath("androidsdk");
 		androidPlatform = conf.getVar("androidplatform");
+		androidBuild = conf.getVar("androidbuild");
 		File platformDir = FileUtils.fileConcat(androidSDK.getPath(), "platforms", getAndroidPlatform());
-		File aapt1 = new File(androidSDK, "platform-tools/aapt" + exe);
-		if (!aapt1.exists())
-			aapt1 = new File(platformDir, "tools/aapt" +exe);
-		if (!aapt1.exists())
-			throw new QBConfigurationException("Invalid android configuration: cannot find " + aapt1);
-		aapt = aapt1;
-		File dx1 = new File(androidSDK, "platform-tools/dx" +bat);
-		if (!dx1.exists())
-			dx1 = new File(platformDir, "tools/dx" +bat);
-		if (!dx1.exists())
-			throw new QBConfigurationException("Invalid android configuration: cannot find " + dx1);
-		dx = dx1;
-		apk = new File(androidSDK, "tools/apkbuilder" + bat);
-		if (!apk.exists())
-			throw new QBConfigurationException("Invalid android configuration: cannot find " + apk);
-		File adb1 = new File(androidSDK, "tools/adb" +exe);
-		if (!adb1.exists())
-		{
-			adb1 = new File(androidSDK, "platform-tools/adb" +exe);
-			if (!adb1.exists())
-				throw new QBConfigurationException("Invalid android configuration: cannot find " + adb1);
+		aapt = new File(androidSDK, "build-tools/" + androidBuild + "/aapt" + exe);
+		if (!aapt.exists())
+			throw new QBConfigurationException("Invalid android configuration: cannot find " + aapt);
+		dx = new File(androidSDK, "build-tools/" + androidBuild + "/dx" +bat);
+		if (!dx.exists())
+			throw new QBConfigurationException("Invalid android configuration: cannot find " + dx);
+		try {
+			apk = new File(androidSDK, "tools/lib/sdklib.jar");
+			if (!apk.exists())
+				throw new QBConfigurationException("Invalid android configuration: cannot find " + apk);
+			apkLoader = new URLClassLoader(new URL[] { apk.toURI().toURL() }, this.getClass().getClassLoader());
+		} catch (MalformedURLException ex) {
+			throw new QBConfigurationException(ex.getMessage());
 		}
-		adb = adb1;
+		adb = new File(androidSDK, "platform-tools/adb" +exe);
+		if (!adb.exists())
+			throw new QBConfigurationException("Invalid android configuration: cannot find " + adb);
 		platformJar = new File(platformDir, "android.jar");
 		if (!platformJar.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + platformJar);
@@ -64,8 +66,12 @@ public class AndroidContext {
 		return dx;
 	}
 	
-	public File getAPKBuilder() {
-		return apk;
+	public Class<?> getAPKBuilder() {
+		try {
+			return Class.forName("com.android.sdklib.build.ApkBuilder", true, apkLoader);
+		} catch (Exception e) {
+			throw UtilException.wrap(e);
+		}
 	}
 
 	public File getPlatformJar() {

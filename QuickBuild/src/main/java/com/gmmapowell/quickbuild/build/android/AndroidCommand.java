@@ -10,6 +10,10 @@ import java.util.regex.Pattern;
 import org.zinutils.bytecode.JavaRuntimeReplica;
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.parser.TokenizedLine;
+import org.zinutils.utils.ArgumentDefinition;
+import org.zinutils.utils.Cardinality;
+import org.zinutils.utils.FileUtils;
+
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.DeferredFileList;
 import com.gmmapowell.quickbuild.build.java.ExcludeCommand;
@@ -27,9 +31,6 @@ import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
-import org.zinutils.utils.ArgumentDefinition;
-import org.zinutils.utils.Cardinality;
-import org.zinutils.utils.FileUtils;
 
 public class AndroidCommand extends AbstractStrategem {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
@@ -46,6 +47,7 @@ public class AndroidCommand extends AbstractStrategem {
 	private File bindir;
 	private ApkBuildCommand apkTactic;
 	private String javaVersion;
+	private File keystorePath;
 
 	public AndroidCommand(TokenizedLine toks) {
 		super(toks, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
@@ -60,10 +62,9 @@ public class AndroidCommand extends AbstractStrategem {
 		files = new StructureHelper(rootDir, config.getOutput());
 		acxt = config.getAndroidContext();
 		apkFile = files.getOutput(projectName+".apk");
-		createTactics(); // ensure they're generated
-		apkResource = apkTactic.getResource();
-		
 		javaVersion = config.getVarIfDefined("javaVersion", null);
+		keystorePath = config.getPath("androidKeystore");
+
 		for (ConfigApplyCommand cmd : options)
 		{
 			cmd.applyTo(config);
@@ -85,6 +86,9 @@ public class AndroidCommand extends AbstractStrategem {
 				throw new UtilException("Cannot handle " + cmd);
 		}
 
+		createTactics(); // ensure they're generated
+		apkResource = apkTactic.getResource();
+		
 		return this;
 	}
 
@@ -104,6 +108,7 @@ public class AndroidCommand extends AbstractStrategem {
 		
 		AaptGenBuildCommand gen = new AaptGenBuildCommand(this, acxt, manifest, gendir, resdir);
 		tactics.add(gen);
+		gen.addProcessDependency(mbc1);
 		List<File> genFiles = new DeferredFileList(gendir, "*.java");
 		JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", "gen", genFiles, "android", javaVersion, true);
 		for (PendingResource pr : needs)
@@ -121,13 +126,16 @@ public class AndroidCommand extends AbstractStrategem {
 					i++;
 		} else
 			srcFiles = new ArrayList<File>();
+
 		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", srcFiles, "android", javaVersion, true);
 		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
 		tactics.add(buildSrc);
+		buildSrc.addProcessDependency(gen);
 
 		ManifestBuildCommand mbc2 = new ManifestBuildCommand(this, acxt, manifest, false, srcdir, bindir);
 		tactics.add(mbc2);
+		mbc2.addProcessDependency(buildSrc);
 
 		// TODO: I feel it should be possible to compile and run unit tests, but what about that bootclasspath?
 		if (files.getRelative("src/test/java").exists())
@@ -139,6 +147,7 @@ public class AndroidCommand extends AbstractStrategem {
 				buildTests.addToClasspath(new File(files.getOutputDir(), "classes"));
 				buildTests.addToBootClasspath(acxt.getPlatformJar());
 				tactics.add(buildTests);
+				buildTests.addProcessDependency(mbc2);
 				
 				buildTests.addToClasspath(files.getRelative("src/main/resources"));
 				buildTests.addToClasspath(files.getRelative("src/test/resources"));
@@ -146,6 +155,7 @@ public class AndroidCommand extends AbstractStrategem {
 				JUnitRunCommand junitRun = new JUnitRunCommand(this, files, buildTests, null);
 				junitRun.addToBootClasspath(acxt.getPlatformJar());
 				tactics.add(junitRun);
+				junitRun.addProcessDependency(buildTests);
 			}
 		}
 		
@@ -163,11 +173,16 @@ public class AndroidCommand extends AbstractStrategem {
 			}
 		}
 		tactics.add(dex);
+		dex.addProcessDependency(mbc2);
+		
 		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(this, acxt, manifest, zipfile, resdir, assetsDir);
 		tactics.add(pkg);
-		apkTactic = new ApkBuildCommand(this, acxt, zipfile, dexFile, apkFile, apkResource);
-		apkTactic.builds(apkResource);
+		pkg.addProcessDependency(dex);
+		
+		apkTactic = new ApkBuildCommand(this, acxt, zipfile, dexFile, keystorePath, apkFile);
+		apkTactic.builds(apkTactic.apkResource);
 		tactics.add(apkTactic);
+		apkTactic.addProcessDependency(pkg);
 	}
 
 	@Override
@@ -208,4 +223,5 @@ public class AndroidCommand extends AbstractStrategem {
 				}
 			}
 	}
+	
 }

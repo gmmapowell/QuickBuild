@@ -1,53 +1,61 @@
 package com.gmmapowell.quickbuild.build.android;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
+
+import org.zinutils.reflection.Reflection;
+import org.zinutils.utils.FileUtils;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.AbstractTactic;
-import org.zinutils.system.RunProcess;
-import org.zinutils.utils.FileUtils;
+import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.ResourcePacket;
 
 public class ApkBuildCommand extends AbstractTactic {
 
 	private final AndroidContext acxt;
-	private final File zipfile;
+	private final File zipFile;
 	private final File dexFile;
+	private final File keystore; 
 	private final File apkFile;
-	private final ApkResource apkResource;
+	final ApkResource apkResource;
+	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 
-	public ApkBuildCommand(AndroidCommand parent, AndroidContext acxt, File zipfile, File dexFile, File apkFile, ApkResource apkResource) {
+	public ApkBuildCommand(AndroidCommand parent, AndroidContext acxt, File zipfile, File dexFile, File keystore, File apkFile) {
 		super(parent);
 		this.acxt = acxt;
-		this.zipfile = zipfile;
+		this.zipFile = zipfile;
 		this.dexFile = dexFile;
+		this.keystore = keystore;
 		this.apkFile = apkFile;
 		this.apkResource = new ApkResource(this, apkFile);
+		this.builds.add(apkResource);
 	}
+	
 	
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
-		RunProcess proc = new RunProcess(acxt.getAPKBuilder().getPath());
-		proc.showArgs(showArgs);
-		proc.debug(showDebug);
-		proc.captureStdout();
-		proc.captureStderr();
-		
-		proc.arg(apkFile.getPath());
-		proc.arg("-d");
-		proc.arg("-z");
-		proc.arg(zipfile.getPath());
-		proc.arg("-f");
-		proc.arg(dexFile.getPath());
-		proc.execute();
-		if (proc.getExitCode() == 0)
-		{
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try {
+			Class<?> apkClz = acxt.getAPKBuilder();
+			String debugStoreOsPath = keystore.getPath();
+			PrintStream verboseStream;
+			if (showDebug)
+				verboseStream = System.out;
+			else {
+				verboseStream = new PrintStream(baos);
+			} 
+			Object apkBuilder = Reflection.create(apkClz, apkFile, zipFile, dexFile, debugStoreOsPath, verboseStream);
+			Reflection.call(apkBuilder, "sealApk");
 			cxt.builtResource(apkResource);
 			return BuildStatus.SUCCESS;
+		} catch (Exception ex) {
+			System.out.println(new String(baos.toByteArray()));
+			return BuildStatus.BROKEN;
 		}
-		System.out.println(proc.getStderr());
-		return BuildStatus.BROKEN;
 	}
 
 	@Override
@@ -62,5 +70,10 @@ public class ApkBuildCommand extends AbstractTactic {
 
 	public ApkResource getResource() {
 		return apkResource;
+	}
+	
+	@Override
+	public ResourcePacket<BuildResource> buildsResources() {
+		return builds;
 	}
 }

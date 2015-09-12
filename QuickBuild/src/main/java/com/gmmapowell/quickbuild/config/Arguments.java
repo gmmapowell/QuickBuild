@@ -14,6 +14,7 @@ public class Arguments {
 	public boolean ignoreMain;
 	public boolean quiet;
 	public boolean gfMode = false;
+	public boolean readHome = true;
 	public boolean teamcity;
 	public int nthreads;
 	public String file;
