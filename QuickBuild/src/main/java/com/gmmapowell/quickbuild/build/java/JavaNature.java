@@ -247,6 +247,18 @@ public class JavaNature implements Nature, BuildContextAware {
 						loadedLibs.add(f.getName());
 						conf.resourceAvailable(new JarResource(null, f));
 					}
+					searching2:
+					for (File f : FileUtils.findFilesMatching(dir, "*.aar"))
+					{
+						for (ExcludeCommand excl : libdir.exclusions)
+							if (excl.getPattern().matcher(f.getName()).matches())
+							{
+								System.out.println("Excluding " + f.getName() + " from " + dir);
+								continue searching2;
+							}
+						loadedLibs.add(f.getName());
+						conf.resourceAvailable(new JarResource(null, f));
+					}
 				}
 				else
 					System.out.println("There is no lib directory " + libdir);

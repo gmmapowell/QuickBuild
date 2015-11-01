@@ -57,6 +57,10 @@ public class AdbCommand extends AbstractTactic {
 		command("install", "-r", apk.getPath()).errorStatus(BuildStatus.TEST_FAILURES);
 	}
 	
+	public void start(String activity) {
+		command("shell", "am", "start", "-n", activity);
+	}
+	
 	private Command command(Object... args) {
 		Command command = new Command(args);
 		commands.add(command);

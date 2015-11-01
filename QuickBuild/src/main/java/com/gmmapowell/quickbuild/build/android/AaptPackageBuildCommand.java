@@ -16,19 +16,22 @@ public class AaptPackageBuildCommand extends AbstractTactic {
 	private final File manifestFile;
 	private final File resdir;
 	private final File assetsDir;
+	private final File rawDir;
 
-	public AaptPackageBuildCommand(AndroidCommand parent, AndroidContext acxt, File manifest, File zipfile, File resdir, File assetsDir) {
+	public AaptPackageBuildCommand(AndroidCommand parent, AndroidContext acxt, File manifest, File zipfile, File resdir, File assetsDir, File rawDir) {
 		super(parent);
 		this.acxt = acxt;
 		this.zipfile = zipfile;
 		this.manifestFile = manifest;
 		this.resdir = resdir;
 		this.assetsDir = assetsDir;
+		this.rawDir = rawDir;
 	}
 	
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		RunProcess proc = new RunProcess(acxt.getAAPT().getPath());
+		proc.debug(showDebug);
 		proc.captureStdout();
 		proc.captureStderr();
 		
@@ -47,6 +50,9 @@ public class AaptPackageBuildCommand extends AbstractTactic {
 		proc.arg(resdir.getPath());
 		proc.arg("-I");
 		proc.arg(acxt.getPlatformJar().getPath());
+		if (rawDir != null && rawDir.exists()) {
+			proc.arg(rawDir.getPath());
+		}
 		proc.execute();
 		if (proc.getExitCode() == 0)
 		{

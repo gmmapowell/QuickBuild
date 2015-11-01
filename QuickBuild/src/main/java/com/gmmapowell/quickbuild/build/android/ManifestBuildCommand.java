@@ -3,6 +3,7 @@ package com.gmmapowell.quickbuild.build.android;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,6 +27,7 @@ public class ManifestBuildCommand extends AbstractTactic {
 	public class IntentFilterOpts {
 		public String action;
 		public String[] categories;
+		public String data;
 	}
 
 	private final AndroidContext acxt;
@@ -58,8 +60,19 @@ public class ManifestBuildCommand extends AbstractTactic {
 		Map<String, Options> options = new HashMap<String, Options>();
 		ListMap<String, IntentFilterOpts> filters = new ListMap<String, ManifestBuildCommand.IntentFilterOpts>();
 		boolean debuggable = false;
+		Set<File> clsfiles = new HashSet<File>();
+		for (File f : FileUtils.findFilesMatching(bindir, "*.class"))
+			clsfiles.add(f);
 		for (File f : FileUtils.findFilesUnderMatching(srcdir, "*.java"))
 		{
+			// Now try and find actual class file for detailed (2nd pass) analysis
+			File clsFile = new File(bindir, FileUtils.ensureExtension(f, ".class").getPath());
+			if (clsFile.exists())
+				clsfiles.add(clsFile);
+		}
+			
+		for (File clsFile : clsfiles) {
+			File f = FileUtils.makeRelativeTo(clsFile, bindir);
 			// Try and figure out a minimal package name for 1st pass analysis
 			String pkg = FileUtils.getPackage(f);
 			if (packageName == null && (minpkg == null || pkg.length() < minpkg.length()))
@@ -69,12 +82,7 @@ public class ManifestBuildCommand extends AbstractTactic {
 					System.out.println("Selecting package name " + minpkg);
 			}
 
-			// Now try and find actual class file for detailed (2nd pass) analysis
 			String qualifiedName = FileUtils.convertToDottedNameDroppingExtension(f);
-			File clsFile = new File(bindir, FileUtils.ensureExtension(f, ".class").getPath());
-			if (!clsFile.exists())
-				continue;
-			
 			// If the file exists, look for Application & Activity classes
 			ByteCodeFile bcf = new ByteCodeFile(clsFile, qualifiedName);
 			boolean appOrAct = false;
@@ -97,7 +105,7 @@ public class ManifestBuildCommand extends AbstractTactic {
 				if (showDebug)
 					System.out.println("Found activity class " + bcf.getName());
 				activities.add(qualifiedName);
-				Annotation mainAnn = bcf.getClassAnnotation("com.gmmapowell.android.MainActivity");
+				Annotation mainAnn = bcf.getClassAnnotation("com.gmmapowell.quickbuild.annotations.android.MainActivity");
 				if (mainAnn != null)
 				{
 					if (showDebug)
@@ -109,13 +117,16 @@ public class ManifestBuildCommand extends AbstractTactic {
 					}
 					mainClass = qualifiedName;
 				}
+				if (applClass == null && packageName == null || mainAnn != null)
+					packageName = FileUtils.getPackage(f);
+
 				appOrAct = true;
 			}
 			else if (bcf.extendsClass("android.app.Service") || bcf.extendsClass("android.app.IntentService"))
 			{
 				services.add(qualifiedName);
 				Options opts = new Options();
-				Annotation ann = bcf.getClassAnnotation("com.gmmapowell.android.Service");
+				Annotation ann = bcf.getClassAnnotation("com.gmmapowell.quickbuild.annotations.android.Service");
 				if (ann != null)
 					opts.name = ann.getArg("value").asString();
 				else
@@ -129,20 +140,20 @@ public class ManifestBuildCommand extends AbstractTactic {
 				appActOrServ = true;
 				Options opts = new Options();
 				options.put(qualifiedName, opts);
-				Annotation appLabelAnn = bcf.getClassAnnotation("com.gmmapowell.android.Label");
+				Annotation appLabelAnn = bcf.getClassAnnotation("com.gmmapowell.quickbuild.annotations.android.Label");
 				if (appLabelAnn != null)
 					opts.label = appLabelAnn.getArg("value").asString();
-				Annotation theme = bcf.getClassAnnotation("com.gmmapowell.android.Theme");
+				Annotation theme = bcf.getClassAnnotation("com.gmmapowell.quickbuild.annotations.android.Theme");
 				if (theme != null)
 					opts.theme = theme.getArg("value").asString();
-				Annotation icon = bcf.getClassAnnotation("com.gmmapowell.android.Icon");
+				Annotation icon = bcf.getClassAnnotation("com.gmmapowell.quickbuild.annotations.android.Icon");
 				if (icon != null)
 					opts.icon = icon.getArg("value").asString();
 			}
 			
 			if (appActOrServ)
 			{
-				Annotation intentFilterAnn = bcf.getClassAnnotation("com.gmmapowell.android.IntentFilter");
+				Annotation intentFilterAnn = bcf.getClassAnnotation("com.gmmapowell.quickbuild.annotations.android.IntentFilter");
 				if (intentFilterAnn != null)
 				{
 					IntentFilterOpts opts = new IntentFilterOpts();
@@ -158,11 +169,14 @@ public class ManifestBuildCommand extends AbstractTactic {
 						for (int i=0;i<tmp.length;i++)
 							opts.categories[i] = tmp[i].asString();
 					}
+					AnnotationValue tmpD = intentFilterAnn.getArg("data");
+					if (tmpD != null)
+						opts.data = tmpD.asString();
 				}				
 			}
 			
 			// Any class can request a permission
-			Annotation usesPerm = bcf.getClassAnnotation("com.gmmapowell.android.UsesPermission");
+			Annotation usesPerm = bcf.getClassAnnotation("com.gmmapowell.quickbuild.annotations.android.UsesPermission");
 			if (usesPerm != null)
 			{
 				AnnotationValue arg = usesPerm.getArg("value");
@@ -175,7 +189,7 @@ public class ManifestBuildCommand extends AbstractTactic {
 				}
 			}
 			
-			Annotation screens = bcf.getClassAnnotation("com.gmmapowell.android.SupportsScreen");
+			Annotation screens = bcf.getClassAnnotation("com.gmmapowell.quickbuild.annotations.android.SupportsScreen");
 			if (screens != null)
 			{
 				for (AnnotationValue arg : screens.getArg("value").asArray())
@@ -184,7 +198,7 @@ public class ManifestBuildCommand extends AbstractTactic {
 				}
 			}
 
-			Annotation debug = bcf.getClassAnnotation("com.gmmapowell.android.Debuggable");
+			Annotation debug = bcf.getClassAnnotation("com.gmmapowell.quickbuild.annotations.android.Debuggable");
 			if (debug != null)
 			{
 				debuggable = true;
@@ -199,6 +213,8 @@ public class ManifestBuildCommand extends AbstractTactic {
 			System.out.println("No package name could be found");
 			return BuildStatus.BROKEN;
 		}
+		
+		System.out.println("package name = " + packageName);
 		
 		if (mainClass == null && !justEnough)
 		{
@@ -306,6 +322,10 @@ public class ManifestBuildCommand extends AbstractTactic {
 					filter.addElement("category").setAttribute(android.attr("name"), s);
 				}
 			}
+
+			if (o.data != null && o.data.trim().length() > 0)
+				filter.addElement("data").setAttribute(android.attr("mimeType"), o.data);
+
 		}
 	}
 

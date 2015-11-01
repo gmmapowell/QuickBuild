@@ -1,4 +1,4 @@
-package com.gmmapowell.android;
+package com.gmmapowell.quickbuild.annotations.android;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

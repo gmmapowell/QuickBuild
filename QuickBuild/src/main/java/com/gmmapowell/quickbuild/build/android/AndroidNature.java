@@ -13,6 +13,8 @@ public class AndroidNature implements Nature {
 		config.addCommandExtension("use", AndroidUseLibraryCommand.class);
 		config.addCommandExtension("android-jar", AndroidJarCommand.class);
 		config.addCommandExtension("adbinstall", AdbInstallCommand.class);
+		config.addCommandExtension("adbstart", AdbStartCommand.class);
+		config.addCommandExtension("jniso", AndroidUseJNICommand.class);
 	}
 
 	public AndroidNature(Config cxt)

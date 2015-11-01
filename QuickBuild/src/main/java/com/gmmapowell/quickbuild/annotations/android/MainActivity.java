@@ -1,4 +1,4 @@
-package com.gmmapowell.android;
+package com.gmmapowell.quickbuild.annotations.android;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,8 +7,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface SupportsScreen {
-
-	Screens[] value();
+public @interface MainActivity {
 
 }

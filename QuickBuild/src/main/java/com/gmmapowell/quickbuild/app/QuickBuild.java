@@ -81,28 +81,8 @@ public class QuickBuild {
 				ofl.add(hostfile);
 			}
 		}
-		if (arguments.readHome) {
-			{
-				File roothostfile = new File(new File(System.getProperty("user.home")), ".qbinit." + FileUtils.getHostName());
-				if (arguments.debug)
-					System.out.println("Reading root host file " + roothostfile + " " + (roothostfile.exists()?"*":"-"));
-				if (roothostfile.exists())
-				{
-					SignificantWhiteSpaceFileReader.read(conf, configFactory, roothostfile);
-					ofl.add(roothostfile);
-				}
-			}
-			{
-				File rootfile = new File(new File(System.getProperty("user.home")), ".qbinit");
-				if (arguments.debug)
-					System.out.println("Reading root file " + rootfile + " " + (rootfile.exists()?"*":"-"));
-				if (rootfile.exists())
-				{
-					SignificantWhiteSpaceFileReader.read(conf, configFactory, rootfile);
-					ofl.add(rootfile);
-				}
-			}
-		}
+		if (arguments.readHome)
+			readHomeConfig(conf, ofl);
 		SignificantWhiteSpaceFileReader.read(conf, configFactory, file);
 		conf.done();
 		configFactory.done();
@@ -180,6 +160,31 @@ public class QuickBuild {
 		} catch (QuickBuildException ex) {
 			System.out.println(ex.getMessage());
 			System.exit(1);
+		}
+	}
+
+	public static void readHomeConfig(Config conf, OrderedFileList ofl) {
+		{
+			File roothostfile = new File(new File(System.getProperty("user.home")), ".qbinit." + FileUtils.getHostName());
+			if (arguments != null && arguments.debug)
+				System.out.println("Reading root host file " + roothostfile + " " + (roothostfile.exists()?"*":"-"));
+			if (roothostfile.exists())
+			{
+				SignificantWhiteSpaceFileReader.read(conf, configFactory, roothostfile);
+				if (ofl != null)
+					ofl.add(roothostfile);
+			}
+		}
+		{
+			File rootfile = new File(new File(System.getProperty("user.home")), ".qbinit");
+			if (arguments != null && arguments.debug)
+				System.out.println("Reading root file " + rootfile + " " + (rootfile.exists()?"*":"-"));
+			if (rootfile.exists())
+			{
+				SignificantWhiteSpaceFileReader.read(conf, configFactory, rootfile);
+				if (ofl != null)
+					ofl.add(rootfile);
+			}
 		}
 	}
 }

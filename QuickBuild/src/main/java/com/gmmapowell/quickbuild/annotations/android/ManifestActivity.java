@@ -1,4 +1,4 @@
-package com.gmmapowell.android;
+package com.gmmapowell.quickbuild.annotations.android;
 
 import org.zinutils.xml.XMLElement;
 import org.zinutils.xml.XMLNamespace;

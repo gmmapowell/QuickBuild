@@ -1,4 +1,4 @@
-package com.gmmapowell.android;
+package com.gmmapowell.quickbuild.annotations.android;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,8 +7,8 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface Theme {
-
-	String value();
-
+public @interface IntentFilter {
+	public String action() default "";
+	public String[] category() default "";
+	public String data() default "";
 }

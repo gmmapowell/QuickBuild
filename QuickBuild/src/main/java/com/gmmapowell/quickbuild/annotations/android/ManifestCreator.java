@@ -1,4 +1,4 @@
-package com.gmmapowell.android;
+package com.gmmapowell.quickbuild.annotations.android;
 
 import java.io.File;
 

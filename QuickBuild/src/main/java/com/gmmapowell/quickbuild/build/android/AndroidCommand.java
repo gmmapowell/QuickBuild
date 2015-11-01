@@ -41,6 +41,7 @@ public class AndroidCommand extends AbstractStrategem {
 	private ApkResource apkResource;
 	private File apkFile;
 	private ResourcePacket<PendingResource> uselibs = new ResourcePacket<PendingResource>();
+	private ResourcePacket<PendingResource> usejni = new ResourcePacket<PendingResource>();
 	private ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
 	private Set<Pattern> exclusions = new HashSet<Pattern>();
 	final JavaRuntimeReplica jrr;
@@ -53,6 +54,10 @@ public class AndroidCommand extends AbstractStrategem {
 		super(toks, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
 		rootDir = FileUtils.findDirectoryNamed(projectName);
 		this.jrr = new JavaRuntimeReplica();
+	}
+	
+	public void addToJRR(File f) {
+		this.jrr.add(f);
 	}
 
 	@Override
@@ -72,6 +77,12 @@ public class AndroidCommand extends AbstractStrategem {
 			{
 				PendingResource pr = ((AndroidUseLibraryCommand)cmd).getResource();
 				uselibs.add(pr);
+				needs.add(pr);
+			}
+			else if (cmd instanceof AndroidUseJNICommand)
+			{
+				PendingResource pr = ((AndroidUseJNICommand)cmd).getResource();
+				usejni.add(pr);
 				needs.add(pr);
 			}
 			else if (cmd instanceof ExcludeCommand)
@@ -98,6 +109,7 @@ public class AndroidCommand extends AbstractStrategem {
 		File resdir = files.getRelative("src/android/res");
 		// I increasing think we should be using "raw" ...
 		File assetsDir = files.getRelative("src/android/assets");
+		File rawDir = files.getRelative("src/android/rawapk");
 		File dexFile = files.getOutput("classes.dex");
 		File zipfile = files.getOutput(projectName+".ap_");
 		File srcdir = files.getRelative("src/main/java");
@@ -111,6 +123,7 @@ public class AndroidCommand extends AbstractStrategem {
 		gen.addProcessDependency(mbc1);
 		List<File> genFiles = new DeferredFileList(gendir, "*.java");
 		JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", "gen", genFiles, "android", javaVersion, true);
+		genRes.dontClean();
 		for (PendingResource pr : needs)
 			genRes.needs(pr);
 		genRes.addToBootClasspath(acxt.getPlatformJar());
@@ -144,6 +157,7 @@ public class AndroidCommand extends AbstractStrategem {
 			if (testSources.size() > 0)
 			{
 				JavaBuildCommand buildTests = new JavaBuildCommand(this, files, "src/test/java", "test-classes", "test", testSources, "android", javaVersion, false);
+				buildTests.dontClean();
 				buildTests.addToClasspath(new File(files.getOutputDir(), "classes"));
 				buildTests.addToBootClasspath(acxt.getPlatformJar());
 				tactics.add(buildTests);
@@ -175,7 +189,7 @@ public class AndroidCommand extends AbstractStrategem {
 		tactics.add(dex);
 		dex.addProcessDependency(mbc2);
 		
-		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(this, acxt, manifest, zipfile, resdir, assetsDir);
+		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(this, acxt, manifest, zipfile, resdir, assetsDir, rawDir);
 		tactics.add(pkg);
 		pkg.addProcessDependency(dex);
 		
