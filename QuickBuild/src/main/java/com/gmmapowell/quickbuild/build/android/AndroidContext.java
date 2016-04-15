@@ -15,6 +15,8 @@ public class AndroidContext {
 
 	private final File aapt;
 	private final File dx;
+	private final File jack;
+	private final File jill;
 	private final File platformJar;
 	private final File apk;
 	private final File adb;
@@ -42,6 +44,12 @@ public class AndroidContext {
 		dx = new File(androidSDK, "build-tools/" + androidBuild + "/dx" +bat);
 		if (!dx.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + dx);
+		jack = new File(androidSDK, "build-tools/" + androidBuild + "/jack.jar");
+		if (!jack.exists())
+			throw new QBConfigurationException("Invalid android configuration: cannot find " + jack);
+		jill = new File(androidSDK, "build-tools/" + androidBuild + "/jill.jar");
+		if (!jill.exists())
+			throw new QBConfigurationException("Invalid android configuration: cannot find " + jill);
 		try {
 			apk = new File(androidSDK, "tools/lib/sdklib.jar");
 			if (!apk.exists())
@@ -64,6 +72,14 @@ public class AndroidContext {
 	
 	public File getDX() {
 		return dx;
+	}
+	
+	public File getJack() {
+		return jack;
+	}
+	
+	public File getJill() {
+		return jill;
 	}
 	
 	public Class<?> getAPKBuilder() {

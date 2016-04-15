@@ -39,6 +39,7 @@ public class AndroidCommand extends AbstractStrategem {
 	private AndroidContext acxt;
 	private StructureHelper files;
 	private ApkResource apkResource;
+	private boolean useJack;
 	private File apkFile;
 	private ResourcePacket<PendingResource> uselibs = new ResourcePacket<PendingResource>();
 	private ResourcePacket<PendingResource> usejni = new ResourcePacket<PendingResource>();
@@ -51,7 +52,9 @@ public class AndroidCommand extends AbstractStrategem {
 	private File keystorePath;
 
 	public AndroidCommand(TokenizedLine toks) {
-		super(toks, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
+		super(toks,
+				new ArgumentDefinition("--jack", Cardinality.OPTION, "useJack", "use new JACK/JILL buildchain"),
+				new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
 		rootDir = FileUtils.findDirectoryNamed(projectName);
 		this.jrr = new JavaRuntimeReplica();
 	}
@@ -111,6 +114,8 @@ public class AndroidCommand extends AbstractStrategem {
 		File assetsDir = files.getRelative("src/android/assets");
 		File rawDir = files.getRelative("src/android/rawapk");
 		File dexFile = files.getOutput("classes.dex");
+		File dexDir = files.getOutput("dex");
+		File jillDir = files.getOutput("jacks");
 		File zipfile = files.getOutput(projectName+".ap_");
 		File srcdir = files.getRelative("src/main/java");
 		bindir = files.getOutput("classes");
@@ -173,25 +178,35 @@ public class AndroidCommand extends AbstractStrategem {
 			}
 		}
 		
-		DexBuildCommand dex = new DexBuildCommand(acxt, this, files, files.getOutput("classes"), files.getRelative("src/android/lib"), dexFile, exclusions, uselibs);
-		for (PendingResource pr : uselibs)
-		{
-			try
+		Tactic assembleTactic;
+		if (useJack) {
+			JackBuildCommand jack = new JackBuildCommand(acxt, this, files, files.getOutput("classes"), files.getRelative("src/android/lib"), dexDir, jillDir, exclusions, uselibs);
+			tactics.add(jack);
+			jack.addProcessDependency(mbc2);
+			assembleTactic = jack;
+			dexFile = new File(dexDir, "classes.dex");
+		} else {
+			DexBuildCommand dex = new DexBuildCommand(acxt, this, files, files.getOutput("classes"), files.getRelative("src/android/lib"), dexFile, exclusions, uselibs);
+			for (PendingResource pr : uselibs)
 			{
-				File path = pr.physicalResource().getPath();
-				jrr.add(path);
+				try
+				{
+					File path = pr.physicalResource().getPath();
+					jrr.add(path);
+				}
+				catch (Exception ex)
+				{
+					System.out.println("Could not add " + pr + " to jrr path because it did not exist");
+				}
 			}
-			catch (Exception ex)
-			{
-				System.out.println("Could not add " + pr + " to jrr path because it did not exist");
-			}
+			tactics.add(dex);
+			dex.addProcessDependency(mbc2);
+			assembleTactic = dex;
 		}
-		tactics.add(dex);
-		dex.addProcessDependency(mbc2);
 		
 		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(this, acxt, manifest, zipfile, resdir, assetsDir, rawDir);
 		tactics.add(pkg);
-		pkg.addProcessDependency(dex);
+		pkg.addProcessDependency(assembleTactic);
 		
 		apkTactic = new ApkBuildCommand(this, acxt, zipfile, dexFile, keystorePath, apkFile);
 		apkTactic.builds(apkTactic.apkResource);

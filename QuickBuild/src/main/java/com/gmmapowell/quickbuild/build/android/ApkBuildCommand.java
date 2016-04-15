@@ -54,6 +54,7 @@ public class ApkBuildCommand extends AbstractTactic {
 			return BuildStatus.SUCCESS;
 		} catch (Exception ex) {
 			System.out.println(new String(baos.toByteArray()));
+			ex.printStackTrace(System.out);
 			return BuildStatus.BROKEN;
 		}
 	}
