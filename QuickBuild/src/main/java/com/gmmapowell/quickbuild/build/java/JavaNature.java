@@ -233,7 +233,10 @@ public class JavaNature implements Nature, BuildContextAware {
 		for (LibDir libdir : libdirs)
 			try {
 				File dir = libdir.from.getCanonicalFile();
-				if (dir.isDirectory())
+				if (dir.isFile() && dir.canRead()) {
+					loadedLibs.add(dir.getName());
+					conf.resourceAvailable(new JarResource(null, dir));
+				} else if (dir.isDirectory())
 				{
 					searching:
 					for (File f : FileUtils.findFilesMatching(dir, "*.jar"))

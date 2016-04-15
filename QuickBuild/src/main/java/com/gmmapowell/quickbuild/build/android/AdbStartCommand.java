@@ -51,7 +51,7 @@ public class AdbStartCommand extends AbstractBuildCommand {
 	
 	@Override
 	public String toString() {
-		return "adbstart " + activity;
+		return "adbstart " + (buildsStarted != null?buildsStarted.toString():resource.toString()) + " " + activity;
 	}
 
 	@Override

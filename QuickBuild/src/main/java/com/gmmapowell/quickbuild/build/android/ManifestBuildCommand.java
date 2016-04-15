@@ -214,7 +214,8 @@ public class ManifestBuildCommand extends AbstractTactic {
 			return BuildStatus.BROKEN;
 		}
 		
-		System.out.println("package name = " + packageName);
+		if (showDebug)
+			System.out.println("package name = " + packageName);
 		
 		if (mainClass == null && !justEnough)
 		{
