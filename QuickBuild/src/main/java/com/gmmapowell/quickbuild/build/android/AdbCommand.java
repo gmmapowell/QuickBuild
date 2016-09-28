@@ -57,8 +57,20 @@ public class AdbCommand extends AbstractTactic {
 		command("install", "-r", apk.getPath()).errorStatus(BuildStatus.TEST_FAILURES);
 	}
 	
-	public void start(String activity) {
-		command("shell", "am", "start", "-n", activity);
+	public void start(String activity, List<String> extras) {
+		Object[] args = new Object[5+extras.size()*3];
+		args[0] = "shell";
+		args[1] = "am";
+		args[2] = "start";
+		args[3] = "-n";
+		args[4] = activity;
+		for (int i=0;i<extras.size();i++) {
+			args[5+i*3] = "-e";
+			String[] foo = extras.get(i).split("=");
+			args[6+i*3] = foo[0];
+			args[7+i*3] = foo[1];
+		}
+		command(args);
 	}
 	
 	private Command command(Object... args) {

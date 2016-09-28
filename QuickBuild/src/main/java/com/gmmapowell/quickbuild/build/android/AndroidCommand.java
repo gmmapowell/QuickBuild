@@ -50,6 +50,7 @@ public class AndroidCommand extends AbstractStrategem {
 	private ApkBuildCommand apkTactic;
 	private String javaVersion;
 	private File keystorePath;
+	private AndroidRestrictJNICommand jniRestrict;
 
 	public AndroidCommand(TokenizedLine toks) {
 		super(toks,
@@ -96,6 +97,12 @@ public class AndroidCommand extends AbstractStrategem {
 			{
 				javaVersion = ((JavaVersionCommand)cmd).getVersion();
 			}
+			else if (cmd instanceof AndroidRestrictJNICommand)
+			{
+				if (jniRestrict != null)
+					throw new UtilException("Cannot specify more than one JNI restriction");
+				jniRestrict = (AndroidRestrictJNICommand)cmd;
+			}
 			else
 				throw new UtilException("Cannot handle " + cmd);
 		}
@@ -133,6 +140,8 @@ public class AndroidCommand extends AbstractStrategem {
 			genRes.needs(pr);
 		genRes.addToBootClasspath(acxt.getPlatformJar());
 		jrr.add(acxt.getPlatformJar());
+		genRes.addToBootClasspath(acxt.getSupportJar());
+		jrr.add(acxt.getSupportJar());
 		tactics.add(genRes);
 		List<File> srcFiles;
 		if (srcdir.isDirectory()) {
@@ -148,6 +157,7 @@ public class AndroidCommand extends AbstractStrategem {
 		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", srcFiles, "android", javaVersion, true);
 		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
+		buildSrc.addToBootClasspath(acxt.getSupportJar());
 		tactics.add(buildSrc);
 		buildSrc.addProcessDependency(gen);
 
@@ -165,6 +175,7 @@ public class AndroidCommand extends AbstractStrategem {
 				buildTests.dontClean();
 				buildTests.addToClasspath(new File(files.getOutputDir(), "classes"));
 				buildTests.addToBootClasspath(acxt.getPlatformJar());
+				buildSrc.addToBootClasspath(acxt.getSupportJar());
 				tactics.add(buildTests);
 				buildTests.addProcessDependency(mbc2);
 				
@@ -173,6 +184,7 @@ public class AndroidCommand extends AbstractStrategem {
 				
 				JUnitRunCommand junitRun = new JUnitRunCommand(this, files, buildTests, null);
 				junitRun.addToBootClasspath(acxt.getPlatformJar());
+				buildSrc.addToBootClasspath(acxt.getSupportJar());
 				tactics.add(junitRun);
 				junitRun.addProcessDependency(buildTests);
 			}
@@ -196,9 +208,11 @@ public class AndroidCommand extends AbstractStrategem {
 				}
 				catch (Exception ex)
 				{
-					System.out.println("Could not add " + pr + " to jrr path because it did not exist");
+					System.out.println("Could not add " + pr + " to jrr path because it did not exist: " + ex.getMessage());
 				}
 			}
+			if (jniRestrict != null)
+				dex.restrictArch(jniRestrict.arch);
 			tactics.add(dex);
 			dex.addProcessDependency(mbc2);
 			assembleTactic = dex;

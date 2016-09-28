@@ -1,11 +1,19 @@
 package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.regex.Pattern;
+
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.system.RunProcess;
+import org.zinutils.utils.FileUtils;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
@@ -17,8 +25,6 @@ import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
-import org.zinutils.system.RunProcess;
-import org.zinutils.utils.FileUtils;
 
 public class DexBuildCommand extends AbstractTactic {
 	private final AndroidContext acxt;
@@ -27,7 +33,10 @@ public class DexBuildCommand extends AbstractTactic {
 	private final List<File> jars = new ArrayList<File>();
 	private final File libdir;
 	private final Set<Pattern> exclusions;
+	private final File tmpLib;
+	private final File rawapkLib;
 	private ResourcePacket<PendingResource> uselibs;
+	private List<String> restrictTo = null;
 
 	public DexBuildCommand(AndroidContext acxt, Strategem parent, StructureHelper files, File bindir, File libdir, File dexFile, Set<Pattern> exclusions, ResourcePacket<PendingResource> uselibs) {
 		super(parent);
@@ -37,10 +46,71 @@ public class DexBuildCommand extends AbstractTactic {
 		this.dexFile = dexFile;
 		this.exclusions = exclusions;
 		this.uselibs = uselibs;
+		System.out.println("libdir = " + libdir);
+		this.tmpLib = files.getRelative("libs");
+		this.rawapkLib = files.getRelative("src/android/rawapk/lib");
 	}
 
 	public void addJar(File file) {
-		jars.add(file);
+		if (file.getName().endsWith(".aar")) {
+//			System.out.println("Unpacking " + file);
+			// unpack aar into jars in libdir and raw assets in rawapk
+			JarFile jf = null;
+			try {
+				jf = new JarFile(file);
+				Enumeration<JarEntry> entries = jf.entries();
+				int k = 1;
+				while (entries.hasMoreElements()) {
+					JarEntry e = entries.nextElement();
+					String n = e.getName();
+					if (n.endsWith(".so")) {
+//						System.out.println("so: " + n);
+						if (!n.startsWith("jni/"))
+							throw new UtilException("so not under jni/");
+						n = n.substring(4);
+						boolean doit = true;
+						if (restrictTo != null) {
+							doit = false;
+							for (String s : restrictTo) {
+								if (n.startsWith(s+"/"))
+									doit = true;
+							}
+						}
+						if (doit) {
+							File writeTo = new File(rawapkLib, n);
+							FileUtils.assertDirectory(writeTo.getParentFile());
+							FileUtils.copyStreamToFile(jf.getInputStream(e), writeTo);
+//							System.out.println("Writing so to " + writeTo);
+						}
+					} else if (n.endsWith(".jar")) {
+						while (true) {
+							File foo = new File(tmpLib, FileUtils.ensureExtension(file, "-"+k+".jar").getName());
+//							System.out.println("jar trying: " + foo);
+							if (!foo.exists()) {
+								FileUtils.copyStreamToFile(jf.getInputStream(e), foo);
+								jars.add(foo);
+								break;
+							}
+							k++;
+						}
+					}
+				}
+			} catch (Throwable t) {
+				throw UtilException.wrap(t);
+			} finally {
+				if (jf != null)
+					try {
+						jf.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+			}
+		} else
+			jars.add(file);
+	}
+
+	public void restrictArch(List<String> restrictTo) {
+		this.restrictTo = restrictTo;
 	}
 
 	@Override
@@ -53,6 +123,7 @@ public class DexBuildCommand extends AbstractTactic {
 		
 		if (uselibs != null)
 		{
+			FileUtils.cleanDirectory(tmpLib);
 			for (PendingResource pr : uselibs)
 			{
 				File path = pr.physicalResource().getPath();
@@ -66,6 +137,7 @@ public class DexBuildCommand extends AbstractTactic {
 		proc.arg(bindir.getPath());
 		
 		LinkedHashSet<String> paths = new LinkedHashSet<String>();
+		considerAdding(paths, acxt.getSupportJar().getPath());
 		for (BuildResource br : cxt.getDependencies(this))
 		{
 			if (br instanceof JarResource)

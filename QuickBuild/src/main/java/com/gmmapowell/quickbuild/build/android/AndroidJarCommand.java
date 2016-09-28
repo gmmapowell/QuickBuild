@@ -71,6 +71,7 @@ public class AndroidJarCommand extends AbstractStrategem {
 			List<File> genFiles = new DeferredFileList(gendir, "*.java");
 			JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", "gen", genFiles, "android", javaVersion, true);
 			genRes.addToBootClasspath(acxt.getPlatformJar());
+			genRes.addToBootClasspath(acxt.getSupportJar());
 //			jrr.add(acxt.getPlatformJar());
 			tactics.add(genRes);
 			List<File> srcFiles;
@@ -87,6 +88,7 @@ public class AndroidJarCommand extends AbstractStrategem {
 		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", FileUtils.findFilesMatching(files.getRelative("src/main/java"), "*.java"), "android", javaVersion, false);
 		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
+		buildSrc.addToBootClasspath(acxt.getSupportJar());
 		tactics.add(buildSrc);
 		
 		/* I think this is a bad idea ...

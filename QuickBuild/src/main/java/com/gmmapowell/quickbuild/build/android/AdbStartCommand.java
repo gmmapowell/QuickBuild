@@ -1,6 +1,8 @@
 package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.zinutils.parser.TokenizedLine;
 import org.zinutils.utils.ArgumentDefinition;
@@ -26,6 +28,7 @@ public class AdbStartCommand extends AbstractBuildCommand {
 	private final ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 	private AdbStartedResource buildsStarted;
+	private final List<String> extras = new ArrayList<String>();
 
 	// Garnered from: http://stackoverflow.com/questions/4567904/how-to-start-an-application-using-android-adb-tools
 	// Also, consider: You can also specify actions to be filter by your intent-filters:
@@ -35,7 +38,8 @@ public class AdbStartCommand extends AbstractBuildCommand {
 	public AdbStartCommand(TokenizedLine toks) {
 		toks.process(this,
 				new ArgumentDefinition("*", Cardinality.REQUIRED, "resource", "installed apk resource"),
-				new ArgumentDefinition("*", Cardinality.REQUIRED, "activity", "activity to start"));
+				new ArgumentDefinition("*", Cardinality.REQUIRED, "activity", "activity to start"),
+				new ArgumentDefinition("-e", Cardinality.ZERO_OR_MORE, "extras", "extras to pass to activity"));
 	}
 
 	@Override
@@ -92,7 +96,7 @@ public class AdbStartCommand extends AbstractBuildCommand {
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		AdbCommand cmd = new AdbCommand(acxt, this, files, apk, buildsStarted);
-		cmd.start(activity);
+		cmd.start(activity, extras);
 		return cmd.execute(cxt, showArgs, showDebug);
 	}
 }

@@ -93,7 +93,7 @@ public class ManifestBuildCommand extends AbstractTactic {
 					System.out.println("Found application class " + bcf.getName());
 				if (applClass != null)
 				{
-					System.out.println("More than one Application class");
+					System.out.println("More than one Application class: " + applClass + " and " + bcf.getName());
 					return BuildStatus.BROKEN;
 				}
 				packageName = FileUtils.getPackage(f);
@@ -240,22 +240,12 @@ public class ManifestBuildCommand extends AbstractTactic {
 			XMLElement appl = top.addElement("application");
 			if (applClass != null)
 			{
-				Options appOpts = options.get(applClass);
 				appl.setAttribute(android.attr("name"), stripPkg(packageName, applClass));
-				if (appOpts.label != null)
-					appl.setAttribute(android.attr("label"), appOpts.label);
-				if (appOpts.theme != null)
-					appl.setAttribute(android.attr("theme"), "@style/" + appOpts.theme);
-				if (appOpts.icon != null)
-					appl.setAttribute(android.attr("icon"), "@drawable/" + appOpts.icon);
+				setApplAttrs(android, appl, options.get(applClass));
 			}
 			else if (mainClass != null)
 			{
-				Options appOpts = options.get(mainClass);
-				if (appOpts.theme != null)
-					appl.setAttribute(android.attr("theme"), "@style/" + appOpts.theme);
-				if (appOpts.icon != null)
-					appl.setAttribute(android.attr("icon"), "@drawable/" + appOpts.icon);
+				setApplAttrs(android, appl, options.get(mainClass));
 			}
 			if (debuggable)
 				appl.setAttribute(android.attr("debuggable"), "true");
@@ -304,6 +294,15 @@ public class ManifestBuildCommand extends AbstractTactic {
 		}
 		manifest.write(manifestFile);
 		return BuildStatus.SUCCESS;
+	}
+
+	protected void setApplAttrs(XMLNamespace android, XMLElement appl, Options appOpts) {
+		if (appOpts.label != null)
+			appl.setAttribute(android.attr("label"), appOpts.label);
+		if (appOpts.theme != null)
+			appl.setAttribute(android.attr("theme"), "@style/" + appOpts.theme);
+		if (appOpts.icon != null)
+			appl.setAttribute(android.attr("icon"), "@drawable/" + appOpts.icon);
 	}
 
 	private void addOtherIntents(String name, XMLElement node, ListMap<String, IntentFilterOpts> filters, XMLNamespace android) {

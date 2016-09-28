@@ -79,9 +79,11 @@ public class MavenNature implements Nature {
 	private void downloadFromMaven(String pkginfo, File mavenToFile, File cacheTo) {
 		if (mvnrepos.size() == 0)
 			throw new QuickBuildException("There are no maven repositories specified");
+		List<String> pathsTried = new ArrayList<String>();
 		for (String repo : mvnrepos)
 		{
 			String urlPath = FileUtils.urlPath(repo, mavenToFile);
+			pathsTried.add(urlPath);
 			try {
 				doDownload(urlPath, cacheTo);
 				System.out.println("Downloaded " + pkginfo + " from " + repo);
@@ -93,7 +95,7 @@ public class MavenNature implements Nature {
 //				System.out.println("Could not find " + pkginfo + " at " + repo + ":\n  " + e.getMessage());
 			}
 		}
-		throw new QuickBuildException("Could not find maven package " + pkginfo);
+		throw new QuickBuildException("Could not find maven package " + pkginfo + " at any of " + pathsTried);
 	}
 
 	private void doDownload(String urlPath, File cacheTo) throws FileNotFoundException, IOException {

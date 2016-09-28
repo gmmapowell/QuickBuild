@@ -18,6 +18,7 @@ public class AndroidContext {
 	private final File jack;
 	private final File jill;
 	private final File platformJar;
+	private final File supportJar;
 	private final File apk;
 	private final File adb;
 	private final String androidPlatform;
@@ -64,6 +65,10 @@ public class AndroidContext {
 		platformJar = new File(platformDir, "android.jar");
 		if (!platformJar.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + platformJar);
+		File supportDir = FileUtils.fileConcat(androidSDK.getPath(), "extras", "android", "support", "v13");
+		supportJar = new File(supportDir, "android-support-v13.jar");
+		if (!supportJar.exists())
+			throw new QBConfigurationException("Invalid android configuration: cannot find " + platformJar);
 	}
 
 	public File getAAPT() {
@@ -92,6 +97,10 @@ public class AndroidContext {
 
 	public File getPlatformJar() {
 		return platformJar;
+	}
+
+	public File getSupportJar() {
+		return supportJar;
 	}
 
 	public File getADB() {
