@@ -9,6 +9,7 @@ import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.quickbuild.core.Strategem;
 import org.zinutils.system.RunProcess;
 import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.OrderedFileList;
 
 public class AaptGenBuildCommand extends AbstractTactic {
 	private final AndroidContext acxt;
@@ -24,6 +25,12 @@ public class AaptGenBuildCommand extends AbstractTactic {
 		this.resdir = resdir;
 	}
 	
+	// override the base one because "null" means always build and "empty" means don't re-build
+	@Override
+	public OrderedFileList sourceFiles() {
+		return new OrderedFileList();
+	}
+
 	/* TODO: you can get into a world of hurt if you duplicate IDs.  Android lets you do this, because it makes sense
 	 * across different layout types (e.g. landscape).  But if you literally end up with two in the same view, it's really bad
 	 * (you lose windows and the like).

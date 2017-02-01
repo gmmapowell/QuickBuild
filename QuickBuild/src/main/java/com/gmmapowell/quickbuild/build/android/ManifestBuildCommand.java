@@ -18,6 +18,7 @@ import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.AbstractTactic;
 import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.OrderedFileList;
 import org.zinutils.xml.XML;
 import org.zinutils.xml.XMLElement;
 import org.zinutils.xml.XMLNamespace;
@@ -329,6 +330,12 @@ public class ManifestBuildCommand extends AbstractTactic {
 		}
 	}
 
+	// override the base one because "null" means always build and "empty" means don't re-build
+	@Override
+	public OrderedFileList sourceFiles() {
+		return new OrderedFileList();
+	}
+	
 	private String stripPkg(String packageName, String applClass) {
 		return applClass.replace(packageName, "");
 	}
