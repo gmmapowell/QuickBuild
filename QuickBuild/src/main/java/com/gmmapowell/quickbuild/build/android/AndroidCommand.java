@@ -180,16 +180,16 @@ public class AndroidCommand extends AbstractStrategem {
 				buildTests.dontClean();
 				buildTests.addToClasspath(new File(files.getOutputDir(), "classes"));
 				buildTests.addToBootClasspath(acxt.getPlatformJar());
-				buildSrc.addToBootClasspath(acxt.getSupportJar());
-				tactics.add(buildTests);
-				buildTests.addProcessDependency(mbc2);
-				
+				buildTests.addToBootClasspath(acxt.getSupportJar());
 				buildTests.addToClasspath(files.getRelative("src/main/resources"));
 				buildTests.addToClasspath(files.getRelative("src/test/resources"));
+				tactics.add(buildTests);
+				buildTests.addProcessDependency(prior);
+				
 				
 				JUnitRunCommand junitRun = new JUnitRunCommand(this, files, buildTests, null);
 				junitRun.addToBootClasspath(acxt.getPlatformJar());
-				buildSrc.addToBootClasspath(acxt.getSupportJar());
+				junitRun.addToBootClasspath(acxt.getSupportJar());
 				tactics.add(junitRun);
 				junitRun.addProcessDependency(buildTests);
 			}

@@ -26,6 +26,7 @@ public class JarCommand extends AbstractStrategem {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private String projectName;
 	private final File rootdir;
+	private File bootJar;
 	protected StructureHelper files;
 	protected String targetName;
 	protected List<File> includePackages;
@@ -136,6 +137,10 @@ public class JarCommand extends AbstractStrategem {
 			else if (opt instanceof NoJUnitCommand)
 			{
 				runJunit  = false;
+			}
+			else if (opt instanceof BootClassPathCommand)
+			{
+				bootJar  = ((BootClassPathCommand)opt).getFile();
 			}
 			else if (opt instanceof JavaVersionCommand)
 			{
@@ -256,8 +261,9 @@ public class JarCommand extends AbstractStrategem {
 			if (sourceFiles.size() == 0)
 				return null;
 			
-			
 			JavaBuildCommand ret = new JavaBuildCommand(this, files, src, bin, label, sourceFiles, "jdk", javaVersion, runAlways);
+			if (bootJar != null)
+				ret.addToBootClasspath(bootJar);
 			accum.add(ret);
 			for (PendingResource br : needsResources)
 				ret.needs(br);
