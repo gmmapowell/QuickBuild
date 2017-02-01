@@ -247,6 +247,8 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		{
 			for (Tactic d : itb.getProcessDependencies())
 			{
+				if (d instanceof CanBeSkipped && ((CanBeSkipped)d).skipMe(cxt))
+					continue;
 				if (!mapping.get(d.identifier()).isClean())
 				{
 					isDirty = true;

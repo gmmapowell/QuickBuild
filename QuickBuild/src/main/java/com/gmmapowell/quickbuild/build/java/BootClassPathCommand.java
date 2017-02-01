@@ -32,5 +32,10 @@ public class BootClassPathCommand extends NoChildCommand implements ConfigApplyC
 	public File getFile() {
 		return bootClass;
 	}
+	
+	@Override
+	public String toString() {
+		return "boot " + config;
+	}
 
 }

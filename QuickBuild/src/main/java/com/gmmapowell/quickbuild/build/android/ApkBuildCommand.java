@@ -35,7 +35,6 @@ public class ApkBuildCommand extends AbstractTactic {
 		this.builds.add(apkResource);
 	}
 	
-	
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
