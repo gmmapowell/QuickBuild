@@ -11,6 +11,7 @@ public class AndroidNature implements Nature {
 	{
 		config.addCommandExtension("android", AndroidCommand.class);
 		config.addCommandExtension("use", AndroidUseLibraryCommand.class);
+		config.addCommandExtension("espresso", AndroidEspressoTestsCommand.class);
 		config.addCommandExtension("exportJar", AndroidExportJarCommand.class);
 		config.addCommandExtension("android-jar", AndroidJarCommand.class);
 		config.addCommandExtension("adbinstall", AdbInstallCommand.class);

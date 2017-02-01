@@ -52,6 +52,7 @@ public class AndroidCommand extends AbstractStrategem {
 	private String javaVersion;
 	private File keystorePath;
 	private AndroidRestrictJNICommand jniRestrict;
+	private AndroidEspressoTestsCommand espressoTests;
 	private String exportJar;
 
 	public AndroidCommand(TokenizedLine toks) {
@@ -105,6 +106,10 @@ public class AndroidCommand extends AbstractStrategem {
 					throw new UtilException("Cannot specify more than one JNI restriction");
 				jniRestrict = (AndroidRestrictJNICommand)cmd;
 			}
+			else if (cmd instanceof AndroidEspressoTestsCommand) {
+				espressoTests = (AndroidEspressoTestsCommand)cmd;
+				needs.add(espressoTests.getResource());
+			}
 			else if (cmd instanceof AndroidExportJarCommand) {
 				exportJar = projectName + ".jar";
 			}
@@ -132,12 +137,17 @@ public class AndroidCommand extends AbstractStrategem {
 		File srcdir = files.getRelative("src/main/java");
 		bindir = files.getOutput("classes");
 		
-		ManifestBuildCommand mbc1 = new ManifestBuildCommand(this, acxt, manifest, true, srcdir, bindir);
-		tactics.add(mbc1);
+		ManifestBuildCommand mbc1 = null;
+		if (espressoTests == null) {
+			mbc1 = new ManifestBuildCommand(this, acxt, manifest, true, srcdir, bindir);
+			tactics.add(mbc1);
+		}
 		
 		AaptGenBuildCommand gen = new AaptGenBuildCommand(this, acxt, manifest, gendir, resdir);
 		tactics.add(gen);
-		gen.addProcessDependency(mbc1);
+		if (espressoTests == null) {
+			gen.addProcessDependency(mbc1);
+		}
 		List<File> genFiles = new DeferredFileList(gendir, "*.java");
 		JavaBuildCommand genRes = new JavaBuildCommand(this, files, files.makeRelative(gendir).getPath(), "classes", "gen", genFiles, "android", javaVersion, true);
 		genRes.dontClean();
@@ -166,11 +176,14 @@ public class AndroidCommand extends AbstractStrategem {
 		tactics.add(buildSrc);
 		buildSrc.addProcessDependency(gen);
 
-		ManifestBuildCommand mbc2 = new ManifestBuildCommand(this, acxt, manifest, false, srcdir, bindir);
-		tactics.add(mbc2);
-		mbc2.addProcessDependency(buildSrc);
+		Tactic prior = buildSrc;
+		if (espressoTests == null) {
+			ManifestBuildCommand mbc2 = new ManifestBuildCommand(this, acxt, manifest, false, srcdir, bindir);
+			tactics.add(mbc2);
+			mbc2.addProcessDependency(buildSrc);
+			prior = mbc2;
+		}
 
-		// TODO: I feel it should be possible to compile and run unit tests, but what about that bootclasspath?
 		if (files.getRelative("src/test/java").exists())
 		{
 			List<File> testSources = FileUtils.findFilesMatching(files.getRelative("src/test/java"), "*.java");
@@ -192,6 +205,26 @@ public class AndroidCommand extends AbstractStrategem {
 				junitRun.addToBootClasspath(acxt.getSupportJar());
 				tactics.add(junitRun);
 				junitRun.addProcessDependency(buildTests);
+				
+				prior = junitRun;
+			}
+		}
+		
+		if (espressoTests != null && files.getRelative("src/espresso/java").exists())
+		{
+			List<File> espressoSources = FileUtils.findFilesMatching(files.getRelative("src/espresso/java"), "*.java");
+			if (espressoSources.size() > 0)
+			{
+				JavaBuildCommand buildTests = new JavaBuildCommand(this, files, "src/espresso/java", "espresso-classes", "espresso", espressoSources, "android", javaVersion, false);
+				buildTests.dontClean();
+				buildTests.addResource(espressoTests.getResource());
+				buildTests.addToClasspath(new File(files.getOutputDir(), "classes"));
+				buildTests.addToBootClasspath(acxt.getPlatformJar());
+				buildTests.addToBootClasspath(acxt.getSupportJar());
+				tactics.add(buildTests);
+				buildTests.addProcessDependency(prior);
+				
+				prior = buildTests;
 			}
 		}
 		
@@ -215,7 +248,7 @@ public class AndroidCommand extends AbstractStrategem {
 		if (useJack) {
 			JackBuildCommand jack = new JackBuildCommand(acxt, this, files, files.getOutput("classes"), files.getRelative("src/android/lib"), dexDir, jillDir, exclusions, uselibs);
 			tactics.add(jack);
-			jack.addProcessDependency(mbc2);
+			jack.addProcessDependency(prior);
 			assembleTactic = jack;
 			dexFile = new File(dexDir, "classes.dex");
 		} else {
@@ -235,7 +268,7 @@ public class AndroidCommand extends AbstractStrategem {
 			if (jniRestrict != null)
 				dex.restrictArch(jniRestrict.arch);
 			tactics.add(dex);
-			dex.addProcessDependency(mbc2);
+			dex.addProcessDependency(prior);
 			assembleTactic = dex;
 		}
 		

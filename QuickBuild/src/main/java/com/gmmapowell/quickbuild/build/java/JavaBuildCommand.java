@@ -15,6 +15,7 @@ import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.build.CanBeSkipped;
 import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
@@ -26,6 +27,7 @@ import org.zinutils.utils.OrderedFileList;
 public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 	private final File srcdir;
 	private final File bindir;
+	private final List<PendingResource> resources = new ArrayList<>();
 	private final BuildClassPath classpath;
 	private final BuildClassPath bootclasspath;
 	private boolean doClean = true;
@@ -60,6 +62,10 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 	public OrderedFileList sourceFiles() {
 		return new OrderedFileList(sources);
 	}
+
+	public void addResource(PendingResource resource) {
+		resources.add(resource);
+	}
 	
 	public void addToClasspath(File file) {
 		classpath.add(FileUtils.relativePath(file));
@@ -70,7 +76,15 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 	}
 	
 	public BuildClassPath getClassPath() {
+		moveResourcesToClassPath();
 		return classpath;
+	}
+
+	protected void moveResourcesToClassPath() {
+		while (!resources.isEmpty()) {
+			PendingResource pr = resources.remove(0);
+			classpath.add(pr.getPath());
+		}
 	}
 
 	public void dontClean()
@@ -94,6 +108,7 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 			return BuildStatus.SKIPPED;
 		if (doClean)
 			FileUtils.persistentCleanDirectory(bindir, 10, 300);
+		moveResourcesToClassPath();
 		classpath.add(bindir);
 		for (BuildResource br : cxt.getDependencies(this))
 		{
