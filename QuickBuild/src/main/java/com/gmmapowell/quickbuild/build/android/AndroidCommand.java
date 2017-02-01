@@ -18,6 +18,7 @@ import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.DeferredFileList;
 import com.gmmapowell.quickbuild.build.java.ExcludeCommand;
 import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
+import com.gmmapowell.quickbuild.build.java.JarBuildCommand;
 import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.build.java.JavaBuildCommand;
 import com.gmmapowell.quickbuild.build.java.JavaNature;
@@ -51,6 +52,7 @@ public class AndroidCommand extends AbstractStrategem {
 	private String javaVersion;
 	private File keystorePath;
 	private AndroidRestrictJNICommand jniRestrict;
+	private String exportJar;
 
 	public AndroidCommand(TokenizedLine toks) {
 		super(toks,
@@ -102,6 +104,9 @@ public class AndroidCommand extends AbstractStrategem {
 				if (jniRestrict != null)
 					throw new UtilException("Cannot specify more than one JNI restriction");
 				jniRestrict = (AndroidRestrictJNICommand)cmd;
+			}
+			else if (cmd instanceof AndroidExportJarCommand) {
+				exportJar = projectName + ".jar";
 			}
 			else
 				throw new UtilException("Cannot handle " + cmd);
@@ -188,6 +193,22 @@ public class AndroidCommand extends AbstractStrategem {
 				tactics.add(junitRun);
 				junitRun.addProcessDependency(buildTests);
 			}
+		}
+		
+		if (exportJar != null) {
+			JarBuildCommand jbc = new JarBuildCommand(this, files, exportJar, null, null, null, null);
+			
+			JarResource jarResource = jbc.getJarResource();
+			if (jarResource != null && buildSrc != null)
+				jbc.builds(jarResource);
+
+			jbc.add(files.getOutput("classes"));
+			if (resdir.exists())
+				jbc.add(resdir);
+
+			tactics.add(jbc);
+			jbc.addProcessDependency(prior);
+			prior = jbc;
 		}
 		
 		Tactic assembleTactic;
