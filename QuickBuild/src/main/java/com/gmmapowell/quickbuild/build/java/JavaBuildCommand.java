@@ -27,7 +27,7 @@ import org.zinutils.utils.OrderedFileList;
 public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 	private final File srcdir;
 	private final File bindir;
-	private final List<PendingResource> resources = new ArrayList<>();
+	private final List<PendingResource> resources = new ArrayList<PendingResource>();
 	private final BuildClassPath classpath;
 	private final BuildClassPath bootclasspath;
 	private boolean doClean = true;
