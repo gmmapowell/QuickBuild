@@ -5,8 +5,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,13 +73,17 @@ public class MavenNature implements Nature {
 		loadedLibs.add(pkginfo);
 		File mavenToFile = FileUtils.mavenToFile(pkginfo);
 		File cacheFile = new File(mvnCache, mavenToFile.getPath());
-		if (!cacheFile.exists())
-			downloadFromMaven(pkginfo, mavenToFile, cacheFile);
-		MavenResource res = new MavenResource(pkginfo, cacheFile);
+		File jarFile = cacheFile;
+		if (cacheFile.getName().endsWith(".aar")) {
+			jarFile = new File(cacheFile.getParentFile(), cacheFile.getName().replace(".aar", ".jar"));
+		}
+		if (!cacheFile.exists() || !jarFile.exists())
+			downloadFromMaven(pkginfo, mavenToFile, cacheFile, jarFile);
+		MavenResource res = new MavenResource(pkginfo, jarFile);
 		config.resourceAvailable(res);
 	}
 
-	private void downloadFromMaven(String pkginfo, File mavenToFile, File cacheTo) {
+	private void downloadFromMaven(String pkginfo, File mavenToFile, File cacheTo, File extractTo) {
 		if (mvnrepos.size() == 0)
 			throw new QuickBuildException("There are no maven repositories specified");
 		List<String> pathsTried = new ArrayList<String>();
@@ -87,6 +94,17 @@ public class MavenNature implements Nature {
 			try {
 				doDownload(urlPath, cacheTo);
 				System.out.println("Downloaded " + pkginfo + " from " + repo);
+				if (cacheTo.getName().endsWith(".aar")) {
+					JarFile jf = new JarFile(cacheTo);
+					try {
+						JarEntry je = jf.getJarEntry("classes.jar");
+						InputStream is = jf.getInputStream(je);
+						FileUtils.copyStreamToFile(is, extractTo);
+						System.out.println("  Extracted classes.jar to " + extractTo);
+					} finally {
+						jf.close();
+					}
+				}
 				return;
 			} catch (IOException e) {
 				cacheTo.delete();
@@ -127,9 +145,10 @@ public class MavenNature implements Nature {
 				if (shortest == null || shortest.length() > matcher.group(1).length())
 					shortest = matcher.group(1);
 			}
-			if (shortest != null)
+			if (shortest != null) {
 				doDownload(shortest, cacheTo);
-			return true;
+				return true;
+			}
 		}
 		catch (IOException e) {
 //			System.out.println("Exception: " + e.getMessage());
