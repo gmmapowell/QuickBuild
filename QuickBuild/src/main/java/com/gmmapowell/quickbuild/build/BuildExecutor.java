@@ -135,6 +135,7 @@ public class BuildExecutor {
 			}
 			advance();
 		}
+		cxt.waitForBackgroundsToComplete();
 		manager.saveDependencies();
 		buildOrder.saveBuildOrder();
 		showAnyErrors();

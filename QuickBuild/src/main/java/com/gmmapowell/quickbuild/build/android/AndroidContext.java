@@ -4,15 +4,17 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.zinutils.exceptions.UtilException;
+import org.zinutils.system.RunProcess;
 import org.zinutils.utils.FileUtils;
 
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
 
 public class AndroidContext {
-
 	private final File aapt;
 	private final File dx;
 	private final File jack;
@@ -24,6 +26,7 @@ public class AndroidContext {
 	private final String androidPlatform;
 	private final String androidBuild;
 	private final URLClassLoader apkLoader;
+	private List<String> devices;
 
 	// TODO: this needs to be cross-platform (somehow)
 	public AndroidContext(Config conf) {
@@ -109,6 +112,26 @@ public class AndroidContext {
 
 	public String getAndroidPlatform() {
 		return androidPlatform;
+	}
+
+	public List<String> getConnectedDeviceList() {
+		if (devices != null)
+			return devices;
+		
+		RunProcess proc = new RunProcess(adb.getPath());
+		proc.captureStdout();
+		proc.captureStderr();
+		proc.arg("devices");
+		proc.execute();
+		
+		String[] s = proc.getStdout().split("\n");
+		ArrayList<String> ret = new ArrayList<String>();
+		for (int i=1;i<s.length;i++) {
+			String[] tmp = s[i].split("[ \t]");
+			ret.add(tmp[0]);
+		}
+
+		return ret;
 	}
 
 }

@@ -8,6 +8,7 @@ import org.zinutils.exceptions.UtilException;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.CompleteBackgroundCommand;
 import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
@@ -44,6 +45,7 @@ public class AdbCommand extends AbstractTactic {
 	private final BuildResource apk;
 	private final BuildResource builds;
 	private String device;
+	private boolean background;
 
 	public AdbCommand(AndroidContext acxt, Strategem parent, StructureHelper files, BuildResource apk, BuildResource builds) {
 		super(parent);
@@ -54,6 +56,10 @@ public class AdbCommand extends AbstractTactic {
 	
 	public void setDevice(String device) {
 		this.device = device;
+	}
+
+	public void background(boolean background) {
+		this.background = background;
 	}
 
 	public void reinstall()
@@ -148,45 +154,72 @@ public class AdbCommand extends AbstractTactic {
 				throw new UtilException("Cannot handle argument of type " + s.getClass());
 		}
 		
+		CompleteBackgroundCommand cc = new CompleteCommand(cmd, builds);
+		if (background) {
+			cxt.background(proc, cc);
+			proc.background(true);
+		}
 		proc.execute();
-		if (proc.getExitCode() == 0)
-		{
-			// It doesn't always return an error code .. eg. "INSTALL_FAILED_DEXOPT"
-			for (String s : StringUtil.lines(proc.getStderr()))
-			{
-				if (s.trim().isEmpty())
-					continue;
-				if (s.contains(" KB/s "))
-					continue;
-				System.out.println(s);
-				if (s.contains("Fail"))
-					return BuildStatus.BROKEN;
-			}
-			for (String s : StringUtil.lines(proc.getStdout()))
-			{
-				if (s.trim().isEmpty())
-					continue;
-				if (s.contains(" KB/s "))
-					continue;
-				if (s.contains("pkg: "))
-					continue;
-				if (s.contains("Success"))
-					continue;
-				System.out.println(s);
-				if (s.contains("Fail"))
-					return BuildStatus.BROKEN;
-			}
-			cxt.builtResource(builds);
-			return BuildStatus.SUCCESS;
+		if (background)
+			return BuildStatus.BACKGROUND;
+		return cc.completeCommand(cxt, proc);
+	}
+
+	static class CompleteCommand implements CompleteBackgroundCommand {
+		private final Command cmd;
+		private final BuildResource builds;
+
+		public CompleteCommand(Command cmd, BuildResource builds) {
+			this.cmd = cmd;
+			this.builds = builds;
 		}
-		else if (proc.getStderr().contains("error: device not found"))
-		{
-			System.out.println("Device not found - ignoring");
-			cxt.builtResource(builds);
-			return BuildStatus.SUCCESS;
+		
+		@Override
+		public String getLabel() {
+			return cmd.toString();
 		}
-		System.out.println(proc.getStderr());
-		return cmd.stat;
+
+		@Override
+		public BuildStatus completeCommand(BuildContext cxt, RunProcess proc) {
+			if (proc.getExitCode() == 0)
+			{
+				// It doesn't always return an error code .. eg. "INSTALL_FAILED_DEXOPT"
+				for (String s : StringUtil.lines(proc.getStderr()))
+				{
+					if (s.trim().isEmpty())
+						continue;
+					if (s.contains(" KB/s ") || s.contains("%]"))
+						continue;
+					System.out.println(s);
+					if (s.contains("Fail"))
+						return BuildStatus.BROKEN;
+				}
+				for (String s : StringUtil.lines(proc.getStdout()))
+				{
+					if (s.trim().isEmpty())
+						continue;
+					if (s.contains(" KB/s ") || s.contains("%]"))
+						continue;
+					if (s.contains("pkg: "))
+						continue;
+					if (s.contains("Success"))
+						continue;
+					System.out.println(s);
+					if (s.contains("Fail"))
+						return BuildStatus.BROKEN;
+				}
+				cxt.builtResource(builds);
+				return BuildStatus.SUCCESS;
+			}
+			else if (proc.getStderr().contains("error: device not found"))
+			{
+				System.out.println("Device not found - ignoring");
+				cxt.builtResource(builds);
+				return BuildStatus.SUCCESS;
+			}
+			System.out.println(proc.getStderr());
+			return cmd.stat;
+		}
 	}
 
 	@Override

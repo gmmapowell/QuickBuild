@@ -13,7 +13,8 @@ public enum BuildStatus {
 	TEST_FAILURES,	// Tests failed, but don't break the build
 	BROKEN_DEPENDENCIES, // There were broken dependencies
 	BROKEN,			// I just can't go on!
-	LOOPING;		// I appear to be stuck in an infinite loop
+	LOOPING,		// I appear to be stuck in an infinite loop
+	BACKGROUND;		// I was put into the background
 	
 	public boolean isGood() { 
 		return this == SUCCESS || this == CLEAN || this == SKIPPED || this == NOTAPPLICABLE || this == NOTCRITICAL;
@@ -24,7 +25,7 @@ public enum BuildStatus {
 	}
 	
 	public boolean moveOn() {
-		return isGood() || this == TEST_FAILURES || this == BROKEN_DEPENDENCIES;
+		return isGood() || this == TEST_FAILURES || this == BROKEN_DEPENDENCIES || this == BACKGROUND;
 	}
 	
 	public boolean isBroken() {

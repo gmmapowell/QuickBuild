@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.zinutils.system.RunProcess;
+import org.zinutils.utils.FileUtils;
+
 import com.gmmapowell.quickbuild.app.BuildOutput;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
@@ -13,9 +16,18 @@ import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-import org.zinutils.utils.FileUtils;
 
 public class BuildContext {
+	public class Background {
+		private final RunProcess proc;
+		private final CompleteBackgroundCommand cc;
+
+		public Background(RunProcess proc, CompleteBackgroundCommand cc) {
+			this.proc = proc;
+			this.cc = cc;
+		}
+	}
+
 	private BuildOrder buildOrder;
 
 	private DependencyManager manager;
@@ -44,6 +56,7 @@ public class BuildContext {
 
 	public final boolean allTests;
 
+	private List<Background> backgrounds = new ArrayList<Background>();
 
 	public BuildContext(Config conf, ConfigFactory configFactory, BuildOutput output, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar, String upTo, boolean doubleQuick, boolean allTests, boolean gfMode) {
 		this.conf = conf;
@@ -196,5 +209,21 @@ public class BuildContext {
 
 	public String printableBuildOrder(boolean b) {
 		return buildOrder.printOut(b);
+	}
+
+	// announce that a process has been shoved into the background and
+	// we will "ultimately" need to wait for it ...
+	public void background(RunProcess proc, CompleteBackgroundCommand cc) {
+		backgrounds.add(new Background(proc, cc));
+	}
+	
+	public void waitForBackgroundsToComplete() {
+		for (Background b : backgrounds) {
+			System.out.println("Waiting for " + b.cc.getLabel());
+			while (!b.proc.isFinished()) {
+				try { Thread.sleep(250); } catch (Exception ex) { }
+			}
+			b.cc.completeCommand(this, b.proc);
+		}
 	}
 }
