@@ -8,6 +8,7 @@ import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.AbstractTactic;
 import org.zinutils.system.RunProcess;
 import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.OrderedFileList;
 
 public class AaptPackageBuildCommand extends AbstractTactic {
 
@@ -62,6 +63,10 @@ public class AaptPackageBuildCommand extends AbstractTactic {
 		return BuildStatus.BROKEN;
 	}
 
+	@Override
+	public OrderedFileList sourceFiles() {
+		return new OrderedFileList(manifestFile);
+	}
 	@Override
 	public String toString() {
 		return "aapt package: " + FileUtils.makeRelative(zipfile);

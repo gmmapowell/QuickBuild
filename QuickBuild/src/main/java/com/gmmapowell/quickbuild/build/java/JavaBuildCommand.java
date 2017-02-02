@@ -240,7 +240,7 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 		if (label.equals("main"))
 			return "Compiling " + idAs;
 		else
-			return "Compiling test classes for " + idAs;
+			return "Compiling " + label + " classes for " + idAs;
 	}
 
 	@Override

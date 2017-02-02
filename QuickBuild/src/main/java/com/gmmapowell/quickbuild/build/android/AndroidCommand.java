@@ -72,6 +72,8 @@ public class AndroidCommand extends AbstractStrategem {
 		config.getNature(JavaNature.class);
 		config.getNature(AndroidNature.class);
 		files = new StructureHelper(rootDir, config.getOutput());
+		FileUtils.assertDirectory(files.getRelative("src/android/res"));
+		FileUtils.assertDirectory(files.getRelative("src/android/lib"));
 		acxt = config.getAndroidContext();
 		apkFile = files.getOutput(projectName+".apk");
 		javaVersion = config.getVarIfDefined("javaVersion", null);
@@ -155,8 +157,10 @@ public class AndroidCommand extends AbstractStrategem {
 			genRes.needs(pr);
 		genRes.addToBootClasspath(acxt.getPlatformJar());
 		jrr.add(acxt.getPlatformJar());
-		genRes.addToBootClasspath(acxt.getSupportJar());
-		jrr.add(acxt.getSupportJar());
+		if (espressoTests == null) {
+			genRes.addToBootClasspath(acxt.getSupportJar());
+			jrr.add(acxt.getSupportJar());
+		}
 		tactics.add(genRes);
 		List<File> srcFiles;
 		if (srcdir.isDirectory()) {
@@ -172,7 +176,8 @@ public class AndroidCommand extends AbstractStrategem {
 		JavaBuildCommand buildSrc = new JavaBuildCommand(this, files, "src/main/java", "classes", "main", srcFiles, "android", javaVersion, true);
 		buildSrc.dontClean();
 		buildSrc.addToBootClasspath(acxt.getPlatformJar());
-		buildSrc.addToBootClasspath(acxt.getSupportJar());
+		if (espressoTests == null)
+			buildSrc.addToBootClasspath(acxt.getSupportJar());
 		tactics.add(buildSrc);
 		buildSrc.addProcessDependency(gen);
 
@@ -215,7 +220,7 @@ public class AndroidCommand extends AbstractStrategem {
 			List<File> espressoSources = FileUtils.findFilesMatching(files.getRelative("src/espresso/java"), "*.java");
 			if (espressoSources.size() > 0)
 			{
-				JavaBuildCommand buildTests = new JavaBuildCommand(this, files, "src/espresso/java", "espresso-classes", "espresso", espressoSources, "android", javaVersion, false);
+				JavaBuildCommand buildTests = new JavaBuildCommand(this, files, "src/espresso/java", "classes", "espresso", espressoSources, "android", javaVersion, false);
 				buildTests.dontClean();
 				buildTests.addResource(espressoTests.getResource());
 				buildTests.addToClasspath(new File(files.getOutputDir(), "classes"));
@@ -242,6 +247,10 @@ public class AndroidCommand extends AbstractStrategem {
 			tactics.add(jbc);
 			jbc.addProcessDependency(prior);
 			prior = jbc;
+		}
+		
+		if (espressoTests != null) {
+			exclusions.add(Pattern.compile(acxt.getSupportJar().getName()));
 		}
 		
 		Tactic assembleTactic;

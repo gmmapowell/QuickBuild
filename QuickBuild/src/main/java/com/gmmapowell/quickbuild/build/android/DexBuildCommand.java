@@ -169,7 +169,7 @@ public class DexBuildCommand extends AbstractTactic {
 	
 	private void considerAdding(LinkedHashSet<String> paths, String path) {
 		for (Pattern patt : exclusions)
-			if (patt.matcher(path.toLowerCase().replaceAll("\\\\", "/")).matches())
+			if (patt.matcher(path.toLowerCase().replaceAll("\\\\", "/")).find())
 				return;
 		paths.add(path);
 	}
