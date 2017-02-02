@@ -37,19 +37,23 @@ public class AdbCommand extends AbstractTactic {
 		public void errorStatus(BuildStatus stat) {
 			this.stat  = stat;
 		}
-
 	}
 
 	private final AndroidContext acxt;
 	private List<Command> commands = new ArrayList<Command>();
 	private final BuildResource apk;
 	private final BuildResource builds;
+	private String device;
 
 	public AdbCommand(AndroidContext acxt, Strategem parent, StructureHelper files, BuildResource apk, BuildResource builds) {
 		super(parent);
 		this.acxt = acxt;
 		this.apk = apk;
 		this.builds = builds;
+	}
+	
+	public void setDevice(String device) {
+		this.device = device;
 	}
 
 	public void reinstall()
@@ -63,13 +67,31 @@ public class AdbCommand extends AbstractTactic {
 		args[1] = "am";
 		args[2] = "start";
 		args[3] = "-n";
-		args[4] = activity;
+		int pos = 4;
 		for (int i=0;i<extras.size();i++) {
-			args[5+i*3] = "-e";
+			args[pos++] = "-e";
 			String[] foo = extras.get(i).split("=");
-			args[6+i*3] = foo[0];
-			args[7+i*3] = foo[1];
+			args[pos++] = foo[0];
+			args[pos++] = foo[1];
 		}
+		args[pos] = activity;
+		command(args);
+	}
+	
+	public void instrument(String activity, List<String> extras) {
+		Object[] args = new Object[5+extras.size()*3];
+		args[0] = "shell";
+		args[1] = "am";
+		args[2] = "instrument";
+		args[3] = "-w";
+		int pos = 4;
+		for (int i=0;i<extras.size();i++) {
+			args[pos++] = "-e";
+			String[] foo = extras.get(i).split("=");
+			args[pos++] = foo[0];
+			args[pos++] = foo[1];
+		}
+		args[pos] = activity;
 		command(args);
 	}
 	
@@ -86,11 +108,34 @@ public class AdbCommand extends AbstractTactic {
 		if (commands.size() != 1)
 			throw new QuickBuildException("Undecided about this - allowing multiple commands seems reasonable, but how would it be specified?  Either you have an idea, or something is wrong");
 
+		List<String> devices = acxt.getConnectedDeviceList();
+		BuildStatus ret = BuildStatus.SUCCESS;
+		if (devices.isEmpty())
+			throw new UtilException("There are no connected devices");
+		else if (device != null) {
+			if (!devices.contains(device))
+				throw new UtilException("Device " + device + " is not connected");
+			ret = runOnDevice(cxt, device);
+		} else {
+			for (String d : devices) {
+				System.out.println("  running adb on " + d);
+				ret = runOnDevice(cxt, d);
+				if (ret != BuildStatus.SUCCESS && ret != BuildStatus.BACKGROUND)
+					break;
+			}
+		}
+		
+		return ret;
+	}
+	
+	public BuildStatus runOnDevice(BuildContext cxt, String d) {
 		RunProcess proc = new RunProcess(acxt.getADB().getPath());
 		proc.captureStdout();
 		proc.captureStderr();
 		
 		Command cmd = commands.get(0);
+		proc.arg("-s");
+		proc.arg(d);
 		for (Object s : cmd.args)
 		{
 			if (s instanceof String)

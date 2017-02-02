@@ -22,6 +22,7 @@ public class AdbInstallCommand extends AbstractBuildCommand {
 	private String root;
 	private String resource;
 //	private String emulator;
+	private String device;
 	private AndroidContext acxt;
 	private StructureHelper files;
 	private PendingResource apk;
@@ -35,7 +36,8 @@ public class AdbInstallCommand extends AbstractBuildCommand {
 		toks.process(this,
 				new ArgumentDefinition("*", Cardinality.REQUIRED, "root", "root dir"),
 				new ArgumentDefinition("*", Cardinality.REQUIRED, "resource", "apk resource"),
-				new ArgumentDefinition("-emulator", Cardinality.OPTION, "emulator", "use emulator"));
+				new ArgumentDefinition("--emulator", Cardinality.OPTION, "emulator", "use emulator"),
+				new ArgumentDefinition("--device", Cardinality.OPTION, "device", "specify device"));
 		rootDir = FileUtils.relativePath(new File(root));
 		if (!resource.endsWith(".apk"))
 			throw new UtilException("resource must end in .apk");
@@ -95,6 +97,8 @@ public class AdbInstallCommand extends AbstractBuildCommand {
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		AdbCommand cmd = new AdbCommand(acxt, this, files, apk, buildsInstalled);
+		if (device != null)
+			cmd.setDevice(device);
 		cmd.reinstall();
 		return cmd.execute(cxt, showArgs, showDebug);
 	}

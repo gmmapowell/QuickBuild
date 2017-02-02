@@ -25,6 +25,7 @@ public class AdbStartCommand extends AbstractBuildCommand {
 	private AndroidContext acxt;
 	private StructureHelper files;
 	private PendingResource apk;
+	private String device;
 	private final ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 	private AdbStartedResource buildsStarted;
@@ -39,6 +40,7 @@ public class AdbStartCommand extends AbstractBuildCommand {
 		toks.process(this,
 				new ArgumentDefinition("*", Cardinality.REQUIRED, "resource", "installed apk resource"),
 				new ArgumentDefinition("*", Cardinality.REQUIRED, "activity", "activity to start"),
+				new ArgumentDefinition("--device", Cardinality.OPTION, "device", "specify device"),
 				new ArgumentDefinition("-e", Cardinality.ZERO_OR_MORE, "extras", "extras to pass to activity"));
 	}
 
@@ -96,6 +98,8 @@ public class AdbStartCommand extends AbstractBuildCommand {
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		AdbCommand cmd = new AdbCommand(acxt, this, files, apk, buildsStarted);
+		if (device != null)
+			cmd.setDevice(device);
 		cmd.start(activity, extras);
 		return cmd.execute(cxt, showArgs, showDebug);
 	}
