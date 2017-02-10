@@ -115,6 +115,8 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 		{
 			if (br instanceof JarResource)
 				classpath.add(((JarResource)br).getPath());
+			else if (br instanceof DirectoryResource)
+				classpath.add(((DirectoryResource)br).getPath());
 			else if (br instanceof ProcessResource)
 				; // transitive node
 			else if (br instanceof JSFileResource)

@@ -38,7 +38,7 @@ public class JavaNature implements Nature, BuildContextAware {
 	}
 
 	private final List<String> loadedLibs = new ArrayList<String>();
-	private final SetMap<String, JarResource> availablePackages = new SetMap<String, JarResource>();
+	private final SetMap<String, BuildResource> availablePackages = new SetMap<String, BuildResource>();
 	private final Set<String> duplicates = new HashSet<String>();
 	private final ListMap<String, JarResource> projectPackages = new ListMap<String, JarResource>();
 	private BuildContext cxt;
@@ -91,13 +91,14 @@ public class JavaNature implements Nature, BuildContextAware {
 		
 		if (br instanceof JarResource)
 			scanJar((JarResource)br);
+		else if (br instanceof DirectoryResource)
+			extractPackages((DirectoryResource)br);
 		else if (br instanceof JavaSourceDirResource)
 			rememberSources((JavaSourceDirResource) br);
 		else
 			throw new UtilException("Can't handle " + br);
 	}
 
-	
 	private void scanJar(JarResource br) {
 		ZUJarFile jar;
 		try
@@ -131,6 +132,14 @@ public class JavaNature implements Nature, BuildContextAware {
 //			showDuplicates();
 	}
 
+	private void extractPackages(DirectoryResource br) {
+		File path = br.getPath();
+		for (File dir : FileUtils.findDirectoriesUnder(path)) {
+			String dn = FileUtils.convertToDottedName(dir);
+			availablePackages.add(dn, br);
+		}
+	}
+
 	private void rememberSources(JavaSourceDirResource br) {
 		if (br.getJarResource() == null) {
 			return; // useless to us, but surely not an error ...
@@ -153,7 +162,7 @@ public class JavaNature implements Nature, BuildContextAware {
 				continue;
 			reportedDuplicates.add(s);
 			System.out.println("Duplicate/overlapping definitions found for package: " + s);
-			for (JarResource f : availablePackages.get(s))
+			for (BuildResource f : availablePackages.get(s))
 				System.out.println("  " + f);
 		}
 	}
@@ -164,10 +173,10 @@ public class JavaNature implements Nature, BuildContextAware {
 		// First, try and resolve it with a base jar, or a built jar
 		if (availablePackages.contains(needsJavaPackage))
 		{
-			Set<JarResource> resources = availablePackages.get(needsJavaPackage);
-			JarResource haveOne = null;
+			Set<BuildResource> resources = availablePackages.get(needsJavaPackage);
+			BuildResource haveOne = null;
 			boolean addMany = true;
-			for (JarResource jr : resources)
+			for (BuildResource jr : resources)
 			{
 				if (conf.matchesContext(jr, context))
 				{
@@ -281,6 +290,7 @@ public class JavaNature implements Nature, BuildContextAware {
 	public void provideBuildContext(BuildContext cxt) {
 		this.cxt = cxt;
 		cxt.tellMeAbout(this, JarResource.class);
+		cxt.tellMeAbout(this, DirectoryResource.class);
 		cxt.tellMeAbout(this, JavaSourceDirResource.class);
 	}
 

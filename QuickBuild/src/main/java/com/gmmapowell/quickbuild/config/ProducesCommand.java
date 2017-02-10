@@ -5,13 +5,14 @@ import java.io.File;
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.parser.NoChildCommand;
 import org.zinutils.parser.TokenizedLine;
+import org.zinutils.utils.ArgumentDefinition;
+import org.zinutils.utils.Cardinality;
+
+import com.gmmapowell.quickbuild.build.java.DirectoryResource;
 import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.build.javascript.JSFileResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Tactic;
-import org.zinutils.utils.ArgumentDefinition;
-import org.zinutils.utils.Cardinality;
-import org.zinutils.utils.FileUtils;
 
 public class ProducesCommand extends NoChildCommand implements ConfigApplyCommand {
 	private String type;
@@ -29,7 +30,7 @@ public class ProducesCommand extends NoChildCommand implements ConfigApplyComman
 
 	@Override
 	public void applyTo(Config config) {
-		resourceFile = FileUtils.relativePath(resource);
+		resourceFile = new File(resource);
 	}
 
 	public boolean doAnalysis()
@@ -42,6 +43,8 @@ public class ProducesCommand extends NoChildCommand implements ConfigApplyComman
 			return new JarResource(t, resourceFile);
 		else if (type.equals("js"))
 			return new JSFileResource(t, resourceFile);
+		else if (type.equals("classdir"))
+			return new DirectoryResource(t, resourceFile);
 		else
 			throw new UtilException("Cannot handle bash resource type " + type);
 	}

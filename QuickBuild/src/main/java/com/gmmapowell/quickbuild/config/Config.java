@@ -14,16 +14,16 @@ import org.zinutils.collections.ListMap;
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.http.ProxyInfo;
 import org.zinutils.http.ProxyableConnection;
+import org.zinutils.utils.FileUtils;
+
 import com.gmmapowell.quickbuild.app.BuildOutput;
 import com.gmmapowell.quickbuild.build.android.AndroidContext;
-import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.ResourceListener;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-import org.zinutils.utils.FileUtils;
 
 public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	private final List<Strategem> strategems = new ArrayList<Strategem>();
@@ -231,7 +231,7 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 		libraryContexts.add(library, context);
 	}
 
-	public boolean matchesContext(JarResource jr, String context) {
+	public boolean matchesContext(BuildResource jr, String context) {
 		String askedFor = jr.compareAs();
 //		System.out.println("Asked for " + jr + " in context " + context);
 //		System.out.println(libraryContexts);

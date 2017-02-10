@@ -10,6 +10,7 @@ import org.zinutils.exceptions.UtilException;
 import org.zinutils.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.ExecutesInDirCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ProducesCommand;
@@ -25,7 +26,7 @@ import org.zinutils.utils.Cardinality;
 import org.zinutils.utils.FileUtils;
 import org.zinutils.utils.OrderedFileList;
 
-public class BashCommand extends AbstractStrategemTactic {
+public class BashCommand extends AbstractStrategemTactic implements ExecutesInDirCommand {
 	private String scriptName;
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private final ResourcePacket<BuildResource> provides = new ResourcePacket<BuildResource>();
@@ -82,6 +83,11 @@ public class BashCommand extends AbstractStrategemTactic {
 		}
 
 		return this;
+	}
+
+	@Override
+	public String getExecDir() {
+		return dir.getDirectory();
 	}
 
 	@Override

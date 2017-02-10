@@ -16,9 +16,11 @@ import org.zinutils.utils.FileUtils;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.ExecutesInDirCommand;
 import com.gmmapowell.quickbuild.build.bash.BashDirectoryCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
+import com.gmmapowell.quickbuild.config.ProducesCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategemTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
@@ -26,7 +28,7 @@ import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 
-public class JavaCommand extends AbstractStrategemTactic {
+public class JavaCommand extends AbstractStrategemTactic implements ExecutesInDirCommand {
 	private String projectName;
 	private String mainClass;
 	private final File rootdir;
@@ -40,6 +42,7 @@ public class JavaCommand extends AbstractStrategemTactic {
 	private List<String> args = new ArrayList<String>();
 	private StructureHelper files;
 	private String reldir;
+	private List<BuildResource> produces = new ArrayList<BuildResource>();
 
 	public JavaCommand(TokenizedLine toks) {
 		super(toks, 
@@ -109,6 +112,15 @@ public class JavaCommand extends AbstractStrategemTactic {
 			else if (opt instanceof BashDirectoryCommand) {
 				reldir = ((BashDirectoryCommand)opt).getDirectory();
 			}
+			else if (opt instanceof ProducesCommand) {
+				ProducesCommand jpc = (ProducesCommand)opt;
+				BuildResource resource = jpc.getProducedResource(this);
+				produces.add(resource);
+				this.buildsResources().add(resource);
+				if (jpc.doAnalysis()) {
+					resource.enableAnalysis();
+				}
+			}
 //			if (opt instanceof SpecifyTargetCommand)
 //			{
 //				targetName = ((SpecifyTargetCommand) opt).getName();
@@ -166,6 +178,11 @@ public class JavaCommand extends AbstractStrategemTactic {
 		}
 //		if (targetName == null)
 //			targetName = new File(projectName).getName() + ".jar";
+	}
+
+	@Override
+	public String getExecDir() {
+		return reldir;
 	}
 
 	public void define(String d) {
@@ -288,5 +305,10 @@ public class JavaCommand extends AbstractStrategemTactic {
 	@Override
 	public boolean onCascade() {
 		return false;
+	}
+	
+	@Override
+	public boolean analyzeExports() {
+		return true;
 	}
 }
