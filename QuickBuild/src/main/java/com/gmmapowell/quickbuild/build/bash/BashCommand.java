@@ -141,7 +141,7 @@ public class BashCommand extends AbstractStrategemTactic {
 		exec.captureStdout();
 		exec.captureStderr();
 		if (dir != null)
-			exec.executeInDir(new File(dir.dir));
+			exec.executeInDir(new File(dir.getDirectory()));
 
 		for (String a : args)
 			exec.arg(a);

@@ -48,6 +48,7 @@ public class JavaNature implements Nature, BuildContextAware {
 
 	public static void init(ConfigFactory config)
 	{
+		config.addCommandExtension("args", ArgsCommand.class);
 		config.addCommandExtension("boot", BootClassPathCommand.class);
 		config.addCommandExtension("define", JUnitDefineCommand.class);
 		config.addCommandExtension("exclude", ExcludeCommand.class);
@@ -55,6 +56,7 @@ public class JavaNature implements Nature, BuildContextAware {
 		config.addCommandExtension("include", IncludePackageCommand.class);
 		config.addCommandExtension("jar", JarCommand.class);
 		config.addCommandExtension("junit", JarCommand.class);
+		config.addCommandExtension("java", JavaCommand.class);
 		config.addCommandExtension("jarjar", JarJarCommand.class);
 		config.addCommandExtension("javadoc", JavaDocCommand.class);
 		config.addCommandExtension("junitlib", JUnitLibCommand.class);

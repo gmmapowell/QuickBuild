@@ -11,7 +11,10 @@ public class RunClassPath extends BuildClassPath {
 	
 	public RunClassPath(BuildContext cxt, JavaBuildCommand jbc)
 	{
-		basedOn = jbc.getClassPath();
+		if (jbc == null)
+			basedOn = new BuildClassPath();
+		else
+			basedOn = jbc.getClassPath();
 		utilsJar = cxt.getUtilsJar();
 	}
 	

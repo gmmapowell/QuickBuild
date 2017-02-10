@@ -8,7 +8,7 @@ import org.zinutils.utils.ArgumentDefinition;
 import org.zinutils.utils.Cardinality;
 
 public class BashDirectoryCommand extends NoChildCommand implements ConfigApplyCommand {
-	String dir;
+	private String dir;
 	
 	public BashDirectoryCommand(TokenizedLine toks)
 	{
@@ -18,6 +18,10 @@ public class BashDirectoryCommand extends NoChildCommand implements ConfigApplyC
 	@Override
 	public void applyTo(Config config) {
 		
+	}
+	
+	public String getDirectory() {
+		return dir;
 	}
 
 	@Override
