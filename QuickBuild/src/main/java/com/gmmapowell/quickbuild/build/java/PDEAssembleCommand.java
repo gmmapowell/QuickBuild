@@ -88,7 +88,8 @@ public class PDEAssembleCommand extends ArchiveCommand {
 	}
 
 	private boolean jarFile(RunProcess proc, File dir, File f) {
-		if (new File(dir, f.getPath()).isDirectory())
+		File af = new File(dir, f.getPath());
+		if (af.isDirectory() || !af.canRead())
 			return false;
 		if (blockedByFilters(f))
 			return false;

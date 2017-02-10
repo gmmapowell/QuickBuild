@@ -139,6 +139,7 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 		
 		// This should really be an option!!!!
 		proc.arg("-g");
+		proc.arg("-XDignore.symbol.file");
 		
 		proc.arg("-d");
 		proc.arg(bindir.getPath());
