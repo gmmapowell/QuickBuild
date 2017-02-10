@@ -17,6 +17,7 @@ import org.zinutils.utils.FileUtils;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.DeferredFileList;
 import com.gmmapowell.quickbuild.build.java.ExcludeCommand;
+import com.gmmapowell.quickbuild.build.java.JUnitLibCommand;
 import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
 import com.gmmapowell.quickbuild.build.java.JarBuildCommand;
 import com.gmmapowell.quickbuild.build.java.JarResource;
@@ -45,6 +46,7 @@ public class AndroidCommand extends AbstractStrategem {
 	private ResourcePacket<PendingResource> uselibs = new ResourcePacket<PendingResource>();
 	private ResourcePacket<PendingResource> usejni = new ResourcePacket<PendingResource>();
 	private ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
+	private final List<PendingResource> junitLibs = new ArrayList<PendingResource>();
 	private Set<Pattern> exclusions = new HashSet<Pattern>();
 	final JavaRuntimeReplica jrr;
 	private File bindir;
@@ -115,6 +117,10 @@ public class AndroidCommand extends AbstractStrategem {
 			else if (cmd instanceof AndroidExportJarCommand) {
 				exportJar = projectName + ".jar";
 			}
+			else if (cmd instanceof JUnitLibCommand)
+			{
+				addJUnitLib((JUnitLibCommand)cmd);
+			}
 			else
 				throw new UtilException("Cannot handle " + cmd);
 		}
@@ -124,6 +130,11 @@ public class AndroidCommand extends AbstractStrategem {
 		
 		return this;
 	}
+	
+	private void addJUnitLib(JUnitLibCommand opt) {
+		junitLibs.add(opt.getResource());
+	}
+
 
 	public void createTactics() {
 		File manifest = files.getRelative("src/android/AndroidManifest.xml");
@@ -206,12 +217,14 @@ public class AndroidCommand extends AbstractStrategem {
 				
 				
 				JUnitRunCommand junitRun = new JUnitRunCommand(this, files, buildTests, null);
-				junitRun.addToBootClasspath(acxt.getPlatformJar());
-				junitRun.addToBootClasspath(acxt.getSupportJar());
+				junitRun.addToClasspath(acxt.getPlatformJar());
+				junitRun.addToClasspath(acxt.getSupportJar());
+				junitRun.addLibs(junitLibs);
 				tactics.add(junitRun);
 				junitRun.addProcessDependency(buildTests);
 				
-				prior = junitRun;
+				// I don't think that running the tests is actually a dependency for the later steps
+//				prior = junitRun;
 			}
 		}
 		

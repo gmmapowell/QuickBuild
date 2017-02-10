@@ -43,8 +43,8 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	private File bindir;
 	private File errdir;
 	
-	// TODO: this is currently unused ... it should be, I think, for Android
 	private final BuildClassPath bootclasspath = new BuildClassPath();
+	private final BuildClassPath classpath = new BuildClassPath();
 	private final JavaBuildCommand jbc;
 	private final StructureHelper files;
 	private final List<String> defines = new ArrayList<String>();
@@ -86,6 +86,8 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		if (cxt.doubleQuick)
 			return BuildStatus.SKIPPED;
 		RunClassPath classpath = new RunClassPath(cxt, jbc);
+		for (File f : this.classpath)
+			classpath.add(f);
 		for (BuildResource r : needsResources())
 			classpath.add(r.getPath());
 		for (BuildResource f : cxt.getTransitiveDependencies(this))
@@ -163,7 +165,10 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		HandleError handleError = new HandleError(stderr);
 		stdout.parseLines(stdoutParser(), new HandleOutput(cxt.output, handleError));
 
-		// TODO: use bootclasspath
+		if (!bootclasspath.empty())
+		{
+			proc.arg("-Xbootclasspath:" + bootclasspath.toString());
+		}
 		proc.arg("-classpath");
 		proc.arg(classpath.toString());
 		for (String s : defines)
@@ -197,6 +202,10 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	
 	public void addToBootClasspath(File resource) {
 		bootclasspath.add(resource);
+	}
+
+	public void addToClasspath(File resource) {
+		classpath.add(resource);
 	}
 
 	public void addLibs(List<PendingResource> junitLibs) {

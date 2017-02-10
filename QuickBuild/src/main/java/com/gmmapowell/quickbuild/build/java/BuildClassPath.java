@@ -2,11 +2,12 @@ package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.zinutils.utils.PathBuilder;
 
-public class BuildClassPath {
+public class BuildClassPath implements Iterable<File> {
 	private Set<File> files = new HashSet<File>();
 
 	public void add(File file) {
@@ -33,5 +34,10 @@ public class BuildClassPath {
 
 	public boolean empty() {
 		return files.isEmpty();
+	}
+
+	@Override
+	public Iterator<File> iterator() {
+		return files.iterator();
 	}
 }
