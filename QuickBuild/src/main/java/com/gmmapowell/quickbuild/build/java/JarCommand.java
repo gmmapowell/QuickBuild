@@ -9,6 +9,7 @@ import org.zinutils.parser.TokenizedLine;
 
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
+import com.gmmapowell.quickbuild.config.ResourceCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategem;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
@@ -32,6 +33,7 @@ public class JarCommand extends AbstractStrategem {
 	protected List<File> includePackages;
 	protected List<File> excludePackages;
 	private final List<PendingResource> junitLibs = new ArrayList<PendingResource>();
+	private final List<PendingResource> resources = new ArrayList<PendingResource>();
 	private final List<String> junitDefines = new ArrayList<String>();
 	private final List<String> junitPatterns = new ArrayList<String>();
 	private final List<PendingResource> jarLibs = new ArrayList<PendingResource>();
@@ -122,6 +124,10 @@ public class JarCommand extends AbstractStrategem {
 			{
 				addJUnitLib((JUnitLibCommand)opt);
 			}
+			else if (opt instanceof ResourceCommand)
+			{
+				addResource((ResourceCommand)opt);
+			}
 			else if (opt instanceof JUnitMemoryCommand)
 			{
 				setJUnitMemory((JUnitMemoryCommand)opt);
@@ -167,6 +173,11 @@ public class JarCommand extends AbstractStrategem {
 
 	private void addJUnitLib(JUnitLibCommand opt) {
 		junitLibs.add(opt.getResource());
+	}
+
+	private void addResource(ResourceCommand opt) {
+		resources.add(opt.getPendingResource());
+		needsResources.add(opt.getPendingResource());
 	}
 
 	private void setJUnitMemory(JUnitMemoryCommand opt) {

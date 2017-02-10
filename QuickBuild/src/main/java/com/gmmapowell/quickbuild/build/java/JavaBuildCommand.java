@@ -13,6 +13,7 @@ import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.build.CanBeSkipped;
+import com.gmmapowell.quickbuild.build.javascript.JSFileResource;
 import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
@@ -116,6 +117,8 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 				classpath.add(((JarResource)br).getPath());
 			else if (br instanceof ProcessResource)
 				; // transitive node
+			else if (br instanceof JSFileResource)
+				; // I don't think we need to "do" anything with this; just use it for dependency analysis
 			else
 				System.out.println("What do I do with " + br);
 		}

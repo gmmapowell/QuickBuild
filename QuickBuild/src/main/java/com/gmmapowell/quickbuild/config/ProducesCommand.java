@@ -6,6 +6,7 @@ import org.zinutils.exceptions.UtilException;
 import org.zinutils.parser.NoChildCommand;
 import org.zinutils.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.java.JarResource;
+import com.gmmapowell.quickbuild.build.javascript.JSFileResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Tactic;
 import org.zinutils.utils.ArgumentDefinition;
@@ -39,6 +40,8 @@ public class ProducesCommand extends NoChildCommand implements ConfigApplyComman
 	public BuildResource getProducedResource(Tactic t) {
 		if (type.equals("jar"))
 			return new JarResource(t, resourceFile);
+		else if (type.equals("js"))
+			return new JSFileResource(t, resourceFile);
 		else
 			throw new UtilException("Cannot handle bash resource type " + type);
 	}
