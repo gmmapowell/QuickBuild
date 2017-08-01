@@ -11,6 +11,7 @@ import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.ResourceCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategem;
+import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
@@ -32,7 +33,7 @@ public class JarCommand extends AbstractStrategem {
 	protected String targetName;
 	protected List<File> includePackages;
 	protected List<File> excludePackages;
-	private final List<PendingResource> junitLibs = new ArrayList<PendingResource>();
+	private final List<BuildResource> junitLibs = new ArrayList<BuildResource>();
 	private final List<PendingResource> resources = new ArrayList<PendingResource>();
 	private final List<String> junitDefines = new ArrayList<String>();
 	private final List<String> junitPatterns = new ArrayList<String>();
@@ -59,13 +60,17 @@ public class JarCommand extends AbstractStrategem {
 		javaVersion = config.getVarIfDefined("javaVersion", null);
 		processOptions(config);
 
-		ArchiveCommand jar = createAssemblyCommand(figureResourceFiles("src/main/resources", null));
+		OrderedFileList ofl = figureResourceFiles("src/main/resources", null);
+		ArchiveCommand jar = createAssemblyCommand(ofl);
 		
 		JavaBuildCommand javac;
 		if (justJunit)
 			javac = null;
-		else
+		else {
 			javac = addJavaBuild(tactics, jar, "src/main/java", "classes", "main", true);
+			if (javac != null)
+				javac.dumpClasspathTo(files.getOutput("buildclasspath"));
+		}
 		JavaBuildCommand junit = addJavaBuild(tactics, null, "src/test/java", "test-classes", "test", false);
 		if (junit != null)
 		{
@@ -73,25 +78,36 @@ public class JarCommand extends AbstractStrategem {
 			if (javac != null)
 				junit.addProcessDependency(javac);
 		}
-		addResources(jar, junit, "src/main/resources");
-		addResources(null, junit, "src/test/resources");
-		JUnitRunCommand jrun = addJUnitRun(tactics, junit);
+		JavaBuildCommand jgold = addJavaBuild(tactics, null, "src/test/golden", "golden-classes", "golden", false);
+		if (jgold != null)
+		{
+			jgold.addToClasspath(new File(files.getOutputDir(), "classes"));
+			if (javac != null)
+				jgold.addProcessDependency(javac);
+		}
+		addResources(jar, junit, jgold, "src/main/resources");
+		addResources(null, junit, jgold, "src/test/resources");
+		JUnitRunCommand jrun = addJUnitRun(tactics, junit, jgold);
 		if (tactics.size() == 0)
 			throw new QuickBuildException("None of the required source directories exist (or have source files) to build " + targetName);
 		if (javac != null || jar.alwaysBuild())
 			tactics.add(jar);
 		if (jrun != null && junit != null)
 			jrun.addProcessDependency(junit);
+		if (jrun != null && jgold != null)
+			jrun.addProcessDependency(jgold);
 		
 		JarResource jarResource = jar.getJarResource();
 		if (jarResource != null && javac != null)
 			jar.builds(jarResource);
 
-		additionalCommands(config);
+		additionalCommands(config, ofl);
 		if (javac != null)
 			jar.addProcessDependency(javac);
 		if (junit != null)
 			jar.addProcessDependency(junit);
+		if (jgold != null)
+			jar.addProcessDependency(jgold);
 		return this;
 	}
 
@@ -100,7 +116,7 @@ public class JarCommand extends AbstractStrategem {
 		return new JarBuildCommand(this, files, targetName, includePackages, excludePackages, resourceFiles, gitIdCommand);
 	}
 
-	protected void additionalCommands(Config config) {
+	protected void additionalCommands(Config config, OrderedFileList ofl) {
 		// strategy pattern
 	}
 
@@ -108,7 +124,9 @@ public class JarCommand extends AbstractStrategem {
 		for (ConfigApplyCommand opt : options)
 		{
 			opt.applyTo(config);
-			if (opt instanceof SpecifyTargetCommand)
+			if (processOption(opt))
+				;
+			else if (opt instanceof SpecifyTargetCommand)
 			{
 				targetName = ((SpecifyTargetCommand) opt).getName();
 			}
@@ -158,8 +176,6 @@ public class JarCommand extends AbstractStrategem {
 					throw new UtilException("You cannot specify more than one git id variable");
 				gitIdCommand = (GitIdCommand) opt;
 			}
-			else if (processOption(opt))
-				;
 			else
 				throw new UtilException("The option " + opt + " is not valid for JarCommand");
 		}
@@ -171,8 +187,12 @@ public class JarCommand extends AbstractStrategem {
 		return false;
 	}
 
-	private void addJUnitLib(JUnitLibCommand opt) {
+	protected void addJUnitLib(JUnitLibCommand opt) {
 		junitLibs.add(opt.getResource());
+	}
+
+	protected void addJUnitLib(BuildResource br) {
+		junitLibs.add(br);
 	}
 
 	private void addResource(ResourceCommand opt) {
@@ -304,7 +324,7 @@ public class JarCommand extends AbstractStrategem {
 		return null;
 	}
 	
-	private void addResources(ArchiveCommand jar, JavaBuildCommand junit, String src) {
+	private void addResources(ArchiveCommand jar, JavaBuildCommand junit, JavaBuildCommand jgold, String src) {
 		File dir = new File(rootdir, src);
 		if (dir.isDirectory())
 		{
@@ -312,13 +332,15 @@ public class JarCommand extends AbstractStrategem {
 				jar.add(dir);
 			if (junit != null)
 				junit.addToClasspath(dir);
+			if (jgold != null)
+				jgold.addToClasspath(dir);
 		}
 	}
 
-	private JUnitRunCommand addJUnitRun(List<? super Tactic> ret, JavaBuildCommand jbc) {
-		if (runJunit && jbc != null)
+	private JUnitRunCommand addJUnitRun(List<? super Tactic> ret, JavaBuildCommand jbc, JavaBuildCommand jgbc) {
+		if (runJunit && (jbc != null || jgbc != null))
 		{
-			JUnitRunCommand cmd = new JUnitRunCommand(this, files, jbc, figureResourceFiles("src/main/resources", "src/test/resources"));
+			JUnitRunCommand cmd = new JUnitRunCommand(this, files, jbc, jgbc, figureResourceFiles("src/main/resources", "src/test/resources"));
 			cmd.addLibs(junitLibs);
 			if (junitMemory != null)
 				cmd.setJUnitMemory(junitMemory);
@@ -327,6 +349,7 @@ public class JarCommand extends AbstractStrategem {
 			for (String d : junitPatterns)
 				cmd.pattern(d);
 			ret.add(cmd);
+			cmd.dumpClasspathTo(files.getOutput("junitclasspath"));
 			return cmd;
 		}
 		return null;

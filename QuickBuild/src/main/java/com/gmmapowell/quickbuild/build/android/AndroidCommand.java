@@ -46,7 +46,7 @@ public class AndroidCommand extends AbstractStrategem {
 	private ResourcePacket<PendingResource> uselibs = new ResourcePacket<PendingResource>();
 	private ResourcePacket<PendingResource> usejni = new ResourcePacket<PendingResource>();
 	private ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
-	private final List<PendingResource> junitLibs = new ArrayList<PendingResource>();
+	private final List<BuildResource> junitLibs = new ArrayList<BuildResource>();
 	private Set<Pattern> exclusions = new HashSet<Pattern>();
 	final JavaRuntimeReplica jrr;
 	private File bindir;
@@ -216,7 +216,7 @@ public class AndroidCommand extends AbstractStrategem {
 				buildTests.addProcessDependency(prior);
 				
 				
-				JUnitRunCommand junitRun = new JUnitRunCommand(this, files, buildTests, null);
+				JUnitRunCommand junitRun = new JUnitRunCommand(this, files, buildTests, null, null);
 				junitRun.addToClasspath(acxt.getPlatformJar());
 				junitRun.addToClasspath(acxt.getSupportJar());
 				junitRun.addLibs(junitLibs);

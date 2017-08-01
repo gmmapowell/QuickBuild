@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.parser.TokenizedLine;
+
+import com.gmmapowell.quickbuild.build.java.DirectoryResource;
 import com.gmmapowell.quickbuild.build.java.IncludePackageCommand;
 import org.zinutils.utils.ArgumentDefinition;
 import org.zinutils.utils.Cardinality;
@@ -29,6 +31,10 @@ public class DirectoryResourceCommand extends SpecificChildrenParent<ConfigApply
 	public void applyTo(Config config) {
 	}
 
+	public DirectoryResource getResource() {
+		return new DirectoryResource(null, rootDir);
+	}
+	
 	@Override
 	public void addChild(ConfigApplyCommand obj) {
 		if (obj instanceof IncludePackageCommand)

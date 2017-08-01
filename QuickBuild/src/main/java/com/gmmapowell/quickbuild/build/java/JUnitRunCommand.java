@@ -1,6 +1,8 @@
 package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,7 +42,9 @@ import org.zinutils.utils.OrderedFileList;
 
 public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	private final File srcdir;
+	private final File golddir;
 	private File bindir;
+	private File goldbin;
 	private File errdir;
 	
 	private final BuildClassPath bootclasspath = new BuildClassPath();
@@ -52,14 +56,19 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	private String memory;
 	private final String idAs;
 	private final OrderedFileList testResourceFiles;
+	private File dumpClasspath;
+	private JavaBuildCommand jgbc;
 
-	public JUnitRunCommand(Strategem parent, StructureHelper files, JavaBuildCommand jbc, OrderedFileList testResourceFiles) {
+	public JUnitRunCommand(Strategem parent, StructureHelper files, JavaBuildCommand jbc, JavaBuildCommand jgbc, OrderedFileList testResourceFiles) {
 		super(parent);
 		this.files = files;
 		this.jbc = jbc;
+		this.jgbc = jgbc;
 		this.testResourceFiles = testResourceFiles;
 		this.srcdir = new File(files.getBaseDir(), "src/test/java");
+		this.golddir = new File(files.getBaseDir(), "src/test/golden");
 		this.bindir = files.getOutput("test-classes");
+		this.goldbin = files.getOutput("golden-classes");
 		this.errdir = files.getOutput("test-results");
 		this.idAs = parent.rootDirectory().getName();
 	}
@@ -81,11 +90,15 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		return testResourceFiles;
 	}
 
+	public void dumpClasspathTo(File output) {
+		dumpClasspath = output;
+	}
+
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		if (cxt.doubleQuick)
 			return BuildStatus.SKIPPED;
-		RunClassPath classpath = new RunClassPath(cxt, jbc);
+		RunClassPath classpath = new RunClassPath(cxt, jbc, jgbc);
 		for (File f : this.classpath)
 			classpath.add(f);
 		for (BuildResource r : needsResources())
@@ -94,16 +107,21 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 			if (f != null && !(f instanceof ProcessResource))
 				classpath.add(f.getPath());
 
+		if (dumpClasspath != null) {
+			try {
+				PrintWriter pw = new PrintWriter(dumpClasspath);
+				pw.println(classpath.toString());
+				pw.close();
+			} catch (IOException ex) {
+				System.out.println("Could not write classpath to " + dumpClasspath);
+			}
+		}
+		
 		// Collect list of tests to run ...
 		List<String> testsToRun = new ArrayList<String>();
-		for (File f : FileUtils.findFilesUnderMatching(srcdir, "*.java"))
-		{
-			String qualifiedName = FileUtils.convertToDottedNameDroppingExtension(f);
-			File clsFile = new File(bindir, FileUtils.ensureExtension(f, ".class").getPath());
-			ByteCodeFile bcf = checkIfContainsTests(qualifiedName, clsFile);
-			if (bcf != null && bcf.isConcrete())
-				testsToRun.add(qualifiedName);
-		}
+		addTestsFrom(testsToRun, srcdir, bindir);
+		addTestsFrom(testsToRun, golddir, goldbin);
+
 		if (testsToRun.isEmpty())
 		{
 			return BuildStatus.SKIPPED;
@@ -128,7 +146,21 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		return ret;
 	}
 
-	protected ByteCodeFile checkIfContainsTests(String qualifiedName, File clsFile) {
+	protected void addTestsFrom(List<String> testsToRun, File dir, File bin) {
+		if (dir.isDirectory())
+			for (File f : FileUtils.findFilesUnderMatching(dir, "*.java"))
+				addTests(testsToRun, f, bin);
+	}
+
+	protected void addTests(List<String> testsToRun, File clz, File bin) {
+		String qualifiedName = FileUtils.convertToDottedNameDroppingExtension(clz);
+		File clsFile = new File(bin, FileUtils.ensureExtension(clz, ".class").getPath());
+		ByteCodeFile bcf = checkIfContainsTests(qualifiedName, clsFile, bin);
+		if (bcf != null && bcf.isConcrete())
+			testsToRun.add(qualifiedName);
+	}
+
+	protected ByteCodeFile checkIfContainsTests(String qualifiedName, File clsFile, File bin) {
 		ByteCodeFile bcf = new ByteCodeFile(clsFile, qualifiedName);
 		if (bcf.hasClassAnnotation("org.junit.runner.RunWith") || bcf.hasMethodsWithAnnotation("org.junit.Test"))
 		{
@@ -145,8 +177,8 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		String sc = bcf.getSuperClass();
 		if (sc != null && !sc.equals("java/lang/Object")) {
 			File f = new File(sc);
-			File f2 = new File(bindir, FileUtils.ensureExtension(f, ".class").getPath());
-			if (f2.exists() && checkIfContainsTests(FileUtils.convertToDottedName(f), f2) != null)
+			File f2 = new File(bin, FileUtils.ensureExtension(f, ".class").getPath());
+			if (f2.exists() && checkIfContainsTests(FileUtils.convertToDottedName(f), f2, bin) != null)
 				return bcf;
 		}
 		return null;
@@ -208,12 +240,15 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		classpath.add(resource);
 	}
 
-	public void addLibs(List<PendingResource> junitLibs) {
+	public void addLibs(List<BuildResource> junitLibs) {
 		if (junitLibs.isEmpty())
 			return;
 		
-		for (PendingResource r : junitLibs)
-			needs(r);
+		for (BuildResource r : junitLibs)
+			if (r instanceof PendingResource)
+				needs((PendingResource) r);
+			else
+				addToClasspath(r.getPath());
 	}
 
 	@Override

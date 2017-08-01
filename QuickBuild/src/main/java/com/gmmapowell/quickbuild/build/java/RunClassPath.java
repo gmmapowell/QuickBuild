@@ -6,21 +6,26 @@ import com.gmmapowell.quickbuild.build.BuildContext;
 import org.zinutils.utils.PathBuilder;
 
 public class RunClassPath extends BuildClassPath {
-	private final BuildClassPath basedOn;
+	private final BuildClassPath tcp;
+	private final BuildClassPath gcp;
 	private final File utilsJar;
 	
-	public RunClassPath(BuildContext cxt, JavaBuildCommand jbc)
+	public RunClassPath(BuildContext cxt, JavaBuildCommand jbc, JavaBuildCommand jgbc)
 	{
 		if (jbc == null)
-			basedOn = new BuildClassPath();
+			tcp = new BuildClassPath();
 		else
-			basedOn = jbc.getClassPath();
+			tcp = jbc.getClassPath();
+		if (jgbc == null)
+			gcp = new BuildClassPath();
+		else
+			gcp = jgbc.getClassPath();
 		utilsJar = cxt.getUtilsJar();
 	}
 	
 	@Override
 	public void add(File file) {
-		if (file == null || basedOn.contains(file))
+		if (file == null || tcp.contains(file) || gcp.contains(file))
 			return;
 		super.add(file);
 	}
@@ -29,7 +34,8 @@ public class RunClassPath extends BuildClassPath {
 	{
 		PathBuilder pb = new PathBuilder();
 		this.toString(pb);
-		basedOn.toString(pb);
+		tcp.toString(pb);
+		gcp.toString(pb);
 		pb.add(utilsJar);
 		return pb.toString();
 	}

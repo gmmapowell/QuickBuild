@@ -12,6 +12,7 @@ import com.gmmapowell.quickbuild.build.java.JavaBuildCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategem;
+import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
@@ -25,7 +26,7 @@ public class ZinikiCommand extends AbstractStrategem {
 	private String javaVersion;
 	private boolean bootZiniki;
 	private String mode;
-	private final List<PendingResource> junitLibs = new ArrayList<PendingResource>();
+	private final List<BuildResource> junitLibs = new ArrayList<BuildResource>();
 	private final List<ZinikiReferenceCommand> refs = new ArrayList<ZinikiReferenceCommand>();
 	private final List<ZinikiUseModuleCommand> modules = new ArrayList<ZinikiUseModuleCommand>();
 
@@ -106,7 +107,7 @@ public class ZinikiCommand extends AbstractStrategem {
 			tactics.add(juc);
 			
 			{
-				JUnitRunCommand jur = new JUnitRunCommand(this, files, juc, null);
+				JUnitRunCommand jur = new JUnitRunCommand(this, files, juc, null, null);
 				jur.addLibs(junitLibs);
 				jur.addProcessDependency(juc);
 				tactics.add(jur);

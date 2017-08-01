@@ -16,7 +16,7 @@ public abstract class ArchiveCommand extends AbstractTactic {
 	protected final List<File> dirsToJar = new ArrayList<File>();
 	protected final List<File> includePackages;
 	protected final List<File> excludePackages;
-	private final OrderedFileList resourceFiles;
+	protected final OrderedFileList resourceFiles;
 
 	public ArchiveCommand(Strategem parent, List<File> includePackages, List<File> excludePackages, OrderedFileList resourceFiles) {
 		super(parent);

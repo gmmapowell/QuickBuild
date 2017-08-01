@@ -195,7 +195,7 @@ public class JavaCommand extends AbstractStrategemTactic implements ExecutesInDi
 
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
-		RunClassPath classpath = new RunClassPath(cxt, null);
+		RunClassPath classpath = new RunClassPath(cxt, null, null);
 		for (File f : this.classpath)
 			classpath.add(f);
 		for (BuildResource r : needsResources())

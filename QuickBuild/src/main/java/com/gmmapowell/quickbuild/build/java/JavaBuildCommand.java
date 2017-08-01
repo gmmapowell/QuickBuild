@@ -1,6 +1,8 @@
 package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +40,7 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 	private final String target;
 	private final boolean runAlways;
 	private final String idAs;
+	private File dumpClasspath;
 
 	public JavaBuildCommand(Strategem parent, StructureHelper files, String src, String bin, String label, List<File> sources, String context, String target, boolean runAlways) {
 		super(parent);
@@ -97,6 +100,10 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 	public boolean skipMe(BuildContext cxt) {
 		return !runAlways && cxt.doubleQuick;
 	}
+
+	public void dumpClasspathTo(File output) {
+		dumpClasspath = output;
+	}
 	
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
@@ -124,6 +131,17 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 			else
 				System.out.println("What do I do with " + br);
 		}
+		
+		if (dumpClasspath != null) {
+			try {
+				PrintWriter pw = new PrintWriter(dumpClasspath);
+				pw.println(classpath.toString());
+				pw.close();
+			} catch (IOException ex) {
+				System.out.println("Could not write classpath to " + dumpClasspath);
+			}
+		}
+		
 		RunProcess proc = new RunProcess("javac");
 		proc.showArgs(showArgs);
 //		proc.showArgs(true);
