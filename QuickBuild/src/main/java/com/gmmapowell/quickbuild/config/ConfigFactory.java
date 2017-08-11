@@ -44,6 +44,7 @@ public class ConfigFactory implements CommandObjectFactory {
 		addCommandExtension("vars", IncludeVarsCommand.class);
 		addCommandExtension("libs", LibsCommand.class);
 		addCommandExtension("buildif", BuildIfCommand.class);
+		addCommandExtension("notfatal", NotFatalCommand.class);
 
 		addCommandExtension("context", LibraryContextCommand.class);
 		addCommandExtension("directory", DirectoryResourceCommand.class);
@@ -113,6 +114,12 @@ public class ConfigFactory implements CommandObjectFactory {
 		try {
 			addCommandHandler(cmd, clz);
 		} catch (Throwable t) {
+			t = UtilException.unwrap(t);
+			if (t instanceof NoSuchMethodException) {
+				System.out.println("Extension " + clz + " could not be initialized");
+				System.out.println("Did you provide a constructor taking a TokenizedLine?");
+				t.printStackTrace();
+			}
 			// could not install the extension
 			System.out.println("Could not install extension " + clz);
 		}

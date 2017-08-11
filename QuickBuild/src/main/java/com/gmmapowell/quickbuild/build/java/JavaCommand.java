@@ -2,7 +2,9 @@ package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.zinutils.bytecode.ByteCodeFile;
@@ -13,6 +15,7 @@ import org.zinutils.system.ThreadedStreamReader;
 import org.zinutils.utils.ArgumentDefinition;
 import org.zinutils.utils.Cardinality;
 import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.OrderedFileList;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
@@ -20,7 +23,9 @@ import com.gmmapowell.quickbuild.build.ExecutesInDirCommand;
 import com.gmmapowell.quickbuild.build.bash.BashDirectoryCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
+import com.gmmapowell.quickbuild.config.NotFatalCommand;
 import com.gmmapowell.quickbuild.config.ProducesCommand;
+import com.gmmapowell.quickbuild.config.ReadsFileCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategemTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
@@ -42,7 +47,9 @@ public class JavaCommand extends AbstractStrategemTactic implements ExecutesInDi
 	private List<String> args = new ArrayList<String>();
 	private StructureHelper files;
 	private String reldir;
+	private final Set<File> readsFiles = new HashSet<File>();
 	private List<BuildResource> produces = new ArrayList<BuildResource>();
+	private BuildStatus errorReturn = BuildStatus.BROKEN;
 
 	public JavaCommand(TokenizedLine toks) {
 		super(toks, 
@@ -108,10 +115,12 @@ public class JavaCommand extends AbstractStrategemTactic implements ExecutesInDi
 		{
 			opt.applyTo(config);
 			if (opt instanceof ArgsCommand)
-				args .addAll(((ArgsCommand)opt).args());
+				args.addAll(((ArgsCommand)opt).args());
 			else if (opt instanceof BashDirectoryCommand) {
 				reldir = ((BashDirectoryCommand)opt).getDirectory();
 			}
+			else if (opt instanceof ReadsFileCommand)
+				readsFiles.add(((ReadsFileCommand)opt).getPath());
 			else if (opt instanceof ProducesCommand) {
 				ProducesCommand jpc = (ProducesCommand)opt;
 				BuildResource resource = jpc.getProducedResource(this);
@@ -133,10 +142,14 @@ public class JavaCommand extends AbstractStrategemTactic implements ExecutesInDi
 //			{
 //				addJarLib((JarLibCommand)opt);
 //			}
-//			else if (opt instanceof JUnitLibCommand)
-//			{
-//				addJUnitLib((JUnitLibCommand)opt);
-//			}
+			else if (opt instanceof JUnitLibCommand)
+			{
+				addJUnitLib((JUnitLibCommand)opt);
+			}
+			else if (opt instanceof NotFatalCommand)
+			{
+				errorReturn  = BuildStatus.TEST_FAILURES;
+			}
 //			else if (opt instanceof ResourceCommand)
 //			{
 //				addResource((ResourceCommand)opt);
@@ -189,8 +202,28 @@ public class JavaCommand extends AbstractStrategemTactic implements ExecutesInDi
 		this.defines.add(d);
 	}
 
+	protected void addJUnitLib(JUnitLibCommand opt) {
+		needs(opt.getResource());
+	}
+
 	public void pattern(String p) {
 		this.onlyMatchingPattern.add(Pattern.compile(p));
+	}
+
+	@Override
+	public OrderedFileList sourceFiles() {
+		OrderedFileList ret = new OrderedFileList();
+		for (File useJustOnce : readsFiles) {
+			File relPath = FileUtils.makeRelative(useJustOnce);
+			File absPath = FileUtils.combine(rootdir, reldir, relPath);
+			if (absPath.isDirectory()) {
+				for (File foundFile : FileUtils.findFilesMatching(absPath, "*"))
+					if (foundFile.isFile())
+						ret.add(foundFile);
+			} else
+				ret.add(absPath);
+		}
+		return ret;
 	}
 
 	@Override
@@ -199,10 +232,10 @@ public class JavaCommand extends AbstractStrategemTactic implements ExecutesInDi
 		for (File f : this.classpath)
 			classpath.add(f);
 		for (BuildResource r : needsResources())
-			classpath.add(r.getPath());
+			classpath.add(FileUtils.relativePath(r.getPath()));
 		for (BuildResource f : cxt.getTransitiveDependencies(this))
 			if (f != null && !(f instanceof ProcessResource))
-				classpath.add(f.getPath());
+				classpath.add(FileUtils.relativePath(f.getPath()));
 		
 		FileUtils.assertDirectory(errdir);
 		new File(errdir, "stdout").delete();
@@ -232,9 +265,8 @@ public class JavaCommand extends AbstractStrategemTactic implements ExecutesInDi
 		{
 			System.out.println(proc.getStdout());
 			System.out.println(proc.getStderr());
-			return BuildStatus.BROKEN;
+			return errorReturn; // Broken or TestFail, depending on user choice
 		}
-
 		
 		//		
 //		for (String t : testsToRun) {
@@ -289,12 +321,12 @@ public class JavaCommand extends AbstractStrategemTactic implements ExecutesInDi
 
 	@Override
 	public String identifier() {
-		return "Java[" + mainClass +"]";
+		return "Java[" + mainClass + (reldir != null ? "-"+reldir:"") + "]";
 	}
 
 	@Override
 	public String toString() {
-		return "Java " + mainClass;
+		return "Java " + mainClass + (reldir != null ? " in "+reldir:"");
 	}
 	
 	@Override
