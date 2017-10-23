@@ -138,6 +138,10 @@ public class JarCommand extends AbstractStrategem {
 			{
 				addJarLib((JarLibCommand)opt);
 			}
+			else if (opt instanceof MoreTestsCommand)
+			{
+				addJUnitDir((MoreTestsCommand)opt);
+			}
 			else if (opt instanceof JUnitLibCommand)
 			{
 				addJUnitLib((JUnitLibCommand)opt);
@@ -185,6 +189,9 @@ public class JarCommand extends AbstractStrategem {
 
 	protected boolean processOption(ConfigApplyCommand opt) {
 		return false;
+	}
+
+	protected void addJUnitDir(MoreTestsCommand opt) {
 	}
 
 	protected void addJUnitLib(JUnitLibCommand opt) {
