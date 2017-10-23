@@ -41,15 +41,15 @@ import org.zinutils.utils.FileUtils;
 import org.zinutils.utils.OrderedFileList;
 
 public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
-	private final File srcdir;
-	private final File golddir;
-	private File bindir;
-	private File goldbin;
+//	private final File srcdir;
+//	private final File golddir;
+//	private File bindir;
+//	private File goldbin;
 	private File errdir;
 	
 	private final BuildClassPath bootclasspath = new BuildClassPath();
 	private final BuildClassPath classpath = new BuildClassPath();
-	private final JavaBuildCommand jbc;
+	private final List<JavaBuildCommand> testBuilds;
 	private final StructureHelper files;
 	private final List<String> defines = new ArrayList<String>();
 	private final List<Pattern> onlyMatchingPattern = new ArrayList<Pattern>();
@@ -57,18 +57,12 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	private final String idAs;
 	private final OrderedFileList testResourceFiles;
 	private File dumpClasspath;
-	private JavaBuildCommand jgbc;
 
-	public JUnitRunCommand(Strategem parent, StructureHelper files, JavaBuildCommand jbc, JavaBuildCommand jgbc, OrderedFileList testResourceFiles) {
+	public JUnitRunCommand(Strategem parent, StructureHelper files, List<JavaBuildCommand> testBuilds, OrderedFileList testResourceFiles) {
 		super(parent);
 		this.files = files;
-		this.jbc = jbc;
-		this.jgbc = jgbc;
+		this.testBuilds = testBuilds;
 		this.testResourceFiles = testResourceFiles;
-		this.srcdir = new File(files.getBaseDir(), "src/test/java");
-		this.golddir = new File(files.getBaseDir(), "src/test/golden");
-		this.bindir = files.getOutput("test-classes");
-		this.goldbin = files.getOutput("golden-classes");
 		this.errdir = files.getOutput("test-results");
 		this.idAs = parent.rootDirectory().getName();
 	}
@@ -98,7 +92,7 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		if (cxt.doubleQuick)
 			return BuildStatus.SKIPPED;
-		RunClassPath classpath = new RunClassPath(cxt, jbc, jgbc);
+		RunClassPath classpath = new RunClassPath(cxt, testBuilds);
 		for (File f : this.classpath)
 			classpath.add(f);
 		for (BuildResource r : needsResources())
@@ -119,8 +113,8 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		
 		// Collect list of tests to run ...
 		List<String> testsToRun = new ArrayList<String>();
-		addTestsFrom(testsToRun, srcdir, bindir);
-		addTestsFrom(testsToRun, golddir, goldbin);
+		for (JavaBuildCommand jbc : testBuilds)
+			addTestsFrom(testsToRun, jbc.getSourceDir(), jbc.getOutputDir());
 
 		if (testsToRun.isEmpty())
 		{

@@ -67,6 +67,14 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 		return new OrderedFileList(sources);
 	}
 
+	public File getSourceDir() {
+		return srcdir;
+	}
+
+	public File getOutputDir() {
+		return bindir;
+	}
+	
 	public void addResource(PendingResource resource) {
 		resources.add(resource);
 	}

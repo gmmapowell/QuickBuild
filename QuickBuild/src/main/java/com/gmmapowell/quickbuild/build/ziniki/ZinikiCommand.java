@@ -2,6 +2,7 @@ package com.gmmapowell.quickbuild.build.ziniki;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.zinutils.exceptions.UtilException;
@@ -107,7 +108,7 @@ public class ZinikiCommand extends AbstractStrategem {
 			tactics.add(juc);
 			
 			{
-				JUnitRunCommand jur = new JUnitRunCommand(this, files, juc, null, null);
+				JUnitRunCommand jur = new JUnitRunCommand(this, files, Arrays.asList(juc), null);
 				jur.addLibs(junitLibs);
 				jur.addProcessDependency(juc);
 				tactics.add(jur);

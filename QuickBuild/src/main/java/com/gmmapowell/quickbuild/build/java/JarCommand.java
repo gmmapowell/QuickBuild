@@ -33,6 +33,7 @@ public class JarCommand extends AbstractStrategem {
 	protected String targetName;
 	protected List<File> includePackages;
 	protected List<File> excludePackages;
+	private final List<String> junitDirs = new ArrayList<String>();
 	private final List<BuildResource> junitLibs = new ArrayList<BuildResource>();
 	private final List<PendingResource> resources = new ArrayList<PendingResource>();
 	private final List<String> junitDefines = new ArrayList<String>();
@@ -71,31 +72,49 @@ public class JarCommand extends AbstractStrategem {
 			if (javac != null)
 				javac.dumpClasspathTo(files.getOutput("buildclasspath"));
 		}
-		JavaBuildCommand junit = addJavaBuild(tactics, null, "src/test/java", "test-classes", "test", false);
-		if (junit != null)
+		List<JavaBuildCommand> jbcs = new ArrayList<JavaBuildCommand>();
 		{
-			junit.addToClasspath(new File(files.getOutputDir(), "classes"));
-			if (javac != null)
-				junit.addProcessDependency(javac);
+			JavaBuildCommand junit = addJavaBuild(tactics, null, "src/test/java", "test-classes", "test", false);
+			if (junit != null)
+			{
+				junit.addToClasspath(new File(files.getOutputDir(), "classes"));
+				jbcs.add(junit);
+				if (javac != null)
+					junit.addProcessDependency(javac);
+			}
 		}
-		JavaBuildCommand jgold = addJavaBuild(tactics, null, "src/test/golden", "golden-classes", "golden", false);
-		if (jgold != null)
 		{
-			jgold.addToClasspath(new File(files.getOutputDir(), "classes"));
-			if (javac != null)
-				jgold.addProcessDependency(javac);
+			JavaBuildCommand jgold = addJavaBuild(tactics, null, "src/test/golden", "golden-classes", "golden", false);
+			if (jgold != null)
+			{
+				jgold.addToClasspath(new File(files.getOutputDir(), "classes"));
+				jbcs.add(jgold);
+				if (javac != null)
+					jgold.addProcessDependency(javac);
+			}
 		}
-		addResources(jar, junit, jgold, "src/main/resources");
-		addResources(null, junit, jgold, "src/test/resources");
-		JUnitRunCommand jrun = addJUnitRun(tactics, junit, jgold);
+		for (String s : junitDirs) {
+			File f = new File(s);
+			String last = f.getName();
+			JavaBuildCommand juplus = addJavaBuild(tactics, null, s, last + "-classes", last, false);
+			if (juplus == null)
+				throw new QuickBuildException("Source for specific test case " + s + " does not exist");
+			juplus.addToClasspath(new File(files.getOutputDir(), "classes"));
+			if (javac != null)
+				juplus.addProcessDependency(javac);
+			for (JavaBuildCommand jbc : jbcs) {
+				juplus.addToClasspath(jbc.getOutputDir());
+				juplus.addProcessDependency(jbc);
+			}
+			jbcs.add(juplus);
+		}
+		addResources(jar, jbcs, "src/main/resources");
+		addResources(null, jbcs, "src/test/resources");
+		JUnitRunCommand jrun = addJUnitRun(tactics, jbcs);
 		if (tactics.size() == 0)
 			throw new QuickBuildException("None of the required source directories exist (or have source files) to build " + targetName);
 		if (javac != null || jar.alwaysBuild())
 			tactics.add(jar);
-		if (jrun != null && junit != null)
-			jrun.addProcessDependency(junit);
-		if (jrun != null && jgold != null)
-			jrun.addProcessDependency(jgold);
 		
 		JarResource jarResource = jar.getJarResource();
 		if (jarResource != null && javac != null)
@@ -104,10 +123,12 @@ public class JarCommand extends AbstractStrategem {
 		additionalCommands(config, ofl);
 		if (javac != null)
 			jar.addProcessDependency(javac);
-		if (junit != null)
-			jar.addProcessDependency(junit);
-		if (jgold != null)
-			jar.addProcessDependency(jgold);
+
+		if (jrun != null)
+			for (JavaBuildCommand jbc : jbcs) {
+				jrun.addProcessDependency(jbc);
+				jar.addProcessDependency(jbc);
+			}
 		return this;
 	}
 
@@ -192,6 +213,7 @@ public class JarCommand extends AbstractStrategem {
 	}
 
 	protected void addJUnitDir(MoreTestsCommand opt) {
+		junitDirs.add(opt.getTestDir());
 	}
 
 	protected void addJUnitLib(JUnitLibCommand opt) {
@@ -331,23 +353,21 @@ public class JarCommand extends AbstractStrategem {
 		return null;
 	}
 	
-	private void addResources(ArchiveCommand jar, JavaBuildCommand junit, JavaBuildCommand jgold, String src) {
+	private void addResources(ArchiveCommand jar, List<JavaBuildCommand> jbcs, String src) {
 		File dir = new File(rootdir, src);
 		if (dir.isDirectory())
 		{
 			if (jar != null)
 				jar.add(dir);
-			if (junit != null)
-				junit.addToClasspath(dir);
-			if (jgold != null)
-				jgold.addToClasspath(dir);
+			for (JavaBuildCommand jbc : jbcs)
+				jbc.addToClasspath(dir);
 		}
 	}
 
-	private JUnitRunCommand addJUnitRun(List<? super Tactic> ret, JavaBuildCommand jbc, JavaBuildCommand jgbc) {
-		if (runJunit && (jbc != null || jgbc != null))
+	private JUnitRunCommand addJUnitRun(List<? super Tactic> ret, List<JavaBuildCommand> jbcs) {
+		if (runJunit && !jbcs.isEmpty())
 		{
-			JUnitRunCommand cmd = new JUnitRunCommand(this, files, jbc, jgbc, figureResourceFiles("src/main/resources", "src/test/resources"));
+			JUnitRunCommand cmd = new JUnitRunCommand(this, files, jbcs, figureResourceFiles("src/main/resources", "src/test/resources"));
 			cmd.addLibs(junitLibs);
 			if (junitMemory != null)
 				cmd.setJUnitMemory(junitMemory);

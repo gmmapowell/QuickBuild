@@ -2,6 +2,7 @@ package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -216,7 +217,7 @@ public class AndroidCommand extends AbstractStrategem {
 				buildTests.addProcessDependency(prior);
 				
 				
-				JUnitRunCommand junitRun = new JUnitRunCommand(this, files, buildTests, null, null);
+				JUnitRunCommand junitRun = new JUnitRunCommand(this, files, Arrays.asList(buildTests), null);
 				junitRun.addToClasspath(acxt.getPlatformJar());
 				junitRun.addToClasspath(acxt.getSupportJar());
 				junitRun.addLibs(junitLibs);
