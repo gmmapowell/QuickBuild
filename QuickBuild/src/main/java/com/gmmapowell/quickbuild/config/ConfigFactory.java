@@ -121,7 +121,7 @@ public class ConfigFactory implements CommandObjectFactory {
 				t.printStackTrace();
 			}
 			// could not install the extension
-			System.out.println("Could not install extension " + clz);
+			System.out.println("Could not install extension " + clz + " " + t.toString());
 		}
 	}
 

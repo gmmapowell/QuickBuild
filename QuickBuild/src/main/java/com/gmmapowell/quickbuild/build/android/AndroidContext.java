@@ -55,7 +55,8 @@ public class AndroidContext {
 		if (!jill.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + jill);
 		try {
-			apk = new File(androidSDK, "tools/lib/sdklib.jar");
+			String sdklib = conf.getVarIfDefined("androidsdklib", "sdklib.jar");
+			apk = new File(androidSDK, "tools/lib/" + sdklib);
 			if (!apk.exists())
 				throw new QBConfigurationException("Invalid android configuration: cannot find " + apk);
 			apkLoader = new URLClassLoader(new URL[] { apk.toURI().toURL() }, this.getClass().getClassLoader());
@@ -71,7 +72,7 @@ public class AndroidContext {
 		File supportDir = FileUtils.fileConcat(androidSDK.getPath(), "extras", "android", "support", "v13");
 		supportJar = new File(supportDir, "android-support-v13.jar");
 		if (!supportJar.exists())
-			throw new QBConfigurationException("Invalid android configuration: cannot find " + platformJar);
+			throw new QBConfigurationException("Invalid android configuration: cannot find " + supportJar);
 	}
 
 	public File getAAPT() {

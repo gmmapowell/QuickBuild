@@ -18,3 +18,6 @@ jar QuickBuild
 jarjar scripts/Quickbuilder.jar
   resource QuickBuild.jar
   resource ZinUtils.jar
+
+distribute scripts sftp:gareth@172.21.141.30/quickbuild/
+  separately

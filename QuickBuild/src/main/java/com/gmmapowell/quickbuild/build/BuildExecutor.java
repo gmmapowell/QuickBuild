@@ -217,6 +217,7 @@ public class BuildExecutor {
 			if (projectsWithTestFailures > 0)
 				System.err.println(" " + projectsWithTestFailures + " projects had test failures");
 			System.err.println("!!!! BUILD FAILED !!!!");
+			System.out.println("Elapsed time: " + DateUtils.elapsedTime(buildStarted, new Date(), DateUtils.Format.hhmmss3));
 			System.exit(1);
 		}
 		else if (buildStarted == null) {
@@ -269,8 +270,9 @@ public class BuildExecutor {
 		itb.announce(cxt.output, verbose, currentTactic, itb.needsBuild);
 
 		// Record when first build started
+		Date taskStarted = new Date();
 		if (buildStarted == null)
-			buildStarted = new Date();
+			buildStarted = taskStarted;
 		BuildStatus ret = BuildStatus.BROKEN;
 		try
 		{
@@ -286,6 +288,12 @@ public class BuildExecutor {
 		catch (RuntimeException ex)
 		{
 			ex.printStackTrace(System.out);
+		}
+		finally {
+			Date taskDone = new Date();
+			if (taskDone.getTime() - taskStarted.getTime() > 5000) {
+				System.out.println("  -- took " + DateUtils.elapsedTime(taskStarted, taskDone, DateUtils.Format.hhmmss3));
+			}
 		}
 		cxt.output.finishBuildStep();
 		if (ret.needsRebuild())
