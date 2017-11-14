@@ -126,16 +126,16 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		new File(errdir, "stderr").delete();
 		BuildStatus ret = BuildStatus.SUCCESS;
 		
-		for (String t : testsToRun) {
-			List<String> oneTest = CollectionUtils.listOf(t);
-			RunProcess proc = runTestBatch(cxt, showArgs, showDebug, classpath, oneTest);
+//		for (String t : testsToRun) {
+//			List<String> oneTest = CollectionUtils.listOf(t);
+			RunProcess proc = runTestBatch(cxt, showArgs, showDebug, classpath, testsToRun);
 			if (proc.getExitCode() != 0)
 			{
 				handleFailure(cxt, proc);
 				ret = BuildStatus.TEST_FAILURES;
 			}
 			proc.destroy();
-		}
+//		}
 		
 		return ret;
 	}
@@ -204,6 +204,8 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		proc.arg("org.zinutils.test.QBJUnitRunner");
 		if (!cxt.allTests) // should be a flag
 			proc.arg("--quick");
+		proc.arg("--xml");
+		proc.arg(new File(errdir, "junit.xml").getPath());
 		for (String s : testsToRun)
 			proc.arg(s);
 		proc.execute();
@@ -274,7 +276,7 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	
 	private class HandleOutput implements MatchIterator {
 		String currentTest = null;
-		int failed = 0;
+		int failed = 0, sfailed = 0;
 		private final BuildOutput output;
 		private HandleError handleError = null;
 		
@@ -321,8 +323,9 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 			}
 			else if (lpm.is("summary"))
 			{
-				if (failed > 0)
+				if (failed > sfailed)
 					output.testSummary(lpm.get("info"));
+				sfailed = failed;
 			}
 			else
 				throw new QuickBuildException("Do not know how to handle match " + lpm);
