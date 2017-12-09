@@ -14,7 +14,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.zinutils.bytecode.ByteCodeFile;
-import org.zinutils.collections.CollectionUtils;
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.parser.LinePatternMatch;
 import org.zinutils.parser.LinePatternParser;

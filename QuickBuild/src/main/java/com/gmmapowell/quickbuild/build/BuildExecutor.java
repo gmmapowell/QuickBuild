@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.zinutils.exceptions.CycleDetectedException;
+
+import com.gmmapowell.quickbuild.build.java.JUnitRunCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -245,7 +247,10 @@ public class BuildExecutor {
 			cxt.output.finishBuildStep();
 			return BuildStatus.BROKEN_DEPENDENCIES;
 		}
-		if (!itb.needsBuild.needsBuild())
+		BuildStatus stat = itb.needsBuild;
+		if (itb.tactic instanceof JUnitRunCommand && cxt.alwaysRunTests())
+			stat = BuildStatus.SUCCESS;
+		if (!stat.needsBuild())
 		{
 			itb.export(cxt.output, rm, verbose);
 			itb.announce(cxt.output, verbose, currentTactic, itb.needsBuild);
@@ -267,7 +272,7 @@ public class BuildExecutor {
 			cxt.output.finishBuildStep();
 			return BuildStatus.NOTCRITICAL;
 		}
-		itb.announce(cxt.output, verbose, currentTactic, itb.needsBuild);
+		itb.announce(cxt.output, verbose, currentTactic, stat);
 
 		// Record when first build started
 		Date taskStarted = new Date();

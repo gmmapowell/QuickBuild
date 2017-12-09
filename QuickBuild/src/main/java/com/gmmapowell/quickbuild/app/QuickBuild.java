@@ -39,6 +39,7 @@ public class QuickBuild {
 		new ArgumentDefinition("--nthreads", Cardinality.OPTION, "nthreads", "number of threads"),
 		new ArgumentDefinition("--no-home", Cardinality.OPTION, "readHome", "don't read files in home directory"),
 		new ArgumentDefinition("--quiet", Cardinality.LIST, "quiet", "super quiet mode"),
+		new ArgumentDefinition("--testAlways", Cardinality.OPTION, "testAlways", "run all test cases, regardless if anything has changed"),
 		new ArgumentDefinition("--no-check-git", Cardinality.OPTION, "checkGit", "Don't run git fetch"),
 		new ArgumentDefinition("--grand-fallacy", Cardinality.OPTION, "gfMode", "invert grand fallacy mode"),
 		new ArgumentDefinition("--teamcity", Cardinality.OPTION, "teamcity", "TeamCity integration mode"),
@@ -128,7 +129,7 @@ public class QuickBuild {
 		}
 		
 		// now we need to read back anything we've cached ...
-		BuildContext cxt = new BuildContext(conf, configFactory, output, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar, arguments.upTo, arguments.doubleQuick, arguments.allTests, arguments.gfMode);
+		BuildContext cxt = new BuildContext(conf, configFactory, output, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar, arguments.upTo, arguments.doubleQuick, arguments.allTests, arguments.gfMode, arguments.testAlways);
 		cxt.configure();
 		
 		if (!arguments.quiet && !output.forTeamCity())

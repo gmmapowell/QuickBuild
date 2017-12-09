@@ -16,6 +16,7 @@ public class Arguments {
 	public boolean gfMode = false;
 	public boolean readHome = true;
 	public boolean teamcity;
+	public boolean testAlways = false;
 	public int nthreads;
 	public String file;
 	public String cachedir;
