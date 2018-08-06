@@ -19,10 +19,12 @@ import org.zinutils.utils.OrderedFileList;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.CanBeSkipped;
 import com.gmmapowell.quickbuild.build.ExecutesInDirCommand;
 import com.gmmapowell.quickbuild.build.bash.BashDirectoryCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
+import com.gmmapowell.quickbuild.config.DoubleQuickCommand;
 import com.gmmapowell.quickbuild.config.NotFatalCommand;
 import com.gmmapowell.quickbuild.config.ProducesCommand;
 import com.gmmapowell.quickbuild.config.ReadsFileCommand;
@@ -33,7 +35,7 @@ import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 
-public class JavaCommand extends AbstractStrategemTactic implements ExecutesInDirCommand {
+public class JavaCommand extends AbstractStrategemTactic implements ExecutesInDirCommand, CanBeSkipped {
 	private String projectName;
 	private String mainClass;
 	private final File rootdir;
@@ -50,6 +52,7 @@ public class JavaCommand extends AbstractStrategemTactic implements ExecutesInDi
 	private final Set<File> readsFiles = new HashSet<File>();
 	private List<BuildResource> produces = new ArrayList<BuildResource>();
 	private BuildStatus errorReturn = BuildStatus.BROKEN;
+	private boolean doubleQuick = false;
 
 	public JavaCommand(TokenizedLine toks) {
 		super(toks, 
@@ -186,8 +189,10 @@ public class JavaCommand extends AbstractStrategemTactic implements ExecutesInDi
 //			}
 //			else if (processOption(opt))
 //				;
+			else if (opt instanceof DoubleQuickCommand)
+				doubleQuick = true;
 			else
-				throw new UtilException("The option " + opt + " is not valid for JarCommand");
+				throw new UtilException("The option " + opt + " is not valid for JavaCommand");
 		}
 //		if (targetName == null)
 //			targetName = new File(projectName).getName() + ".jar";
@@ -281,6 +286,11 @@ public class JavaCommand extends AbstractStrategemTactic implements ExecutesInDi
 //		}
 //		
 		return ret;
+	}
+
+	@Override
+	public boolean skipMe(BuildContext cxt) {
+		return doubleQuick && cxt.doubleQuick;
 	}
 
 	protected ByteCodeFile checkIfContainsTests(String qualifiedName, File clsFile) {

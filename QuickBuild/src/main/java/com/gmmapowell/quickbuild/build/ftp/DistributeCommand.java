@@ -1,62 +1,55 @@
 package com.gmmapowell.quickbuild.build.ftp;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import com.amazonaws.auth.PropertiesCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.parser.TokenizedLine;
+import org.zinutils.utils.ArgumentDefinition;
+import org.zinutils.utils.Cardinality;
+import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.OrderedFileList;
+
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.config.AbstractBuildCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
+import com.gmmapowell.quickbuild.config.ResourceCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.FloatToEnd;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
-import org.zinutils.utils.ArgumentDefinition;
-import org.zinutils.utils.Cardinality;
-import org.zinutils.utils.FileUtils;
-import org.zinutils.utils.OrderedFileList;
-import org.zinutils.utils.WriteThruStream;
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.Session;
 
 public class DistributeCommand extends AbstractBuildCommand implements FloatToEnd {
+
 	private String directory;
-	private String destination;
+	private List<String> destinations = new ArrayList<String>();
+	private List<DistributeTo> distributions = new ArrayList<DistributeTo>();
 	private File execdir;
-	private File privateKeyPath;
 	private final ResourcePacket<PendingResource> needs = new ResourcePacket<PendingResource>();
 	private final ResourcePacket<BuildResource> provides = new ResourcePacket<BuildResource>();
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 	private File fromdir;
-	private String host;
-	private String username;
-	private String saveAs;
-	private File knownHosts;
+//	private File knownHosts;
 	private String wrapIn = "";
-	private String method;
-	private String bucket;
-	private boolean fullyConfigured;
 	private boolean separately;
+	private boolean includeDependencies;
+	private Set<PendingResource> resources = new HashSet<PendingResource>();
 
 	@SuppressWarnings("unchecked")
 	public DistributeCommand(TokenizedLine toks) {
 		toks.process(this, new ArgumentDefinition("*", Cardinality.REQUIRED, "directory", "directory"),
-				new ArgumentDefinition("*", Cardinality.REQUIRED, "destination", "destination"));
+				new ArgumentDefinition("*", Cardinality.ONE_OR_MORE, "destinations", "destination"));
 	}
 
 	@Override
@@ -65,62 +58,24 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 		super.handleOptions(config);
 
 		fromdir = FileUtils.combine(execdir, directory);
+		String destination = destinations.get(0); // should be a for loop
 		String sendTo = destination.replaceAll("\\$\\{date}", new SimpleDateFormat("yyyyMMdd").format(new Date()));
-//		System.out.println("Sending to: " + destination);
-		if (sendTo.startsWith("sftp:"))
-		{
-			method = "sftp";
-			fullyConfigured = true;
-			if (config.hasPath("privatekey"))
-				privateKeyPath = config.getPath("privatekey");
-			else
-			{
-				System.out.println("Cannot sftp: no private key");
-				fullyConfigured = false;
-			}
-			if (config.hasPath("knownhosts"))
-				knownHosts = config.getPath("knownhosts");
-			else
-			{
-				System.out.println("Cannot sftp: no known hosts");
-				fullyConfigured = false;
-			}
-			Pattern p = Pattern.compile("sftp:([a-zA-Z0-9_]+)@([a-zA-Z0-9_.]+)/(.+)");
-			Matcher matcher = p.matcher(sendTo);
-			if (!matcher.matches())
-				throw new UtilException("Could not match path " + sendTo);
-			
-			username = matcher.group(1);
-			host = matcher.group(2);
-			saveAs = matcher.group(3);
-			builds.add(new DistributeResource(this, host));
-		}
-		else if (sendTo.startsWith("s3:"))
-		{
-			method = "s3";
-			fullyConfigured = true;
-			if (config.hasPath("awspath"))
-				privateKeyPath = config.getPath("awspath");
-			else
-			{
-				System.out.println("Cannot s3: no aws setup");
-				fullyConfigured = false;
-			}
-			Pattern p = Pattern.compile("s3:([a-zA-Z0-9_]+)(.s3.amazonaws.com)/(.+)");
-			Matcher matcher = p.matcher(sendTo);
-			if (!matcher.matches())
-				throw new UtilException("Could not match s3 path " + sendTo);
-			
-			bucket = matcher.group(1);
-			host = matcher.group(1)+matcher.group(2);
-			saveAs = matcher.group(3);
-			builds.add(new DistributeResource(this, host));
-		}
-		else
-			throw new UtilException("Unrecognized protocol in " + sendTo +". Supported protocols are: sftp, s3");
+		processDestination(config, sendTo);
 		return this;
 	}
 
+	private void processDestination(Config config, String dest) {
+		//		System.out.println("Sending to: " + destination);
+		DistributeTo distr;
+		if (dest.startsWith("sftp:")) {
+			distr = new DistributeToSftp(config, dest);
+		} else if (dest.startsWith("s3:")) {
+			distr = new DistributeToS3(config, dest);
+		} else
+			throw new UtilException("Unrecognized protocol in " + dest +". Supported protocols are: sftp, s3");
+		distributions.add(distr);
+		builds.add(distr.resource(this));
+	}
 	
 	@Override
 	public boolean handleOption(Config config, ConfigApplyCommand opt) {
@@ -136,6 +91,16 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 		{
 			separately  = true;
 		}
+		else if (opt instanceof DistributeIncludeDependenciesCommand)
+		{
+			includeDependencies = true;
+		}
+		else if (opt instanceof ResourceCommand)
+		{
+			PendingResource r = ((ResourceCommand)opt).getPendingResource();
+			resources.add(r);
+			needs.add(r);
+		}
 		else
 			return false;
 		return true;
@@ -143,7 +108,7 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 
 	@Override
 	public String identifier() {
-		return "Distribute[" + destination + "]";
+		return "Distribute" + destinations;
 	}
 
 	@Override
@@ -178,110 +143,78 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
-		if (!fullyConfigured)
-		{
-			System.out.println("Skipping distribute because not fully configured");
-			return BuildStatus.SKIPPED;
-		}
 		if (separately)
 		{
-			try
-			{
-				if (method.equals("s3"))
-				{
-					AmazonS3 s3 = new AmazonS3Client(new PropertiesCredentials(privateKeyPath));
-					for (File f : FileUtils.findFilesUnderMatching(fromdir, "*"))
-					{
-						File g = FileUtils.relativePath(fromdir, f.getPath());
-	//					System.out.println("Sending " + g + " => " + g.isDirectory());
-						if (g.isDirectory())
-							continue;
-						else
-						{
-							s3.putObject(bucket, saveAs + f.getPath(), g);
-						}
+			BuildStatus stat = BuildStatus.SUCCESS;
+			for (File[] f : sendFiles(cxt)) {
+				for (DistributeTo d : distributions)
+					try {
+						/* ignore possible skipped */ d.distribute(showDebug, f[0], f[1].getPath());
+					} catch (Exception ex) {
+						ex.printStackTrace();
+						stat = BuildStatus.BROKEN;
 					}
-				}
-				else
-				{
-					Session s = null;
-					try
-					{
-						JSch jsch = new JSch();
-						jsch.addIdentity(privateKeyPath.getPath());
-						jsch.setKnownHosts(knownHosts.getPath());
-						s = jsch.getSession(username, host);
-						s.connect();
-						ChannelSftp openChannel = (ChannelSftp) s.openChannel("sftp");
-						openChannel.connect();
-						for (File f : FileUtils.findFilesUnderMatching(fromdir, "*"))
-						{
-							File g = FileUtils.relativePath(fromdir, f.getPath());
-							openChannel.put(g.getPath(), saveAs + f.getPath());
-						}
-					}
-					finally {
-						if (s != null)
-							s.disconnect();
-					}
-				}
 			}
-			catch (Exception ex)
-			{
-				throw UtilException.wrap(ex);
-			}
-			builds.provide(cxt, false);
+			return stat;
 		}
 		else
 		{
 			ZipOutputStream os = null;
+			File f = null;
 			try
 			{
-				WriteThruStream wts = new WriteThruStream();
-				os = new ZipOutputStream(wts.getOutputEnd());
-				SenderThread thr;
-				if (method.equals("sftp"))
-					thr = new SftpSenderThread(wts);
-				else if (method.equals("s3"))
-					thr = new S3SenderThread(wts);
-				else
-					throw new UtilException("Unrecognized distribute method: " + method);
-				thr.start();
-				sendFilesTo(os);
-				os.close();
-				thr.join();
+				f = File.createTempFile("zipfile", ".zip");
+				f.deleteOnExit();
+				try (FileOutputStream fos = new FileOutputStream(f)) {
+					os = new ZipOutputStream(fos);
+					for (File[] fs : sendFiles(cxt)) {
+						if (fs[0].isDirectory())
+							continue;
+						os.putNextEntry(new ZipEntry(wrapIn + FileUtils.posixPath(fs[0])));
+					}
+					os.close();
+				}
+				for (DistributeTo d : distributions)
+					d.distribute(showDebug, f, "");
 				builds.provide(cxt, false);
-				if (thr.broken)
-					return BuildStatus.BROKEN;
 			}
 			catch (Exception ex)
 			{
-				try
-				{
-					if (os != null)
-						os.close();
-				}
-				catch (Exception e2) { } 
 				ex.printStackTrace();
 				return BuildStatus.BROKEN;
+			} finally {
+				if (f != null)
+					f.delete();
 			}
 		}
 		return BuildStatus.SUCCESS;
 	}
 
-	private void sendFilesTo(ZipOutputStream os) throws IOException {
-		for (File f : FileUtils.findFilesUnderMatching(fromdir, "*"))
-		{
-			File g = FileUtils.relativePath(fromdir, f.getPath());
-//			System.out.println("Sending " + g + " => " + g.isDirectory());
-			if (g.isDirectory())
-				continue;
-			else
+	private List<File[]> sendFiles(BuildContext cxt) {
+		ArrayList<File[]> ret = new ArrayList<>();
+		if (directory.equals("_")) {
+			// don't have a specific fromdir, expect resources
+			if (resources.isEmpty())
+				throw new RuntimeException("Distribute _ requires resources");
+			Set<BuildResource> all = new HashSet<>();
+			for (PendingResource r : resources) {
+				all.add(r);
+				for (BuildResource q : cxt.getTransitiveDependencies(r.getBuiltBy())) {
+					all.add(q);
+				}
+			}
+			for (BuildResource r : all) {
+				File path = r.getPath();
+				ret.add(new File[] { path, new File(path.getName()) });
+			}
+		} else {
+			for (File f : FileUtils.findFilesUnderMatching(fromdir, "*"))
 			{
-				os.putNextEntry(new ZipEntry(wrapIn + FileUtils.posixPath(f)));
-				FileUtils.copyFileToStream(g, os);
+				File g = FileUtils.relativePath(fromdir, f.getPath());
+				ret.add(new File[] { g, f });
 			}
 		}
+		return ret;
 	}
 
 	@Override
@@ -291,70 +224,6 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 
 	@Override
 	public String toString() {
-		return "Distribute[" + host + "-" + saveAs + "]";
-	}
-
-	public class SenderThread extends Thread
-	{
-		protected final WriteThruStream wts;
-		protected boolean broken;
-		
-		public SenderThread(WriteThruStream wts) {
-			this.wts = wts;
-		}
-	}
-
-	public class S3SenderThread extends SenderThread {
-		public S3SenderThread(WriteThruStream wts) {
-			super(wts);
-		}
-
-		@Override
-		public void run() {
-			try
-			{
-				// We need to know the length so storing to a temp file is easiest
-				InputStream is = wts.getInputEnd();
-				File tmp = FileUtils.copyStreamToTempFile(is);
-				AmazonS3 s3 = new AmazonS3Client(new PropertiesCredentials(privateKeyPath));
-				s3.putObject(bucket, saveAs, tmp);
-				is.close();
-			}
-			catch (Exception ex)
-			{
-				ex.printStackTrace();
-				wts.cancel();
-				broken = true;
-			}
-		}
-	}
-
-	public class SftpSenderThread extends SenderThread {
-
-		public SftpSenderThread(WriteThruStream wts) {
-			super(wts);
-		}
-
-		@Override
-		public void run() {
-			try
-			{
-				JSch jsch = new JSch();
-				jsch.addIdentity(privateKeyPath.getPath());
-				jsch.setKnownHosts(knownHosts.getPath());
-				Session s = jsch.getSession(username, host);
-				s.connect();
-				ChannelSftp openChannel = (ChannelSftp) s.openChannel("sftp");
-				openChannel.connect();
-				openChannel.put(wts.getInputEnd(), saveAs);
-				s.disconnect();
-			}
-			catch (Exception ex)
-			{
-				ex.printStackTrace();
-				wts.cancel();
-				broken = true;
-			}
-		}
+		return "Distribute" + distributions;
 	}
 }

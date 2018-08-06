@@ -75,9 +75,9 @@ public class BuildContext {
 		buildOrder = new BuildOrder(this, manager, buildAll, debug);
 		ehandler = new ErrorHandler(conf.getLogDir());
 		for (String s : showArgsFor)
-			this.showArgsFor.add(Pattern.compile(".*"+s.toLowerCase()+".*"));
+			this.showArgsFor.add(Pattern.compile(s.toLowerCase()));
 		for (String s : showDebugFor)
-			this.showDebugFor.add(Pattern.compile(".*"+s.toLowerCase()+".*"));
+			this.showDebugFor.add(Pattern.compile(s.toLowerCase()));
 		for (Nature n : configFactory.installedNatures())
 			registerNature(n.getClass(), n);
 		for (Strategem s : conf.getStrategems())
@@ -151,14 +151,14 @@ public class BuildContext {
 
 	boolean showArgs(Tactic bc) {
 		for (Pattern p : showArgsFor)
-			if (p.matcher(bc.toString().toLowerCase()).matches())
+			if (p.matcher(bc.toString().toLowerCase()).find())
 				return true;
 		return false;
 	}
 
 	boolean showDebug(Tactic bc) {
 		for (Pattern p : showDebugFor)
-			if (p.matcher(bc.toString().toLowerCase()).matches())
+			if (p.matcher(bc.toString().toLowerCase()).find())
 				return true;
 		return false;
 	}

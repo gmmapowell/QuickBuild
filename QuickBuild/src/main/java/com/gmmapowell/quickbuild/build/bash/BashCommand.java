@@ -10,9 +10,11 @@ import org.zinutils.exceptions.UtilException;
 import org.zinutils.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.CanBeSkipped;
 import com.gmmapowell.quickbuild.build.ExecutesInDirCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
+import com.gmmapowell.quickbuild.config.DoubleQuickCommand;
 import com.gmmapowell.quickbuild.config.ProducesCommand;
 import com.gmmapowell.quickbuild.config.ReadsFileCommand;
 import com.gmmapowell.quickbuild.config.ResourceCommand;
@@ -26,7 +28,7 @@ import org.zinutils.utils.Cardinality;
 import org.zinutils.utils.FileUtils;
 import org.zinutils.utils.OrderedFileList;
 
-public class BashCommand extends AbstractStrategemTactic implements ExecutesInDirCommand {
+public class BashCommand extends AbstractStrategemTactic implements ExecutesInDirCommand, CanBeSkipped {
 	private String scriptName;
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private final ResourcePacket<BuildResource> provides = new ResourcePacket<BuildResource>();
@@ -34,6 +36,7 @@ public class BashCommand extends AbstractStrategemTactic implements ExecutesInDi
 	private File execdir;
 	private final List<String> args = new ArrayList<String>();
 	private File bashPath;
+	private boolean doubleQuick = false;
 	private BashDirectoryCommand dir;
 	private final Set<BuildResource> analysis = new HashSet<BuildResource>();
 	private final Set<File> readsFiles = new HashSet<File>();
@@ -73,6 +76,8 @@ public class BashCommand extends AbstractStrategemTactic implements ExecutesInDi
 				dir = (BashDirectoryCommand) opt;
 			else if (opt instanceof ReadsFileCommand)
 				readsFiles.add(((ReadsFileCommand)opt).getPath());
+			else if (opt instanceof DoubleQuickCommand)
+				doubleQuick = true;
 			else
 				throw new UtilException("The option " + opt + " is not supported");
 		}
@@ -83,6 +88,11 @@ public class BashCommand extends AbstractStrategemTactic implements ExecutesInDi
 		}
 
 		return this;
+	}
+
+	@Override
+	public boolean skipMe(BuildContext cxt) {
+		return doubleQuick && cxt.doubleQuick;
 	}
 
 	@Override

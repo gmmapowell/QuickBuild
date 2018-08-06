@@ -23,8 +23,8 @@ public class JarBuildCommand extends ArchiveCommand {
 	private final GitIdCommand gitIdCommand;
 	private final String idAs;
 
-	public JarBuildCommand(Strategem parent, StructureHelper files, String targetName, List<File> includePackages, List<File> excludePackages, OrderedFileList resourceFiles, GitIdCommand gitIdCommand) {
-		super(parent, includePackages, excludePackages, resourceFiles);
+	public JarBuildCommand(Strategem parent, StructureHelper files, String targetName, List<File> includePackages, List<File> excludePackages, OrderedFileList resourceFiles, GitIdCommand gitIdCommand, MainClassCommand mainClass, List<ManifestClassPathCommand> classPaths) {
+		super(parent, includePackages, excludePackages, resourceFiles, mainClass, classPaths);
 		this.gitIdCommand = gitIdCommand;
 		this.jarResource = new JarResource(this, files.getOutput(FileUtils.ensureExtension(targetName, ".jar")));
 		this.jarfile = this.jarResource.getFile();
@@ -39,6 +39,7 @@ public class JarBuildCommand extends ArchiveCommand {
 			if (showDebug)
 				System.out.println("Writing JAR file to " + jarfile.getPath());
 			JarOutputStream jos = new JarOutputStream(new FileOutputStream(jarfile.getPath()));
+			writeManifest(jos);
 			if (gitIdCommand != null)
 				gitIdCommand.writeTrackerFile(cxt, jos, "META-INF", identifier());
 			boolean hasFiles = writeFilesToJar(jos, showDebug);

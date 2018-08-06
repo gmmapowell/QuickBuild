@@ -43,6 +43,7 @@ public class AndroidCommand extends AbstractStrategem {
 	private StructureHelper files;
 	private ApkResource apkResource;
 	private boolean useJack;
+	private File zipFile;
 	private File apkFile;
 	private ResourcePacket<PendingResource> uselibs = new ResourcePacket<PendingResource>();
 	private ResourcePacket<PendingResource> usejni = new ResourcePacket<PendingResource>();
@@ -61,7 +62,7 @@ public class AndroidCommand extends AbstractStrategem {
 	public AndroidCommand(TokenizedLine toks) {
 		super(toks,
 				new ArgumentDefinition("--jack", Cardinality.OPTION, "useJack", "use new JACK/JILL buildchain"),
-				new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
+				new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "android project"));
 		rootDir = FileUtils.findDirectoryNamed(projectName);
 		this.jrr = new JavaRuntimeReplica();
 	}
@@ -78,7 +79,9 @@ public class AndroidCommand extends AbstractStrategem {
 		FileUtils.assertDirectory(files.getRelative("src/android/res"));
 		FileUtils.assertDirectory(files.getRelative("src/android/lib"));
 		acxt = config.getAndroidContext();
-		apkFile = files.getOutput(projectName+".apk");
+		File pd = new File(projectName);
+		zipFile = files.getOutput(pd.getName()+".ap_");
+		apkFile = files.getOutput(pd.getName()+".apk");
 		javaVersion = config.getVarIfDefined("javaVersion", null);
 		keystorePath = config.getPath("androidKeystore");
 
@@ -147,7 +150,6 @@ public class AndroidCommand extends AbstractStrategem {
 		File dexFile = files.getOutput("classes.dex");
 		File dexDir = files.getOutput("dex");
 		File jillDir = files.getOutput("jacks");
-		File zipfile = files.getOutput(projectName+".ap_");
 		File srcdir = files.getRelative("src/main/java");
 		bindir = files.getOutput("classes");
 		
@@ -248,7 +250,7 @@ public class AndroidCommand extends AbstractStrategem {
 		}
 		
 		if (exportJar != null) {
-			JarBuildCommand jbc = new JarBuildCommand(this, files, exportJar, null, null, null, null);
+			JarBuildCommand jbc = new JarBuildCommand(this, files, exportJar, null, null, null, null, null, null);
 			
 			JarResource jarResource = jbc.getJarResource();
 			if (jarResource != null && buildSrc != null)
@@ -295,11 +297,11 @@ public class AndroidCommand extends AbstractStrategem {
 			assembleTactic = dex;
 		}
 		
-		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(this, acxt, manifest, zipfile, resdir, assetsDir, rawDir);
+		AaptPackageBuildCommand pkg = new AaptPackageBuildCommand(this, acxt, manifest, zipFile, resdir, assetsDir, rawDir);
 		tactics.add(pkg);
 		pkg.addProcessDependency(assembleTactic);
 		
-		apkTactic = new ApkBuildCommand(this, acxt, zipfile, dexFile, keystorePath, apkFile);
+		apkTactic = new ApkBuildCommand(this, acxt, zipFile, dexFile, keystorePath, apkFile);
 		apkTactic.builds(apkTactic.apkResource);
 		tactics.add(apkTactic);
 		apkTactic.addProcessDependency(pkg);

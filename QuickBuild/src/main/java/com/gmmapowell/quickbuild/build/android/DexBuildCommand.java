@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.system.RunProcess;
 import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.OrderedFileList;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
@@ -46,7 +47,6 @@ public class DexBuildCommand extends AbstractTactic {
 		this.dexFile = dexFile;
 		this.exclusions = exclusions;
 		this.uselibs = uselibs;
-		System.out.println("libdir = " + libdir);
 		this.tmpLib = files.getRelative("libs");
 		this.rawapkLib = files.getRelative("src/android/rawapk/lib");
 	}
@@ -133,6 +133,7 @@ public class DexBuildCommand extends AbstractTactic {
 		}
 		
 		proc.arg("--dex");
+		proc.arg("--min-sdk-version=24");
 		proc.arg("--output="+dexFile.getPath());
 		proc.arg(bindir.getPath());
 		
@@ -174,6 +175,12 @@ public class DexBuildCommand extends AbstractTactic {
 		paths.add(path);
 	}
 
+	@Override
+	public OrderedFileList sourceFiles() {
+		OrderedFileList ofl = new OrderedFileList();
+		ofl.add(libdir, "*");
+		return ofl;
+	}
 	@Override
 	public String toString() {
 		return "Create Dex: " + dexFile;

@@ -37,7 +37,7 @@ public class WarBuildCommand extends ArchiveCommand {
 	private final File webRoot;
 
 	public WarBuildCommand(WarCommand parent, StructureHelper files, String targetName, List<PendingResource> warlibs, List<DirectoryResourceCommand> wardirs, List<Pattern> warexcl, OrderedFileList ofl, GitIdCommand gitIdCommand) {
-		super(parent, null, null, ofl);
+		super(parent, null, null, ofl, null, null);
 		this.files = files;
 		this.warlibs = warlibs;
 		this.wardirs = wardirs;

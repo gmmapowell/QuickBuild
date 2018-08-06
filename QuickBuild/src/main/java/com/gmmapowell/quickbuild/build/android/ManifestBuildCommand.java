@@ -209,7 +209,7 @@ public class ManifestBuildCommand extends AbstractTactic {
 
 		if (packageName == null)
 			packageName = minpkg;
-		if (packageName == null)
+		if (packageName == null && !justEnough)
 		{
 			System.out.println("No package name could be found");
 			return BuildStatus.BROKEN;
@@ -278,7 +278,7 @@ public class ManifestBuildCommand extends AbstractTactic {
 			
 			XMLElement usesSdk = top.addElement("uses-sdk");
 			// This probably should be customizable
-			usesSdk.setAttribute(android.attr("minSdkVersion"), "4");
+			usesSdk.setAttribute(android.attr("minSdkVersion"), "24");
 			usesSdk.setAttribute(android.attr("targetSdkVersion"), acxt.getAndroidPlatform().replace("android-", ""));
 			
 			if (!supportedScreens.isEmpty())

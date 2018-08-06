@@ -6,9 +6,9 @@
 	<classpathentry kind="src" path="src/test/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="/utils-qb/libs/jsch-0.1.41.jar"/>
 	<classpathentry kind="lib" path="/Users/gareth/Ziniki/Code/Tools/qb/mvncache/com/amazonaws/aws-java-sdk-core/1.9.4/aws-java-sdk-core-1.9.4.jar"/>
 	<classpathentry kind="lib" path="/Users/gareth/Ziniki/Code/Tools/qb/mvncache/com/amazonaws/aws-java-sdk-s3/1.9.4/aws-java-sdk-s3-1.9.4.jar"/>
 	<classpathentry kind="src" path="/Utils"/>
+	<classpathentry kind="lib" path="/utils-qb/mvncache/com/jcraft/jsch/0.1.54/jsch-0.1.54.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

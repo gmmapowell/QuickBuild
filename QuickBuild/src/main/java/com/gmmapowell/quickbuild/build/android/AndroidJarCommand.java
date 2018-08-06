@@ -109,7 +109,7 @@ public class AndroidJarCommand extends AbstractStrategem {
 			ret.add(junitRun);
 		}
 		*/
-		JarBuildCommand jar = new JarBuildCommand(this, files, targetName, null, null, null, null);
+		JarBuildCommand jar = new JarBuildCommand(this, files, targetName, null, null, null, null, null, null);
 		jar.add(files.getOutput("classes"));
 		if (resdir.exists())
 			jar.add(resdir);

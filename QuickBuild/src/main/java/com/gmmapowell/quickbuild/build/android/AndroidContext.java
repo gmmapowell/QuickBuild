@@ -55,7 +55,7 @@ public class AndroidContext {
 		if (!jill.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + jill);
 		try {
-			String sdklib = conf.getVarIfDefined("androidsdklib", "sdklib.jar");
+			String sdklib = conf.getVarIfDefined("androidsdklib", "sdklib-26.0.0-dev.jar");
 			apk = new File(androidSDK, "tools/lib/" + sdklib);
 			if (!apk.exists())
 				throw new QBConfigurationException("Invalid android configuration: cannot find " + apk);

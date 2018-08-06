@@ -6,9 +6,15 @@ import java.util.List;
 
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.parser.TokenizedLine;
+import org.zinutils.utils.ArgumentDefinition;
+import org.zinutils.utils.Cardinality;
+import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.OrderedFileList;
 
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
+import com.gmmapowell.quickbuild.config.DoubleQuickCommand;
+import com.gmmapowell.quickbuild.config.ReadsFileCommand;
 import com.gmmapowell.quickbuild.config.ResourceCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategem;
 import com.gmmapowell.quickbuild.core.BuildResource;
@@ -18,11 +24,6 @@ import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-
-import org.zinutils.utils.ArgumentDefinition;
-import org.zinutils.utils.Cardinality;
-import org.zinutils.utils.FileUtils;
-import org.zinutils.utils.OrderedFileList;
 
 public class JarCommand extends AbstractStrategem {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
@@ -46,6 +47,10 @@ public class JarCommand extends AbstractStrategem {
 	private String javaVersion;
 	private final boolean justJunit;
 	protected GitIdCommand gitIdCommand;
+	private boolean doubleQuick = false;
+	private List<File> readsDirs = new ArrayList<File>();
+	private MainClassCommand mainClass;
+	private List<ManifestClassPathCommand> classPaths = new ArrayList<ManifestClassPathCommand>();
 
 	public JarCommand(TokenizedLine toks) {
 		super(toks, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
@@ -68,7 +73,7 @@ public class JarCommand extends AbstractStrategem {
 		if (justJunit)
 			javac = null;
 		else {
-			javac = addJavaBuild(tactics, jar, "src/main/java", "classes", "main", true);
+			javac = addJavaBuild(tactics, jar, "src/main/java", "classes", "main", !doubleQuick);
 			if (javac != null)
 				javac.dumpClasspathTo(files.getOutput("buildclasspath"));
 		}
@@ -134,7 +139,7 @@ public class JarCommand extends AbstractStrategem {
 
 	// strategy pattern
 	protected ArchiveCommand createAssemblyCommand(OrderedFileList resourceFiles) {
-		return new JarBuildCommand(this, files, targetName, includePackages, excludePackages, resourceFiles, gitIdCommand);
+		return new JarBuildCommand(this, files, targetName, includePackages, excludePackages, resourceFiles, gitIdCommand, mainClass, classPaths);
 	}
 
 	protected void additionalCommands(Config config, OrderedFileList ofl) {
@@ -200,6 +205,23 @@ public class JarCommand extends AbstractStrategem {
 				if (gitIdCommand != null)
 					throw new UtilException("You cannot specify more than one git id variable");
 				gitIdCommand = (GitIdCommand) opt;
+			}
+			else if (opt instanceof DoubleQuickCommand)
+				doubleQuick = true;
+			else if (opt instanceof ReadsFileCommand) {
+				ReadsFileCommand rfc = (ReadsFileCommand) opt;
+				rfc.applyTo(config);
+				readsDirs.add(rfc.getPath());
+			}
+			else if (opt instanceof MainClassCommand)
+			{
+				if (mainClass != null)
+					throw new UtilException("You cannot specify more than one main class");
+				mainClass = (MainClassCommand) opt;
+			}
+			else if (opt instanceof ManifestClassPathCommand)
+			{
+				classPaths.add((ManifestClassPathCommand) opt);
 			}
 			else
 				throw new UtilException("The option " + opt + " is not valid for JarCommand");
@@ -367,7 +389,17 @@ public class JarCommand extends AbstractStrategem {
 	private JUnitRunCommand addJUnitRun(List<? super Tactic> ret, List<JavaBuildCommand> jbcs) {
 		if (runJunit && !jbcs.isEmpty())
 		{
-			JUnitRunCommand cmd = new JUnitRunCommand(this, files, jbcs, figureResourceFiles("src/main/resources", "src/test/resources"));
+			OrderedFileList ofl = figureResourceFiles("src/main/resources", "src/test/resources");
+			for (File f : readsDirs) {
+				if (f.isDirectory()) {
+					for (File g : FileUtils.findFilesMatching(f, "*"))
+						if (g.isFile())
+							ofl.add(g);
+				} else
+					ofl.add(f);
+			}
+
+			JUnitRunCommand cmd = new JUnitRunCommand(this, files, jbcs, ofl);
 			cmd.addLibs(junitLibs);
 			if (junitMemory != null)
 				cmd.setJUnitMemory(junitMemory);

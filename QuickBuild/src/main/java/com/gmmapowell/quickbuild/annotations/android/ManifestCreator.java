@@ -12,7 +12,7 @@ public class ManifestCreator {
 	private final XMLNamespace android;
 	private final XMLElement top;
 	private final XMLElement application;
-	private String minSdkVersion = "4";
+	private String minSdkVersion = "26";
 	private final String pkg;
 
 	public ManifestCreator(String pkg) {

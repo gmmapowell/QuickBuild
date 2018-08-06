@@ -21,7 +21,7 @@ public class PDEAssembleCommand extends ArchiveCommand {
 	private final StructureHelper files;
 	
 	public PDEAssembleCommand(Strategem parent, StructureHelper files, String targetName, List<File> pdelibs, List<File> includePackages, List<File> excludePackages, OrderedFileList ofl) {
-		super(parent, includePackages, excludePackages, ofl);
+		super(parent, includePackages, excludePackages, ofl, null, null);
 		this.files = files;
 		this.pdelibs = pdelibs;
 		if (files.getRelative("libs").isDirectory())

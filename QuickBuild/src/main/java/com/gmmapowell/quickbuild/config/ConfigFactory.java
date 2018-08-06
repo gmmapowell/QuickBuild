@@ -17,6 +17,7 @@ import com.gmmapowell.quickbuild.build.ImageMagickConvertCommand;
 import com.gmmapowell.quickbuild.build.ImageMagickLauncherIcon;
 import com.gmmapowell.quickbuild.build.ImageMagickNotificationIcon;
 import com.gmmapowell.quickbuild.build.ftp.DistributeCommand;
+import com.gmmapowell.quickbuild.build.ftp.DistributeIncludeDependenciesCommand;
 import com.gmmapowell.quickbuild.build.ftp.DistributeSeparatelyCommand;
 import com.gmmapowell.quickbuild.build.ftp.DistributeWrapCommand;
 import com.gmmapowell.quickbuild.core.Nature;
@@ -52,6 +53,7 @@ public class ConfigFactory implements CommandObjectFactory {
 		addCommandExtension("produces", ProducesCommand.class);
 		addCommandExtension("readsFile", ReadsFileCommand.class);
 		addCommandExtension("readsDir", ReadsFileCommand.class);
+		addCommandExtension("doublequick", DoubleQuickCommand.class);
 
 		// standard build commands
 		addCommandExtension("copydir", CopyDirectoryCommand.class);
@@ -61,6 +63,7 @@ public class ConfigFactory implements CommandObjectFactory {
 		addCommandExtension("distribute", DistributeCommand.class);
 		addCommandExtension("wrap", DistributeWrapCommand.class);
 		addCommandExtension("separately", DistributeSeparatelyCommand.class);
+		addCommandExtension("includeDependencies", DistributeIncludeDependenciesCommand.class);
 		addCommandExtension("images", ImageMagickConvertCommand.class);
 		addCommandExtension("launcher", ImageMagickLauncherIcon.class);
 		addCommandExtension("notification", ImageMagickNotificationIcon.class);
