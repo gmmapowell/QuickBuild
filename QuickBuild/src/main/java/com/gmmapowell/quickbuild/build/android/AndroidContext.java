@@ -30,6 +30,14 @@ public class AndroidContext {
 
 	// TODO: this needs to be cross-platform (somehow)
 	public AndroidContext(Config conf) {
+		String mode = conf.getVar("androidMode");
+		if ("off".equals(mode)) {
+			aapt = dx = jack = jill = platformJar = supportJar = apk = adb = null;
+			androidPlatform = androidBuild = null;
+			apkLoader = null;
+			return;
+		}
+				
 		String os = conf.getVar("os");
 		String bat = "";
 		String exe = "";
@@ -73,6 +81,10 @@ public class AndroidContext {
 		supportJar = new File(supportDir, "android-support-v13.jar");
 		if (!supportJar.exists())
 			throw new QBConfigurationException("Invalid android configuration: cannot find " + supportJar);
+	}
+	
+	public boolean enabled() {
+		return aapt != null;
 	}
 
 	public File getAAPT() {

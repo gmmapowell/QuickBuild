@@ -58,9 +58,10 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 		super.handleOptions(config);
 
 		fromdir = FileUtils.combine(execdir, directory);
-		String destination = destinations.get(0); // should be a for loop
-		String sendTo = destination.replaceAll("\\$\\{date}", new SimpleDateFormat("yyyyMMdd").format(new Date()));
-		processDestination(config, sendTo);
+		for (String destination : destinations) {
+			String sendTo = destination.replaceAll("\\$\\{date}", new SimpleDateFormat("yyyyMMdd").format(new Date()));
+			processDestination(config, sendTo);
+		}
 		return this;
 	}
 
@@ -199,8 +200,10 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 			Set<BuildResource> all = new HashSet<>();
 			for (PendingResource r : resources) {
 				all.add(r);
-				for (BuildResource q : cxt.getTransitiveDependencies(r.getBuiltBy())) {
-					all.add(q);
+				if (includeDependencies) {
+					for (BuildResource q : cxt.getTransitiveDependencies(r.getBuiltBy())) {
+						all.add(q);
+					}
 				}
 			}
 			for (BuildResource r : all) {

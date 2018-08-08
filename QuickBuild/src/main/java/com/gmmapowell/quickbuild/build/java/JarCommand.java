@@ -11,6 +11,7 @@ import org.zinutils.utils.Cardinality;
 import org.zinutils.utils.FileUtils;
 import org.zinutils.utils.OrderedFileList;
 
+import com.gmmapowell.quickbuild.config.BuildIfCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.DoubleQuickCommand;
@@ -51,6 +52,7 @@ public class JarCommand extends AbstractStrategem {
 	private List<File> readsDirs = new ArrayList<File>();
 	private MainClassCommand mainClass;
 	private List<ManifestClassPathCommand> classPaths = new ArrayList<ManifestClassPathCommand>();
+	private List<BuildIfCommand> buildifs = new ArrayList<BuildIfCommand>();
 
 	public JarCommand(TokenizedLine toks) {
 		super(toks, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
@@ -66,6 +68,9 @@ public class JarCommand extends AbstractStrategem {
 		javaVersion = config.getVarIfDefined("javaVersion", null);
 		processOptions(config);
 
+		if (!isApplicable())
+			return this;
+		
 		OrderedFileList ofl = figureResourceFiles("src/main/resources", null);
 		ArchiveCommand jar = createAssemblyCommand(ofl);
 		
@@ -223,7 +228,13 @@ public class JarCommand extends AbstractStrategem {
 			{
 				classPaths.add((ManifestClassPathCommand) opt);
 			}
+			else if (opt instanceof BuildIfCommand)
+			{
+				opt.applyTo(config);
+				buildifs.add((BuildIfCommand) opt);
+			}
 			else
+
 				throw new UtilException("The option " + opt + " is not valid for JarCommand");
 		}
 		if (targetName == null)
@@ -232,6 +243,13 @@ public class JarCommand extends AbstractStrategem {
 
 	protected boolean processOption(ConfigApplyCommand opt) {
 		return false;
+	}
+
+	public boolean isApplicable() {
+		for (BuildIfCommand b : buildifs)
+			if (!b.isApplicable())
+				return false;
+		return true;
 	}
 
 	protected void addJUnitDir(MoreTestsCommand opt) {

@@ -73,12 +73,15 @@ public class AndroidCommand extends AbstractStrategem {
 
 	@Override
 	public Strategem applyConfig(Config config) {
+		acxt = config.getAndroidContext();
+		if (!acxt.enabled())
+			return this;
+		
 		config.getNature(JavaNature.class);
 		config.getNature(AndroidNature.class);
 		files = new StructureHelper(rootDir, config.getOutput());
 		FileUtils.assertDirectory(files.getRelative("src/android/res"));
 		FileUtils.assertDirectory(files.getRelative("src/android/lib"));
-		acxt = config.getAndroidContext();
 		File pd = new File(projectName);
 		zipFile = files.getOutput(pd.getName()+".ap_");
 		apkFile = files.getOutput(pd.getName()+".apk");
