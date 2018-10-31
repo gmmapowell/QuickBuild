@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.zinutils.exceptions.UtilException;
+
+import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.CanBeSkipped;
 import com.gmmapowell.quickbuild.core.AbstractStrategemTactic;
 
-public abstract class AbstractBuildCommand extends AbstractStrategemTactic {
+public abstract class AbstractBuildCommand extends AbstractStrategemTactic implements CanBeSkipped {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private List<BuildIfCommand> buildifs = new ArrayList<BuildIfCommand>();
+	private boolean doubleQuick;
 
 	public AbstractBuildCommand(@SuppressWarnings("unchecked") Class<? extends ConfigApplyCommand>... clzs) {
 		super(clzs);
@@ -35,6 +39,9 @@ public abstract class AbstractBuildCommand extends AbstractStrategemTactic {
 			opt.applyTo(config);
 			buildifs.add((BuildIfCommand) opt);
 		}
+		else if (opt instanceof DoubleQuickCommand) {
+			doubleQuick = true;
+		}
 		else
 			return false;
 		return true;
@@ -45,6 +52,11 @@ public abstract class AbstractBuildCommand extends AbstractStrategemTactic {
 			if (!b.isApplicable())
 				return false;
 		return true;
+	}
+
+	@Override
+	public boolean skipMe(BuildContext cxt) {
+		return doubleQuick && cxt.doubleQuick;
 	}
 
 }

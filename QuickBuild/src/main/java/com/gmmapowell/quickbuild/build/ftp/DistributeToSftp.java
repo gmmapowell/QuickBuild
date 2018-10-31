@@ -20,8 +20,10 @@ public class DistributeToSftp implements DistributeTo {
 	private String username;
 	private String host;
 	private String saveAs;
+	private String directory;
 
-	public DistributeToSftp(Config config, String dest) {
+	public DistributeToSftp(Config config, String directory, String dest) {
+		this.directory = directory;
 		fullyConfigured = true;
 		if (config.hasPath("privatekey"))
 			privateKeyPath = config.getPath("privatekey");
@@ -71,7 +73,14 @@ public class DistributeToSftp implements DistributeTo {
 			s.connect();
 			ChannelSftp openChannel = (ChannelSftp) s.openChannel("sftp");
 			openChannel.connect();
-			openChannel.put(local.getPath(), to);
+			File parent = new File(to).getParentFile();
+//			System.out.println("making directory " + parent);
+			makeParentDir(openChannel, parent);
+			try {
+				openChannel.put(local.getPath(), to);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
 			return BuildStatus.SUCCESS;
 		}
 		finally {
@@ -80,9 +89,27 @@ public class DistributeToSftp implements DistributeTo {
 		}
 	}
 
+	private void makeParentDir(ChannelSftp openChannel, File parent) {
+		if (parent == null)
+			return;
+		try {
+			openChannel.mkdir(parent.getPath());
+			return;
+		} catch (Exception ex) {
+			if (ex.getMessage().equals("Failure"))
+				return; // it already exists
+		}
+		makeParentDir(openChannel, parent.getParentFile());
+		try {
+			openChannel.mkdir(parent.getPath());
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
 	@Override
 	public BuildResource resource(DistributeCommand cmd) {
-		return new DistributeResource(cmd, host);
+		return new DistributeResource(cmd, directory, host);
 	}
 
 	@Override

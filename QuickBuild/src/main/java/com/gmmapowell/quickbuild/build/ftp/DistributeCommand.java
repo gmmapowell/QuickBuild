@@ -31,7 +31,6 @@ import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 
 public class DistributeCommand extends AbstractBuildCommand implements FloatToEnd {
-
 	private String directory;
 	private List<String> destinations = new ArrayList<String>();
 	private List<DistributeTo> distributions = new ArrayList<DistributeTo>();
@@ -69,9 +68,9 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 		//		System.out.println("Sending to: " + destination);
 		DistributeTo distr;
 		if (dest.startsWith("sftp:")) {
-			distr = new DistributeToSftp(config, dest);
+			distr = new DistributeToSftp(config, directory, dest);
 		} else if (dest.startsWith("s3:")) {
-			distr = new DistributeToS3(config, dest);
+			distr = new DistributeToS3(config, directory, dest);
 		} else
 			throw new UtilException("Unrecognized protocol in " + dest +". Supported protocols are: sftp, s3");
 		distributions.add(distr);
@@ -109,7 +108,7 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 
 	@Override
 	public String identifier() {
-		return "Distribute" + destinations;
+		return "Distribute" + "-"+ directory + destinations;
 	}
 
 	@Override
@@ -150,7 +149,7 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 			for (File[] f : sendFiles(cxt)) {
 				for (DistributeTo d : distributions)
 					try {
-						/* ignore possible skipped */ d.distribute(showDebug, f[0], f[1].getPath());
+						recurse(d, showDebug, f[0], f[1]);
 					} catch (Exception ex) {
 						ex.printStackTrace();
 						stat = BuildStatus.BROKEN;
@@ -191,6 +190,16 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 		return BuildStatus.SUCCESS;
 	}
 
+	private void recurse(DistributeTo d, boolean showDebug, File file, File to) throws Exception {
+		if (file.isFile())
+			/* ignore possible skipped */ d.distribute(showDebug, file, to.getPath());
+		else {
+			for (File f : file.listFiles())
+				recurse(d, showDebug, f, new File(to, f.getName()));
+		}
+		
+	}
+
 	private List<File[]> sendFiles(BuildContext cxt) {
 		ArrayList<File[]> ret = new ArrayList<>();
 		if (directory.equals("_")) {
@@ -227,6 +236,6 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 
 	@Override
 	public String toString() {
-		return "Distribute" + distributions;
+		return "Distribute" + "-" + directory + distributions;
 	}
 }

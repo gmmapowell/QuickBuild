@@ -6,8 +6,8 @@ import com.gmmapowell.quickbuild.build.ExecutesInDirCommand;
 import com.gmmapowell.quickbuild.core.SolidResource;
 import com.gmmapowell.quickbuild.core.Tactic;
 
-public class DirectoryResource extends SolidResource {
-	public DirectoryResource(Tactic t, File f) {
+public class JarDirectoryResource extends SolidResource {
+	public JarDirectoryResource(Tactic t, File f) {
 		super(t, figureAbsolutePath(t, f));
 	}
 

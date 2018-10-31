@@ -9,6 +9,7 @@ import org.zinutils.utils.ArgumentDefinition;
 import org.zinutils.utils.Cardinality;
 
 import com.gmmapowell.quickbuild.build.java.DirectoryResource;
+import com.gmmapowell.quickbuild.build.java.JarDirectoryResource;
 import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.build.javascript.JSFileResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
@@ -45,6 +46,8 @@ public class ProducesCommand extends NoChildCommand implements ConfigApplyComman
 			return new JSFileResource(t, resourceFile);
 		else if (type.equals("classdir"))
 			return new DirectoryResource(t, resourceFile);
+		else if (type.equals("libdir"))
+			return new JarDirectoryResource(t, resourceFile);
 		else
 			throw new UtilException("Cannot handle bash resource type " + type);
 	}

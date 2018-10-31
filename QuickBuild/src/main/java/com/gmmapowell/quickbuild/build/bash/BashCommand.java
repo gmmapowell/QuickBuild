@@ -86,6 +86,7 @@ public class BashCommand extends AbstractStrategemTactic implements ExecutesInDi
 		{
 			bashPath = config.getPath("bashexe");
 		}
+		builds.add(new BashResource(this, null, this.identifier()));
 
 		return this;
 	}
@@ -97,6 +98,8 @@ public class BashCommand extends AbstractStrategemTactic implements ExecutesInDi
 
 	@Override
 	public String getExecDir() {
+		if (dir == null)
+			return execdir.getPath();
 		return dir.getDirectory();
 	}
 

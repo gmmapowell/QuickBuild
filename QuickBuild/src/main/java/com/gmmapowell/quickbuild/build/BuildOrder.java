@@ -224,13 +224,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 			{
 				if (wb == null || wb instanceof ProcessResource)
 					continue;
-				if (wb.getPath() == null || !wb.getPath().exists())
-				{
-					if (debug)
-						cxt.output.println("Marking " + itb + " dirty because " + wb.compareAs() + " does not have a file output");
-					isDirty = true;
-				}
-				else if (!wb.getPath().exists())
+				if (wb.getPath() != null && !wb.getPath().exists())
 				{
 					if (debug)
 						cxt.output.println("Marking " + itb + " dirty because " + wb.compareAs() + " does not exist");

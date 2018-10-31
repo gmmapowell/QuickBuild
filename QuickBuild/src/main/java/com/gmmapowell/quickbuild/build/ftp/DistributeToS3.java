@@ -20,8 +20,10 @@ public class DistributeToS3 implements DistributeTo {
 	private String bucket;
 	private String host;
 	private String saveAs;
+	private String directory;
 
-	public DistributeToS3(Config config, String dest) {
+	public DistributeToS3(Config config, String directory, String dest) {
+		this.directory = directory;
 		fullyConfigured = true;
 		if (config.hasPath("awspath"))
 			privateKeyPath = config.getPath("awspath");
@@ -52,6 +54,6 @@ public class DistributeToS3 implements DistributeTo {
 
 	@Override
 	public BuildResource resource(DistributeCommand cmd) {
-		return new DistributeResource(cmd, host);
+		return new DistributeResource(cmd, directory, host);
 	}
 }

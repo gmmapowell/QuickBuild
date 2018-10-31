@@ -7,11 +7,13 @@ import com.gmmapowell.quickbuild.core.Tactic;
 
 public class DistributeResource implements BuildResource {
 	private final DistributeCommand strat;
+	private final String dir;
 	private final String host;
 	private boolean analyze;
 
-	public DistributeResource(DistributeCommand strat, String host) {
+	public DistributeResource(DistributeCommand strat, String dir, String host) {
 		this.strat = strat;
+		this.dir = dir;
 		this.host = host;
 	}
 
@@ -27,7 +29,7 @@ public class DistributeResource implements BuildResource {
 
 	@Override
 	public String compareAs() {
-		return "DistributeTo["+host+"]";
+		return "DistributeTo-" + dir + "["+host+"]";
 	}
 
 	@Override

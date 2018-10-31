@@ -11,6 +11,8 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import org.zinutils.exceptions.UtilException;
+
+import com.gmmapowell.quickbuild.build.java.DirectoryResource;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
@@ -152,7 +154,7 @@ public class DependencyManager {
 		if (pr.isBound())
 			return pr.physicalResource();
 		List<BuildResource> uniq = new ArrayList<BuildResource>();
-		Pattern p = Pattern.compile(pr.compareAs().toLowerCase().replaceAll("\\.", "\\\\."));
+		Pattern p = Pattern.compile(pr.compareAs().toLowerCase().replaceAll("\\.", "\\\\.").replaceAll("\\[", "\\\\[").replaceAll("\\]", "\\\\]"));
 		for (BuildResource br : allResources)
 		{
 			if (br instanceof PendingResource)
@@ -163,6 +165,14 @@ public class DependencyManager {
 			}
 		}
 		if (uniq.size() == 0) {
+			// final effort ... is it a dir?
+			File asdir = new File(FileUtils.getCurrentDir(), pr.getPending());
+			if (asdir.isDirectory()) {
+				DirectoryResource r = new DirectoryResource(null, asdir);
+				pr.bindTo(r);
+				allResources.add(r);
+				return r;
+			}
 			StringBuilder sb = new StringBuilder("Could not find any dependency that matched " + pr.compareAs() +"; have:\n");
 			for (BuildResource br : allResources)
 				sb.append("  " + br.compareAs() + "\n");

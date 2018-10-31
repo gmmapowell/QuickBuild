@@ -1,11 +1,16 @@
 package com.gmmapowell.quickbuild.build;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.zinutils.utils.FileUtils;
+
+import com.gmmapowell.quickbuild.build.java.JarDirectoryResource;
+import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
@@ -49,6 +54,15 @@ public class ResourceManager implements ResourceListener {
 	public void resourceAvailable(BuildResource r, boolean analyze) {
 		if (r == null)
 			return;
+		if (r instanceof JarDirectoryResource) {
+			// it's a dir of jars, add those instead
+			if (!r.getPath().exists())
+				throw new QuickBuildException("The resource " + r.compareAs() + " has been made available but does not exist");
+			for (File f : FileUtils.findFilesMatching(r.getPath(), "*.jar")) {
+				resourceAvailable(new JarResource(r.getBuiltBy(), f), analyze);
+			}
+			return;
+		}
 		availableResources.add(r);
 		if (r.getPath() != null)
 		{

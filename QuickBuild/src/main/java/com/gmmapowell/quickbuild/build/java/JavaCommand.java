@@ -28,10 +28,10 @@ import com.gmmapowell.quickbuild.config.DoubleQuickCommand;
 import com.gmmapowell.quickbuild.config.NotFatalCommand;
 import com.gmmapowell.quickbuild.config.ProducesCommand;
 import com.gmmapowell.quickbuild.config.ReadsFileCommand;
+import com.gmmapowell.quickbuild.config.ResourceCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategemTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
-import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 
@@ -153,10 +153,10 @@ public class JavaCommand extends AbstractStrategemTactic implements ExecutesInDi
 			{
 				errorReturn  = BuildStatus.TEST_FAILURES;
 			}
-//			else if (opt instanceof ResourceCommand)
-//			{
-//				addResource((ResourceCommand)opt);
-//			}
+			else if (opt instanceof ResourceCommand)
+			{
+				needs(((ResourceCommand)opt).getPendingResource());
+			}
 //			else if (opt instanceof JUnitMemoryCommand)
 //			{
 //				setJUnitMemory((JUnitMemoryCommand)opt);
@@ -236,10 +236,16 @@ public class JavaCommand extends AbstractStrategemTactic implements ExecutesInDi
 		RunClassPath classpath = new RunClassPath(cxt, null);
 		for (File f : this.classpath)
 			classpath.add(f);
-		for (BuildResource r : needsResources())
-			classpath.add(FileUtils.relativePath(r.getPath()));
+		for (BuildResource r : needsResources()) {
+			if (r instanceof JarResource)
+				classpath.add(FileUtils.relativePath(r.getPath()));
+			else if (r instanceof DirectoryResource)
+				classpath.add(r.getPath());
+			else if (r instanceof PendingResource)
+				classpath.add(r.getPath());
+		}
 		for (BuildResource f : cxt.getTransitiveDependencies(this))
-			if (f != null && !(f instanceof ProcessResource))
+			if (f != null && (f instanceof JarResource))
 				classpath.add(FileUtils.relativePath(f.getPath()));
 		
 		FileUtils.assertDirectory(errdir);

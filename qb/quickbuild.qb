@@ -19,5 +19,5 @@ jarjar scripts/Quickbuilder.jar
   resource ZinUtils.jar
   resource jsch:jar
 
-distribute scripts sftp:pi@172.21.141.66/quickbuild/
+distribute scripts sftp:root@172.21.141.53//home/quickbuild/
   separately
