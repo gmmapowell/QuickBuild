@@ -8,27 +8,28 @@ import java.util.Set;
 
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.parser.TokenizedLine;
-import com.gmmapowell.quickbuild.build.BuildContext;
-import com.gmmapowell.quickbuild.build.BuildStatus;
-import com.gmmapowell.quickbuild.build.CanBeSkipped;
-import com.gmmapowell.quickbuild.build.ExecutesInDirCommand;
-import com.gmmapowell.quickbuild.config.Config;
-import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
-import com.gmmapowell.quickbuild.config.DoubleQuickCommand;
-import com.gmmapowell.quickbuild.config.ProducesCommand;
-import com.gmmapowell.quickbuild.config.ReadsFileCommand;
-import com.gmmapowell.quickbuild.config.ResourceCommand;
-import com.gmmapowell.quickbuild.core.AbstractStrategemTactic;
-import com.gmmapowell.quickbuild.core.BuildResource;
-import com.gmmapowell.quickbuild.core.ResourcePacket;
-import com.gmmapowell.quickbuild.core.Strategem;
 import org.zinutils.system.RunProcess;
 import org.zinutils.utils.ArgumentDefinition;
 import org.zinutils.utils.Cardinality;
 import org.zinutils.utils.FileUtils;
 import org.zinutils.utils.OrderedFileList;
 
-public class BashCommand extends AbstractStrategemTactic implements ExecutesInDirCommand, CanBeSkipped {
+import com.gmmapowell.quickbuild.build.BuildContext;
+import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.CanBeSkipped;
+import com.gmmapowell.quickbuild.build.ExecutesInDirCommand;
+import com.gmmapowell.quickbuild.config.AbstractBuildCommand;
+import com.gmmapowell.quickbuild.config.Config;
+import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
+import com.gmmapowell.quickbuild.config.DoubleQuickCommand;
+import com.gmmapowell.quickbuild.config.ProducesCommand;
+import com.gmmapowell.quickbuild.config.ReadsFileCommand;
+import com.gmmapowell.quickbuild.config.ResourceCommand;
+import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.ResourcePacket;
+import com.gmmapowell.quickbuild.core.Strategem;
+
+public class BashCommand extends AbstractBuildCommand implements ExecutesInDirCommand, CanBeSkipped {
 	private String scriptName;
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private final ResourcePacket<BuildResource> provides = new ResourcePacket<BuildResource>();
@@ -78,7 +79,7 @@ public class BashCommand extends AbstractStrategemTactic implements ExecutesInDi
 				readsFiles.add(((ReadsFileCommand)opt).getPath());
 			else if (opt instanceof DoubleQuickCommand)
 				doubleQuick = true;
-			else
+			else if (!super.handleOption(config, opt))
 				throw new UtilException("The option " + opt + " is not supported");
 		}
 		String os = config.getVar("os");
@@ -93,7 +94,7 @@ public class BashCommand extends AbstractStrategemTactic implements ExecutesInDi
 
 	@Override
 	public boolean skipMe(BuildContext cxt) {
-		return doubleQuick && cxt.doubleQuick;
+		return (doubleQuick && cxt.doubleQuick) || !isApplicable();
 	}
 
 	@Override
@@ -146,6 +147,8 @@ public class BashCommand extends AbstractStrategemTactic implements ExecutesInDi
 
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
+		if (!isApplicable())
+			return BuildStatus.SKIPPED;
 		RunProcess exec = null;
 		if (bashPath != null)
 		{

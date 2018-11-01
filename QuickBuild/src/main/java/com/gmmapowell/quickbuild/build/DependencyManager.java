@@ -250,7 +250,7 @@ public class DependencyManager {
 	}
 
 	private void getTransitiveDependencies(Set<Tactic> lookedAt, Set<BuildResource> ret, Tactic t) {
-		if (lookedAt.contains(t))
+		if (t == null || lookedAt.contains(t))
 			return;
 		for (BuildResource br : getDependencies(t)) {
 			ret.add(br);

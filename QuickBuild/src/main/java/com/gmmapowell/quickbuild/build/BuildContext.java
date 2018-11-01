@@ -99,6 +99,10 @@ public class BuildContext {
 	public ResourceManager getResourceManager() {
 		return rm;
 	}
+	
+	public void setConfigVar(String var, String value) {
+		conf.setVarProperty(var, value);
+	}
 
 	public boolean quietMode()
 	{

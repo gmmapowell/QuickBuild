@@ -5,19 +5,24 @@ import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.zinutils.exceptions.UtilException;
+import org.zinutils.git.GitHelper;
+import org.zinutils.git.GitRecord;
 import org.zinutils.parser.TokenizedLine;
 import org.zinutils.utils.ArgumentDefinition;
 import org.zinutils.utils.Cardinality;
 import org.zinutils.utils.FileUtils;
 import org.zinutils.utils.OrderedFileList;
 
+import com.gmmapowell.quickbuild.build.AlwaysRunMe;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.config.AbstractBuildCommand;
@@ -30,7 +35,7 @@ import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 
-public class DistributeCommand extends AbstractBuildCommand implements FloatToEnd {
+public class DistributeCommand extends AbstractBuildCommand implements FloatToEnd, AlwaysRunMe {
 	private String directory;
 	private List<String> destinations = new ArrayList<String>();
 	private List<DistributeTo> distributions = new ArrayList<DistributeTo>();
@@ -142,19 +147,35 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 	}
 
 	@Override
+	public boolean skipMe(BuildContext cxt) {
+		return !isApplicable();
+	}
+	
+	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
+		if (!isApplicable())
+			return BuildStatus.SKIPPED;
+
+		Map<File, File> remote = new HashMap<>();
+		OrderedFileList files = sendFiles(cxt, remote);
 		if (separately)
 		{
+			File gf = cxt.getGitCacheFile(identifier(), ".filelist"); 
+			GitRecord gittx = GitHelper.checkFiles(true, files, gf);
+
 			BuildStatus stat = BuildStatus.SUCCESS;
-			for (File[] f : sendFiles(cxt)) {
+			for (File f : files) {
+				if (!gittx.isFileDirty(f))
+					continue;
 				for (DistributeTo d : distributions)
 					try {
-						recurse(d, showDebug, f[0], f[1]);
+						d.distribute(showDebug, f, remote.get(f).getPath());
 					} catch (Exception ex) {
 						ex.printStackTrace();
 						stat = BuildStatus.BROKEN;
 					}
 			}
+			gittx.commit();
 			return stat;
 		}
 		else
@@ -167,10 +188,10 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 				f.deleteOnExit();
 				try (FileOutputStream fos = new FileOutputStream(f)) {
 					os = new ZipOutputStream(fos);
-					for (File[] fs : sendFiles(cxt)) {
-						if (fs[0].isDirectory())
+					for (File f1 : files) {
+						if (f1.isDirectory())
 							continue;
-						os.putNextEntry(new ZipEntry(wrapIn + FileUtils.posixPath(fs[0])));
+						os.putNextEntry(new ZipEntry(wrapIn + FileUtils.posixPath(f1)));
 					}
 					os.close();
 				}
@@ -190,18 +211,8 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 		return BuildStatus.SUCCESS;
 	}
 
-	private void recurse(DistributeTo d, boolean showDebug, File file, File to) throws Exception {
-		if (file.isFile())
-			/* ignore possible skipped */ d.distribute(showDebug, file, to.getPath());
-		else {
-			for (File f : file.listFiles())
-				recurse(d, showDebug, f, new File(to, f.getName()));
-		}
-		
-	}
-
-	private List<File[]> sendFiles(BuildContext cxt) {
-		ArrayList<File[]> ret = new ArrayList<>();
+	private OrderedFileList sendFiles(BuildContext cxt, Map<File, File> renameTo) {
+		OrderedFileList ret = new OrderedFileList();
 		if (directory.equals("_")) {
 			// don't have a specific fromdir, expect resources
 			if (resources.isEmpty())
@@ -217,16 +228,29 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 			}
 			for (BuildResource r : all) {
 				File path = r.getPath();
-				ret.add(new File[] { path, new File(path.getName()) });
+				recurse2(ret, renameTo, path, new File(path.getName()));
 			}
 		} else {
 			for (File f : FileUtils.findFilesUnderMatching(fromdir, "*"))
 			{
 				File g = FileUtils.relativePath(fromdir, f.getPath());
-				ret.add(new File[] { g, f });
+				recurse2(ret, renameTo, g, f);
 			}
 		}
 		return ret;
+	}
+
+	private void recurse2(OrderedFileList ofl, Map<File, File> remote, File file, File to) {
+		if (file.isFile()) {
+			ofl.add(file);
+			remote.put(file, to);
+		} else {
+			if (file == null || file.listFiles() == null)
+				return;
+			for (File f : file.listFiles())
+				recurse2(ofl, remote, f, new File(to, f.getName()));
+		}
+		
 	}
 
 	@Override

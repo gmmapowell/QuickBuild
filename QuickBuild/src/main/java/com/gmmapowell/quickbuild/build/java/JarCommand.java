@@ -53,6 +53,7 @@ public class JarCommand extends AbstractStrategem {
 	private MainClassCommand mainClass;
 	private List<ManifestClassPathCommand> classPaths = new ArrayList<ManifestClassPathCommand>();
 	private List<BuildIfCommand> buildifs = new ArrayList<BuildIfCommand>();
+	private List<TestIfCommand> testifs = new ArrayList<>();
 
 	public JarCommand(TokenizedLine toks) {
 		super(toks, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
@@ -233,6 +234,11 @@ public class JarCommand extends AbstractStrategem {
 				opt.applyTo(config);
 				buildifs.add((BuildIfCommand) opt);
 			}
+			else if (opt instanceof TestIfCommand)
+			{
+				opt.applyTo(config);
+				testifs.add((TestIfCommand) opt);
+			}
 			else
 
 				throw new UtilException("The option " + opt + " is not valid for JarCommand");
@@ -248,6 +254,13 @@ public class JarCommand extends AbstractStrategem {
 	public boolean isApplicable() {
 		for (BuildIfCommand b : buildifs)
 			if (!b.isApplicable())
+				return false;
+		return true;
+	}
+
+	public boolean testsAreApplicable() {
+		for (TestIfCommand ti : testifs)
+			if (!ti.isApplicable())
 				return false;
 		return true;
 	}
@@ -405,7 +418,7 @@ public class JarCommand extends AbstractStrategem {
 	}
 
 	private JUnitRunCommand addJUnitRun(List<? super Tactic> ret, List<JavaBuildCommand> jbcs) {
-		if (runJunit && !jbcs.isEmpty())
+		if (runJunit && testsAreApplicable() && !jbcs.isEmpty())
 		{
 			OrderedFileList ofl = figureResourceFiles("src/main/resources", "src/test/resources");
 			for (File f : readsDirs) {

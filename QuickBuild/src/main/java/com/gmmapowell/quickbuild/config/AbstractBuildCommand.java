@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.zinutils.exceptions.UtilException;
+import org.zinutils.parser.TokenizedLine;
+import org.zinutils.utils.ArgumentDefinition;
 
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.CanBeSkipped;
@@ -13,6 +15,10 @@ public abstract class AbstractBuildCommand extends AbstractStrategemTactic imple
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private List<BuildIfCommand> buildifs = new ArrayList<BuildIfCommand>();
 	private boolean doubleQuick;
+
+	public AbstractBuildCommand(TokenizedLine toks, ArgumentDefinition... args) {
+		super(toks, args);
+	}
 
 	public AbstractBuildCommand(@SuppressWarnings("unchecked") Class<? extends ConfigApplyCommand>... clzs) {
 		super(clzs);
@@ -56,7 +62,6 @@ public abstract class AbstractBuildCommand extends AbstractStrategemTactic imple
 
 	@Override
 	public boolean skipMe(BuildContext cxt) {
-		return doubleQuick && cxt.doubleQuick;
+		return (doubleQuick && cxt.doubleQuick) || !isApplicable();
 	}
-
 }

@@ -20,4 +20,6 @@ jarjar scripts/Quickbuilder.jar
   resource jsch:jar
 
 distribute scripts sftp:root@172.21.141.53//home/quickbuild/
+  buildif isLocal true
+  resource Quickbuilder.jar
   separately

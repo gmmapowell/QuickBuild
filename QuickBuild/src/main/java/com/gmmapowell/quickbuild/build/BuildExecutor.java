@@ -79,6 +79,7 @@ public class BuildExecutor {
 	public void doBuild() {
 		if (!cxt.quietMode() && !cxt.output.forTeamCity())
 			System.out.println("Building ...");
+		cxt.setConfigVar("buildStatus", BuildStatus.SUCCESS.name());
 		ItemToBuild itb;
 		while ((itb = next())!= null)
 		{
@@ -105,6 +106,7 @@ public class BuildExecutor {
 					buildOrder.completeTactic(itb.tactic);
 					if (!cxt.grandFallacyMode() || outcome.isReallyFatal())
 						break;
+					cxt.setConfigVar("buildStatus", outcome.name());
 					System.out.println("  Failed ... pressing on to the grand fallacy");
 					cxt.grandFallacy = true;
 					brokenTactics.add(itb.tactic);
@@ -131,6 +133,7 @@ public class BuildExecutor {
 					continue;
 				}
 				else if (outcome.partialFail()) {
+					cxt.setConfigVar("buildStatus", outcome.name());
 					System.out.println("  Partially failed, moving on ...");
 					buildOrder.completeTactic(itb.tactic);
 				}
@@ -248,7 +251,7 @@ public class BuildExecutor {
 			return BuildStatus.BROKEN_DEPENDENCIES;
 		}
 		BuildStatus stat = itb.needsBuild;
-		if (itb.tactic instanceof JUnitRunCommand && cxt.alwaysRunTests())
+		if (itb.tactic instanceof AlwaysRunMe || (itb.tactic instanceof JUnitRunCommand && cxt.alwaysRunTests()))
 			stat = BuildStatus.SUCCESS;
 		if (!stat.needsBuild())
 		{
