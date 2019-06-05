@@ -5,4 +5,4 @@ if [ $# -lt 1 ] ; then
   exit 1
 fi
 
-java -Duser.home=/root -cp /home/quickbuild/Quickbuilder.jar com.gmmapowell.quickbuild.app.QuickBuild "$@"
+java -cp /home/quickbuild/Quickbuilder.jar com.gmmapowell.quickbuild.app.QuickBuild "$@"

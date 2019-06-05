@@ -19,6 +19,7 @@ public class DistributeToSftp implements DistributeTo {
 	private File privateKeyPath;
 	private String username;
 	private String host;
+	private int port = 22;
 	private String saveAs;
 	private String directory;
 
@@ -39,14 +40,16 @@ public class DistributeToSftp implements DistributeTo {
 //			System.out.println("Cannot sftp: no known hosts");
 //			fullyConfigured = false;
 //		}
-		Pattern p = Pattern.compile("sftp:([a-zA-Z0-9_]+)@([a-zA-Z0-9_.]+)/(.+)");
+		Pattern p = Pattern.compile("sftp:([a-zA-Z0-9_]+)@([a-zA-Z0-9_.]+)(:[0-9]+)?/(.+)");
 		Matcher matcher = p.matcher(dest);
 		if (!matcher.matches())
 			throw new UtilException("Could not match path " + dest);
 		
 		username = matcher.group(1);
 		host = matcher.group(2);
-		saveAs = matcher.group(3);
+		if (matcher.group(3) != null)
+			port = Integer.parseInt(matcher.group(3).substring(1));
+		saveAs = matcher.group(4);
 		if (!saveAs.endsWith("/"))
 			saveAs += "/";
 	}
@@ -68,7 +71,7 @@ public class DistributeToSftp implements DistributeTo {
 			JSch jsch = new JSch();
 			jsch.addIdentity(privateKeyPath.getPath());
 //			jsch.setKnownHosts(knownHosts.getPath());
-			s = jsch.getSession(username, host);
+			s = jsch.getSession(username, host, port);
 			s.setConfig("StrictHostKeyChecking", "no");
 			s.connect();
 			ChannelSftp openChannel = (ChannelSftp) s.openChannel("sftp");
@@ -109,12 +112,12 @@ public class DistributeToSftp implements DistributeTo {
 
 	@Override
 	public BuildResource resource(DistributeCommand cmd) {
-		return new DistributeResource(cmd, directory, host);
+		return new DistributeResource(cmd, directory, port == 22 ? host : (host + ":" + port));
 	}
 
 	@Override
 	public String toString() {
-		return "sftp:" + host;
+		return "sftp:" + host + ":" + port;
 	}
 
 	public class JSchLogger implements Logger {
