@@ -8,13 +8,15 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
+import com.gmmapowell.quickbuild.build.MayPropagateDirtyness;
 import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.quickbuild.core.Strategem;
+import com.gmmapowell.quickbuild.core.Tactic;
 
 import org.zinutils.utils.FileUtils;
 import org.zinutils.utils.OrderedFileList;
 
-public abstract class ArchiveCommand extends AbstractTactic {
+public abstract class ArchiveCommand extends AbstractTactic implements MayPropagateDirtyness {
 	protected File jarfile;
 	protected JarResource jarResource;
 	protected final List<File> dirsToJar = new ArrayList<File>();
@@ -67,5 +69,13 @@ public abstract class ArchiveCommand extends AbstractTactic {
 			pw.println();
 		}
 		pw.flush();
+	}
+
+	@Override
+	public boolean dirtynessPropagates() {
+		for (Tactic t : this.getProcessDependencies())
+			if (t instanceof MayPropagateDirtyness && ((MayPropagateDirtyness)t).dirtynessPropagates())
+				return true;
+		return false;
 	}
 }

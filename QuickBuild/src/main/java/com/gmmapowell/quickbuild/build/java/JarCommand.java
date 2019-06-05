@@ -135,11 +135,14 @@ public class JarCommand extends AbstractStrategem {
 		if (javac != null)
 			jar.addProcessDependency(javac);
 
-		if (jrun != null)
+		if (jrun != null) {
+			if (javac != null)
+				jrun.addProcessDependency(javac);
 			for (JavaBuildCommand jbc : jbcs) {
 				jrun.addProcessDependency(jbc);
-				jar.addProcessDependency(jbc);
+//				jar.addProcessDependency(jbc);
 			}
+		}
 		return this;
 	}
 

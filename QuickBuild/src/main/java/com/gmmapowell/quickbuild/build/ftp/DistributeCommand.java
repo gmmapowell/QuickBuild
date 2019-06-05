@@ -25,6 +25,7 @@ import org.zinutils.utils.OrderedFileList;
 import com.gmmapowell.quickbuild.build.AlwaysRunMe;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.build.MayPropagateDirtyness;
 import com.gmmapowell.quickbuild.config.AbstractBuildCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
@@ -35,7 +36,7 @@ import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 
-public class DistributeCommand extends AbstractBuildCommand implements FloatToEnd, AlwaysRunMe {
+public class DistributeCommand extends AbstractBuildCommand implements FloatToEnd, AlwaysRunMe, MayPropagateDirtyness {
 	private String directory;
 	private List<String> destinations = new ArrayList<String>();
 	private List<DistributeTo> distributions = new ArrayList<DistributeTo>();
@@ -49,6 +50,7 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 	private boolean separately;
 	private boolean includeDependencies;
 	private Set<PendingResource> resources = new HashSet<PendingResource>();
+	private boolean propagates;
 
 	@SuppressWarnings("unchecked")
 	public DistributeCommand(TokenizedLine toks) {
@@ -153,8 +155,10 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 	
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
-		if (!isApplicable())
+		if (!isApplicable()) {
+			propagates = false;
 			return BuildStatus.SKIPPED;
+		}
 
 		Map<File, File> remote = new HashMap<>();
 		OrderedFileList files = sendFiles(cxt, remote);
@@ -163,10 +167,12 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 			File gf = cxt.getGitCacheFile(identifier(), ".filelist"); 
 			GitRecord gittx = GitHelper.checkFiles(true, files, gf);
 
-			BuildStatus stat = BuildStatus.SUCCESS;
+			BuildStatus stat = BuildStatus.SKIPPED;
 			for (File f : files) {
-				if (!gittx.isFileDirty(f))
+				if (!gittx.isFileDirty(GitHelper.relPath(f)))
 					continue;
+				stat = BuildStatus.SUCCESS;
+				propagates = true;
 				for (DistributeTo d : distributions)
 					try {
 						d.distribute(showDebug, f, remote.get(f).getPath());
@@ -180,6 +186,7 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 		}
 		else
 		{
+			propagates = true;
 			ZipOutputStream os = null;
 			File f = null;
 			try
@@ -261,5 +268,10 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 	@Override
 	public String toString() {
 		return "Distribute" + "-" + directory + distributions;
+	}
+
+	@Override
+	public boolean dirtynessPropagates() {
+		return propagates;
 	}
 }

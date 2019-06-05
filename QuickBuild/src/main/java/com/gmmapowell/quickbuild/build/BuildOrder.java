@@ -224,13 +224,18 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 			{
 				if (wb == null || wb instanceof ProcessResource)
 					continue;
+				Tactic d = wb.getBuiltBy();
 				if (wb.getPath() != null && !wb.getPath().exists())
 				{
 					if (debug)
 						cxt.output.println("Marking " + itb + " dirty because " + wb.compareAs() + " does not exist");
 					isDirty = true;
 				}
-				else if (dirtyResources.contains(wb) || (wb.getBuiltBy() != null && !mapping.get(wb.getBuiltBy().identifier()).isClean())) {
+				else if (itb.tactic instanceof CareAboutPropagatedDirtyness && d instanceof MayPropagateDirtyness) {
+					if (debug)
+						cxt.output.println("Adding " + d + " to list of propagators for " + itb);
+					itb.propagators.add((MayPropagateDirtyness) d);
+				} else if (dirtyResources.contains(wb) || (wb.getBuiltBy() != null && !mapping.get(wb.getBuiltBy().identifier()).isClean())) {
 					if (debug)
 						cxt.output.println("Marking " + itb + " dirty because " + wb.compareAs() + " is dirty or being dirtied");
 					isDirty = true;
@@ -243,8 +248,11 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 			{
 				if (d instanceof CanBeSkipped && ((CanBeSkipped)d).skipMe(cxt))
 					continue;
-				if (!mapping.get(d.identifier()).isClean())
-				{
+				if (itb.tactic instanceof CareAboutPropagatedDirtyness && d instanceof MayPropagateDirtyness) {
+					itb.propagators.add((MayPropagateDirtyness) d);
+					if (debug)
+						cxt.output.println("PD: Adding " + d + " to list of propagators for " + itb);
+				} else if (!mapping.get(d.identifier()).isClean()) {
 					isDirty = true;
 					if (debug)
 						cxt.output.println("Marking " + itb + " dirty due to " + d + " is dirty");

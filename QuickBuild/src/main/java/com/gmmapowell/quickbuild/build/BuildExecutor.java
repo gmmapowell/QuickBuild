@@ -250,6 +250,7 @@ public class BuildExecutor {
 			cxt.output.finishBuildStep();
 			return BuildStatus.BROKEN_DEPENDENCIES;
 		}
+		itb.checkPropagatedChanges();
 		BuildStatus stat = itb.needsBuild;
 		if (itb.tactic instanceof AlwaysRunMe || (itb.tactic instanceof JUnitRunCommand && cxt.alwaysRunTests()))
 			stat = BuildStatus.SUCCESS;
@@ -285,6 +286,10 @@ public class BuildExecutor {
 		try
 		{
 			ret = itb.tactic.execute(cxt, cxt.showArgs(itb.tactic), cxt.showDebug(itb.tactic));
+			if (ret == BuildStatus.SKIPPED) {
+				System.out.println("  --- skipped on execute");
+				return ret;
+			}
 		}
 		catch (CycleDetectedException ex) {
 			manager.cleanFile();

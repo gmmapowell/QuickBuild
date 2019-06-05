@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
 
+import org.zinutils.bytecode.ByteCodeAPI;
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.parser.LinePatternMatch;
 import org.zinutils.parser.LinePatternParser;
@@ -15,6 +16,8 @@ import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.build.CanBeSkipped;
+import com.gmmapowell.quickbuild.build.CareAboutPropagatedDirtyness;
+import com.gmmapowell.quickbuild.build.MayPropagateDirtyness;
 import com.gmmapowell.quickbuild.build.javascript.JSFileResource;
 import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
@@ -27,7 +30,7 @@ import org.zinutils.system.RunProcess;
 import org.zinutils.utils.FileUtils;
 import org.zinutils.utils.OrderedFileList;
 
-public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
+public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped, MayPropagateDirtyness, CareAboutPropagatedDirtyness {
 	private final File srcdir;
 	private final File bindir;
 	private final List<PendingResource> resources = new ArrayList<PendingResource>();
@@ -41,6 +44,7 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 	private final boolean runAlways;
 	private final String idAs;
 	private File dumpClasspath;
+	private boolean apiChanged = false;
 
 	public JavaBuildCommand(Strategem parent, StructureHelper files, String src, String bin, String label, List<File> sources, String context, String target, boolean runAlways) {
 		super(parent);
@@ -194,6 +198,28 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 		if (proc.getExitCode() == 0)
 		{
 			// TODO: cxt.addClassDirForProject(project, bindir);
+			if ("main".equals(label)) {
+				// check whether there were API changes to propagate
+				List<String> files = new ArrayList<>();
+				for (File f : FileUtils.findFilesMatching(bindir, "*.class")) {
+					files.add(f.getPath());
+				}
+				try {
+					File newcf = cxt.getCacheFile("Jar." + idAs + "." + label + ".api.new");
+					File oldcf = cxt.getCacheFile("Jar." + idAs + "." + label + ".api");
+					PrintWriter pw = new PrintWriter(newcf);
+					new ByteCodeAPI().process(pw, files);
+					pw.close();
+					if (oldcf == null || FileUtils.compare(oldcf, newcf) != 0) {
+						FileUtils.copy(newcf, oldcf);
+						apiChanged = true;
+					} else
+						apiChanged = false;
+					newcf.delete();
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
+			}
 			return BuildStatus.SUCCESS;
 		} else if (cxt.grandFallacy) {
 			System.out.println("Grand Fallacy mode ... not bothering to fix errors");
@@ -278,5 +304,21 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped {
 	@Override
 	public String identifier() {
 		return BuildOrder.tacticIdentifier(parent, label);
+	}
+
+	@Override
+	public boolean dirtynessPropagates() {
+		if (!"main".equals(label))
+			return false;
+		return apiChanged;
+	}
+
+	@Override
+	public boolean makesDirty(MayPropagateDirtyness dependency) {
+		// if it's something I don't understand, play safe ...
+		if (!(dependency instanceof JavaBuildCommand) && !(dependency instanceof ArchiveCommand))
+			return true;
+		
+		return dependency.dirtynessPropagates();
 	}
 }

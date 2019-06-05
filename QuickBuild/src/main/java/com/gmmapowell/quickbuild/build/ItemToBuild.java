@@ -31,6 +31,7 @@ public class ItemToBuild {
 	private final List<GitRecord> gittxs = new ArrayList<GitRecord>();
 	private int drift;
 	public int sentToBottomAt = -1;
+	public List<MayPropagateDirtyness> propagators = new ArrayList<>();
 
 	public ItemToBuild(Tactic tactic, String id, String label) {
 		this.needsBuild = BuildStatus.CLEAN;
@@ -157,5 +158,17 @@ public class ItemToBuild {
 
 	public boolean hasUnbuiltDependencies(BuildOrder bo) {
 		return bo.hasUnbuiltDependencies(this);
+	}
+
+	public void checkPropagatedChanges() {
+		if (tactic instanceof CareAboutPropagatedDirtyness && needsBuild == BuildStatus.CLEAN) {
+			CareAboutPropagatedDirtyness t = (CareAboutPropagatedDirtyness) tactic;
+			for (MayPropagateDirtyness d : propagators) {
+				if (t.makesDirty(d)) {
+					needsBuild = BuildStatus.SUCCESS;
+					return;
+				}
+			}
+		}
 	}
 }
