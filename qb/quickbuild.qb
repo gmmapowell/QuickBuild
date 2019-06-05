@@ -19,7 +19,6 @@ jarjar scripts/Quickbuilder.jar
   resource ZinUtils.jar
   resource jsch:jar
 
-distribute scripts sftp:root@192.168.1.240:2253//home/quickbuild/
-  buildif isLocal true
+distribute scripts sftp:root@churchst.homeip.net:2253//home/quickbuild/
   resource Quickbuilder.jar
   separately
