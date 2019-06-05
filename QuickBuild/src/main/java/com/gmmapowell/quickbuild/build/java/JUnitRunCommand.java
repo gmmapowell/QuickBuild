@@ -40,10 +40,6 @@ import org.zinutils.utils.FileUtils;
 import org.zinutils.utils.OrderedFileList;
 
 public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
-//	private final File srcdir;
-//	private final File golddir;
-//	private File bindir;
-//	private File goldbin;
 	private File errdir;
 	
 	private final BuildClassPath bootclasspath = new BuildClassPath();
@@ -215,10 +211,14 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		ErrorCase failure = cxt.failure(proc.getArgs(), proc.getStdout(), proc.getStderr());
 		LinePatternParser lpp = new LinePatternParser();
 		lpp.matchAll("(Failure: .*)", "case", "data");
+		lpp.matchAll("(Saw repeated .*)", "setup", "data");
 		for (LinePatternMatch lpm : lpp.applyTo(new StringReader(proc.getStdout())))
 		{
-			if (lpm.is("case"))
-			{
+			if (lpm.is("case")) {
+				String s = lpm.get("data");
+				if (s != null && s.trim().length() > 0)
+					failure.addMessage(s);
+			} else if (lpm.is("setup")) {
 				String s = lpm.get("data");
 				if (s != null && s.trim().length() > 0)
 					failure.addMessage(s);
