@@ -22,7 +22,6 @@ import org.zinutils.utils.FileUtils;
 
 public class JackBuildCommand extends AbstractTactic {
 	private final AndroidContext acxt;
-	private final File bindir;
 	private final File dexDir;
 	private final List<File> jars = new ArrayList<File>();
 	private final File libdir;
@@ -33,7 +32,6 @@ public class JackBuildCommand extends AbstractTactic {
 	public JackBuildCommand(AndroidContext acxt, Strategem parent, StructureHelper files, File bindir, File libdir, File dexDir, File jillDir, Set<Pattern> exclusions, ResourcePacket<PendingResource> uselibs) {
 		super(parent);
 		this.acxt = acxt;
-		this.bindir = bindir;
 		this.libdir = libdir;
 		this.dexDir = dexDir;
 		this.jillDir = jillDir;

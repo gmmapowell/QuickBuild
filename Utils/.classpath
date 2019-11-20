@@ -2,20 +2,13 @@
 <classpath>
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="src" path="src/main/resources"/>
-	<classpathentry kind="src" output="testbin" path="src/test/java"/>
+	<classpathentry kind="src" path="src/test/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="/qb/libs/jasypt-1.8.jar"/>
-	<classpathentry kind="lib" path="/qb/libs/servlet-api.jar"/>
-	<classpathentry kind="lib" path="/qb/libs/woodstox-android.jar"/>
-	<classpathentry kind="lib" path="/utils-qb/mvncache/com/rabbitmq/amqp-client/2.8.1/amqp-client-2.8.1.jar"/>
-	<classpathentry kind="lib" path="/utils-qb/libs/jsch-0.1.41.jar"/>
-	<classpathentry kind="lib" path="/utils-qb/mvncache/log4j/log4j/1.2.17/log4j-1.2.17.jar"/>
-	<classpathentry kind="lib" path="/utils-qb/mvncache/org/slf4j/slf4j-api/1.7.5/slf4j-api-1.7.5.jar"/>
-	<classpathentry kind="lib" path="/qb/mvncache/com/codahale/metrics/metrics-core/3.0.1/metrics-core-3.0.1.jar" sourcepath="/home/eric/code/jarsource/metrics-core-3.0.1-sources.jar"/>
-	<classpathentry kind="lib" path="/utils-qb/mvncache/org/atmosphere/atmosphere-runtime/2.0.3/atmosphere-runtime-2.0.3.jar" sourcepath="/Users/gareth/user/Clients/MGH/atmosphere/modules/cpr/src/main/java"/>
-	<classpathentry kind="lib" path="/utils-qb/mvncache/com/codahale/metrics/metrics-graphite/3.0.2/metrics-graphite-3.0.2.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/ZinikiDependencies"/>
-	<classpathentry kind="src" path="/Utils"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/HTTP"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Grizzly"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/CouchbaseServer"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Logging"/>
+	<classpathentry exported="true" kind="lib" path="/Users/gareth/Ziniki/Over/Tools/utils/bin/classes"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

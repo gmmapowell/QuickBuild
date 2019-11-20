@@ -12,8 +12,6 @@ import java.util.Set;
 
 import org.zinutils.collections.ListMap;
 import org.zinutils.exceptions.UtilException;
-import org.zinutils.http.ProxyInfo;
-import org.zinutils.http.ProxyableConnection;
 import org.zinutils.utils.FileUtils;
 
 import com.gmmapowell.quickbuild.app.BuildOutput;
@@ -24,6 +22,8 @@ import com.gmmapowell.quickbuild.core.ResourceListener;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
+import com.gmmapowell.utils.ProxyInfo;
+import com.gmmapowell.utils.ProxyableConnection;
 
 public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	private final List<Strategem> strategems = new ArrayList<Strategem>();

@@ -1,11 +1,11 @@
 package com.gmmapowell.blackbox;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-
 import org.zinutils.exceptions.UtilException;
-import org.zinutils.parser.TokenizedLine;
+
+import com.gmmapowell.parser.TokenizedLine;
 
 public class TestTokenizedLine {
 	@Test

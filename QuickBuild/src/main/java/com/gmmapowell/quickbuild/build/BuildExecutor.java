@@ -11,7 +11,7 @@ import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-import org.zinutils.utils.DateUtils;
+import com.gmmapowell.utils.DateUtils;
 
 public class BuildExecutor {
 	private enum Status { NOT_SET, NEXT_TACTIC, REJECT_AND_SEARCH_WELL };

@@ -10,6 +10,7 @@ import java.util.TreeSet;
 
 import org.zinutils.bytecode.ByteCodeAPI;
 import org.zinutils.exceptions.UtilException;
+
 import org.zinutils.parser.LinePatternMatch;
 import org.zinutils.parser.LinePatternParser;
 import com.gmmapowell.quickbuild.build.BuildContext;
@@ -28,7 +29,7 @@ import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import org.zinutils.system.RunProcess;
 import org.zinutils.utils.FileUtils;
-import org.zinutils.utils.OrderedFileList;
+import com.gmmapowell.utils.OrderedFileList;
 
 public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped, MayPropagateDirtyness, CareAboutPropagatedDirtyness {
 	private final File srcdir;

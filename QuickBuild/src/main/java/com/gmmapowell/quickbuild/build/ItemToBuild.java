@@ -4,13 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.zinutils.git.GitRecord;
+import org.zinutils.utils.StringUtil;
+
+import com.gmmapowell.git.GitRecord;
 import com.gmmapowell.quickbuild.app.BuildOutput;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.FloatToEnd;
 import com.gmmapowell.quickbuild.core.Tactic;
-import org.zinutils.utils.PrettyPrinter;
-import org.zinutils.utils.StringUtil;
+import com.gmmapowell.utils.PrettyPrinter;
 
 /**
  * The purpose of this class is to communicate between BuildOrder (which knows

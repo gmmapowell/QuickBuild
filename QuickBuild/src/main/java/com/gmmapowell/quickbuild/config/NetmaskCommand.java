@@ -9,10 +9,11 @@ import java.util.Enumeration;
 import java.util.List;
 
 import org.zinutils.exceptions.UtilException;
-import org.zinutils.parser.NoChildCommand;
-import org.zinutils.parser.TokenizedLine;
-import org.zinutils.utils.ArgumentDefinition;
-import org.zinutils.utils.Cardinality;
+
+import com.gmmapowell.parser.NoChildCommand;
+import com.gmmapowell.parser.TokenizedLine;
+import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.utils.Cardinality;
 
 public class NetmaskCommand extends NoChildCommand implements ConfigApplyCommand  {
 	private String name;

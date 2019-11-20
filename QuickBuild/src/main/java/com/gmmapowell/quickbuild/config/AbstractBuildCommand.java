@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.zinutils.exceptions.UtilException;
-import org.zinutils.parser.TokenizedLine;
-import org.zinutils.utils.ArgumentDefinition;
 
+import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.CanBeSkipped;
 import com.gmmapowell.quickbuild.core.AbstractStrategemTactic;

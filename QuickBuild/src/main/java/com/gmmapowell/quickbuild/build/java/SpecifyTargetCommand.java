@@ -1,11 +1,11 @@
 package com.gmmapowell.quickbuild.build.java;
 
-import org.zinutils.parser.NoChildCommand;
-import org.zinutils.parser.TokenizedLine;
+import com.gmmapowell.parser.NoChildCommand;
+import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
-import org.zinutils.utils.ArgumentDefinition;
-import org.zinutils.utils.Cardinality;
+import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.utils.Cardinality;
 
 public class SpecifyTargetCommand extends NoChildCommand implements ConfigApplyCommand {
 	private String target;

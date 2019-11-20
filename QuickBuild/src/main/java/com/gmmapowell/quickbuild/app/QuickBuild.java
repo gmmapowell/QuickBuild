@@ -4,24 +4,24 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.TreeSet;
 
-import org.zinutils.git.GitHelper;
-import org.zinutils.git.GitRecord;
-import org.zinutils.parser.SignificantWhiteSpaceFileReader;
+import org.zinutils.utils.FileUtils;
 
+import com.gmmapowell.git.GitHelper;
+import com.gmmapowell.git.GitRecord;
+import com.gmmapowell.parser.SignificantWhiteSpaceFileReader;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildExecutor;
 import com.gmmapowell.quickbuild.config.Arguments;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-
-import org.zinutils.utils.ArgumentDefinition;
-import org.zinutils.utils.Cardinality;
-import org.zinutils.utils.DateUtils;
-import org.zinutils.utils.FileUtils;
-import org.zinutils.utils.OrderedFileList;
-import org.zinutils.utils.ProcessArgs;
+import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.utils.Cardinality;
+import com.gmmapowell.utils.DateUtils;
+import com.gmmapowell.utils.OrderedFileList;
+import com.gmmapowell.utils.ProcessArgs;
 
 public class QuickBuild {
 	private static ArgumentDefinition[] argumentDefinitions = new ArgumentDefinition[] {
@@ -56,11 +56,21 @@ public class QuickBuild {
 		List<File> pathElts = FileUtils.splitJavaPath(System.getProperty("java.class.path"));
 		File utilsJar = null;
 		for (File f : pathElts) {
-			if (f.getName().endsWith("ZinUtils.jar") || f.getPath().endsWith("ZinUtils/bin/classes") || f.getName().endsWith("Quickbuilder.jar"))
+			if (f.getName().endsWith("ZinUtils.jar") ||
+				f.getPath().endsWith("ZinUtils/bin/classes") ||
+				f.getName().endsWith("Quickbuilder.jar") ||
+				f.getPath().endsWith("utils/bin/classes")) {
 				utilsJar = f;
+				break;
+			}
 		}
-		if (utilsJar == null)
+		if (utilsJar == null) {
+			TreeSet<File> pe = new TreeSet<>(pathElts);
+			for (File p : pe) {
+				System.out.println(p);
+			}
 			throw new QuickBuildException("Could not find Utils.jar on the class path");
+		}
 		Date launched = new Date();
 		arguments = new Arguments();
 		ProcessArgs.process(arguments, argumentDefinitions, args);

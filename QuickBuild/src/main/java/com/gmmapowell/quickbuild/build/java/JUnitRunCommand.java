@@ -15,10 +15,10 @@ import java.util.regex.Pattern;
 
 import org.zinutils.bytecode.ByteCodeFile;
 import org.zinutils.exceptions.UtilException;
+
 import org.zinutils.parser.LinePatternMatch;
 import org.zinutils.parser.LinePatternParser;
 import org.zinutils.parser.LinePatternParser.MatchIterator;
-
 import com.gmmapowell.quickbuild.app.BuildOutput;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
@@ -33,11 +33,11 @@ import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 
-import org.zinutils.sync.SyncUtils;
 import org.zinutils.system.RunProcess;
 import org.zinutils.system.ThreadedStreamReader;
 import org.zinutils.utils.FileUtils;
-import org.zinutils.utils.OrderedFileList;
+import com.gmmapowell.utils.OrderedFileList;
+import com.gmmapowell.utils.SyncUtils;
 
 public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	private File errdir;

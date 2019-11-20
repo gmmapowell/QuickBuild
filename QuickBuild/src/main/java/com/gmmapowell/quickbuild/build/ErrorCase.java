@@ -9,7 +9,8 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.zinutils.utils.FileUtils;
-import org.zinutils.utils.PrettyPrinter;
+
+import com.gmmapowell.utils.PrettyPrinter;
 
 public class ErrorCase {
 

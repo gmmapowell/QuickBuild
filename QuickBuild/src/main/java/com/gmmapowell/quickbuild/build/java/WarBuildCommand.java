@@ -24,7 +24,7 @@ import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 
 import org.zinutils.utils.FileUtils;
-import org.zinutils.utils.OrderedFileList;
+import com.gmmapowell.utils.OrderedFileList;
 
 public class WarBuildCommand extends ArchiveCommand {
 	private final File warfile;

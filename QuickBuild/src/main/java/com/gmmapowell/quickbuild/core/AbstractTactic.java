@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.zinutils.exceptions.UtilException;
-import org.zinutils.utils.OrderedFileList;
+import com.gmmapowell.utils.OrderedFileList;
 
 public abstract class AbstractTactic implements Tactic, Comparable<Tactic> {
 	protected final Strategem parent;

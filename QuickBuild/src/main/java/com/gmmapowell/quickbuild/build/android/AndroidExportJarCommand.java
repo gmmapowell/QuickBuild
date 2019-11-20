@@ -1,8 +1,7 @@
 package com.gmmapowell.quickbuild.build.android;
 
-import org.zinutils.parser.NoChildCommand;
-import org.zinutils.parser.TokenizedLine;
-
+import com.gmmapowell.parser.NoChildCommand;
+import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 

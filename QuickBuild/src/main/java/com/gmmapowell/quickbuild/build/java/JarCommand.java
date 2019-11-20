@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.zinutils.exceptions.UtilException;
-import org.zinutils.parser.TokenizedLine;
-import org.zinutils.utils.ArgumentDefinition;
-import org.zinutils.utils.Cardinality;
-import org.zinutils.utils.FileUtils;
-import org.zinutils.utils.OrderedFileList;
 
+import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.utils.Cardinality;
+import org.zinutils.utils.FileUtils;
+import com.gmmapowell.utils.OrderedFileList;
+import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.BuildIfCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;

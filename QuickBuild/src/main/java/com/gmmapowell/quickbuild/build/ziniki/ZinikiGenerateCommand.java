@@ -18,7 +18,7 @@ import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import org.zinutils.system.RunProcess;
 import org.zinutils.utils.FileUtils;
-import org.zinutils.utils.OrderedFileList;
+import com.gmmapowell.utils.OrderedFileList;
 
 public class ZinikiGenerateCommand extends AbstractTactic {
 	private final File pmzPath;

@@ -1,6 +1,6 @@
 package com.gmmapowell.quickbuild.build;
 
-import org.zinutils.utils.OrderedFileList;
+import com.gmmapowell.utils.OrderedFileList;
 
 @Deprecated
 public interface HasAncillaryFiles {

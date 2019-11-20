@@ -3,10 +3,10 @@ package com.gmmapowell.quickbuild.core;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.zinutils.parser.TokenizedLine;
+import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
-import org.zinutils.utils.ArgumentDefinition;
-import org.zinutils.utils.OrderedFileList;
+import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.utils.OrderedFileList;
 
 public abstract class AbstractStrategemTactic extends AbstractStrategem implements Tactic, Comparable<Tactic> {
 	private final Set <Tactic> procDeps = new HashSet<Tactic>();

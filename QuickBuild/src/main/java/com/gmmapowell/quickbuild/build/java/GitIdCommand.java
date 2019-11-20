@@ -5,13 +5,13 @@ import java.io.PrintWriter;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
-import org.zinutils.git.GitHelper;
-import org.zinutils.parser.NoChildCommand;
-import org.zinutils.parser.TokenizedLine;
-import org.zinutils.utils.ArgumentDefinition;
-import org.zinutils.utils.Cardinality;
+import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.utils.Cardinality;
 import org.zinutils.utils.FileUtils;
 
+import com.gmmapowell.git.GitHelper;
+import com.gmmapowell.parser.NoChildCommand;
+import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;

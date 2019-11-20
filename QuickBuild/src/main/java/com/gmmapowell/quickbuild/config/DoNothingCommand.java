@@ -1,6 +1,6 @@
 package com.gmmapowell.quickbuild.config;
 
-import org.zinutils.parser.NoChildCommand;
+import com.gmmapowell.parser.NoChildCommand;
 
 public class DoNothingCommand extends NoChildCommand implements ConfigCommand {
 

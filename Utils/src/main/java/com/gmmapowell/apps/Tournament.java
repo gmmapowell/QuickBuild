@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.zinutils.collections.CollectionUtils;
 import org.zinutils.exceptions.UtilException;
 
 public class Tournament {
@@ -77,7 +76,7 @@ public class Tournament {
 
 		@Override
 		public String toString() {
-			return CollectionUtils.listOf(pts[0], pts[1], pts[2], pts[3]).toString();
+			return Arrays.asList(pts[0], pts[1], pts[2], pts[3]).toString();
 		}
 	}
 

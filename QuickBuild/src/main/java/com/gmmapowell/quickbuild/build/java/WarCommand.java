@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.zinutils.parser.TokenizedLine;
-
+import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.DirectoryResourceCommand;
@@ -13,7 +12,7 @@ import com.gmmapowell.quickbuild.config.ResourceCommand;
 import com.gmmapowell.quickbuild.core.PendingResource;
 
 import org.zinutils.utils.FileUtils;
-import org.zinutils.utils.OrderedFileList;
+import com.gmmapowell.utils.OrderedFileList;
 
 public class WarCommand extends JarCommand {
 	private List<PendingResource> warlibs = new ArrayList<PendingResource>();

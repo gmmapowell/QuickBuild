@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.zinutils.exceptions.UtilException;
-import org.zinutils.parser.TokenizedLine;
+
+import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.DeferredFileList;
 import com.gmmapowell.quickbuild.build.java.JarBuildCommand;
 import com.gmmapowell.quickbuild.build.java.JavaBuildCommand;
@@ -14,8 +15,8 @@ import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
-import org.zinutils.utils.ArgumentDefinition;
-import org.zinutils.utils.Cardinality;
+import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.utils.Cardinality;
 import org.zinutils.utils.FileUtils;
 
 public class AndroidJarCommand extends AbstractStrategem {

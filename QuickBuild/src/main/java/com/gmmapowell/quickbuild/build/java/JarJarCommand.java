@@ -12,7 +12,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
 import org.zinutils.exceptions.UtilException;
-import org.zinutils.parser.TokenizedLine;
+
+import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.config.Config;
@@ -24,12 +25,12 @@ import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
-import org.zinutils.utils.ArgumentDefinition;
-import org.zinutils.utils.Cardinality;
+import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.utils.Cardinality;
 import org.zinutils.utils.FileUtils;
 import org.zinutils.utils.ZUJarEntry;
 import org.zinutils.utils.ZUJarFile;
-import org.zinutils.utils.OrderedFileList;
+import com.gmmapowell.utils.OrderedFileList;
 
 public class JarJarCommand extends AbstractStrategemTactic {
 	private String outputTo;

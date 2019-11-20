@@ -18,7 +18,7 @@ import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.core.AbstractTactic;
 import org.zinutils.utils.FileUtils;
-import org.zinutils.utils.OrderedFileList;
+import com.gmmapowell.utils.OrderedFileList;
 import org.zinutils.xml.XML;
 import org.zinutils.xml.XMLElement;
 import org.zinutils.xml.XMLNamespace;

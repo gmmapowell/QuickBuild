@@ -14,7 +14,7 @@ import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 
 import org.zinutils.system.RunProcess;
 import org.zinutils.utils.FileUtils;
-import org.zinutils.utils.OrderedFileList;
+import com.gmmapowell.utils.OrderedFileList;
 
 public class PDEAssembleCommand extends ArchiveCommand {
 	private final List<File> pdelibs;

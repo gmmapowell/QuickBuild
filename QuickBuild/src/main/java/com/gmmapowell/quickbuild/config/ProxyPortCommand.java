@@ -1,7 +1,7 @@
 package com.gmmapowell.quickbuild.config;
 
-import org.zinutils.parser.NoChildCommand;
-import org.zinutils.parser.TokenizedLine;
+import com.gmmapowell.parser.NoChildCommand;
+import com.gmmapowell.parser.TokenizedLine;
 
 public class ProxyPortCommand extends NoChildCommand implements ProxySettingCommand {
 

@@ -14,13 +14,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.zinutils.exceptions.UtilException;
-import org.zinutils.http.ProxyableConnection;
+import org.zinutils.utils.FileUtils;
+
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-import org.zinutils.utils.FileUtils;
+import com.gmmapowell.utils.ProxyableConnection;
 
 public class MavenNature implements Nature {
 	private final List<String> mvnrepos = new ArrayList<String>();

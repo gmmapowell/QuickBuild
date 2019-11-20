@@ -14,7 +14,7 @@ import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 
 import org.zinutils.utils.FileUtils;
-import org.zinutils.utils.OrderedFileList;
+import com.gmmapowell.utils.OrderedFileList;
 
 public abstract class ArchiveCommand extends AbstractTactic implements MayPropagateDirtyness {
 	protected File jarfile;

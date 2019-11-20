@@ -1,7 +1,8 @@
 package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
-import org.zinutils.parser.TokenizedLine;
+
+import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategemTactic;
@@ -11,10 +12,10 @@ import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
-import org.zinutils.utils.ArgumentDefinition;
-import org.zinutils.utils.Cardinality;
+import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.utils.Cardinality;
 import org.zinutils.utils.FileUtils;
-import org.zinutils.utils.OrderedFileList;
+import com.gmmapowell.utils.OrderedFileList;
 
 public class CopyDirectoryCommand extends AbstractStrategemTactic {
 	private String rootDirectoryName;

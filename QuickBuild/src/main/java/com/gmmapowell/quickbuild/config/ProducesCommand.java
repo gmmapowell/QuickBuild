@@ -3,11 +3,11 @@ package com.gmmapowell.quickbuild.config;
 import java.io.File;
 
 import org.zinutils.exceptions.UtilException;
-import org.zinutils.parser.NoChildCommand;
-import org.zinutils.parser.TokenizedLine;
-import org.zinutils.utils.ArgumentDefinition;
-import org.zinutils.utils.Cardinality;
 
+import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.utils.Cardinality;
+import com.gmmapowell.parser.NoChildCommand;
+import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.java.DirectoryResource;
 import com.gmmapowell.quickbuild.build.java.JarDirectoryResource;
 import com.gmmapowell.quickbuild.build.java.JarResource;

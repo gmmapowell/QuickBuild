@@ -10,7 +10,8 @@ import java.util.TreeSet;
 import org.zinutils.collections.CollectionUtils;
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.utils.Justification;
-import org.zinutils.utils.PrettyPrinter;
+
+import com.gmmapowell.utils.PrettyPrinter;
 
 public class SchedulePlanner2 {
 
