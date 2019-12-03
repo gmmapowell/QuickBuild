@@ -1,11 +1,14 @@
 package com.gmmapowell.test;
 
+import java.io.File;
 import java.util.Date;
 
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
+import org.zinutils.xml.XML;
+import org.zinutils.xml.XMLElement;
 
 import com.gmmapowell.utils.DateUtils.Format;
 
@@ -15,11 +18,19 @@ public class JUnitListener extends RunListener {
 	int runCount;
 	int failed;
 	int ignored;
-	private int startRun;
-	private int startFailed;
-	private int startIgnored;
+	int startRun;
+	int startFailed;
+	int startIgnored;
 	private Description batch;
 	boolean inTest = false;
+	private XML toXML;
+	private File xmlFile;
+	private XMLElement currXMLTest;
+
+	public void toXML(String arg) {
+		xmlFile = new File(arg);
+		toXML = XML.create("1.0", "testsuite");
+	}
 
 	@Override
 	public void testRunStarted(Description description) throws Exception {
@@ -40,12 +51,17 @@ public class JUnitListener extends RunListener {
 		testStartTime = new Date();
 		runCount++;
 		inTest = true;
+		if (toXML != null) {
+			currXMLTest = toXML.top().addElement("testcase");
+			currXMLTest.setAttribute("classname", description.getClassName());
+			currXMLTest.setAttribute("name", description.getMethodName());
+		}
 	}
 
 	@Override
 	public void testAssumptionFailure(Failure failure) {
 		try {
-			testFailure(failure);
+			testIgnored(failure.getDescription());
 		} catch (Exception ex) {
 			ex.printStackTrace(System.err);
 		}
@@ -58,6 +74,11 @@ public class JUnitListener extends RunListener {
 			System.err.println(failure.getMessage());
 			System.err.println(failure.getTrace());
 			System.out.println("Failure: " + failure.getDescription());
+			if (toXML != null) {
+				XMLElement fail = currXMLTest.addElement("failure");
+				fail.setAttribute("type", failure.getException().getClass().getName());
+				fail.addText(failure.getTrace());
+			}
 			failed++;
 			inTest = false;
 		} else {
@@ -90,6 +111,18 @@ public class JUnitListener extends RunListener {
 
 	@Override
 	public void testRunFinished(Result notUsed) throws Exception {
-		System.out.println("Ran batch " + batch + ": " + (runCount-startRun)+" total, "+(failed-startFailed)+" failed ("+(ignored-startIgnored)+" ignored) finished in " + Format.hhmmss3.format(new Date().getTime()-batchStartTime.getTime()));
+		// In the degenerate case, we can be called even if start wasn't
+		if (batchStartTime != null)
+			System.out.println("Ran batch " + batch + ": " + (runCount-startRun)+" total, "+(failed-startFailed)+" failed ("+(ignored-startIgnored)+" ignored) finished in " + Format.hhmmss3.format(new Date().getTime()-batchStartTime.getTime()));
+		
+		// this will happen multiple times, but it should give cumulative results
+		if (xmlFile != null) {
+			XMLElement top = toXML.top();
+			top.setAttribute("errors", "0");
+			top.setAttribute("failures", Integer.toString(failed));
+			top.setAttribute("tests", Integer.toString(runCount));
+			toXML.write(xmlFile);
+		}
 	}
+
 }

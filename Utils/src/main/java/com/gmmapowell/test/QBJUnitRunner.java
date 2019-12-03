@@ -1,6 +1,6 @@
 package com.gmmapowell.test;
 
-import java.lang.annotation.Annotation;
+import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,34 +21,28 @@ public class QBJUnitRunner {
 		RunNotifier nfy = new RunNotifier();
 		nfy.addFirstListener(lsnr);
 		boolean ignoreQIs = false;
-		Class<? extends Annotation> qiclz = null;
-		try {
-			@SuppressWarnings("unchecked")
-			Class<? extends Annotation> tmp = (Class<? extends Annotation>) Class.forName("org.zinutils.test.QuickIgnore");
-			qiclz = tmp;
-		} catch (Exception ex) { }
-		int ignore = 0;
+		boolean xmlFile = false;
 		for (String arg : args) {
-			if (ignore > 0) {
-				ignore--;
+			if (xmlFile) {
+				lsnr.toXML(arg);
+				xmlFile = false;
 				continue;
-			}
-			if (arg.equals("--quick")) {
+			} else if (arg.equals("--quick")) {
 				System.out.println("Enabling @QuickIgnore");
 				ignoreQIs = true;
 				continue;
-			}
-			if (arg.equals("--xml")) {
-				ignore = 1;
+			} else if (arg.equals("--xml")) {
+				xmlFile = true;
 				continue;
-			}
-			try {
+			} else try {
 				Class<?> clz = Class.forName(arg);
+				if (Modifier.isAbstract(clz.getModifiers())) {
+					System.out.println("Ignoring abstract test class " + clz);
+					continue;
+				}
 				Description desc = Description.createSuiteDescription(clz);
 				lsnr.testRunStarted(desc);
-				Annotation qi = clz.getAnnotation(QuickIgnore.class);
-				if (qi == null && qiclz != null)
-					qi = clz.getAnnotation(qiclz);
+				QuickIgnore qi = clz.getAnnotation(QuickIgnore.class);
 				RunWith runWith = clz.getAnnotation(RunWith.class);
 				Ignore ign = clz.getAnnotation(Ignore.class);
 				if (ign != null || (ignoreQIs && qi != null)) {
@@ -74,6 +68,7 @@ public class QBJUnitRunner {
 			}
 			finally {
 				try { lsnr.testRunFinished(null); } catch (Exception ex) { ex.printStackTrace(); }
+				System.out.println("Summary of " + arg + ": ran " + (lsnr.runCount-lsnr.startRun) + "; " + (lsnr.failed-lsnr.startFailed) + " failed; " + (lsnr.ignored-lsnr.startIgnored) + " ignored");
 			}
 		}
 		
@@ -88,7 +83,6 @@ public class QBJUnitRunner {
 			if (t.isAlive() && t.isDaemon())
 				System.out.println(counter++ +". " + t.getName());
 		
-		System.out.println("Summary: ran " + lsnr.runCount + ": " + lsnr.failed + " failed, " + lsnr.ignored + " ignored");
 		// Restrict the exit code to be in a range 0-100 to avoid conflict with 128+
 		int exitStatus = lsnr.failed;
 		if (exitStatus > 100)
