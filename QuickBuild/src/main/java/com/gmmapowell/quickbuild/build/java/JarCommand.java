@@ -28,7 +28,7 @@ import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 
 public class JarCommand extends AbstractStrategem {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
-	private String projectName;
+	String projectName;
 	private final File rootdir;
 	private File bootJar;
 	protected StructureHelper files;
@@ -247,7 +247,7 @@ public class JarCommand extends AbstractStrategem {
 				throw new UtilException("The option " + opt + " is not valid for JarCommand");
 		}
 		if (targetName == null)
-			targetName = new File(projectName).getName() + ".jar";
+			targetName = FileUtils.clean(projectName) + ".jar";
 	}
 
 	protected boolean processOption(ConfigApplyCommand opt) {

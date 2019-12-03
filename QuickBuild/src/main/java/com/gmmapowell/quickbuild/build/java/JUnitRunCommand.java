@@ -196,7 +196,7 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 			proc.arg(s);
 		if (memory != null)
 			proc.arg("-Xmx" + memory);
-		proc.arg("org.zinutils.test.QBJUnitRunner");
+		proc.arg("com.gmmapowell.test.QBJUnitRunner");
 		if (!cxt.allTests) // should be a flag
 			proc.arg("--quick");
 		proc.arg("--xml");

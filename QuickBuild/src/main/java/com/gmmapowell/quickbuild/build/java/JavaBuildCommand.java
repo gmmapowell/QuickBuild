@@ -64,7 +64,12 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped, Ma
 		this.classpath = new BuildClassPath();
 		this.classpath.add(bindir);
 		this.bootclasspath = new BuildClassPath();
-		this.idAs = parent.rootDirectory().getName();
+		String pn;
+		if (parent instanceof JarCommand)
+			pn = ((JarCommand)parent).projectName;
+		else
+			pn = parent.rootDirectory().getName();
+		this.idAs = FileUtils.clean(pn).replaceFirst("\\.+", "");
 	}
 	
 	@Override

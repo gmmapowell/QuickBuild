@@ -70,24 +70,16 @@ public class GitHelper {
 	}
 	
 	public static GitRecord checkFiles(boolean doComparison, OrderedFileList files, File file) {
-		RunProcess proc = new RunProcess("git");
-//		proc.debug(true); 
-		proc.executeInDir(FileUtils.getCurrentDir());
-		proc.captureStdout();
-		proc.arg("hash-object");
 		List<String> paths = new ArrayList<String>();
 		if (files != null) {
 			for (File f : files)
 			{
 				if (f.isDirectory())
 					continue;
-				String path;
-				path = relPath(f).getPath();
-				proc.arg(path);
+				String path = relPath(f).getPath();
 				paths.add(path);
 			}
 		}
-		proc.execute();
 
 		GitRecord gittx = new GitRecord(file);
 		boolean nofile = false;
@@ -102,68 +94,86 @@ public class GitHelper {
 		try
 		{
 			doComparison &= file.exists();
-			LineNumberReader gitReader = new LineNumberReader(new StringReader(proc.getStdout()));
 			LineNumberReader oldReader = null;
+			if (doComparison)
+				oldReader = new LineNumberReader(new FileReader(file));
 			newFile = new File(file.getParentFile(), file.getName() + ".new");
 			gittx.generates(newFile);
 			FileOutputStream fos = new FileOutputStream(newFile);
-			if (doComparison)
-				oldReader = new LineNumberReader(new FileReader(file));
-			
 			PrintWriter pw = new PrintWriter(fos);
-			boolean skipO = false;
-			String currentOld = null;
-			for (String f : paths)
-			{
-				String hash = gitReader.readLine();
-				if (hash == null)
-				{
-					System.out.println("git did not return a hash for " + f);
-					gittx.dirtyFile(new File(f));
-					continue;
+			int pos = 0;
+			int fpos = 0;
+			while (pos < paths.size()) {
+				LineNumberReader gitReader;
+				try {
+					RunProcess proc = new RunProcess("git");
+	//				proc.debug(true); 
+					proc.executeInDir(FileUtils.getCurrentDir());
+					proc.captureStdout();
+					proc.arg("hash-object");
+					while (pos < paths.size() && (pos == fpos || pos % 1000 != 0))
+						proc.arg(paths.get(pos++));
+					proc.execute();
+					gitReader = new LineNumberReader(new StringReader(proc.getStdout()));
+				} catch (Exception ex) {
+					System.out.println(paths.size());
+					throw ex;
 				}
-				String nextLine = hash + " " + f;
-				pw.println(nextLine);
-				while (true)
+				boolean skipO = false;
+				String currentOld = null;
+				while (fpos < pos)
 				{
-					if (nofile)
-						break;
-					if (skipO)
-						skipO = false;
-					else if (oldReader != null)
-						currentOld = oldReader.readLine();
-					if (currentOld != null && currentOld.equals(nextLine)) {
-						break;
-					} 
-					else
+					String f = paths.get(fpos++);
+					String hash = gitReader.readLine();
+					if (hash == null)
 					{
-						if (currentOld == null)
+						System.out.println("git did not return a hash for " + f);
+						gittx.dirtyFile(new File(f));
+						continue;
+					}
+					String nextLine = hash + " " + f;
+					pw.println(nextLine);
+					while (true)
+					{
+						if (nofile)
+							break;
+						if (skipO)
+							skipO = false;
+						else if (oldReader != null)
+							currentOld = oldReader.readLine();
+						if (currentOld != null && currentOld.equals(nextLine)) {
+							break;
+						} 
+						else
 						{
-							if (oldReader != null)
+							if (currentOld == null)
+							{
+								if (oldReader != null)
+									System.out.println("> " + f);
+								gittx.dirtyFile(new File(f));
+								break;
+							}
+							String oldFile = currentOld.substring(41);
+							int comp = oldFile.compareToIgnoreCase(f);
+							if (comp == 0)
+							{
+								System.out.println("| " + f);
+								gittx.dirtyFile(new File(f));
+								break;
+							}
+							else if (comp < 0)
+							{
+								System.out.println("< " + oldFile);
+								gittx.markDirty();
+								continue;
+							}
+							else if (comp > 0)
+							{
 								System.out.println("> " + f);
-							gittx.dirtyFile(new File(f));
-							break;
-						}
-						String oldFile = currentOld.substring(41);
-						int comp = oldFile.compareToIgnoreCase(f);
-						if (comp == 0)
-						{
-							System.out.println("| " + f);
-							gittx.dirtyFile(new File(f));
-							break;
-						}
-						else if (comp < 0)
-						{
-							System.out.println("< " + oldFile);
-							gittx.markDirty();
-							continue;
-						}
-						else if (comp > 0)
-						{
-							System.out.println("> " + f);
-							gittx.markDirty();
-							skipO = true;
-							break;
+								gittx.markDirty();
+								skipO = true;
+								break;
+							}
 						}
 					}
 				}
