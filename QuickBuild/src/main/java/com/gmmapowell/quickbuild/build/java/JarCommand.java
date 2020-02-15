@@ -246,8 +246,9 @@ public class JarCommand extends AbstractStrategem {
 
 				throw new UtilException("The option " + opt + " is not valid for JarCommand");
 		}
-		if (targetName == null)
+		if (targetName == null) {
 			targetName = FileUtils.clean(projectName) + ".jar";
+		}
 	}
 
 	protected boolean processOption(ConfigApplyCommand opt) {

@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
 
+import org.zinutils.exceptions.UtilException;
+import org.zinutils.exceptions.WrappedException;
 import org.zinutils.utils.FileUtils;
 
 import com.gmmapowell.git.GitHelper;
@@ -94,7 +96,14 @@ public class QuickBuild {
 		}
 		if (arguments.readHome)
 			readHomeConfig(conf, ofl);
-		SignificantWhiteSpaceFileReader.read(conf, configFactory, file);
+		try {
+			SignificantWhiteSpaceFileReader.read(conf, configFactory, file);
+		} catch (Exception ex) {
+			Throwable t = UtilException.unwrap(ex);
+			System.out.println("ERROR parsing configuration");
+			System.out.println(t.getMessage());
+			return;
+		}
 		conf.done();
 		configFactory.done();
 

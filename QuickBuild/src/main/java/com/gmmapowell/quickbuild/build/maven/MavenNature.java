@@ -40,7 +40,7 @@ public class MavenNature implements Nature {
 	public MavenNature(Config config)
 	{
 		this.config = config;
-		mvnrepos.add("http://repo1.maven.org/maven2");
+		mvnrepos.add("https://repo1.maven.org/maven2");
 		mvnCache = FileUtils.relativePath(config.getQuickBuildDir(), "mvncache");
 		if (!mvnCache.exists())
 			if (!mvnCache.mkdirs())
@@ -72,29 +72,35 @@ public class MavenNature implements Nature {
 	
 	public void loadPackage(String pkginfo) {
 		loadedLibs.add(pkginfo);
-		File mavenToFile = FileUtils.mavenToFile(pkginfo);
-		File cacheFile = new File(mvnCache, mavenToFile.getPath());
-		File jarFile = cacheFile;
+		File mavenPath = FileUtils.mavenToFile(pkginfo);
+		File cacheFile = new File(mvnCache, mavenPath.getPath());
+		File jarFile = null;
 		if (cacheFile.getName().endsWith(".aar")) {
 			jarFile = new File(cacheFile.getParentFile(), cacheFile.getName().replace(".aar", ".jar"));
 		}
-		if (!cacheFile.exists() || !jarFile.exists())
-			downloadFromMaven(pkginfo, mavenToFile, cacheFile, jarFile);
-		MavenResource res = new MavenResource(pkginfo, jarFile);
+		if (!cacheFile.exists() || (jarFile != null && !jarFile.exists()))
+			downloadFromMaven(pkginfo, mavenPath, cacheFile, jarFile, "");
+		if (jarFile == null) {
+			File mavenSource = makeSourcesPath(mavenPath);
+			File sourceFile = new File(mvnCache, mavenSource.getPath());
+			if (!sourceFile.exists())
+				downloadFromMaven(pkginfo, mavenSource, sourceFile, null, " sources");
+		}
+		MavenResource res = new MavenResource(pkginfo, jarFile != null ? jarFile : cacheFile);
 		config.resourceAvailable(res);
 	}
 
-	private void downloadFromMaven(String pkginfo, File mavenToFile, File cacheTo, File extractTo) {
+	private void downloadFromMaven(String pkginfo, File mavenPath, File cacheTo, File extractTo, String category) {
 		if (mvnrepos.size() == 0)
 			throw new QuickBuildException("There are no maven repositories specified");
 		List<String> pathsTried = new ArrayList<String>();
 		for (String repo : mvnrepos)
 		{
-			String urlPath = FileUtils.urlPath(repo, mavenToFile);
+			String urlPath = FileUtils.urlPath(repo, mavenPath);
 			pathsTried.add(urlPath);
 			try {
 				doDownload(urlPath, cacheTo);
-				System.out.println("Downloaded " + pkginfo + " from " + repo);
+				System.out.println("Downloaded " + pkginfo + category + " from " + repo);
 				if (cacheTo.getName().endsWith(".aar")) {
 					JarFile jf = new JarFile(cacheTo);
 					try {
@@ -109,12 +115,17 @@ public class MavenNature implements Nature {
 				return;
 			} catch (IOException e) {
 				cacheTo.delete();
-				if (trySnapshot(repo, pkginfo, mavenToFile, cacheTo))
+				if (trySnapshot(repo, pkginfo, mavenPath, cacheTo))
 					return;
 //				System.out.println("Could not find " + pkginfo + " at " + repo + ":\n  " + e.getMessage());
 			}
 		}
 		throw new QuickBuildException("Could not find maven package " + pkginfo + " at any of " + pathsTried);
+	}
+
+	private File makeSourcesPath(File mavenPath) {
+		String name = FileUtils.dropExtension(mavenPath.getName()) + "-sources.jar";
+		return new File(mavenPath.getParentFile(), name);
 	}
 
 	private void doDownload(String urlPath, File cacheTo) throws FileNotFoundException, IOException {

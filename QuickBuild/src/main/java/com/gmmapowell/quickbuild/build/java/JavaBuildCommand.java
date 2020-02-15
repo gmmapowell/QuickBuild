@@ -69,7 +69,7 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped, Ma
 			pn = ((JarCommand)parent).projectName;
 		else
 			pn = parent.rootDirectory().getName();
-		this.idAs = FileUtils.clean(pn).replaceFirst("\\.+", "");
+		this.idAs = FileUtils.clean(pn);
 	}
 	
 	@Override

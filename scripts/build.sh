@@ -44,13 +44,9 @@ while [ $# -gt 0 ] ; do
   fi
 done
 
-if [ "$LOCAL" = 0 ] ; then
-  echo "Building ZinUtils ..."
-  (cd ../ZinUtils ; scripts/build.sh $IM $NCG $DQUICK; exit $?)
-  if [ $? -ne 0 ] ; then exit 1 ; fi
-  cp ../ZinUtils/ZinUtils/qbout/ZinUtils.jar qb/libs
+if [ "$COPY" = 1 ] ; then
+  cp ~/Ziniki/Over/Tools/utils/qbout/utils.jar qb/libs/ZinUtils.jar
 fi
-
 bash -e scripts/quickbuild.sh $IM $NCG $DQUICK "$@" qb/quickbuild.qb
 cp QuickBuild/qbout/QuickBuild.jar scripts
 cp Utils/qbout/Utils.jar scripts

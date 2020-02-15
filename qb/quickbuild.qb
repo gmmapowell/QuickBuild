@@ -17,6 +17,7 @@ jar Utils
 jar QuickBuild
 jarjar scripts/Quickbuilder.jar
   resource QuickBuild.jar
+  resource /Utils.jar
   resource ZinUtils.jar
   resource jsch:jar
 

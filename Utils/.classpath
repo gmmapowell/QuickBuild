@@ -9,6 +9,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Grizzly"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/CouchbaseServer"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Logging"/>
-	<classpathentry exported="true" kind="lib" path="/Users/gareth/Ziniki/Over/Tools/utils/bin/classes"/>
+	<classpathentry exported="true" kind="lib" path="/Users/gareth/Ziniki/Over/Tools/utils/bin/classes" sourcepath="/Users/gareth/Ziniki/Over/Tools/utils/src/main/java"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -49,7 +49,12 @@ public class QBJUnitRunner {
 					nfy.fireTestIgnored(desc);
 					continue;
 				} else if (runWith != null) {
-					Runner suite = Reflection.create(runWith.value(), clz, new AllDefaultPossibilitiesBuilder(true));
+					Runner suite;
+					try {
+						suite = Reflection.create(runWith.value(), clz, new AllDefaultPossibilitiesBuilder(true));
+					} catch (RuntimeException e) {
+						suite = Reflection.create(runWith.value(), clz);
+					}
 					suite.run(nfy);
 				} else
 					new BlockJUnit4ClassRunner(clz).run(nfy);
