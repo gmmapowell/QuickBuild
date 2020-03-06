@@ -37,6 +37,7 @@ import com.gmmapowell.utils.OrderedFileList;
 public class JavaCommand extends AbstractBuildCommand implements ExecutesInDirCommand, CanBeSkipped {
 	private String projectName;
 	private String mainClass;
+	private String label;
 	private final File rootdir;
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private File bindir;
@@ -54,6 +55,7 @@ public class JavaCommand extends AbstractBuildCommand implements ExecutesInDirCo
 
 	public JavaCommand(TokenizedLine toks) {
 		super(toks, 
+			new ArgumentDefinition("--label", Cardinality.OPTION, "label", "project label"),
 			new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"),
 			new ArgumentDefinition("*", Cardinality.REQUIRED, "mainClass", "main class"));
 		rootdir = FileUtils.findDirectoryNamed(projectName);
@@ -70,7 +72,7 @@ public class JavaCommand extends AbstractBuildCommand implements ExecutesInDirCo
 	public Strategem applyConfig(Config config) {
 		config.getNature(JavaNature.class);
 		files = new StructureHelper(rootdir, config.getOutput());
-		this.errdir = files.getOutput("java-output");
+		this.errdir = files.getOutput("java-output" + (label != null ? "/" + label : ""));
 		
 //		javaVersion = config.getVarIfDefined("javaVersion", null);
 		processOptions(config);
@@ -336,12 +338,12 @@ public class JavaCommand extends AbstractBuildCommand implements ExecutesInDirCo
 
 	@Override
 	public String identifier() {
-		return "Java[" + mainClass + (reldir != null ? "-"+reldir:"") + "]";
+		return "Java[" + mainClass + (reldir != null ? "-"+reldir:"") + (label != null ? "-"+label:"") + "]";
 	}
 
 	@Override
 	public String toString() {
-		return "Java " + mainClass + (reldir != null ? " in "+reldir:"");
+		return "Java " + mainClass + (reldir != null ? " in "+reldir:"") + (label != null ? " - " + label:"");
 	}
 	
 	@Override

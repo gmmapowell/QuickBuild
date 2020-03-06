@@ -31,6 +31,6 @@ public class StructureHelper {
 	}
 	
 	public File getOutput(String path) {
-		return new File(outdir, path);
+		return FileUtils.combine(outdir, path);
 	}
 }
