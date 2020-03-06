@@ -71,6 +71,7 @@ public class TokenizedLine {
 				else
 					toks.add(s.substring(tokStart, pos));
 				mode = Mode.SPACE;
+				pendingQuote = false;
 			}
 			else
 			{

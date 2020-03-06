@@ -94,6 +94,15 @@ public class TestTokenizedLine {
 		assertEquals("hello'world", toks.tokens[0]);
 	}
 
+	@Test
+	public void testAQuotedStringCanBeFollowed() {
+		TokenizedLine toks = new TokenizedLine(1, "   'hello' 'world'");
+		assertEquals(3, toks.indent);
+		assertEquals(2, toks.tokens.length);
+		assertEquals("hello", toks.tokens[0]);
+		assertEquals("world", toks.tokens[1]);
+	}
+
 	@Test(expected=UtilException.class)
 	public void testStringCannotContinueAfterCloseQuote() {
 		new TokenizedLine(1, "   'hello'world'");

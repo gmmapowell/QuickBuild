@@ -9,8 +9,12 @@ import java.util.Set;
 
 import org.zinutils.collections.ListMap;
 import org.zinutils.collections.SetMap;
-import org.zinutils.exceptions.ZUJarException;
 import org.zinutils.exceptions.UtilException;
+import org.zinutils.exceptions.ZUJarException;
+import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.ZUJarEntry;
+import org.zinutils.utils.ZUJarFile;
+
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildContextAware;
 import com.gmmapowell.quickbuild.config.Config;
@@ -18,9 +22,6 @@ import com.gmmapowell.quickbuild.config.ConfigFactory;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Nature;
 import com.gmmapowell.quickbuild.core.Tactic;
-import org.zinutils.utils.FileUtils;
-import org.zinutils.utils.ZUJarEntry;
-import org.zinutils.utils.ZUJarFile;
 
 public class JavaNature implements Nature, BuildContextAware {
 	private static class LibDir {
@@ -39,18 +40,22 @@ public class JavaNature implements Nature, BuildContextAware {
 
 	private final List<String> loadedLibs = new ArrayList<String>();
 	private final SetMap<String, BuildResource> availablePackages = new SetMap<String, BuildResource>();
+	private final SetMap<String, BuildResource> combos = new SetMap<>();
 	private final Set<String> duplicates = new HashSet<String>();
 	private final ListMap<String, JarResource> projectPackages = new ListMap<String, JarResource>();
 	private BuildContext cxt;
 	private List<LibDir> libdirs = new ArrayList<LibDir>();
 	private final Config conf;
 	private final List<String> reportedDuplicates = new ArrayList<String>();
+	private SetMap<String, JavaCommand> wantCombos = new SetMap<>();
+	private List<DefineComboCommand> definingCombos = new ArrayList<DefineComboCommand>();
 
 	public static void init(ConfigFactory config)
 	{
 		config.addCommandExtension("alsojar", AlsoJarCommand.class);
 		config.addCommandExtension("args", ArgsCommand.class);
 		config.addCommandExtension("boot", BootClassPathCommand.class);
+		config.addCommandExtension("combo", DefineComboCommand.class);
 		config.addCommandExtension("define", JUnitDefineCommand.class);
 		config.addCommandExtension("exclude", ExcludeCommand.class);
 		config.addCommandExtension("gitid", GitIdCommand.class);
@@ -73,6 +78,7 @@ public class JavaNature implements Nature, BuildContextAware {
 		config.addCommandExtension("target", SpecifyTargetCommand.class);
 		config.addCommandExtension("testdir", MoreTestsCommand.class);
 		config.addCommandExtension("testif", TestIfCommand.class);
+		config.addCommandExtension("usecombo", UseComboCommand.class);
 		config.addCommandExtension("javaVersion", JavaVersionCommand.class);
 		config.addCommandExtension("war", WarCommand.class);
 	}
@@ -282,6 +288,17 @@ public class JavaNature implements Nature, BuildContextAware {
 					System.out.println("There is no lib directory " + libdir);
 			} catch (IOException e) {
 			}
+		for (DefineComboCommand dcc : definingCombos) {
+			dcc.addToCombos();
+		}
+		for (String combo : wantCombos.keySet()) {
+			if (!combos.contains(combo)) {
+				System.out.println("There is no combo jar " + combo);
+			}
+			for (JavaCommand jc : wantCombos.get(combo))
+				for (BuildResource k : combos.get(combo))
+					jc.addJUnitLib(k);
+		}
 	}
 
 	@Override
@@ -298,6 +315,10 @@ public class JavaNature implements Nature, BuildContextAware {
 		cxt.tellMeAbout(this, JavaSourceDirResource.class);
 	}
 
+	public void addComboJar(String s, BuildResource res) {
+		combos.add(s, res);
+	}
+
 	public void addLib(File libsDir, List<ExcludeCommand> exclusions) {
 		libdirs.add(new LibDir(libsDir, exclusions));
 	}
@@ -305,5 +326,27 @@ public class JavaNature implements Nature, BuildContextAware {
 	public void cleanLibDirs()
 	{
 		libdirs.clear();
+	}
+
+	public Set<BuildResource> comboResources(String combo) {
+		if (!combos.contains(combo))
+			throw new RuntimeException("There is no combo for " + combo);
+		return combos.get(combo);
+	}
+
+	public void needsCombo(JavaCommand javaCommand, String combo) {
+		wantCombos.add(combo, javaCommand);
+	}
+
+	public void addDefiningCombo(DefineComboCommand defineComboCommand) {
+		definingCombos.add(defineComboCommand);
+	}
+
+	public boolean hasCombo(String s) {
+		return combos.contains(s);
+	}
+
+	public void addComboToBiggerCombo(String combo, String s) {
+		combos.get(combo).addAll(combos.get(s));
 	}
 }

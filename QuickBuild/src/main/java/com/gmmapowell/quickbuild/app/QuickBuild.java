@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.TreeSet;
 
 import org.zinutils.exceptions.UtilException;
-import org.zinutils.exceptions.WrappedException;
 import org.zinutils.utils.FileUtils;
 
 import com.gmmapowell.git.GitHelper;

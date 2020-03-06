@@ -18,7 +18,8 @@ public abstract class SolidResource implements BuildResource, Comparable<BuildRe
 		File tmp = null;
 		try
 		{
-			tmp = FileUtils.makeRelative(path);
+			if (path != null)
+				tmp = FileUtils.makeRelative(path);
 		}
 		catch (Exception ex)
 		{

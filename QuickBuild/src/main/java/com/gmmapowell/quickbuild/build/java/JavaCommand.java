@@ -11,10 +11,8 @@ import org.zinutils.bytecode.ByteCodeFile;
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.system.RunProcess;
 import org.zinutils.system.ThreadedStreamReader;
-import com.gmmapowell.utils.ArgumentDefinition;
-import com.gmmapowell.utils.Cardinality;
 import org.zinutils.utils.FileUtils;
-import com.gmmapowell.utils.OrderedFileList;
+
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
@@ -32,6 +30,9 @@ import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
+import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.utils.Cardinality;
+import com.gmmapowell.utils.OrderedFileList;
 
 public class JavaCommand extends AbstractBuildCommand implements ExecutesInDirCommand, CanBeSkipped {
 	private String projectName;
@@ -146,6 +147,10 @@ public class JavaCommand extends AbstractBuildCommand implements ExecutesInDirCo
 			{
 				addJUnitLib((JUnitLibCommand)opt);
 			}
+			else if (opt instanceof UseComboCommand)
+			{
+				((UseComboCommand)opt).needComboLib(this);
+			}
 			else if (opt instanceof NotFatalCommand)
 			{
 				errorReturn  = BuildStatus.TEST_FAILURES;
@@ -204,6 +209,10 @@ public class JavaCommand extends AbstractBuildCommand implements ExecutesInDirCo
 
 	protected void addJUnitLib(JUnitLibCommand opt) {
 		needs(opt.getResource());
+	}
+
+	public void addJUnitLib(BuildResource br) {
+		needs(br instanceof PendingResource?(PendingResource) br:new PendingResource(br));
 	}
 
 	public void pattern(String p) {

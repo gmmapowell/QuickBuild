@@ -70,7 +70,7 @@ public class MavenNature implements Nature {
 	public void done() {
 	}
 	
-	public void loadPackage(String pkginfo) {
+	public MavenResource loadPackage(String pkginfo) {
 		loadedLibs.add(pkginfo);
 		File mavenPath = FileUtils.mavenToFile(pkginfo);
 		File cacheFile = new File(mvnCache, mavenPath.getPath());
@@ -88,6 +88,7 @@ public class MavenNature implements Nature {
 		}
 		MavenResource res = new MavenResource(pkginfo, jarFile != null ? jarFile : cacheFile);
 		config.resourceAvailable(res);
+		return res;
 	}
 
 	private void downloadFromMaven(String pkginfo, File mavenPath, File cacheTo, File extractTo, String category) {
