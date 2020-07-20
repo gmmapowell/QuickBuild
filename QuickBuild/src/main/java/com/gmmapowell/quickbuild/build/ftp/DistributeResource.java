@@ -1,6 +1,7 @@
 package com.gmmapowell.quickbuild.build.ftp;
 
 import java.io.File;
+import java.util.List;
 
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -24,6 +25,12 @@ public class DistributeResource implements BuildResource {
 
 	@Override
 	public File getPath() {
+		return null;
+	}
+
+	@Override
+	public List<File> getPaths() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 

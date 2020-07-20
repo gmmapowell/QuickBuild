@@ -2,14 +2,15 @@ package com.gmmapowell.quickbuild.build.java;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.zinutils.exceptions.UtilException;
-
-import com.gmmapowell.utils.ArgumentDefinition;
-import com.gmmapowell.utils.Cardinality;
 import org.zinutils.utils.FileUtils;
-import com.gmmapowell.utils.OrderedFileList;
+
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.BuildIfCommand;
 import com.gmmapowell.quickbuild.config.Config;
@@ -25,6 +26,9 @@ import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
+import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.utils.Cardinality;
+import com.gmmapowell.utils.OrderedFileList;
 
 public class JarCommand extends AbstractStrategem {
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
@@ -39,6 +43,7 @@ public class JarCommand extends AbstractStrategem {
 	private final List<BuildResource> junitLibs = new ArrayList<BuildResource>();
 	private final List<PendingResource> resources = new ArrayList<PendingResource>();
 	private final List<String> junitDefines = new ArrayList<String>();
+	private final Map<String, String> junitEnvs = new TreeMap<>();
 	private final List<String> junitPatterns = new ArrayList<String>();
 	private final List<PendingResource> jarLibs = new ArrayList<PendingResource>();
 	protected final ResourcePacket<PendingResource> needsResources = new ResourcePacket<PendingResource>();
@@ -54,6 +59,7 @@ public class JarCommand extends AbstractStrategem {
 	private List<ManifestClassPathCommand> classPaths = new ArrayList<ManifestClassPathCommand>();
 	private List<BuildIfCommand> buildifs = new ArrayList<BuildIfCommand>();
 	private List<TestIfCommand> testifs = new ArrayList<>();
+	private JUnitRunCommand jrun;
 
 	public JarCommand(TokenizedLine toks) {
 		super(toks, new ArgumentDefinition("*", Cardinality.REQUIRED, "projectName", "jar project"));
@@ -121,7 +127,7 @@ public class JarCommand extends AbstractStrategem {
 		}
 		addResources(jar, jbcs, "src/main/resources");
 		addResources(null, jbcs, "src/test/resources");
-		JUnitRunCommand jrun = addJUnitRun(tactics, jbcs);
+		jrun = addJUnitRun(tactics, jbcs);
 		if (tactics.size() == 0)
 			throw new QuickBuildException("None of the required source directories exist (or have source files) to build " + targetName);
 		if (javac != null || jar.alwaysBuild())
@@ -173,6 +179,10 @@ public class JarCommand extends AbstractStrategem {
 			{
 				addJarLib((JarLibCommand)opt);
 			}
+			else if (opt instanceof UseComboCommand)
+			{
+				((UseComboCommand)opt).needComboLib(this);
+			}
 			else if (opt instanceof MoreTestsCommand)
 			{
 				addJUnitDir((MoreTestsCommand)opt);
@@ -192,6 +202,10 @@ public class JarCommand extends AbstractStrategem {
 			else if (opt instanceof JUnitDefineCommand)
 			{
 				addJUnitDefine((JUnitDefineCommand)opt);
+			}
+			else if (opt instanceof JUnitEnvCommand)
+			{
+				addJUnitEnv((JUnitEnvCommand)opt);
 			}
 			else if (opt instanceof JUnitPatternCommand)
 			{
@@ -279,6 +293,9 @@ public class JarCommand extends AbstractStrategem {
 
 	protected void addJUnitLib(BuildResource br) {
 		junitLibs.add(br);
+		if (jrun != null) {
+			jrun.addLibs(Arrays.asList(br));
+		}
 	}
 
 	private void addResource(ResourceCommand opt) {
@@ -292,6 +309,10 @@ public class JarCommand extends AbstractStrategem {
 
 	private void addJUnitDefine(JUnitDefineCommand opt) {
 		junitDefines.add(opt.getDefine());
+	}
+
+	private void addJUnitEnv(JUnitEnvCommand opt) {
+		junitEnvs.put(opt.getVar(), opt.getValue());
 	}
 
 	private void addJUnitPattern(JUnitPatternCommand opt) {
@@ -440,6 +461,8 @@ public class JarCommand extends AbstractStrategem {
 				cmd.setJUnitMemory(junitMemory);
 			for (String d : junitDefines)
 				cmd.define(d);
+			for (Entry<String, String> d : junitEnvs.entrySet())
+				cmd.env(d.getKey(), d.getValue());
 			for (String d : junitPatterns)
 				cmd.pattern(d);
 			ret.add(cmd);

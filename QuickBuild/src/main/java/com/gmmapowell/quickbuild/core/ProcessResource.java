@@ -1,6 +1,8 @@
 package com.gmmapowell.quickbuild.core;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.zinutils.exceptions.UtilException;
 
@@ -24,6 +26,11 @@ public class ProcessResource implements BuildResource {
 	@Override
 	public File getPath() {
 		throw new UtilException("No");
+	}
+
+	@Override
+	public List<File> getPaths() {
+		return new ArrayList<>();
 	}
 
 	@Override

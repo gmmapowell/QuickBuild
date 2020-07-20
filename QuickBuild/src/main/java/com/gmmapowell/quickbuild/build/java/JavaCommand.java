@@ -73,43 +73,7 @@ public class JavaCommand extends AbstractBuildCommand implements ExecutesInDirCo
 		config.getNature(JavaNature.class);
 		files = new StructureHelper(rootdir, config.getOutput());
 		this.errdir = files.getOutput("java-output" + (label != null ? "/" + label : ""));
-		
-//		javaVersion = config.getVarIfDefined("javaVersion", null);
 		processOptions(config);
-//
-//		ArchiveCommand jar = createAssemblyCommand(figureResourceFiles("src/main/resources", null));
-//		
-//		JavaBuildCommand javac;
-//		if (justJunit)
-//			javac = null;
-//		else
-//			javac = addJavaBuild(tactics, jar, "src/main/java", "classes", "main", true);
-//		JavaBuildCommand junit = addJavaBuild(tactics, null, "src/test/java", "test-classes", "test", false);
-//		if (junit != null)
-//		{
-//			junit.addToClasspath(new File(files.getOutputDir(), "classes"));
-//			if (javac != null)
-//				junit.addProcessDependency(javac);
-//		}
-//		addResources(jar, junit, "src/main/resources");
-//		addResources(null, junit, "src/test/resources");
-//		JUnitRunCommand jrun = addJUnitRun(tactics, junit);
-//		if (tactics.size() == 0)
-//			throw new QuickBuildException("None of the required source directories exist (or have source files) to build " + targetName);
-//		if (javac != null || jar.alwaysBuild())
-//			tactics.add(jar);
-//		if (jrun != null && junit != null)
-//			jrun.addProcessDependency(junit);
-//		
-//		JarResource jarResource = jar.getJarResource();
-//		if (jarResource != null && javac != null)
-//			jar.builds(jarResource);
-//
-//		additionalCommands(config);
-//		if (javac != null)
-//			jar.addProcessDependency(javac);
-//		if (junit != null)
-//			jar.addProcessDependency(junit);
 		return this;
 	}
 
@@ -133,18 +97,6 @@ public class JavaCommand extends AbstractBuildCommand implements ExecutesInDirCo
 					resource.enableAnalysis();
 				}
 			}
-//			if (opt instanceof SpecifyTargetCommand)
-//			{
-//				targetName = ((SpecifyTargetCommand) opt).getName();
-//			}
-//			else if (opt instanceof IncludePackageCommand)
-//			{
-//				includePackage((IncludePackageCommand)opt);
-//			}
-//			else if (opt instanceof JarLibCommand)
-//			{
-//				addJarLib((JarLibCommand)opt);
-//			}
 			else if (opt instanceof JUnitLibCommand)
 			{
 				addJUnitLib((JUnitLibCommand)opt);
@@ -161,43 +113,13 @@ public class JavaCommand extends AbstractBuildCommand implements ExecutesInDirCo
 			{
 				needs(((ResourceCommand)opt).getPendingResource());
 			}
-//			else if (opt instanceof JUnitMemoryCommand)
-//			{
-//				setJUnitMemory((JUnitMemoryCommand)opt);
-//			}
 			else if (opt instanceof JUnitDefineCommand)
 			{
 				define(((JUnitDefineCommand)opt).getDefine());
 			}
-//			else if (opt instanceof JUnitPatternCommand)
-//			{
-//				addJUnitPattern((JUnitPatternCommand)opt);
-//			}
-//			else if (opt instanceof NoJUnitCommand)
-//			{
-//				runJunit  = false;
-//			}
-//			else if (opt instanceof BootClassPathCommand)
-//			{
-//				bootJar  = ((BootClassPathCommand)opt).getFile();
-//			}
-//			else if (opt instanceof JavaVersionCommand)
-//			{
-//				javaVersion = ((JavaVersionCommand)opt).getVersion();
-//			}
-//			else if (opt instanceof GitIdCommand)
-//			{
-//				if (gitIdCommand != null)
-//					throw new UtilException("You cannot specify more than one git id variable");
-//				gitIdCommand = (GitIdCommand) opt;
-//			}
-//			else if (processOption(opt))
-//				;
 			else if (!super.handleOption(config, opt))
 				throw new UtilException("The option " + opt + " is not valid for JavaCommand");
 		}
-//		if (targetName == null)
-//			targetName = new File(projectName).getName() + ".jar";
 	}
 
 	@Override
@@ -247,8 +169,10 @@ public class JavaCommand extends AbstractBuildCommand implements ExecutesInDirCo
 				classpath.add(FileUtils.relativePath(r.getPath()));
 			else if (r instanceof DirectoryResource)
 				classpath.add(r.getPath());
-			else if (r instanceof PendingResource)
-				classpath.add(r.getPath());
+			else if (r instanceof PendingResource) {
+				for (File f: r.getPaths())
+					classpath.add(f);
+			}
 		}
 		for (BuildResource f : cxt.getTransitiveDependencies(this))
 			if (f != null && (f instanceof JarResource))
@@ -259,7 +183,7 @@ public class JavaCommand extends AbstractBuildCommand implements ExecutesInDirCo
 		new File(errdir, "stderr").delete();
 		BuildStatus ret = BuildStatus.SUCCESS;
 
-		RunProcess proc = new RunProcess("java");
+		RunProcess proc = new RunProcess(System.getenv("JAVA_HOME") + "/bin/java");
 		File indir = files.getBaseDir();
 		if (reldir != null)
 			indir = new File(indir, reldir);
@@ -271,6 +195,7 @@ public class JavaCommand extends AbstractBuildCommand implements ExecutesInDirCo
 		stdout.appendTo(new File(errdir, "stdout"));
 		stderr.appendTo(new File(errdir, "stderr"));
 		proc.arg("-classpath");
+		FileUtils.createFile(new File(errdir, "javaclasspath"), classpath.toString());
 		proc.arg(classpath.toString());
 		for (String s : defines)
 			proc.arg(s);
@@ -278,25 +203,14 @@ public class JavaCommand extends AbstractBuildCommand implements ExecutesInDirCo
 		for (String s : args)
 			proc.arg(s);
 		proc.execute();
-		if (proc.getExitCode() != 0)
+		int code = proc.getExitCode();
+		if (code != 0)
 		{
 			System.out.println(proc.getStdout());
 			System.out.println(proc.getStderr());
+			System.out.println("Process exited with code " + code);
 			return errorReturn; // Broken or TestFail, depending on user choice
 		}
-		
-		//		
-//		for (String t : testsToRun) {
-//			List<String> oneTest = CollectionUtils.listOf(t);
-//			RunProcess proc = runTestBatch(cxt, showArgs, showDebug, classpath, oneTest);
-//			if (proc.getExitCode() != 0)
-//			{
-//				handleFailure(cxt, proc);
-//				ret = BuildStatus.TEST_FAILURES;
-//			}
-//			proc.destroy();
-//		}
-//		
 		return ret;
 	}
 

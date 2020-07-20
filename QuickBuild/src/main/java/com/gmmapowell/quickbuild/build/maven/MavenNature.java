@@ -80,13 +80,18 @@ public class MavenNature implements Nature {
 		}
 		if (!cacheFile.exists() || (jarFile != null && !jarFile.exists()))
 			downloadFromMaven(pkginfo, mavenPath, cacheFile, jarFile, "");
-		if (jarFile == null) {
-			File mavenSource = makeSourcesPath(mavenPath);
-			File sourceFile = new File(mvnCache, mavenSource.getPath());
-			if (!sourceFile.exists())
-				downloadFromMaven(pkginfo, mavenSource, sourceFile, null, " sources");
-		}
-		MavenResource res = new MavenResource(pkginfo, jarFile != null ? jarFile : cacheFile);
+//		if (jarFile == null) {
+//			File mavenSource = makeSourcesPath(mavenPath);
+//			File sourceFile = new File(mvnCache, mavenSource.getPath());
+//			if (!sourceFile.exists())
+//				downloadFromMaven(pkginfo, mavenSource, sourceFile, null, " sources");
+//			
+//			File platformFile = makePlatformPath(mavenPath);
+//			File cacheTo = new File(mvnCache, platformFile.getPath());
+//			if (!cacheTo.exists())
+//				downloadFromMaven(pkginfo, platformFile, cacheTo, null, " platform");
+//		}
+		MavenResource res = new MavenResource(this, pkginfo, jarFile != null ? jarFile : cacheFile);
 		config.resourceAvailable(res);
 		return res;
 	}
@@ -100,8 +105,7 @@ public class MavenNature implements Nature {
 			String urlPath = FileUtils.urlPath(repo, mavenPath);
 			pathsTried.add(urlPath);
 			try {
-				doDownload(urlPath, cacheTo);
-				System.out.println("Downloaded " + pkginfo + category + " from " + repo);
+				downloadAll(repo, mavenPath, urlPath, cacheTo);
 				if (cacheTo.getName().endsWith(".aar")) {
 					JarFile jf = new JarFile(cacheTo);
 					try {
@@ -121,7 +125,17 @@ public class MavenNature implements Nature {
 //				System.out.println("Could not find " + pkginfo + " at " + repo + ":\n  " + e.getMessage());
 			}
 		}
-		throw new QuickBuildException("Could not find maven package " + pkginfo + " at any of " + pathsTried);
+		if (category.length() == 0)
+			throw new QuickBuildException("Could not find maven" + category + " package for " + pkginfo + " at any of " + pathsTried);
+		else {
+			try {
+				FileOutputStream fos = new FileOutputStream(cacheTo);
+				fos.close();
+			} catch (IOException ex) {
+				System.out.println("Could not create " + cacheTo);
+			}
+
+		}
 	}
 
 	private File makeSourcesPath(File mavenPath) {
@@ -129,12 +143,50 @@ public class MavenNature implements Nature {
 		return new File(mavenPath.getParentFile(), name);
 	}
 
-	private void doDownload(String urlPath, File cacheTo) throws FileNotFoundException, IOException {
+	File makePlatformPath(File mavenPath) {
+		String platform = "noplatform";
+		if (config.hasVar("os")) {
+			String os = config.getVar("os");
+			switch (os) {
+			case "macosx":
+				platform = "mac";
+				break;
+			default:
+				platform = os;
+				break;
+			}
+		}
+		String name = FileUtils.dropExtension(mavenPath.getName()) + "-" + platform + ".jar";
+		return new File(mavenPath.getParentFile(), name);
+	}
+
+	private void downloadAll(String repo, File mavenPath, String urlPath, File cacheTo) throws FileNotFoundException, IOException {
+		doDownload(repo, urlPath, cacheTo);
+		if (mavenPath != null) {
+			File src = makeSourcesPath(mavenPath);
+			File srcPath = new File(mvnCache, src.getPath());
+			try {
+				doDownload(repo, FileUtils.urlPath(repo, src), srcPath);
+			} catch (IOException ex) {
+				srcPath.delete();
+			}
+			File platform = makePlatformPath(mavenPath);
+			File platPath = new File(mvnCache, platform.getPath());
+			try {
+				doDownload(repo, FileUtils.urlPath(repo, platform), platPath);
+			} catch (IOException ex) {
+				platPath.delete();
+			}
+		}
+	}
+
+	private void doDownload(String repo, String urlPath, File cacheTo) throws FileNotFoundException, IOException {
 		ProxyableConnection conn = config.newConnection(urlPath);
 		FileUtils.assertDirectory(cacheTo.getParentFile());
 		FileOutputStream fos = new FileOutputStream(cacheTo);
 		FileUtils.copyStream(conn.getInputStream(), fos);
 		fos.close();
+		System.out.println("Downloaded " + cacheTo.getName() + " from " + repo);
 	}
 
 	/** It seems that there are times when snapshots can have random time/date fields in lieu of "SNAPSHOT" in the
@@ -159,7 +211,7 @@ public class MavenNature implements Nature {
 					shortest = matcher.group(1);
 			}
 			if (shortest != null) {
-				doDownload(shortest, cacheTo);
+				downloadAll(repo, null, shortest, cacheTo);
 				return true;
 			}
 		}

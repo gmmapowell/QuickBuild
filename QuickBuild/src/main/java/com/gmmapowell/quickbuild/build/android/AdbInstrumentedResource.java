@@ -1,6 +1,8 @@
 package com.gmmapowell.quickbuild.build.android;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -23,6 +25,11 @@ public class AdbInstrumentedResource implements BuildResource {
 	@Override
 	public File getPath() {
 		return null;
+	}
+
+	@Override
+	public List<File> getPaths() {
+		return new ArrayList<>();
 	}
 
 	@Override

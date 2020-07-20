@@ -1,6 +1,7 @@
 package com.gmmapowell.quickbuild.core;
 
 import java.io.File;
+import java.util.List;
 
 import org.zinutils.exceptions.UtilException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
@@ -22,6 +23,11 @@ public class PendingResource implements BuildResource {
 		if (boundTo == null)
 			throw new QuickBuildException("Cannot use PendingResource " + pendingName + " before bound");
 		return boundTo.getPath();
+	}
+	
+	@Override
+	public List<File> getPaths() {
+		return boundTo.getPaths();
 	}
 
 	public String getPending() {

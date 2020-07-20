@@ -23,6 +23,7 @@ import com.gmmapowell.quickbuild.config.AbstractBuildCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.DoubleQuickCommand;
+import com.gmmapowell.quickbuild.config.NotFatalCommand;
 import com.gmmapowell.quickbuild.config.ProducesCommand;
 import com.gmmapowell.quickbuild.config.ReadsFileCommand;
 import com.gmmapowell.quickbuild.config.ResourceCommand;
@@ -44,6 +45,7 @@ public class BashCommand extends AbstractBuildCommand implements ExecutesInDirCo
 	private BashDirectoryCommand dir;
 	private final Set<BuildResource> analysis = new HashSet<BuildResource>();
 	private final Set<File> readsFiles = new HashSet<File>();
+	private BuildStatus errorReturn = BuildStatus.BROKEN;
 	
 	public BashCommand(TokenizedLine toks) {
 		super(toks, new ArgumentDefinition("*", Cardinality.REQUIRED, "scriptName", "script to run"));
@@ -82,6 +84,8 @@ public class BashCommand extends AbstractBuildCommand implements ExecutesInDirCo
 				readsFiles.add(((ReadsFileCommand)opt).getPath());
 			else if (opt instanceof DoubleQuickCommand)
 				doubleQuick = true;
+			else if (opt instanceof NotFatalCommand)
+				errorReturn  = BuildStatus.TEST_FAILURES;
 			else if (!super.handleOption(config, opt))
 				throw new UtilException("The option " + opt + " is not supported");
 		}
@@ -183,7 +187,7 @@ public class BashCommand extends AbstractBuildCommand implements ExecutesInDirCo
 		{
 			System.out.println(exec.getStdout());
 			System.out.println(exec.getStderr());
-			return BuildStatus.BROKEN;
+			return errorReturn;
 		}
 	}
 	

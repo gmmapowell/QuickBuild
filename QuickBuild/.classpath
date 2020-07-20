@@ -4,12 +4,12 @@
 	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="src" path="src/test/resources"/>
 	<classpathentry kind="src" path="src/test/java"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/AmazonAWS"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Testing"/>
 	<classpathentry kind="src" path="/GrandmaUtils"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/SSH"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/QuickBuild"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

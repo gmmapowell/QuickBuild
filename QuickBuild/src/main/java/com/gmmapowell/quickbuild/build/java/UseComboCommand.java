@@ -37,4 +37,8 @@ public class UseComboCommand extends NoChildCommand implements ConfigApplyComman
 		jn.needsCombo(javaCommand, combo);
 	}
 
+	public void needComboLib(JarCommand jarCommand) {
+		jn.needsCombo(jarCommand, combo);
+	}
+
 }

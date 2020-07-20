@@ -138,9 +138,11 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped, Ma
 		classpath.add(bindir);
 		for (BuildResource br : cxt.getDependencies(this))
 		{
-			if (br instanceof JarResource)
-				classpath.add(((JarResource)br).getPath());
-			else if (br instanceof DirectoryResource)
+			if (br instanceof JarResource) {
+				List<File> fs = ((JarResource)br).getPaths();
+				for (File f : fs)
+					classpath.add(f);
+			} else if (br instanceof DirectoryResource)
 				classpath.add(((DirectoryResource)br).getPath());
 			else if (br instanceof ProcessResource)
 				; // transitive node
@@ -160,7 +162,7 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped, Ma
 			}
 		}
 		
-		RunProcess proc = new RunProcess("javac");
+		RunProcess proc = new RunProcess(System.getenv("JAVA_HOME") + "/bin/javac");
 		proc.showArgs(showArgs);
 //		proc.showArgs(true);
 		proc.debug(showDebug);

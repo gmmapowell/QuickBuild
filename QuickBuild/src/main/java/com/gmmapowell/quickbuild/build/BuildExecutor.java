@@ -254,27 +254,32 @@ public class BuildExecutor {
 		BuildStatus stat = itb.needsBuild;
 		if (itb.tactic instanceof AlwaysRunMe || (itb.tactic instanceof JUnitRunCommand && cxt.alwaysRunTests()))
 			stat = BuildStatus.SUCCESS;
-		if (!stat.needsBuild())
-		{
-			itb.export(cxt.output, rm, verbose);
-			itb.announce(cxt.output, verbose, currentTactic, itb.needsBuild);
-			cxt.output.finishBuildStep();
-			itb.commitAll();
-			return itb.needsBuild;
-		}
-		else if (!isOnCriticalPath(itb))
-		{
-			itb.export(cxt.output, rm, verbose);
-			itb.announce(cxt.output, verbose, currentTactic, BuildStatus.NOTCRITICAL);
-			itb.revert();
-			cxt.output.finishBuildStep();
-			return BuildStatus.NOTCRITICAL;
-		}
-		else if (itb.considerAutoSkipping(cxt)) {
-			itb.announce(cxt.output, verbose, currentTactic, BuildStatus.NOTCRITICAL);
-			itb.revert();
-			cxt.output.finishBuildStep();
-			return BuildStatus.NOTCRITICAL;
+		try {
+			if (!stat.needsBuild())
+			{
+				itb.export(cxt.output, rm, verbose);
+				itb.announce(cxt.output, verbose, currentTactic, itb.needsBuild);
+				cxt.output.finishBuildStep();
+				itb.commitAll();
+				return itb.needsBuild;
+			}
+			else if (!isOnCriticalPath(itb))
+			{
+				itb.export(cxt.output, rm, verbose);
+				itb.announce(cxt.output, verbose, currentTactic, BuildStatus.NOTCRITICAL);
+				itb.revert();
+				cxt.output.finishBuildStep();
+				return BuildStatus.NOTCRITICAL;
+			}
+			else if (itb.considerAutoSkipping(cxt)) {
+				itb.announce(cxt.output, verbose, currentTactic, BuildStatus.NOTCRITICAL);
+				itb.revert();
+				cxt.output.finishBuildStep();
+				return BuildStatus.NOTCRITICAL;
+			}
+		} catch (QuickBuildException ex) {
+			// presumably it can't find resources to export so it is not as clean as we thought
+			stat = BuildStatus.SUCCESS; // please build normally
 		}
 		itb.announce(cxt.output, verbose, currentTactic, stat);
 

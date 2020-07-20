@@ -48,6 +48,7 @@ public class JavaNature implements Nature, BuildContextAware {
 	private final Config conf;
 	private final List<String> reportedDuplicates = new ArrayList<String>();
 	private SetMap<String, JavaCommand> wantCombos = new SetMap<>();
+	private SetMap<String, JarCommand> wantJarCombos = new SetMap<>();
 	private List<DefineComboCommand> definingCombos = new ArrayList<DefineComboCommand>();
 
 	public static void init(ConfigFactory config)
@@ -57,6 +58,7 @@ public class JavaNature implements Nature, BuildContextAware {
 		config.addCommandExtension("boot", BootClassPathCommand.class);
 		config.addCommandExtension("combo", DefineComboCommand.class);
 		config.addCommandExtension("define", JUnitDefineCommand.class);
+		config.addCommandExtension("env", JUnitEnvCommand.class);
 		config.addCommandExtension("exclude", ExcludeCommand.class);
 		config.addCommandExtension("gitid", GitIdCommand.class);
 		config.addCommandExtension("include", IncludePackageCommand.class);
@@ -110,36 +112,29 @@ public class JavaNature implements Nature, BuildContextAware {
 	}
 
 	private void scanJar(JarResource br) {
-		ZUJarFile jar;
-		try
-		{
-			jar = new ZUJarFile(br.getPath());
+		for (File p : br.getPaths()) {
+			ZUJarFile jar;
+			try
+			{
+				jar = new ZUJarFile(p);
+			}
+			catch (ZUJarException ex)
+			{
+				System.out.println("Could not open jar " + br.getPath());
+				ex.printStackTrace();
+				return;
+			}
+			for (ZUJarEntry e : jar)
+			{
+				if (!e.isClassFile())
+					continue;
+				String pkg = e.getPackage();
+				if (availablePackages.contains(pkg) && availablePackages.get(pkg).contains(br))
+					continue;
+				availablePackages.add(pkg, br);
+			}
+			jar.close();
 		}
-		catch (ZUJarException ex)
-		{
-			System.out.println("Could not open jar " + br.getPath());
-			ex.printStackTrace();
-			return;
-		}
-//		boolean addedDuplicates = false;
-		for (ZUJarEntry e : jar)
-		{
-			if (!e.isClassFile())
-				continue;
-			String pkg = e.getPackage();
-//			if (availablePackages.contains(pkg) && !availablePackages.get(pkg).contains(br))
-//			{
-//				addedDuplicates = true;
-//				duplicates.add(pkg);
-//			}
-			if (availablePackages.contains(pkg) && availablePackages.get(pkg).contains(br))
-				continue;
-//			System.out.println("Recognizing " + br + " as a possible source for " + pkg);
-			availablePackages.add(pkg, br);
-		}
-		jar.close();
-//		if (addedDuplicates)
-//			showDuplicates();
 	}
 
 	private void extractPackages(DirectoryResource br) {
@@ -299,6 +294,14 @@ public class JavaNature implements Nature, BuildContextAware {
 				for (BuildResource k : combos.get(combo))
 					jc.addJUnitLib(k);
 		}
+		for (String combo : wantJarCombos.keySet()) {
+			if (!combos.contains(combo)) {
+				System.out.println("There is no combo jar " + combo);
+			}
+			for (JarCommand jc : wantJarCombos.get(combo))
+				for (BuildResource k : combos.get(combo))
+					jc.addJUnitLib(k);
+		}
 	}
 
 	@Override
@@ -336,6 +339,10 @@ public class JavaNature implements Nature, BuildContextAware {
 
 	public void needsCombo(JavaCommand javaCommand, String combo) {
 		wantCombos.add(combo, javaCommand);
+	}
+
+	public void needsCombo(JarCommand jarCommand, String combo) {
+		wantJarCombos.add(combo, jarCommand);
 	}
 
 	public void addDefiningCombo(DefineComboCommand defineComboCommand) {

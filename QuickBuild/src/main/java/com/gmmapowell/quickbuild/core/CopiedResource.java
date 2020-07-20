@@ -1,6 +1,9 @@
 package com.gmmapowell.quickbuild.core;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.utils.FileUtils;
@@ -28,6 +31,11 @@ public class CopiedResource implements BuildResource {
 	@Override
 	public File getPath() {
 		return clonedPath;
+	}
+
+	@Override
+	public List<File> getPaths() {
+		return Arrays.asList(clonedPath);
 	}
 
 	@Override

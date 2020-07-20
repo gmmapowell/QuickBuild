@@ -21,7 +21,7 @@ for i in $ROOTDIR/../qb/libs/* `find $ROOTDIR/../qb/mvncache/ -name '*.jar'` ; d
 done
 
 if [ "`hostname`" = "oldmajor" ] ; then
-  java -Duser.home=C:/cygwin/home/SYSTEM -cp "$CLASSPATH" com.gmmapowell.quickbuild.app.QuickBuild "$@"
+  $JAVA_HOME/bin/java -Duser.home=C:/cygwin/home/SYSTEM -cp "$CLASSPATH" com.gmmapowell.quickbuild.app.QuickBuild "$@"
 else
-  java -cp "$CLASSPATH" com.gmmapowell.quickbuild.app.QuickBuild "$@"
+  $JAVA_HOME/bin/java -cp "$CLASSPATH" com.gmmapowell.quickbuild.app.QuickBuild "$@"
 fi

@@ -11,6 +11,7 @@ import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.java.DirectoryResource;
 import com.gmmapowell.quickbuild.build.java.JarDirectoryResource;
 import com.gmmapowell.quickbuild.build.java.JarResource;
+import com.gmmapowell.quickbuild.build.java.WarResource;
 import com.gmmapowell.quickbuild.build.javascript.JSFileResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.Tactic;
@@ -48,6 +49,8 @@ public class ProducesCommand extends NoChildCommand implements ConfigApplyComman
 			return new DirectoryResource(t, resourceFile);
 		else if (type.equals("libdir"))
 			return new JarDirectoryResource(t, resourceFile);
+		else if (type.equals("zip"))
+			return new WarResource(t, resourceFile);
 		else
 			throw new UtilException("Cannot handle bash resource type " + type);
 	}

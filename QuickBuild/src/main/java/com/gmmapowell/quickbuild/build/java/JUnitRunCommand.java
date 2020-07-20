@@ -10,7 +10,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import org.zinutils.bytecode.ByteCodeFile;
@@ -53,6 +55,8 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	private final OrderedFileList testResourceFiles;
 	private File dumpClasspath;
 
+	private Map<String, String> envs = new TreeMap<>();
+
 	public JUnitRunCommand(Strategem parent, StructureHelper files, List<JavaBuildCommand> testBuilds, OrderedFileList testResourceFiles) {
 		super(parent);
 		this.files = files;
@@ -68,6 +72,10 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 
 	public void define(String d) {
 		this.defines.add(d);
+	}
+
+	public void env(String var, String value) {
+		this.envs.put(var, value);
 	}
 
 	public void pattern(String p) {
@@ -91,7 +99,8 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		for (File f : this.classpath)
 			classpath.add(f);
 		for (BuildResource r : needsResources())
-			classpath.add(r.getPath());
+			for (File f : r.getPaths())
+				classpath.add(f);
 		for (BuildResource f : cxt.getTransitiveDependencies(this))
 			if (f != null && !(f instanceof ProcessResource))
 				classpath.add(f.getPath());
@@ -174,10 +183,12 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 	}
 
 	public RunProcess runTestBatch(BuildContext cxt, boolean showArgs, boolean showDebug, RunClassPath classpath, List<String> testsToRun) {
-		RunProcess proc = new RunProcess("java");
+		RunProcess proc = new RunProcess(System.getenv("JAVA_HOME") + "/bin/java");
 		proc.executeInDir(files.getBaseDir());
 		proc.showArgs(showArgs);
 		proc.debug(showDebug);
+		for (Entry<String, String> e : envs.entrySet())
+			proc.env(e.getKey(), e.getValue());
 		ThreadedStreamReader stdout = proc.captureStdout();
 		ThreadedStreamReader stderr = proc.captureStderr();
 		FileUtils.assertDirectory(errdir);
@@ -239,11 +250,14 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		if (junitLibs.isEmpty())
 			return;
 		
-		for (BuildResource r : junitLibs)
+		for (BuildResource r : junitLibs) {
 			if (r instanceof PendingResource)
 				needs((PendingResource) r);
-			else
-				addToClasspath(r.getPath());
+			else {
+				for (File f : r.getPaths())
+					addToClasspath(f);
+			}
+		}
 	}
 
 	@Override
