@@ -10,6 +10,10 @@
 	<classpathentry kind="src" path="/GrandmaUtils"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/SSH"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/QuickBuild"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
