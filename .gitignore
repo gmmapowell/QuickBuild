@@ -9,3 +9,5 @@ qbout/
 qb/quickbuild/
 testbin/
 Utils/testbin/
+QuickBuild/samples/qb/**/logs/
+QuickBuild/samples/qb/**/mvncache/
