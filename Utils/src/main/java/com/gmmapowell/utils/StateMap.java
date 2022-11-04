@@ -36,7 +36,7 @@ public class StateMap<K, V> {
 			if (containsKey(k))
 				return map.get(k);
 			@SuppressWarnings("unchecked")
-			V newv = (V) cls.newInstance();
+			V newv = (V) cls.getConstructor().newInstance();
 			save(k, newv);
 			return newv;
 		} catch (Exception e) {

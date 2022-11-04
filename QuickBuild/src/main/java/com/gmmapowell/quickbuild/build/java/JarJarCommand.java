@@ -127,7 +127,10 @@ public class JarJarCommand extends AbstractStrategemTactic {
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
 		JarOutputStream jos = null;
 		try {
-			FileUtils.assertDirectory(new File(outputTo).getParentFile());
+			File of = new File(outputTo).getParentFile();
+			if (of == null)
+				of = rootDirectory();
+			FileUtils.assertDirectory(of);
 			jos = new JarOutputStream(new FileOutputStream(FileUtils.relativePath(outputTo)));
 			Set<String> entries = new HashSet<String>();
 			writeManifest(jos);

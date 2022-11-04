@@ -8,8 +8,6 @@ import org.zinutils.exceptions.UtilException;
 import org.zinutils.reflection.Reflection;
 import org.zinutils.utils.StringUtil;
 
-import com.gmmapowell.utils.StateMap;
-
 public class ProcessArgs {
 
 	public static void process(Object config, ArgumentDefinition[] argumentDefinitions, String[] args) {

@@ -51,7 +51,7 @@ public class QBJUnitRunner {
 				} else if (runWith != null) {
 					Runner suite;
 					try {
-						suite = Reflection.create(runWith.value(), clz, new AllDefaultPossibilitiesBuilder(true));
+						suite = Reflection.create(runWith.value(), clz, new AllDefaultPossibilitiesBuilder());
 					} catch (RuntimeException e) {
 						suite = Reflection.create(runWith.value(), clz);
 					}
