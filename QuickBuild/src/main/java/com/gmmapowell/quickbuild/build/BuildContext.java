@@ -72,7 +72,7 @@ public class BuildContext {
 		this.alwaysRunTests = alwaysTest;
 		rm = new ResourceManager(conf);
 		manager = new DependencyManager(conf, rm, debug);
-		buildOrder = new BuildOrder(this, manager, buildAll, debug);
+		buildOrder = new BuildOrder(this, manager, conf.helper, buildAll, debug);
 		ehandler = new ErrorHandler(conf.getLogDir());
 		for (String s : showArgsFor)
 			this.showArgsFor.add(Pattern.compile(s.toLowerCase()));

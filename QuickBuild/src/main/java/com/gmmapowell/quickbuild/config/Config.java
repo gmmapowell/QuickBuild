@@ -24,6 +24,7 @@ import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.ProxyInfo;
 import com.gmmapowell.utils.ProxyableConnection;
+import com.gmmapowell.vc.VCHelper;
 
 public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	private final List<Strategem> strategems = new ArrayList<Strategem>();
@@ -44,12 +45,14 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	private final ListMap<String, String> libraryContexts = new ListMap<String, String>();
 	private boolean topLevel;
 	public final BuildOutput outlog;
+	public VCHelper helper;
 
 	@SuppressWarnings("unchecked")
 	public Config(ConfigFactory factory, BuildOutput outlog, File qbdir, String quickBuildName, String cacheDir)
 	{
 		super(ConfigApplyCommand.class, ConfigBuildCommand.class);
 		this.factory = factory;
+		this.helper = factory.vchelper;
 		this.outlog = outlog;
 		this.quickBuildName = quickBuildName;
 		try

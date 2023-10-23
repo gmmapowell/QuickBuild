@@ -189,8 +189,8 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		proc.debug(showDebug);
 		for (Entry<String, String> e : envs.entrySet())
 			proc.env(e.getKey(), e.getValue());
-		ThreadedStreamReader stdout = proc.captureStdout();
-		ThreadedStreamReader stderr = proc.captureStderr();
+		ThreadedStreamReader stdout = (ThreadedStreamReader) proc.captureStdout();
+		ThreadedStreamReader stderr = (ThreadedStreamReader) proc.captureStderr();
 		FileUtils.assertDirectory(errdir);
 		stdout.appendTo(new File(errdir, "stdout"));
 		stderr.appendTo(new File(errdir, "stderr"));

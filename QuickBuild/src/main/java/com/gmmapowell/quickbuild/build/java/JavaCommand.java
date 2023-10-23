@@ -190,8 +190,8 @@ public class JavaCommand extends AbstractBuildCommand implements ExecutesInDirCo
 		proc.executeInDir(indir);
 		proc.showArgs(showArgs);
 		proc.debug(showDebug);
-		ThreadedStreamReader stdout = proc.captureStdout();
-		ThreadedStreamReader stderr = proc.captureStderr();
+		ThreadedStreamReader stdout = (ThreadedStreamReader) proc.captureStdout();
+		ThreadedStreamReader stderr = (ThreadedStreamReader) proc.captureStderr();
 		stdout.appendTo(new File(errdir, "stdout"));
 		stderr.appendTo(new File(errdir, "stderr"));
 		proc.arg("-classpath");

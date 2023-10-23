@@ -19,7 +19,7 @@ import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
 import org.zinutils.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
-
+import com.gmmapowell.vc.VCHelper;
 import com.gmmapowell.git.GitHelper;
 import com.gmmapowell.git.GitRecord;
 import com.gmmapowell.parser.TokenizedLine;
@@ -52,6 +52,7 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 	private boolean includeDependencies;
 	private Set<PendingResource> resources = new HashSet<PendingResource>();
 	private boolean propagates;
+	private VCHelper helper;
 
 	@SuppressWarnings("unchecked")
 	public DistributeCommand(TokenizedLine toks) {
@@ -61,6 +62,7 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 
 	@Override
 	public Strategem applyConfig(Config config) {
+		this.helper = config.helper;
 		execdir = FileUtils.getCurrentDir();
 		super.handleOptions(config);
 
@@ -166,7 +168,7 @@ public class DistributeCommand extends AbstractBuildCommand implements FloatToEn
 		if (separately)
 		{
 			File gf = cxt.getGitCacheFile(identifier(), ".filelist"); 
-			GitRecord gittx = GitHelper.checkFiles(true, files, gf);
+			GitRecord gittx = helper.checkFiles(true, files, gf);
 
 			BuildStatus stat = BuildStatus.SKIPPED;
 			for (File f : files) {

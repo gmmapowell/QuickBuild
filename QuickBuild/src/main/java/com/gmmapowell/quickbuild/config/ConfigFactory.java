@@ -26,11 +26,13 @@ import com.gmmapowell.quickbuild.exceptions.QBConfigurationException;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
+import com.gmmapowell.vc.VCHelper;
 
 public class ConfigFactory implements CommandObjectFactory {
 	private Map<String, Constructor<? extends Parent<?>>> handlers = new HashMap<String, Constructor<? extends Parent<?>>>();
 	private Map<String, Class<? extends Nature>> natureClasses = new HashMap<String, Class<? extends Nature>>();
 	private Map<Class<? extends Nature>, Nature> natures = new HashMap<Class<? extends Nature>, Nature>();
+	public VCHelper vchelper;
 
 	public ConfigFactory() {
 		// These are all the config ones

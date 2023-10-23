@@ -15,8 +15,13 @@ import org.zinutils.system.RunProcess;
 import org.zinutils.utils.FileUtils;
 
 import com.gmmapowell.utils.OrderedFileList;
+import com.gmmapowell.vc.VCHelper;
 
-public class GitHelper {
+public class GitHelper implements VCHelper {
+	public GitHelper() {
+		
+	}
+	
 	public static String currentHead() {
 		RunProcess rp = runGit(null, "rev-parse", "HEAD");
 		return rp.getStdout().replaceAll("[^0-9a-fA-Z]", "");
@@ -69,7 +74,8 @@ public class GitHelper {
 		}
 	}
 	
-	public static GitRecord checkFiles(boolean doComparison, OrderedFileList files, File file) {
+	@Override
+	public GitRecord checkFiles(boolean doComparison, OrderedFileList files, File file) {
 		List<String> paths = new ArrayList<String>();
 		if (files != null) {
 			for (File f : files)

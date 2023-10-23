@@ -15,7 +15,7 @@ public class GitRecord {
 	private boolean committed = false;
 	private List<File> dirtyFiles = new ArrayList<File>();
 
-	GitRecord(File file) {
+	public GitRecord(File file) {
 		this.source = file;
 	}
 
@@ -95,7 +95,7 @@ public class GitRecord {
 		source.delete();
 	}
 
-	void generates(File newFile) {
+	public void generates(File newFile) {
 		generates = newFile;
 	}
 

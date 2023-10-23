@@ -24,6 +24,7 @@ import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
 import com.gmmapowell.utils.OrderedFileList;
 import com.gmmapowell.utils.PrettyPrinter;
+import com.gmmapowell.vc.VCHelper;
 
 /**
  * The idea of moving this into its own file is so that it can have a richer structure than it had
@@ -62,11 +63,13 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 	private final Set<GitRecord> ubtxs = new HashSet<GitRecord>();
 
 	private Set<Tactic> completedTactics = new HashSet<Tactic>();
+	private VCHelper helper;
 
-	public BuildOrder(BuildContext cxt, DependencyManager manager, boolean buildAll, boolean debug)
+	public BuildOrder(BuildContext cxt, DependencyManager manager, VCHelper helper, boolean buildAll, boolean debug)
 	{
 		this.cxt = cxt;
 		dependencies = manager;
+		this.helper = helper;
 		this.buildAll = buildAll;
 		this.debug = debug;
 		buildOrderFile = cxt.getCacheFile("buildOrder.xml");
@@ -165,7 +168,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 			try {
 				relpath = FileUtils.makeRelative(f).getPath();
 			} catch (Exception ex) { /* probably not relative */ }
-			GitRecord ubtx = GitHelper.checkFiles(!buildAll, ofl, cxt.getGitCacheFile("Unbuilt_"+relpath.replace("/", "_"), ""));
+			GitRecord ubtx = helper.checkFiles(!buildAll, ofl, cxt.getGitCacheFile("Unbuilt_"+relpath.replace("/", "_"), ""));
 			ubtxs.add(ubtx);
 			if (ubtx.isDirty())
 				dirtyResources.add(br);
@@ -199,7 +202,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		}
 		else
 		{
-			GitRecord gittx = GitHelper.checkFiles(itb.isClean() && !buildAll, files, cxt.getGitCacheFile(itb.name(), ""));
+			GitRecord gittx = helper.checkFiles(itb.isClean() && !buildAll, files, cxt.getGitCacheFile(itb.name(), ""));
 			itb.addGitTx(gittx);
 			isDirty |= gittx.isDirty();
 			if (!wasDirty && isDirty && debug)

@@ -83,7 +83,7 @@ public class JarJarCommand extends AbstractStrategemTactic {
 				gitIdCommand = (GitIdCommand) opt;
 			}
 			else
-				throw new UtilException("The option " + opt + " is not valid for JarCommand");
+				throw new UtilException("The option " + opt + " is not valid for JarJarCommand");
 		}
 		return this;
 	}
@@ -156,6 +156,10 @@ public class JarJarCommand extends AbstractStrategemTactic {
 						if (name.equals("META-INF/"))
 							continue;
 						else if (name.equals("META-INF/MANIFEST.MF"))
+							continue;
+						else if (name.endsWith("LICENSE.txt"))
+							continue;
+						else if (name.endsWith(".SF") || name.endsWith(".DSA") || name.endsWith(".RSA"))
 							continue;
 						else if (name.startsWith(".git"))
 							continue;
