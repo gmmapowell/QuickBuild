@@ -3,12 +3,16 @@
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="src" path="src/test/java"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/HTTP"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Grizzly"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.USER_LIBRARY/HTTP"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.USER_LIBRARY/Grizzly"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/CouchbaseServer"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Logging"/>
-	<classpathentry exported="true" kind="lib" path="/Users/gareth/Ziniki/Over/Tools/utils/bin/classes" sourcepath="/Users/gareth/Ziniki/Over/Tools/utils/src/main/java"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.USER_LIBRARY/Logging"/>
+	<classpathentry exported="true" kind="lib" path="/home/gareth/Ziniki/Over/Tools/utils/bin/classes"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

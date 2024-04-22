@@ -4,14 +4,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.system.RunProcess;
-import com.gmmapowell.utils.ArgumentDefinition;
-import com.gmmapowell.utils.Cardinality;
 import org.zinutils.utils.FileUtils;
-import com.gmmapowell.utils.OrderedFileList;
+
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
@@ -19,6 +20,7 @@ import com.gmmapowell.quickbuild.build.CanBeSkipped;
 import com.gmmapowell.quickbuild.build.CareAboutPropagatedDirtyness;
 import com.gmmapowell.quickbuild.build.ExecutesInDirCommand;
 import com.gmmapowell.quickbuild.build.MayPropagateDirtyness;
+import com.gmmapowell.quickbuild.build.java.JUnitEnvCommand;
 import com.gmmapowell.quickbuild.config.AbstractBuildCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
@@ -32,6 +34,9 @@ import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.utils.Cardinality;
+import com.gmmapowell.utils.OrderedFileList;
 
 public class BashCommand extends AbstractBuildCommand implements ExecutesInDirCommand, CanBeSkipped, CareAboutPropagatedDirtyness {
 	private String scriptName;
@@ -46,6 +51,7 @@ public class BashCommand extends AbstractBuildCommand implements ExecutesInDirCo
 	private final Set<BuildResource> analysis = new HashSet<BuildResource>();
 	private final Set<File> readsFiles = new HashSet<File>();
 	private BuildStatus errorReturn = BuildStatus.BROKEN;
+	private Map<String, String> envs = new TreeMap<>();
 	
 	public BashCommand(TokenizedLine toks) {
 		super(toks, new ArgumentDefinition("*", Cardinality.REQUIRED, "scriptName", "script to run"));
@@ -86,7 +92,10 @@ public class BashCommand extends AbstractBuildCommand implements ExecutesInDirCo
 				doubleQuick = true;
 			else if (opt instanceof NotFatalCommand)
 				errorReturn  = BuildStatus.TEST_FAILURES;
-			else if (!super.handleOption(config, opt))
+			else if (opt instanceof JUnitEnvCommand) {
+				JUnitEnvCommand env = (JUnitEnvCommand) opt;
+				envs.put(env.getVar(), env.getValue());
+			} else if (!super.handleOption(config, opt))
 				throw new UtilException("The option " + opt + " is not supported");
 		}
 		String os = config.getVar("os");
@@ -174,6 +183,10 @@ public class BashCommand extends AbstractBuildCommand implements ExecutesInDirCo
 
 		for (String a : args)
 			exec.arg(a);
+		
+		for (Entry<String, String> e : envs.entrySet())
+			exec.env(e.getKey(), e.getValue());
+		
 		exec.executeInDir(execdir);
 		
 		exec.execute();
