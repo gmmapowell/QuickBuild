@@ -26,9 +26,13 @@ public class DistributeToSftp implements DistributeTo {
 	public DistributeToSftp(Config config, String directory, String dest) {
 		this.directory = directory;
 		fullyConfigured = true;
-		if (config.hasPath("privatekey"))
+		if (config.hasPath("privatekey")) {
 			privateKeyPath = config.getPath("privatekey");
-		else
+			if (!privateKeyPath.canRead()) {
+				System.out.println("cannot sftp: private key file does not exist: " + privateKeyPath);
+				fullyConfigured = false;
+			}
+		} else
 		{
 			System.out.println("Cannot sftp: no private key");
 			fullyConfigured = false;
