@@ -4,8 +4,6 @@ import java.io.File;
 
 import org.zinutils.exceptions.UtilException;
 
-import com.gmmapowell.utils.ArgumentDefinition;
-import com.gmmapowell.utils.Cardinality;
 import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.java.DirectoryResource;
@@ -14,13 +12,17 @@ import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.build.java.WarResource;
 import com.gmmapowell.quickbuild.build.javascript.JSFileResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
+import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.core.Tactic;
+import com.gmmapowell.utils.ArgumentDefinition;
+import com.gmmapowell.utils.Cardinality;
 
 public class ProducesCommand extends NoChildCommand implements ConfigApplyCommand {
 	private String type;
 	private String resource;
 	private File resourceFile;
 	private boolean analyze;
+	private File execdir;
 	
 	public ProducesCommand(TokenizedLine toks)
 	{
@@ -30,9 +32,14 @@ public class ProducesCommand extends NoChildCommand implements ConfigApplyComman
 			new ArgumentDefinition("*", Cardinality.REQUIRED, "resource", "resource"));
 	}
 
+	public void execdir(File execdir) {
+		this.execdir = execdir;
+	}
+
 	@Override
 	public void applyTo(Config config) {
-		resourceFile = new File(resource);
+		StructureHelper files = new StructureHelper(execdir, "");
+		resourceFile = files.getRelative(resource);
 	}
 
 	public boolean doAnalysis()
@@ -59,5 +66,4 @@ public class ProducesCommand extends NoChildCommand implements ConfigApplyComman
 	public String toString() {
 		return "Produces["+type+","+resource+"]";
 	}
-
 }

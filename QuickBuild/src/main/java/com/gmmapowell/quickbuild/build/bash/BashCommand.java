@@ -75,6 +75,7 @@ public class BashCommand extends AbstractBuildCommand implements ExecutesInDirCo
 			else if (opt instanceof ProducesCommand)
 			{
 				ProducesCommand bpc = (ProducesCommand)opt;
+				bpc.execdir(execdir);
 				bpc.applyTo(config);
 				BuildResource jr = bpc.getProducedResource(this);
 				builds.add(jr);

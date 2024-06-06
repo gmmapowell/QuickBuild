@@ -90,6 +90,11 @@ public class JavaCommand extends AbstractBuildCommand implements ExecutesInDirCo
 				readsFiles.add(((ReadsFileCommand)opt).getPath());
 			else if (opt instanceof ProducesCommand) {
 				ProducesCommand jpc = (ProducesCommand)opt;
+				if (reldir != null)
+					jpc.execdir(new File(rootdir, reldir));
+				else
+					jpc.execdir(rootdir);
+				jpc.applyTo(config);
 				BuildResource resource = jpc.getProducedResource(this);
 				produces.add(resource);
 				this.buildsResources().add(resource);
