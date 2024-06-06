@@ -8,7 +8,11 @@ import java.io.LineNumberReader;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.system.RunProcess;
@@ -18,8 +22,9 @@ import com.gmmapowell.utils.OrderedFileList;
 import com.gmmapowell.vc.VCHelper;
 
 public class GitHelper implements VCHelper {
+	static long elapsed = 0;
+	
 	public GitHelper() {
-		
 	}
 	
 	public static String currentHead() {
@@ -40,9 +45,12 @@ public class GitHelper implements VCHelper {
 		return proc;
 	}
 
-	public static List<String> checkRepositoryClean() {
-		RunProcess proc = runGit(null, "clean", "-ndf");
-		
+	public static List<String> checkRepositoryClean(File repo, boolean includeIgnored) {
+		long from = new Date().getTime();
+		RunProcess proc = runGit(repo, "clean", includeIgnored?"-ndfx":"-ndf");
+		long to = new Date().getTime();
+		elapsed += to - from;
+		System.out.println("cleaned " + repo + ": " + elapsed);
 		List<String> ret = new ArrayList<String>();
 		try {
 			LineNumberReader gitReader = new LineNumberReader(new StringReader(proc.getStdout()));
@@ -55,6 +63,38 @@ public class GitHelper implements VCHelper {
 			return ret;
 		} catch (Exception ex) {
 			throw UtilException.wrap(ex);
+		}
+	}
+	
+	@Override
+	public void removeNonManagedFiles(OrderedFileList files) {
+		if (files == null)
+			return;
+		Set<String> repos = new TreeSet<>();
+		for (File f : files) {
+			while (f != null && !new File(f, ".git").isDirectory())
+				f = f.getParentFile();
+			repos.add(f.getPath());
+		}
+		for (String r : repos) {
+			File rf = new File(r);
+			// TODO: this calls the same git clean command on the same directory multiple times for different projects
+			// Should we cache the results?
+			List<String> wr = checkRepositoryClean(rf, true);
+			Set<String> excl = new TreeSet<>();
+			for (String rem : wr) {
+				excl.add(new File(rf, rem).getPath());
+			}
+			Iterator<File> it = files.iterator();
+			while (it.hasNext()) {
+				String f = it.next().getPath();
+				for (String x : excl) {
+					if (f.startsWith(x)) {
+						it.remove();
+						break;
+					}
+				}
+			}
 		}
 	}
 
@@ -91,7 +131,7 @@ public class GitHelper implements VCHelper {
 		boolean nofile = false;
 		if (!gittx.sourceExists())
 		{
-			System.out.println("! No file: " + file);
+//			System.out.println("! No file: " + file);
 			nofile = true;
 			gittx.markDirty();
 			gittx.fileMissing();
@@ -133,7 +173,7 @@ public class GitHelper implements VCHelper {
 					String hash = gitReader.readLine();
 					if (hash == null)
 					{
-						System.out.println("git did not return a hash for " + f);
+//						System.out.println("git did not return a hash for " + f);
 						gittx.dirtyFile(new File(f));
 						continue;
 					}

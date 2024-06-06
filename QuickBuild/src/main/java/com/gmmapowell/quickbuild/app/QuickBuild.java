@@ -139,7 +139,7 @@ public class QuickBuild {
 			output.openBlock("compareFiles");
 			if (!arguments.quiet)
 				output.println("Comparing files ...");
-			List<String> notclean = GitHelper.checkRepositoryClean();
+			List<String> notclean = GitHelper.checkRepositoryClean(null, false);
 			for (String s : notclean)
 				System.out.println("WARNING: the directory " + s + " is not owned by git");
 			if (arguments.checkGit) {

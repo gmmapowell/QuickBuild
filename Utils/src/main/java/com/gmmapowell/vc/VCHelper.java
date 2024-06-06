@@ -6,5 +6,6 @@ import com.gmmapowell.git.GitRecord;
 import com.gmmapowell.utils.OrderedFileList;
 
 public interface VCHelper {
+	void removeNonManagedFiles(OrderedFileList files);
 	GitRecord checkFiles(boolean doComparison, OrderedFileList files, File file);
 }

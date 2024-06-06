@@ -1,6 +1,7 @@
 package com.gmmapowell.utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
@@ -19,7 +20,8 @@ public class OrderedFileList implements Iterable<File> {
 	}
 
 	public OrderedFileList(List<File> files) {
-		list.addAll(files); 
+		for (File f : files)
+			addOne(f);
 	}
 
 	public void add(OrderedFileList other) {
@@ -28,18 +30,25 @@ public class OrderedFileList implements Iterable<File> {
 
 	public void add(File rootdir, String string) {
 		for (File f : FileUtils.findFilesMatching(rootdir, string))
-			if (f.isFile())
-				list.add(f);
+			addOne(f);
 	}
 	
 	public void add(List<File> files) {
 		for (File f : files)
-			list.add(f);
+			addOne(f);
 	}
 
 	public void add(File... files) {
 		for (File f : files)
-			list.add(f);
+			addOne(f);
+	}
+
+	private void addOne(File f) {
+		try {
+			list.add(f.getCanonicalFile());
+		} catch (IOException e) {
+			// file doesn't exist - can't add it!
+		}
 	}
 
 	public void remove(File f) {

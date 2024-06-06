@@ -27,7 +27,12 @@ public class JarBuildCommand extends ArchiveCommand {
 		this.gitIdCommand = gitIdCommand;
 		this.jarResource = new JarResource(this, files.getOutput(FileUtils.ensureExtension(targetName, ".jar")));
 		this.jarfile = this.jarResource.getFile();
-		this.idAs = parent.rootDirectory().getName();
+		String pn;
+		if (parent instanceof JarCommand)
+			pn = ((JarCommand)parent).projectName;
+		else
+			pn = parent.rootDirectory().getName();
+		this.idAs = FileUtils.clean(pn);
 	}
 	
 	@Override

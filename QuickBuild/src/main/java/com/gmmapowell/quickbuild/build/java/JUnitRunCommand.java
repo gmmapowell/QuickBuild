@@ -63,7 +63,12 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		this.testBuilds = testBuilds;
 		this.testResourceFiles = testResourceFiles;
 		this.errdir = files.getOutput("test-results");
-		this.idAs = parent.rootDirectory().getName();
+		String pn;
+		if (parent instanceof JarCommand)
+			pn = ((JarCommand)parent).projectName;
+		else
+			pn = parent.rootDirectory().getName();
+		this.idAs = FileUtils.clean(pn);
 	}
 
 	public void setJUnitMemory(String junitMemory) {

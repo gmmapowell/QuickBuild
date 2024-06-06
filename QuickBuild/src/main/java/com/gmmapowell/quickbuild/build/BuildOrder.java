@@ -202,6 +202,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		}
 		else
 		{
+			helper.removeNonManagedFiles(files);
 			GitRecord gittx = helper.checkFiles(itb.isClean() && !buildAll, files, cxt.getGitCacheFile(itb.name(), ""));
 			itb.addGitTx(gittx);
 			isDirty |= gittx.isDirty();

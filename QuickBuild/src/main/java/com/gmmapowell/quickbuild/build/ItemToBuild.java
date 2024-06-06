@@ -46,7 +46,6 @@ public class ItemToBuild {
 	}
 
 	public void markDirty() {
-//		System.out.println("Marking " + tactic + " dirty");
 		needsBuild = BuildStatus.SUCCESS;
 		for (GitRecord r : gittxs)
 			r.markDirty();
