@@ -86,8 +86,7 @@ public class BuildExecutor {
 			ehandler.currentCmd(currentTactic, itb);
 			if (debug)
 			{
-				System.out.println(itb.tactic);
-				System.out.print(new Date().toString()+" ");
+				System.out.println(new Date().toString()+" "+itb.tactic);
 			}
 			BuildStatus outcome = execute(itb);
 			if (debug)
@@ -163,8 +162,9 @@ public class BuildExecutor {
 			else
 				throw new QuickBuildException("Invalid status: " + status);
 
-			if (debug)
+			if (debug) {
 				System.out.println("itb("+currentTactic+")");
+			}
 			// If the identified ITB exists, return it
 			ItemToBuild itb = buildOrder.get(currentTactic);
 			if (itb != null)
@@ -243,17 +243,42 @@ public class BuildExecutor {
 	
 	public BuildStatus execute(ItemToBuild itb) {
 		boolean verbose = !cxt.quietMode();
-		if (itb.sentToBottomAt == currentTactic)
+		if (itb.sentToBottomAt == currentTactic) {
+			if (cxt.why()) {
+				System.out.println(" -- no tactics can be executed; looping");
+			}
 			return BuildStatus.LOOPING;
+		}
 		if (hasBrokenDependencies(itb)) {
+			if (cxt.why()) {
+				System.out.println(" -- broken dependencies; not buildingS");
+			}
 			itb.announce(cxt.output, verbose, currentTactic, BuildStatus.BROKEN_DEPENDENCIES);
 			cxt.output.finishBuildStep();
 			return BuildStatus.BROKEN_DEPENDENCIES;
 		}
-		itb.checkPropagatedChanges();
+		if (cxt.why()) {
+			itb.showWhy();
+		}
+		itb.checkPropagatedChanges(cxt);
 		BuildStatus stat = itb.needsBuild;
-		if (itb.tactic instanceof AlwaysRunMe || (itb.tactic instanceof JUnitRunCommand && cxt.alwaysRunTests()))
+		if (itb.tactic instanceof AlwaysRunMe) {
+			if (cxt.why()) {
+				System.out.println(" -- tactic has always run me set");
+			}
+			if (debug) {
+				cxt.output.println("tactic " + itb.tactic.getClass() + " is always run");
+			}
 			stat = BuildStatus.SUCCESS;
+		} else if (itb.tactic instanceof JUnitRunCommand && cxt.alwaysRunTests()) {
+			if (cxt.why()) {
+				System.out.println(" -- JUnit with --always-run-tests");
+			}
+			if (debug) {
+				cxt.output.println("tactic is JUnit and always run tests is on");
+			}
+			stat = BuildStatus.SUCCESS;
+		}
 		try {
 			if (!stat.needsBuild())
 			{

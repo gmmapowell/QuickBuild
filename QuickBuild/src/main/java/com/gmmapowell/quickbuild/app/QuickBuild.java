@@ -31,11 +31,12 @@ public class QuickBuild {
 		new ArgumentDefinition("--alltests", Cardinality.OPTION, "allTests", "run all tests, including ones marked @QuickIgnore"),
 		new ArgumentDefinition("--args", Cardinality.LIST, "showArgsFor", null),
 		new ArgumentDefinition("--blank", Cardinality.OPTION, "blank", "blank memory"),
-		new ArgumentDefinition("--build-all", Cardinality.OPTION, "buildAll", null),
+		new ArgumentDefinition("--build-all", Cardinality.OPTION, "buildAll", "build everything"),
 		new ArgumentDefinition("--cache", Cardinality.OPTION, "cachedir", "Cache directory"),
-		new ArgumentDefinition("--config-only", Cardinality.OPTION, "configOnly", null),
-		new ArgumentDefinition("--debug", Cardinality.LIST, "showDebugFor", null),
-		new ArgumentDefinition("--debugInternals", Cardinality.LIST, "debug", null),
+		new ArgumentDefinition("--config-only", Cardinality.OPTION, "configOnly", "only run config; don't actually build"),
+		new ArgumentDefinition("--debug", Cardinality.LIST, "showDebugFor", "show debug for targets"),
+		new ArgumentDefinition("--debugInternals", Cardinality.LIST, "debug", "debug internals of QuickBuild"),
+		new ArgumentDefinition("--why", Cardinality.LIST, "why", "explain why target will be built"),
 		new ArgumentDefinition("--doublequick", Cardinality.OPTION, "doubleQuick", "avoid time-consuming non-critical-path items"),
 		new ArgumentDefinition("--ignore-main-changes", Cardinality.OPTION, "ignoreMain", "don't blank memory if you changed something trivial in a main file"),
 		new ArgumentDefinition("--nthreads", Cardinality.OPTION, "nthreads", "number of threads"),
@@ -154,7 +155,7 @@ public class QuickBuild {
 			}
 			
 			// now we need to read back anything we've cached ...
-			BuildContext cxt = new BuildContext(conf, configFactory, output, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar, arguments.upTo, arguments.doubleQuick, arguments.allTests, arguments.gfMode, arguments.testAlways);
+			BuildContext cxt = new BuildContext(conf, configFactory, output, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar, arguments.upTo, arguments.doubleQuick, arguments.allTests, arguments.gfMode, arguments.testAlways, arguments.why);
 			cxt.configure();
 			
 			if (!arguments.quiet && !output.forTeamCity())

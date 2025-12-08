@@ -160,15 +160,24 @@ public class ItemToBuild {
 		return bo.hasUnbuiltDependencies(this);
 	}
 
-	public void checkPropagatedChanges() {
+	public void checkPropagatedChanges(BuildContext cxt) {
 		if (tactic instanceof CareAboutPropagatedDirtyness && needsBuild == BuildStatus.CLEAN) {
 			CareAboutPropagatedDirtyness t = (CareAboutPropagatedDirtyness) tactic;
 			for (MayPropagateDirtyness d : propagators) {
 				if (t.makesDirty(d)) {
+					if (cxt.why()) {
+						System.out.println(" -- dirtiness propagated from " + d);
+					}
 					needsBuild = BuildStatus.SUCCESS;
 					return;
 				}
 			}
+		}
+	}
+
+	public void showWhy() {
+		for (GitRecord gittx : gittxs) {
+			gittx.showWhy(this.toString());
 		}
 	}
 }

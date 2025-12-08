@@ -109,8 +109,27 @@ public class GitRecord {
 			markDirty();
 	}
 
+	public List<File> dirtyFiles() {
+		return dirtyFiles;
+	}
+
 	public void fileMissing() {
 		missing = true;
+	}
+	
+	public void showWhy(String what) {
+		if (dirty) {
+			System.out.println(what + " will be built because GitTx dirty: " + source);
+			if (missing) {
+				System.out.println("    - source missing ");
+			}
+			for (File f : dirtyFiles) {
+				System.out.println("    - " + f);
+			}
+			if (error) {
+				System.out.println("    - error raised");
+			}
+		}
 	}
 
 	@Override

@@ -10,6 +10,7 @@ public class Arguments {
 	public boolean checkGit = true;
 	public boolean configOnly;
 	public boolean debug;
+	public boolean why;
 	public boolean doubleQuick;
 	public boolean ignoreMain;
 	public boolean quiet;

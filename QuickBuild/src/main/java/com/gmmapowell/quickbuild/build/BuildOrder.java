@@ -206,8 +206,12 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 			GitRecord gittx = helper.checkFiles(itb.isClean() && !buildAll, files, cxt.getGitCacheFile(itb.name(), ""));
 			itb.addGitTx(gittx);
 			isDirty |= gittx.isDirty();
-			if (!wasDirty && isDirty && debug)
+			if (!wasDirty && isDirty && debug) {
 				cxt.output.println("Marking " + itb + " dirty due to git hash-object");
+				for (File s : gittx.dirtyFiles()) {
+					cxt.output.println("  > " + s);
+				}
+			}
 		}
 		if (!isDirty)
 		{

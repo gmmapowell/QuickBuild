@@ -59,7 +59,9 @@ public class BuildContext {
 
 	private List<Background> backgrounds = new ArrayList<Background>();
 
-	public BuildContext(Config conf, ConfigFactory configFactory, BuildOutput output, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar, String upTo, boolean doubleQuick, boolean allTests, boolean gfMode, boolean alwaysTest) {
+	private boolean showWhy;
+
+	public BuildContext(Config conf, ConfigFactory configFactory, BuildOutput output, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar, String upTo, boolean doubleQuick, boolean allTests, boolean gfMode, boolean alwaysTest, boolean showWhy) {
 		this.conf = conf;
 		this.output = output;
 		this.blankMemory = blankMemory;
@@ -68,6 +70,7 @@ public class BuildContext {
 		this.upTo = upTo;
 		this.doubleQuick = doubleQuick;
 		this.allTests = allTests;
+		this.showWhy = showWhy;
 		this.grandFallacyMode = gfMode;
 		this.alwaysRunTests = alwaysTest;
 		rm = new ResourceManager(conf);
@@ -235,5 +238,9 @@ public class BuildContext {
 
 	public boolean alwaysRunTests() {
 		return alwaysRunTests;
+	}
+
+	public boolean why() {
+		return showWhy;
 	}
 }
