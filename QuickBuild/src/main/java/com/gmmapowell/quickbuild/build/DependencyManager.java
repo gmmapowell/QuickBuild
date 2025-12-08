@@ -50,6 +50,7 @@ import org.zinutils.xml.XMLElement;
 public class DependencyManager {
 	// The file to load/store the dependencies in 
 	private final File dependencyFile;
+	private final File newDependencyFile;
 
 	// A flag for debugging
 	private final boolean debug;
@@ -71,6 +72,7 @@ public class DependencyManager {
 		this.rm = rm;
 		this.debug = debug;
 		dependencyFile = new File(conf.getCacheDir(), "dependencies.xml");
+		newDependencyFile = new File(conf.getCacheDir(), "dependencies-new.xml");
 	}
 	
 	// First off, build up a picture of what exists without prompting ...
@@ -107,8 +109,13 @@ public class DependencyManager {
 			for (PendingResource pr : t.needsResources())
 				resolve(pr);
 
-		if (!dependencyFile.canRead())
-			return false;
+		if (!dependencyFile.canRead()) {
+			if (newDependencyFile.canRead()) {
+				newDependencyFile.renameTo(dependencyFile);
+			} else {
+				return false;
+			}
+		}
 
 		try
 		{
@@ -125,6 +132,7 @@ public class DependencyManager {
 		catch (Exception ex)
 		{
 			dependencyFile.delete();
+			newDependencyFile.delete();
 			throw new UtilException("Could not decipher the dependency cache", ex);
 		}
 		return true;
@@ -231,8 +239,10 @@ public class DependencyManager {
 				ref.setAttribute("name", br.compareAs());
 			}
 		}
-		FileUtils.assertDirectory(dependencyFile.getParentFile());
-		output.write(dependencyFile);
+		FileUtils.assertDirectory(newDependencyFile.getParentFile());
+		output.write(newDependencyFile);
+		dependencyFile.delete();
+		newDependencyFile.renameTo(dependencyFile);
 	}
 
 	public Set<BuildResource> getDependencies(Tactic tactic) {
@@ -288,5 +298,6 @@ public class DependencyManager {
 
 	public void cleanFile() {
 		dependencyFile.delete();
+		newDependencyFile.delete();
 	}
 }
