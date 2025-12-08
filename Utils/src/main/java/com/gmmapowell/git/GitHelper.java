@@ -63,8 +63,10 @@ public class GitHelper implements VCHelper {
 			String line;
 			while ((line = gitReader.readLine()) != null) {
 				line = line.replace("Would remove ", "");
-				if (new File(line).isDirectory())
+//				if (new File(repo, line).isDirectory())
 					ret.add(line);
+//				else
+//					System.out.println("rejecting " + line);
 			}
 			cleaned.put(key, ret);
 			return ret;
@@ -125,7 +127,7 @@ public class GitHelper implements VCHelper {
 		if (files != null) {
 			for (File f : files)
 			{
-				if (f.isDirectory())
+				if (!f.canRead() || f.isDirectory())
 					continue;
 				String path = relPath(f).getPath();
 				paths.add(path);
