@@ -147,37 +147,38 @@ public class JarJarCommand extends AbstractStrategemTactic {
 						throw new UtilException(pr + " is not a jar resource");
 					if (showDebug)
 						System.out.println("Considering resource " + actual.getPath());
-					ZUJarFile gpj = new ZUJarFile(actual.getPath());
-					for (ZUJarEntry je : gpj)
-					{
-						String name = je.getName();
-						if (showDebug)
-							System.out.println("  Looking at path " + name);
-						if (name.equals("META-INF/"))
-							continue;
-						else if (name.equals("META-INF/MANIFEST.MF"))
-							continue;
-						else if (name.endsWith("LICENSE.txt"))
-							continue;
-						else if (name.endsWith(".SF") || name.endsWith(".DSA") || name.endsWith(".RSA"))
-							continue;
-						else if (name.startsWith(".git"))
-							continue;
-						else if (name.endsWith("/") && entries.contains(name))
-							continue;
-						else if (name.startsWith("META-INF/") && entries.contains(name))
-							continue;
-						else if (!((ResourceCommand) rc).includes(name))
+					try (ZUJarFile gpj = new ZUJarFile(actual.getPath())) {
+						for (ZUJarEntry je : gpj)
 						{
+							String name = je.getName();
 							if (showDebug)
-								System.out.println("    not included");
-							continue;
+								System.out.println("  Looking at path " + name);
+							if (name.equals("META-INF/"))
+								continue;
+							else if (name.equals("META-INF/MANIFEST.MF"))
+								continue;
+							else if (name.endsWith("LICENSE.txt"))
+								continue;
+							else if (name.endsWith(".SF") || name.endsWith(".DSA") || name.endsWith(".RSA"))
+								continue;
+							else if (name.startsWith(".git"))
+								continue;
+							else if (name.endsWith("/") && entries.contains(name))
+								continue;
+							else if (name.startsWith("META-INF/") && entries.contains(name))
+								continue;
+							else if (!((ResourceCommand) rc).includes(name))
+							{
+								if (showDebug)
+									System.out.println("    not included");
+								continue;
+							}
+							if (showDebug)
+								System.out.println("    adding as " + je.getJava());
+							jos.putNextEntry(new JarEntry(je.getJava()));
+							FileUtils.copyStream(je.asStream(), jos);
+							entries.add(name);
 						}
-						if (showDebug)
-							System.out.println("    adding as " + je.getJava());
-						jos.putNextEntry(new JarEntry(je.getJava()));
-						FileUtils.copyStream(je.asStream(), jos);
-						entries.add(name);
 					}
 				} else if (rc instanceof DirectoryResourceCommand) {
 					DirectoryResourceCommand drc = (DirectoryResourceCommand) rc;

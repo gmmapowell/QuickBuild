@@ -113,7 +113,7 @@ public class JavaNature implements Nature, BuildContextAware {
 
 	private void scanJar(JarResource br) {
 		for (File p : br.getPaths()) {
-			ZUJarFile jar;
+			ZUJarFile jar = null;
 			try
 			{
 				jar = new ZUJarFile(p);
@@ -122,6 +122,9 @@ public class JavaNature implements Nature, BuildContextAware {
 			{
 				System.out.println("Could not open jar " + br.getPath());
 				ex.printStackTrace();
+				if (jar != null) {
+					jar.close();
+				}
 				return;
 			}
 			for (ZUJarEntry e : jar)
