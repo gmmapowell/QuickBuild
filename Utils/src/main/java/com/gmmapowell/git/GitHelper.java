@@ -11,7 +11,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.zinutils.exceptions.UtilException;
@@ -23,6 +25,7 @@ import com.gmmapowell.vc.VCHelper;
 
 public class GitHelper implements VCHelper {
 	static long elapsed = 0;
+	private Map<String, List<String>> cleaned = new TreeMap<>();
 	
 	public GitHelper() {
 	}
@@ -45,12 +48,15 @@ public class GitHelper implements VCHelper {
 		return proc;
 	}
 
-	public static List<String> checkRepositoryClean(File repo, boolean includeIgnored) {
+	public List<String> checkRepositoryClean(File repo, boolean includeIgnored) {
+		String key = repo + "--" + includeIgnored;
+		if (cleaned.containsKey(key)) {
+			return cleaned.get(key);
+		}
 		long from = new Date().getTime();
 		RunProcess proc = runGit(repo, "clean", includeIgnored?"-ndfx":"-ndf");
 		long to = new Date().getTime();
 		elapsed += to - from;
-		System.out.println("cleaned " + repo + ": " + elapsed);
 		List<String> ret = new ArrayList<String>();
 		try {
 			LineNumberReader gitReader = new LineNumberReader(new StringReader(proc.getStdout()));
@@ -60,6 +66,7 @@ public class GitHelper implements VCHelper {
 				if (new File(line).isDirectory())
 					ret.add(line);
 			}
+			cleaned.put(key, ret);
 			return ret;
 		} catch (Exception ex) {
 			throw UtilException.wrap(ex);
@@ -78,8 +85,6 @@ public class GitHelper implements VCHelper {
 		}
 		for (String r : repos) {
 			File rf = new File(r);
-			// TODO: this calls the same git clean command on the same directory multiple times for different projects
-			// Should we cache the results?
 			List<String> wr = checkRepositoryClean(rf, true);
 			Set<String> excl = new TreeSet<>();
 			for (String rem : wr) {
