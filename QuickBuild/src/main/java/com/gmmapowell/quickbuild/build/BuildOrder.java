@@ -2,6 +2,7 @@ package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -64,14 +65,16 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 
 	private Set<Tactic> completedTactics = new HashSet<Tactic>();
 	private VCHelper helper;
-
-	public BuildOrder(BuildContext cxt, DependencyManager manager, VCHelper helper, boolean buildAll, boolean debug)
+	private boolean showTimings;
+	
+	public BuildOrder(BuildContext cxt, DependencyManager manager, VCHelper helper, boolean buildAll, boolean debug, boolean showTimings)
 	{
 		this.cxt = cxt;
 		dependencies = manager;
 		this.helper = helper;
 		this.buildAll = buildAll;
 		this.debug = debug;
+		this.showTimings = showTimings;
 		buildOrderFile = cxt.getCacheFile("buildOrder.xml");
 	}	
 
@@ -156,8 +159,12 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 	}
 
 	public void figureDirtyness(final DependencyManager manager) {
+		long start = new Date().getTime();
 		for (BuildResource br : manager.unBuilt())
 		{
+			if (showTimings) {
+				System.out.println("Figuring dirtyness of " + br + ": " + (new Date().getTime() - start));
+			}
 			// This is an out-of-band hack and should be cleaned up - GP 2012-11-10
 			if (br instanceof JavaSourceDirResource)
 				continue;
@@ -172,14 +179,25 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 			ubtxs.add(ubtx);
 			if (ubtx.isDirty())
 				dirtyResources.add(br);
+			if (showTimings) {
+				System.out.println("Figured dirtyness of " + br + ": " + (new Date().getTime() - start));
+			}
 		}
 		final List<ItemToBuild> itbQueue = new ArrayList<ItemToBuild>();
 		for (ItemToBuild itb : toBuild)
 			itbQueue.add(itb);
 		for (ItemToBuild itb : well)
 			itbQueue.add(itb);
-		for (ItemToBuild itb : itbQueue)
+		for (ItemToBuild itb : itbQueue) {
+			long prev = new Date().getTime();
 			figureDirtyness(manager, itb);
+			if (showTimings) {
+				System.out.println("Figured dirtyness of " + itb + ": " + (new Date().getTime() - start) + " // " + (new Date().getTime() - prev));
+			}
+		}
+		if (showTimings) {
+		System.out.println("finished figuring dirtyness of manager after " + (new Date().getTime() - start));
+		}
 	}
 
 	public void figureDirtyness(DependencyManager manager, ItemToBuild itb) {

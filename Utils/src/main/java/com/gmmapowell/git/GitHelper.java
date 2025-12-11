@@ -24,10 +24,12 @@ import com.gmmapowell.utils.OrderedFileList;
 import com.gmmapowell.vc.VCHelper;
 
 public class GitHelper implements VCHelper {
+	private final boolean showTimings;
 	static long elapsed = 0;
 	private Map<String, List<String>> cleaned = new TreeMap<>();
 	
-	public GitHelper() {
+	public GitHelper(boolean showTimings) {
+		this.showTimings = showTimings;
 	}
 	
 	public static String currentHead() {
@@ -55,8 +57,6 @@ public class GitHelper implements VCHelper {
 		}
 		long from = new Date().getTime();
 		RunProcess proc = runGit(repo, "clean", includeIgnored?"-ndfx":"-ndf");
-		long to = new Date().getTime();
-		elapsed += to - from;
 		List<String> ret = new ArrayList<String>();
 		try {
 			LineNumberReader gitReader = new LineNumberReader(new StringReader(proc.getStdout()));
@@ -69,6 +69,11 @@ public class GitHelper implements VCHelper {
 //					System.out.println("rejecting " + line);
 			}
 			cleaned.put(key, ret);
+			if (showTimings) {
+				long to = new Date().getTime();
+				elapsed += to - from;
+				System.out.println("checked repository " + (repo != null ? repo.getName() : "default") + " in " + (to -from) + "ms; total: " + elapsed + "ms");
+			}
 			return ret;
 		} catch (Exception ex) {
 			throw UtilException.wrap(ex);
@@ -105,7 +110,9 @@ public class GitHelper implements VCHelper {
 		}
 	}
 
-	public static List<String> checkMissingCommits() {
+	public List<String> checkMissingCommits() {
+		long from = new Date().getTime();
+
 		runGit(null, "fetch");
 		RunProcess proc = runGit(null, "log", "master..origin/master", "--pretty=oneline");
 		
@@ -115,14 +122,22 @@ public class GitHelper implements VCHelper {
 			String line;
 			while ((line = gitReader.readLine()) != null)
 				ret.add(line);
+			if (showTimings) {
+				long to = new Date().getTime();
+				elapsed += to - from;
+				System.out.println("checked for missing commits in " + (to -from) + "ms; total: " + elapsed + "ms");
+			}
 			return ret;
 		} catch (Exception ex) {
 			throw UtilException.wrap(ex);
 		}
+
 	}
 	
 	@Override
 	public GitRecord checkFiles(boolean doComparison, OrderedFileList files, File file) {
+		long from = new Date().getTime();
+
 		List<String> paths = new ArrayList<String>();
 		if (files != null) {
 			for (File f : files)
@@ -246,6 +261,12 @@ public class GitHelper implements VCHelper {
 			System.out.println("Exception encountered in git checking: " + ex.getMessage());
 			System.out.println("Returning dirty status");
 			gittx.setError();
+		}
+		
+		if (showTimings) {
+			long to = new Date().getTime();
+			elapsed += to - from;
+			System.out.println("checked files " + (file != null ? file.getName() : "default") + " in " + (to -from) + "ms; total: " + elapsed + "ms");
 		}
 		return gittx;
 	}

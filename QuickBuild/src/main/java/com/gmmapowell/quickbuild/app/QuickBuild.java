@@ -59,7 +59,7 @@ public class QuickBuild {
 	
 	public static void main(String[] args)
 	{
-		setVCHelper(new GitHelper());
+		long start = new Date().getTime();
 		try {
 			List<File> pathElts = FileUtils.splitJavaPath(System.getProperty("java.class.path"));
 			File utilsJar = null;
@@ -82,6 +82,7 @@ public class QuickBuild {
 			Date launched = new Date();
 			arguments = new Arguments();
 			ProcessArgs.process(arguments, argumentDefinitions, args);
+			setVCHelper(new GitHelper(arguments.showTimings));
 			BuildOutput output = new BuildOutput(arguments.teamcity);
 			output.openBlock("Config");
 	
@@ -140,23 +141,47 @@ public class QuickBuild {
 			output.openBlock("compareFiles");
 			if (!arguments.quiet)
 				output.println("Comparing files ...");
+			if (arguments.showTimings) {
+				long time1 = new Date().getTime();
+				System.out.println("Timing #1: " + (time1-start));
+			}
 			List<String> notclean = helper.checkRepositoryClean(null, false);
 			for (String s : notclean)
 				System.out.println("WARNING: the directory " + s + " is not owned by git");
 			if (arguments.checkGit) {
-				List<String> missing = GitHelper.checkMissingCommits();
+				if (arguments.showTimings) {
+					long time1a = new Date().getTime();
+					System.out.println("Timing #1a: " + (time1a-start));
+				}
+				List<String> missing = helper.checkMissingCommits();
 				for (String s : missing)
 					System.out.println("WARNING: Your repository is missing " + s);
+			}
+			if (arguments.showTimings) {
+				long time2 = new Date().getTime();
+				System.out.println("Timing #2: " + (time2-start));
 			}
 			GitRecord mainFiles = helper.checkFiles(true, ofl, new File(conf.getCacheDir(), file.getName()));
 			if (!arguments.ignoreMain) {
 				blankMemory |= mainFiles.isDirty();
 				buildAll |= mainFiles.isDirty();
 			}
-			
+
+			if (arguments.showTimings) {
+				long time2b = new Date().getTime();
+				System.out.println("Timing #2b: " + (time2b-start));
+			}
 			// now we need to read back anything we've cached ...
-			BuildContext cxt = new BuildContext(conf, configFactory, output, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar, arguments.upTo, arguments.doubleQuick, arguments.allTests, arguments.gfMode, arguments.testAlways, arguments.why);
+			BuildContext cxt = new BuildContext(conf, configFactory, output, blankMemory, buildAll, arguments.debug, arguments.showArgsFor, arguments.showDebugFor, arguments.quiet, utilsJar, arguments.upTo, arguments.doubleQuick, arguments.allTests, arguments.gfMode, arguments.testAlways, arguments.why, arguments.showTimings);
+			if (arguments.showTimings) {
+				long time2c = new Date().getTime();
+				System.out.println("Timing #2c: " + (time2c-start));
+			}
 			cxt.configure();
+			if (arguments.showTimings) {
+				long time3 = new Date().getTime();
+				System.out.println("Timing #3: " + (time3-start));
+			}
 			
 			if (!arguments.quiet && !output.forTeamCity())
 				System.out.println();

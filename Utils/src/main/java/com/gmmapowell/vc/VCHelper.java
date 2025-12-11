@@ -10,4 +10,5 @@ public interface VCHelper {
 	void removeNonManagedFiles(OrderedFileList files);
 	GitRecord checkFiles(boolean doComparison, OrderedFileList files, File file);
 	List<String> checkRepositoryClean(File repo, boolean includeIgnored);
+	List<String> checkMissingCommits();
 }

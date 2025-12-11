@@ -22,6 +22,7 @@ public class Arguments {
 	public String file;
 	public String cachedir;
 	public String upTo;
+	public boolean showTimings = false;
 	public List<String> showArgsFor = new ArrayList<String>();
 	public List<String> showDebugFor = new ArrayList<String>();
 }

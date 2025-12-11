@@ -2,6 +2,7 @@ package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -61,7 +62,9 @@ public class BuildContext {
 
 	private boolean showWhy;
 
-	public BuildContext(Config conf, ConfigFactory configFactory, BuildOutput output, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar, String upTo, boolean doubleQuick, boolean allTests, boolean gfMode, boolean alwaysTest, boolean showWhy) {
+	private boolean showTimings;
+
+	public BuildContext(Config conf, ConfigFactory configFactory, BuildOutput output, boolean blankMemory, boolean buildAll, boolean debug, List<String> showArgsFor, List<String> showDebugFor, boolean quiet, File utilsJar, String upTo, boolean doubleQuick, boolean allTests, boolean gfMode, boolean alwaysTest, boolean showWhy, boolean showTimings) {
 		this.conf = conf;
 		this.output = output;
 		this.blankMemory = blankMemory;
@@ -73,9 +76,10 @@ public class BuildContext {
 		this.showWhy = showWhy;
 		this.grandFallacyMode = gfMode;
 		this.alwaysRunTests = alwaysTest;
+		this.showTimings = showTimings;
 		rm = new ResourceManager(conf);
 		manager = new DependencyManager(conf, rm, debug);
-		buildOrder = new BuildOrder(this, manager, conf.helper, buildAll, debug);
+		buildOrder = new BuildOrder(this, manager, conf.helper, buildAll, debug, showTimings);
 		ehandler = new ErrorHandler(conf.getLogDir());
 		for (String s : showArgsFor)
 			this.showArgsFor.add(Pattern.compile(s.toLowerCase()));
@@ -122,18 +126,46 @@ public class BuildContext {
 	
 	public void configure()
 	{
+		long start = new Date().getTime();
+		if (showTimings) {
+			System.out.println("configure start...");
+		}
 		rm.configure(tactics);
+		if (showTimings) {
+			long time1 = new Date().getTime();
+			System.out.println("configure done: " + (time1-start));
+		}
 		for (Tactic t : tactics) {
 			buildOrder.knowAbout(t);
 		}
+		if (showTimings) {
+			long time2 = new Date().getTime();
+			System.out.println("configured tactics: " + (time2-start));
+		}
 		if (!blankMemory)
 			buildOrder.loadBuildOrderCache();
+		if (showTimings) {
+			long time3 = new Date().getTime();
+			System.out.println("loaded build cache: " + (time3-start));
+		}
 		manager.init(tactics);
+		if (showTimings) {
+			long time4 = new Date().getTime();
+			System.out.println("init manager: " + (time4-start));
+		}
 		if (blankMemory || !manager.loadDependencyCache(tactics)) {
 			buildOrder.buildAll();
 			manager.figureOutDependencies(tactics);
 		}
+		if (showTimings) {
+			long time5 = new Date().getTime();
+			System.out.println("loaded dependency cache: " + (time5-start));
+		}
 		buildOrder.figureDirtyness(manager);
+		if (showTimings) {
+			long time6 = new Date().getTime();
+			System.out.println("figured dirtyness: " + (time6-start));
+		}
 	}
 
 	public boolean hasPath(String name) {
