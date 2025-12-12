@@ -12,13 +12,18 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
 import org.zinutils.exceptions.UtilException;
+import org.zinutils.utils.FileUtils;
+import org.zinutils.utils.ZUJarEntry;
+import org.zinutils.utils.ZUJarFile;
 
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildStatus;
+import com.gmmapowell.quickbuild.config.BuildIfCommand;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
 import com.gmmapowell.quickbuild.config.DirectoryResourceCommand;
+import com.gmmapowell.quickbuild.config.FileListCommand;
 import com.gmmapowell.quickbuild.config.ResourceCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategemTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
@@ -27,9 +32,6 @@ import com.gmmapowell.quickbuild.core.ResourcePacket;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
-import org.zinutils.utils.FileUtils;
-import org.zinutils.utils.ZUJarEntry;
-import org.zinutils.utils.ZUJarFile;
 import com.gmmapowell.utils.OrderedFileList;
 
 public class JarJarCommand extends AbstractStrategemTactic {
@@ -39,6 +41,8 @@ public class JarJarCommand extends AbstractStrategemTactic {
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
 	private final List<ConfigApplyCommand> options = new ArrayList<ConfigApplyCommand>();
 	private final List<Object> resources = new ArrayList<Object>();
+	private final List<BuildIfCommand> buildifs = new ArrayList<>();
+	private final List<FileListCommand> filelists = new ArrayList<>();
 	private MainClassCommand mainClass;
 	private GitIdCommand gitIdCommand;
 
@@ -82,6 +86,14 @@ public class JarJarCommand extends AbstractStrategemTactic {
 					throw new UtilException("You cannot specify more than one git id variable");
 				gitIdCommand = (GitIdCommand) opt;
 			}
+			else if (opt instanceof BuildIfCommand)
+			{
+				buildifs.add((BuildIfCommand) opt);
+			}
+			else if (opt instanceof FileListCommand)
+			{
+				filelists.add((FileListCommand) opt);
+			}
 			else
 				throw new UtilException("The option " + opt + " is not valid for JarJarCommand");
 		}
@@ -115,7 +127,11 @@ public class JarJarCommand extends AbstractStrategemTactic {
 
 	@Override
 	public OrderedFileList sourceFiles() {
-		return new OrderedFileList();
+		OrderedFileList ret = new OrderedFileList();
+		for (FileListCommand fl : filelists) {
+			fl.addToOFL(ret);
+		}
+		return ret;
 	}
 
 	@Override

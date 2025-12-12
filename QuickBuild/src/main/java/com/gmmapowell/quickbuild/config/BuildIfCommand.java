@@ -28,4 +28,9 @@ public class BuildIfCommand extends NoChildCommand implements ConfigApplyCommand
 		String var = config.getVar(option);
 		return var != null && var.equals(value);
 	}
+	
+	@Override
+	public String toString() {
+		return "buildIf " + option + " == " + value;
+	}
 }
