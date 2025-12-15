@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarOutputStream;
 
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.zinutils.exceptions.UtilException;
 import org.zinutils.utils.FileUtils;
 import org.zinutils.utils.ZUJarEntry;
@@ -45,6 +45,7 @@ public class JarJarCommand extends AbstractStrategemTactic {
 	private final List<FileListCommand> filelists = new ArrayList<>();
 	private MainClassCommand mainClass;
 	private GitIdCommand gitIdCommand;
+	private boolean cachedNeeds = false;
 
 	public JarJarCommand(TokenizedLine toks) {
 		super(toks, new ArgumentDefinition("*", Cardinality.REQUIRED, "outputTo", "output file"));
@@ -65,6 +66,9 @@ public class JarJarCommand extends AbstractStrategemTactic {
 		builds.add(new JarResource(this, FileUtils.relativePath(outputTo)));
 		for (ConfigApplyCommand opt : options)
 		{
+			if (opt instanceof FileListCommand) {
+				((FileListCommand)opt).tactic(this);
+			}
 			opt.applyTo(config);
 			if (opt instanceof ResourceCommand)
 			{
@@ -107,6 +111,14 @@ public class JarJarCommand extends AbstractStrategemTactic {
 
 	@Override
 	public ResourcePacket<PendingResource> needsResources() {
+		if (!cachedNeeds) {
+			cachedNeeds = true;
+			for (FileListCommand flc : filelists) {
+				for (PendingResource r : flc.pendingResources()) {
+					needs.add(r);
+				}
+			}
+		}
 		return needs;
 	}
 
@@ -141,13 +153,13 @@ public class JarJarCommand extends AbstractStrategemTactic {
 
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {
-		JarOutputStream jos = null;
+		ZipArchiveOutputStream jos = null;
 		try {
 			File of = new File(outputTo).getParentFile();
 			if (of == null)
 				of = rootDirectory();
 			FileUtils.assertDirectory(of);
-			jos = new JarOutputStream(new FileOutputStream(FileUtils.relativePath(outputTo)));
+			jos = new ZipArchiveOutputStream(new FileOutputStream(FileUtils.relativePath(outputTo)));
 			Set<String> entries = new HashSet<String>();
 			writeManifest(jos);
 			if (gitIdCommand != null) {
@@ -191,7 +203,7 @@ public class JarJarCommand extends AbstractStrategemTactic {
 							}
 							if (showDebug)
 								System.out.println("    adding as " + je.getJava());
-							jos.putNextEntry(new JarEntry(je.getJava()));
+							jos.putArchiveEntry(new ZipArchiveEntry(je.getJava()));
 							FileUtils.copyStream(je.asStream(), jos);
 							entries.add(name);
 						}
@@ -204,13 +216,17 @@ public class JarJarCommand extends AbstractStrategemTactic {
 						String name = FileUtils.makeRelativeTo(f, drc.rootDir).getPath();
 						if (drc.includes(name)) {
 							String prfName = drc.prefix(name);
-							jos.putNextEntry(new JarEntry(prfName));
+							jos.putArchiveEntry(new ZipArchiveEntry(prfName));
 							FileUtils.copyFileToStream(FileUtils.relativePath(drc.rootDir, name), jos);
 							entries.add(prfName);
 						}
 					}
 				} else
 					throw new UtilException("Cannot handle " + rc);
+			}
+			
+			for (FileListCommand flc : filelists) {
+				flc.addEntriesToJar(jos);
 			}
 			jos.close();
 			jos = null;
@@ -234,8 +250,8 @@ public class JarJarCommand extends AbstractStrategemTactic {
 
 	}
 
-	private void writeManifest(JarOutputStream jos) throws IOException {
-		jos.putNextEntry(new JarEntry("META-INF/MANIFEST.MF"));
+	private void writeManifest(ZipArchiveOutputStream jos) throws IOException {
+		jos.putArchiveEntry(new ZipArchiveEntry("META-INF/MANIFEST.MF"));
 		PrintWriter pw = new PrintWriter(jos);
 		if (mainClass != null)
 			pw.println("Main-Class: " + mainClass.getName());
