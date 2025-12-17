@@ -17,6 +17,7 @@ import org.zinutils.utils.ZipUtils;
 import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.bash.ScriptResource;
+import com.gmmapowell.quickbuild.build.java.DirectoryResource;
 import com.gmmapowell.quickbuild.build.java.JarJarCommand;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
@@ -68,6 +69,59 @@ public class FileListCommand extends NoChildCommand implements ConfigApplyComman
 		}
 	}
 
+	public class SubdirsContent implements JarContentItem {
+		private BuildResource resource;
+		private String path;
+
+		public SubdirsContent(BuildResource r, String path) {
+			this.resource = r;
+			this.path = path;
+		}
+
+		@Override
+		public void addToJar(ZipArchiveOutputStream jos) throws IOException {
+			File from = resource.getPath();
+			for (File f : FileUtils.findFilesUnderMatching(from, "*")) {
+				File g = FileUtils.combine(from, f);
+				if (g.isFile()) {
+					String jf = path + "/" + f.getPath();
+					System.out.println("add " + g + " to jar as " + jf);
+					ZipUtils.fileEntry(jos, jf, g);
+				}
+			}
+		}
+	}
+
+	public class FilesContent implements JarContentItem {
+		private BuildResource resource;
+		private String path;
+		private String pattA;
+		private String pattB;
+
+		public FilesContent(BuildResource r, String path, String pattA, String pattB) {
+			this.resource = r;
+			this.path = path;
+			this.pattA = pattA == null ? "*" : pattA;
+			this.pattB = pattB;
+		}
+
+		@Override
+		public void addToJar(ZipArchiveOutputStream jos) throws IOException {
+			File from = resource.getPath();
+			for (String s : new String[] { pattA, pattB }) {
+				if (s == null) continue;
+				for (File f : FileUtils.findFilesUnderMatching(from, s)) {
+					File g = FileUtils.combine(from, f);
+					if (g.isFile()) {
+						String jf = path + "/" + f.getPath();
+						System.out.println("add " + g + " to jar as " + jf);
+						ZipUtils.fileEntry(jos, jf, g);
+					}
+				}
+			}
+		}
+	}
+
 	public String fileList;
 	private File execdir;
 	private File file;
@@ -90,6 +144,8 @@ public class FileListCommand extends NoChildCommand implements ConfigApplyComman
 		lpp.matchAll("\\s*//.*", "comment");
 		lpp.matchAll("script\\s+([a-zA-Z_0-9./-]*)\\s+([a-zA-Z_0-9.:/-]+)\\s*(0[0-7][0-7][0-7])?", "script", "as", "file", "mode");
 		lpp.matchAll("mvncache\\s+([a-zA-Z_0-9.-]*)\\s*([a-zA-Z_0-9.:-]+)?", "mvncache", "name", "match");
+		lpp.matchAll("subdirs\\s+([a-zA-Z_0-9./-]*)\\s+([a-zA-Z_0-9.:/-]+)", "subdirs", "root", "path");
+		lpp.matchAll("files\\s+([a-zA-Z_0-9./-]*)\\s+([a-zA-Z_0-9.:/-]+)\\s*([*a-zA-Z_0-9.:/-]+)?\\s*([*a-zA-Z_0-9.:/-]+)?", "files", "root", "path", "a", "b");
 		lpp.matchAll("([a-zA-Z_0-9./-]*)\\s+([a-zA-Z_0-9./-]*)\\s*(0[0-7][0-7][0-7])?", "path", "to", "from", "mode");
 		lpp.matchAll("(.*)", "unknown", "cmd");
 		try (FileReader fp = new FileReader(file)) {
@@ -123,13 +179,37 @@ public class FileListCommand extends NoChildCommand implements ConfigApplyComman
 					}
 					cnt++;
 				} else if (lpm.is("script")) {
-					ScriptResource r = new ScriptResource(tactic, new File(lpm.get("file")));
+					ScriptResource r = new ScriptResource(null, new File(lpm.get("file")));
+					PendingResource pr = new PendingResource(r.compareAs());
 					config.resourceAvailable(r);
-					resources.add(new PendingResource(r.compareAs()));
+					pr.bindTo(r);
+					resources.add(pr);
 					contents.add(new JarLibContentItem(r, lpm.get("as"), lpm.get("mode")));
 					cnt++;
-				} else if (lpm.is("unknown") && lpm.lineno() > handledLine) {
-					throw new CantHappenException("unknown file list command: " + lpm.get("cmd"));
+				} else if (lpm.is("subdirs")) {
+					String root = lpm.get("root");
+					String path = lpm.get("path");
+					File f = new File(new File(tactic.rootDirectory(), root), path);
+					DirectoryResource dr = new DirectoryResource(null, f);
+					config.resourceAvailable(dr);
+					resources.add(new PendingResource(dr.compareAs()));
+					contents.add(new SubdirsContent(dr, path));
+					cnt++;
+				} else if (lpm.is("files")) {
+					String root = lpm.get("root");
+					String path = lpm.get("path");
+					File f = new File(new File(tactic.rootDirectory(), root), path);
+					DirectoryResource dr = new DirectoryResource(null, f);
+					config.resourceAvailable(dr);
+					resources.add(new PendingResource(dr.compareAs()));
+					contents.add(new FilesContent(dr, path, lpm.get("a"), lpm.get("b")));
+					cnt++;
+				} else if (lpm.is("unknown")) {
+					if (lpm.lineno() > handledLine) {
+						throw new CantHappenException("unknown file list command: " + lpm.get("cmd"));
+					}
+				} else {
+					throw new CantHappenException("lpm failed: " + lpm);
 				}
 				handledLine = lpm.lineno();
 			}

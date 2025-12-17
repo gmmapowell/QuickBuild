@@ -256,6 +256,7 @@ public class JarJarCommand extends AbstractStrategemTactic {
 		if (mainClass != null)
 			pw.println("Main-Class: " + mainClass.getName());
 		pw.flush();
+		jos.closeArchiveEntry();
 	}
 
 	@Override
