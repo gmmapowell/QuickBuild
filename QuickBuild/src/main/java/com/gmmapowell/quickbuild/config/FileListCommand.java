@@ -146,15 +146,12 @@ public class FileListCommand extends NoChildCommand implements ConfigApplyComman
 		lpp.matchAll("mvncache\\s+([a-zA-Z_0-9.-]*)\\s*([a-zA-Z_0-9.:-]+)?", "mvncache", "name", "match");
 		lpp.matchAll("subdirs\\s+([a-zA-Z_0-9./-]*)\\s+([a-zA-Z_0-9.:/-]+)", "subdirs", "root", "path");
 		lpp.matchAll("files\\s+([a-zA-Z_0-9./-]*)\\s+([a-zA-Z_0-9.:/-]+)\\s*([*a-zA-Z_0-9.:/-]+)?\\s*([*a-zA-Z_0-9.:/-]+)?", "files", "root", "path", "a", "b");
-		lpp.matchAll("([a-zA-Z_0-9./-]*)\\s+([a-zA-Z_0-9./-]*)\\s*(0[0-7][0-7][0-7])?", "path", "to", "from", "mode");
+		lpp.matchAll("\\s*([a-zA-Z_0-9./-]*)\\s+([a-zA-Z_0-9./-]*)\\s*(0[0-7][0-7][0-7])?", "path", "to", "from", "mode");
 		lpp.matchAll("(.*)", "unknown", "cmd");
 		try (FileReader fp = new FileReader(file)) {
-			int cnt = 0;
 			List<LinePatternMatch> matches = lpp.applyTo(fp);
 			int handledLine = 0;
 			for (LinePatternMatch lpm : matches) {
-				System.out.println(lpm.lineno() + " == " + lpm);
-
 				if (lpm.is("blank") || lpm.is("comment")) {
 					handledLine = lpm.lineno();
 					continue;
@@ -168,7 +165,6 @@ public class FileListCommand extends NoChildCommand implements ConfigApplyComman
 						resources.add(r);
 					}
 					contents.add(new MavenContentItem(lpm.get("name"), r));
-					cnt++;
 				} else if (lpm.is("path")) {
 					if (lpm.lineno() <= handledLine)
 						continue;
@@ -177,7 +173,6 @@ public class FileListCommand extends NoChildCommand implements ConfigApplyComman
 						resources.add(r);
 						contents.add(new JarLibContentItem(r, lpm.get("to"), lpm.get("mode")));
 					}
-					cnt++;
 				} else if (lpm.is("script")) {
 					ScriptResource r = new ScriptResource(null, new File(lpm.get("file")));
 					PendingResource pr = new PendingResource(r.compareAs());
@@ -185,7 +180,6 @@ public class FileListCommand extends NoChildCommand implements ConfigApplyComman
 					pr.bindTo(r);
 					resources.add(pr);
 					contents.add(new JarLibContentItem(r, lpm.get("as"), lpm.get("mode")));
-					cnt++;
 				} else if (lpm.is("subdirs")) {
 					String root = lpm.get("root");
 					String path = lpm.get("path");
@@ -194,7 +188,6 @@ public class FileListCommand extends NoChildCommand implements ConfigApplyComman
 					config.resourceAvailable(dr);
 					resources.add(new PendingResource(dr.compareAs()));
 					contents.add(new SubdirsContent(dr, path));
-					cnt++;
 				} else if (lpm.is("files")) {
 					String root = lpm.get("root");
 					String path = lpm.get("path");
@@ -203,7 +196,6 @@ public class FileListCommand extends NoChildCommand implements ConfigApplyComman
 					config.resourceAvailable(dr);
 					resources.add(new PendingResource(dr.compareAs()));
 					contents.add(new FilesContent(dr, path, lpm.get("a"), lpm.get("b")));
-					cnt++;
 				} else if (lpm.is("unknown")) {
 					if (lpm.lineno() > handledLine) {
 						throw new CantHappenException("unknown file list command: " + lpm.get("cmd"));
@@ -213,7 +205,6 @@ public class FileListCommand extends NoChildCommand implements ConfigApplyComman
 				}
 				handledLine = lpm.lineno();
 			}
-			System.out.println("file " + fileList + " cnt = " + cnt);
 		} catch (IOException e) {
 			throw WrappedException.wrap(e);
 		}

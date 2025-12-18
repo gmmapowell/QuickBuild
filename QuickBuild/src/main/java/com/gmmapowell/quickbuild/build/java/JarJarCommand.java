@@ -206,6 +206,7 @@ public class JarJarCommand extends AbstractStrategemTactic {
 							jos.putArchiveEntry(new ZipArchiveEntry(je.getJava()));
 							FileUtils.copyStream(je.asStream(), jos);
 							entries.add(name);
+							jos.closeArchiveEntry();
 						}
 					}
 				} else if (rc instanceof DirectoryResourceCommand) {
@@ -219,6 +220,7 @@ public class JarJarCommand extends AbstractStrategemTactic {
 							jos.putArchiveEntry(new ZipArchiveEntry(prfName));
 							FileUtils.copyFileToStream(FileUtils.relativePath(drc.rootDir, name), jos);
 							entries.add(prfName);
+							jos.closeArchiveEntry();
 						}
 					}
 				} else
