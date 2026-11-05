@@ -19,6 +19,7 @@ import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.build.bash.ScriptResource;
 import com.gmmapowell.quickbuild.build.java.DirectoryResource;
 import com.gmmapowell.quickbuild.build.java.JarJarCommand;
+import com.gmmapowell.quickbuild.build.java.JarResource;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
 import com.gmmapowell.utils.ArgumentDefinition;
@@ -143,6 +144,7 @@ public class FileListCommand extends NoChildCommand implements ConfigApplyComman
 		lpp.matchAll("\\s*#.*", "comment");
 		lpp.matchAll("\\s*//.*", "comment");
 		lpp.matchAll("script\\s+([a-zA-Z_0-9./-]*)\\s+([a-zA-Z_0-9.:/-]+)\\s*(0[0-7][0-7][0-7])?", "script", "as", "file", "mode");
+		lpp.matchAll("jar\\s+([a-zA-Z_0-9./-]*)\\s+([a-zA-Z_0-9.:/-]+)\\s*(0[0-7][0-7][0-7])?", "jar", "as", "file", "mode");
 		lpp.matchAll("mvncache\\s+([a-zA-Z_0-9.-]*)\\s*([a-zA-Z_0-9.:-]+)?", "mvncache", "name", "match");
 		lpp.matchAll("subdirs\\s+([a-zA-Z_0-9./-]*)\\s+([a-zA-Z_0-9.:/-]+)", "subdirs", "root", "path");
 		lpp.matchAll("files\\s+([a-zA-Z_0-9./-]*)\\s+([a-zA-Z_0-9.:/-]+)\\s*([*a-zA-Z_0-9.:/-]+)?\\s*([*a-zA-Z_0-9.:/-]+)?", "files", "root", "path", "a", "b");
@@ -176,8 +178,19 @@ public class FileListCommand extends NoChildCommand implements ConfigApplyComman
 				} else if (lpm.is("script")) {
 					ScriptResource r = new ScriptResource(null, new File(lpm.get("file")));
 					PendingResource pr = new PendingResource(r.compareAs());
-					config.resourceAvailable(r);
-					pr.bindTo(r);
+					if (r.getPath().exists()) {
+						config.resourceAvailable(r);
+						pr.bindTo(r);
+					}
+					resources.add(pr);
+					contents.add(new JarLibContentItem(r, lpm.get("as"), lpm.get("mode")));
+				} else if (lpm.is("jar")) {
+					JarResource r = new JarResource(null, new File(lpm.get("file")));
+					PendingResource pr = new PendingResource(r.compareAs());
+					if (r.getPath().exists()) {
+						config.resourceAvailable(r);
+						pr.bindTo(r);
+					}
 					resources.add(pr);
 					contents.add(new JarLibContentItem(r, lpm.get("as"), lpm.get("mode")));
 				} else if (lpm.is("subdirs")) {
@@ -185,7 +198,9 @@ public class FileListCommand extends NoChildCommand implements ConfigApplyComman
 					String path = lpm.get("path");
 					File f = new File(new File(tactic.rootDirectory(), root), path);
 					DirectoryResource dr = new DirectoryResource(null, f);
-					config.resourceAvailable(dr);
+					if (dr.getPath().exists()) {
+						config.resourceAvailable(dr);
+					}
 					resources.add(new PendingResource(dr.compareAs()));
 					contents.add(new SubdirsContent(dr, path));
 				} else if (lpm.is("files")) {

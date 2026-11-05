@@ -123,6 +123,9 @@ public class Config extends SpecificChildrenParent<ConfigCommand>  {
 	
 	public void resourceAvailable(BuildResource br)
 	{
+		if (!br.getPath().exists()) {
+			throw new RuntimeException(br + " does not exist");
+		}
 		availableResources.add(br);
 	}
 	

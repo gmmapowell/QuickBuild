@@ -173,6 +173,11 @@ public class DependencyManager {
 			}
 		}
 		if (uniq.size() == 0) {
+			/*
+			 * While this hack may work, it ONLY works when the directory exists,
+			 * which doesn't take into account the fact that the directory may be produced by
+			 * an earlier step.  So in the end, it bites you :-)
+
 			// final effort ... is it a dir?
 			File asdir = new File(FileUtils.getCurrentDir(), pr.getPending());
 			if (asdir.isDirectory()) {
@@ -181,9 +186,12 @@ public class DependencyManager {
 				allResources.add(r);
 				return r;
 			}
+			*/
 			StringBuilder sb = new StringBuilder("Could not find any dependency that matched " + pr.compareAs() +"; have:\n");
 			for (BuildResource br : allResources)
 				sb.append("  " + br.compareAs() + "\n");
+			sb.append("Could not find any dependency that matched " + pr.compareAs() +"\n");
+
 			throw new QuickBuildException(sb.toString());
 		}
 		if (uniq.size() > 1) {

@@ -1,10 +1,16 @@
 package com.gmmapowell.quickbuild.build;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.zinutils.exceptions.CantHappenException;
+import org.zinutils.utils.FileUtils;
 
 import com.gmmapowell.parser.TokenizedLine;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.config.ConfigApplyCommand;
+import com.gmmapowell.quickbuild.config.ProducesCommand;
 import com.gmmapowell.quickbuild.core.AbstractStrategemTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.CopiedResource;
@@ -14,7 +20,6 @@ import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.utils.ArgumentDefinition;
 import com.gmmapowell.utils.Cardinality;
-import org.zinutils.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 
 public class CopyResourceCommand extends AbstractStrategemTactic {
@@ -25,6 +30,7 @@ public class CopyResourceCommand extends AbstractStrategemTactic {
 	private StructureHelper files;
 	private final ResourcePacket<PendingResource> needed = new ResourcePacket<PendingResource>();
 	private final ResourcePacket<BuildResource> builds = new ResourcePacket<BuildResource>();
+	private final List<ProducesCommand> pcmds = new ArrayList<>();
 
 	public CopyResourceCommand(TokenizedLine toks) {
 		super(toks,
@@ -34,17 +40,32 @@ public class CopyResourceCommand extends AbstractStrategemTactic {
 	}
 
 	@Override
+	public void addChild(ConfigApplyCommand o) {
+		if (o instanceof ProducesCommand) {
+			ProducesCommand jpc = (ProducesCommand)o;
+			pcmds.add(jpc);
+		} else {
+			throw new CantHappenException("unsupported child resource: " + o.getClass());
+		}
+	}
+
+	@Override
 	public Strategem applyConfig(Config config) {
 		files = new StructureHelper(FileUtils.getCurrentDir(), "");
 		fromResource = new PendingResource(fromResourceName);
 		toResource = new CopiedResource(this, fromResource, new File(files.getRelative(toPath), new File(fromResourceName).getName()));
 		builds.add(toResource);
 		needed.add(fromResource);
+		for (ProducesCommand pc : pcmds) {
+			pc.applyTo(config);
+			BuildResource resource = pc.getProducedResource(this);
+//			produces.add(resource);
+			this.buildsResources().add(resource);
+			if (pc.doAnalysis()) {
+				resource.enableAnalysis();
+			}
+		}
 		return this;
-	}
-
-	@Override
-	public void addChild(ConfigApplyCommand obj) {
 	}
 
 	@Override

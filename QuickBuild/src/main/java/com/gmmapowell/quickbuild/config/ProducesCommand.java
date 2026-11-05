@@ -1,11 +1,14 @@
 package com.gmmapowell.quickbuild.config;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.zinutils.exceptions.UtilException;
+import org.zinutils.utils.FileUtils;
 
 import com.gmmapowell.parser.NoChildCommand;
 import com.gmmapowell.parser.TokenizedLine;
+import com.gmmapowell.quickbuild.build.bash.ScriptResource;
 import com.gmmapowell.quickbuild.build.java.DirectoryResource;
 import com.gmmapowell.quickbuild.build.java.JarDirectoryResource;
 import com.gmmapowell.quickbuild.build.java.JarResource;
@@ -40,6 +43,13 @@ public class ProducesCommand extends NoChildCommand implements ConfigApplyComman
 	public void applyTo(Config config) {
 		StructureHelper files = new StructureHelper(execdir, "");
 		resourceFile = files.getRelative(resource);
+		try {
+			resourceFile = resourceFile.getCanonicalFile();
+			resourceFile = FileUtils.figureRelativePathFrom(FileUtils.getCurrentDir(), resourceFile);
+			System.out.println("resource = " + resource + " execdir = " + execdir + " resourceFile = " + resourceFile);
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	public boolean doAnalysis()
@@ -52,10 +62,12 @@ public class ProducesCommand extends NoChildCommand implements ConfigApplyComman
 			return new JarResource(t, resourceFile);
 		else if (type.equals("js"))
 			return new JSFileResource(t, resourceFile);
-		else if (type.equals("classdir"))
+		else if (type.equals("classdir") || type.equals("directory"))
 			return new DirectoryResource(t, resourceFile);
 		else if (type.equals("libdir"))
 			return new JarDirectoryResource(t, resourceFile);
+		else if (type.equals("script"))
+			return new ScriptResource(t, resourceFile);
 		else if (type.equals("zip"))
 			return new WarResource(t, resourceFile);
 		else
