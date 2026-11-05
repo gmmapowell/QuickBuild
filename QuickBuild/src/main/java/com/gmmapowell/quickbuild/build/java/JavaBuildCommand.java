@@ -322,7 +322,7 @@ public class JavaBuildCommand extends AbstractTactic implements CanBeSkipped, Ma
 	}
 
 	@Override
-	public boolean makesDirty(MayPropagateDirtyness dependency) {
+	public boolean madeDirtyBy(MayPropagateDirtyness dependency) {
 		// if it's something I don't understand, play safe ...
 		if (!(dependency instanceof JavaBuildCommand) && !(dependency instanceof ArchiveCommand))
 			return true;

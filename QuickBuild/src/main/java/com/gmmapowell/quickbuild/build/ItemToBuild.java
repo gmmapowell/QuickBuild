@@ -164,7 +164,7 @@ public class ItemToBuild {
 		if (tactic instanceof CareAboutPropagatedDirtyness && needsBuild == BuildStatus.CLEAN) {
 			CareAboutPropagatedDirtyness t = (CareAboutPropagatedDirtyness) tactic;
 			for (MayPropagateDirtyness d : propagators) {
-				if (t.makesDirty(d)) {
+				if (t.madeDirtyBy(d)) {
 					if (cxt.why()) {
 						System.out.println(" -- dirtiness propagated from " + d);
 					}

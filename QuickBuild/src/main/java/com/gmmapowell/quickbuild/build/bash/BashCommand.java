@@ -211,7 +211,7 @@ public class BashCommand extends AbstractBuildCommand implements ExecutesInDirCo
 	}
 
 	@Override
-	public boolean makesDirty(MayPropagateDirtyness dependency) {
+	public boolean madeDirtyBy(MayPropagateDirtyness dependency) {
 		for (PendingResource pr : this.needsResources()) {
 			Tactic t = pr.getBuiltBy();
 			if (t instanceof MayPropagateDirtyness && ((MayPropagateDirtyness)t).dirtynessPropagates())

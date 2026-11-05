@@ -150,6 +150,13 @@ public class JarJarCommand extends AbstractStrategemTactic {
 	public boolean onCascade() {
 		return false;
 	}
+	
+	public boolean isApplicable() {
+		for (BuildIfCommand b : buildifs)
+			if (!b.isApplicable())
+				return false;
+		return true;
+	}
 
 	@Override
 	public BuildStatus execute(BuildContext cxt, boolean showArgs, boolean showDebug) {

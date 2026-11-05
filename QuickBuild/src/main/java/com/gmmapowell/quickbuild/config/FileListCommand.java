@@ -44,7 +44,7 @@ public class FileListCommand extends NoChildCommand implements ConfigApplyComman
 
 		@Override
 		public void addToJar(ZipArchiveOutputStream jos) throws IOException {
-			System.out.println("add " + r.getPath() + " to jar as " + as + " with mode " + mode);
+//			System.out.println("add " + r.getPath() + " to jar as " + as + " with mode " + mode);
 			if (mode != null) {
 				ZipUtils.fileEntry(jos, as, r.getPath(), Integer.parseInt(mode, 8));
 			} else {
@@ -65,7 +65,7 @@ public class FileListCommand extends NoChildCommand implements ConfigApplyComman
 		@Override
 		public void addToJar(ZipArchiveOutputStream jos) throws IOException {
 			String jf = "lib/" + name + ".jar";
-			System.out.println("add " + resource.getPath() + " to jar as " + jf);
+//			System.out.println("add " + resource.getPath() + " to jar as " + jf);
 			ZipUtils.fileEntry(jos, jf, resource.getPath());
 		}
 	}
@@ -86,7 +86,7 @@ public class FileListCommand extends NoChildCommand implements ConfigApplyComman
 				File g = FileUtils.combine(from, f);
 				if (g.isFile()) {
 					String jf = path + "/" + f.getPath();
-					System.out.println("add " + g + " to jar as " + jf);
+//					System.out.println("add " + g + " to jar as " + jf);
 					ZipUtils.fileEntry(jos, jf, g);
 				}
 			}
@@ -115,7 +115,7 @@ public class FileListCommand extends NoChildCommand implements ConfigApplyComman
 					File g = FileUtils.combine(from, f);
 					if (g.isFile()) {
 						String jf = path + "/" + f.getPath();
-						System.out.println("add " + g + " to jar as " + jf);
+//						System.out.println("add " + g + " to jar as " + jf);
 						ZipUtils.fileEntry(jos, jf, g);
 					}
 				}

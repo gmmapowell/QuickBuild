@@ -34,6 +34,7 @@ jarjar scripts/Quickbuilder.jar
   resource /Utils.jar
   resource ZinUtils.jar
   resource jsch:jar
+  resource commons-compress:jar
 
 distribute scripts sftp:jenkins@churchst.homeip.net:2256//home/quickbuild/
   resource Quickbuilder.jar

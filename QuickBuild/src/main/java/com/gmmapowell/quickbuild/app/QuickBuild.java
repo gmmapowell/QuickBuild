@@ -147,7 +147,7 @@ public class QuickBuild {
 			}
 			List<String> notclean = helper.checkRepositoryClean(null, false);
 			for (String s : notclean)
-				System.out.println("WARNING: the directory " + s + " is not owned by git");
+				System.out.println("WARNING: the directory " + s + " will be ignored because it is not owned by git; updates will not trigger a rebuild");
 			if (arguments.checkGit) {
 				if (arguments.showTimings) {
 					long time1a = new Date().getTime();

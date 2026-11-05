@@ -245,7 +245,7 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 		}
 		if (!isDirty)
 		{
-			for (BuildResource wb : itb.getDependencies(dependencies))
+			for (BuildResource wb : dependencies.getTransitiveDependencies(itb.tactic))
 			{
 				if (wb == null || wb instanceof ProcessResource)
 					continue;
@@ -264,6 +264,9 @@ public class BuildOrder implements Iterable<ItemToBuild> {
 					if (debug)
 						cxt.output.println("Marking " + itb + " dirty because " + wb.compareAs() + " is dirty or being dirtied");
 					isDirty = true;
+				}
+				if (isDirty) {
+					break;
 				}
 			}
 		}

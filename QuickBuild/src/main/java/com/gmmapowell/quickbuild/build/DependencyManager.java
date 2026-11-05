@@ -66,6 +66,7 @@ public class DependencyManager {
 	
 	// A map from each tactic to the things it specifically depends on
 	private final Map<Tactic, Set<BuildResource>> dependencies = new TreeMap<Tactic, Set<BuildResource>>();
+	private final Map<Tactic, Set<BuildResource>> transdependencies = new TreeMap<Tactic, Set<BuildResource>>();
 
 	public DependencyManager(Config conf, ResourceManager rm, boolean debug)
 	{
@@ -261,8 +262,12 @@ public class DependencyManager {
 	}
 
 	public Iterable<BuildResource> getTransitiveDependencies(Tactic t) {
+		if (transdependencies.containsKey(t)) {
+			return transdependencies.get(t);
+		}
 		Set<Tactic> lookedAt = new TreeSet<Tactic>();
 		Set<BuildResource> ret = new TreeSet<BuildResource>();
+		transdependencies.put(t, ret);
 		getTransitiveDependencies(lookedAt, ret, t);
 		return ret;
 	}
