@@ -133,7 +133,7 @@ public class AndroidCommand extends AbstractStrategem {
 				throw new UtilException("Cannot handle " + cmd);
 		}
 
-		createTactics(); // ensure they're generated
+		createTactics(config); // ensure they're generated
 		apkResource = apkTactic.getResource();
 		
 		return this;
@@ -144,7 +144,7 @@ public class AndroidCommand extends AbstractStrategem {
 	}
 
 
-	public void createTactics() {
+	public void createTactics(Config config) {
 		File manifest = files.getRelative("src/android/AndroidManifest.xml");
 		File gendir = files.getRelative("src/android/gen");
 		File resdir = files.getRelative("src/android/res");
@@ -223,7 +223,7 @@ public class AndroidCommand extends AbstractStrategem {
 				buildTests.addProcessDependency(prior);
 				
 				
-				JUnitRunCommand junitRun = new JUnitRunCommand(this, files, Arrays.asList(buildTests), null);
+				JUnitRunCommand junitRun = new JUnitRunCommand(config, this, files, Arrays.asList(buildTests), null);
 				junitRun.addToClasspath(acxt.getPlatformJar());
 				junitRun.addToClasspath(acxt.getSupportJar());
 				junitRun.addLibs(junitLibs);

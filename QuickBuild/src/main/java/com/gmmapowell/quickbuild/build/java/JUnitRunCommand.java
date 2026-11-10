@@ -16,17 +16,22 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import org.zinutils.bytecode.ByteCodeFile;
+import org.zinutils.exceptions.CantHappenException;
 import org.zinutils.exceptions.UtilException;
-
 import org.zinutils.parser.LinePatternMatch;
 import org.zinutils.parser.LinePatternParser;
 import org.zinutils.parser.LinePatternParser.MatchIterator;
+import org.zinutils.system.RunProcess;
+import org.zinutils.system.ThreadedStreamReader;
+import org.zinutils.utils.FileUtils;
+
 import com.gmmapowell.quickbuild.app.BuildOutput;
 import com.gmmapowell.quickbuild.build.BuildContext;
 import com.gmmapowell.quickbuild.build.BuildOrder;
 import com.gmmapowell.quickbuild.build.BuildStatus;
 import com.gmmapowell.quickbuild.build.CanBeSkipped;
 import com.gmmapowell.quickbuild.build.ErrorCase;
+import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.core.AbstractTactic;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;
@@ -34,10 +39,6 @@ import com.gmmapowell.quickbuild.core.ProcessResource;
 import com.gmmapowell.quickbuild.core.Strategem;
 import com.gmmapowell.quickbuild.core.StructureHelper;
 import com.gmmapowell.quickbuild.exceptions.QuickBuildException;
-
-import org.zinutils.system.RunProcess;
-import org.zinutils.system.ThreadedStreamReader;
-import org.zinutils.utils.FileUtils;
 import com.gmmapowell.utils.OrderedFileList;
 import com.gmmapowell.utils.SyncUtils;
 
@@ -57,8 +58,11 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 
 	private Map<String, String> envs = new TreeMap<>();
 
-	public JUnitRunCommand(Strategem parent, StructureHelper files, List<JavaBuildCommand> testBuilds, OrderedFileList testResourceFiles) {
+	private final File qbdir;
+
+	public JUnitRunCommand(Config config, Strategem parent, StructureHelper files, List<JavaBuildCommand> testBuilds, OrderedFileList testResourceFiles) {
 		super(parent);
+		qbdir = FileUtils.getCurrentDir();
 		this.files = files;
 		this.testBuilds = testBuilds;
 		this.testResourceFiles = testResourceFiles;
@@ -104,8 +108,9 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 		for (File f : this.classpath)
 			classpath.add(f);
 		for (BuildResource r : needsResources())
-			for (File f : r.getPaths())
-				classpath.add(f);
+			for (File f : r.getPaths()) {
+			 	classpath.add(getAbsoluteFile(f));
+			}
 		for (BuildResource f : cxt.getTransitiveDependencies(this))
 			if (f != null && !(f instanceof ProcessResource))
 				classpath.add(f.getPath());
@@ -146,6 +151,17 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 			proc.destroy();
 //		}
 		
+		return ret;
+	}
+
+	private File getAbsoluteFile(File f) {
+		if (f.isAbsolute()) {
+			return f;
+		}
+		File ret = FileUtils.combine(qbdir, f);
+		if (!ret.canRead()) {
+			throw new CantHappenException("cannot read absolute file: " + ret + " based on relative file " + f);
+		}
 		return ret;
 	}
 
@@ -259,8 +275,12 @@ public class JUnitRunCommand extends AbstractTactic implements CanBeSkipped {
 			if (r instanceof PendingResource)
 				needs((PendingResource) r);
 			else {
-				for (File f : r.getPaths())
+				for (File f : r.getPaths()) {
+					if (!f.isAbsolute()) {
+						System.out.println("relative path: " + f);
+					}
 					addToClasspath(f);
+				}
 			}
 		}
 	}

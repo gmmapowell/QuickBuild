@@ -12,7 +12,6 @@ import java.util.regex.Pattern;
 
 import org.zinutils.exceptions.UtilException;
 
-import com.gmmapowell.quickbuild.build.java.DirectoryResource;
 import com.gmmapowell.quickbuild.config.Config;
 import com.gmmapowell.quickbuild.core.BuildResource;
 import com.gmmapowell.quickbuild.core.PendingResource;

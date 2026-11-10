@@ -24,5 +24,4 @@ public class JUnitLibCommand extends NoChildCommand implements ConfigApplyComman
 	public PendingResource getResource() {
 		return new PendingResource(lib);
 	}
-
 }

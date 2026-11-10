@@ -127,7 +127,7 @@ public class JarCommand extends AbstractStrategem {
 		}
 		addResources(jar, jbcs, "src/main/resources");
 		addResources(null, jbcs, "src/test/resources");
-		jrun = addJUnitRun(tactics, jbcs);
+		jrun = addJUnitRun(config, tactics, jbcs);
 		if (tactics.size() == 0)
 			throw new QuickBuildException("None of the required source directories exist (or have source files) to build " + targetName);
 		if (javac != null || jar.alwaysBuild())
@@ -442,7 +442,7 @@ public class JarCommand extends AbstractStrategem {
 		}
 	}
 
-	private JUnitRunCommand addJUnitRun(List<? super Tactic> ret, List<JavaBuildCommand> jbcs) {
+	private JUnitRunCommand addJUnitRun(Config config, List<? super Tactic> ret, List<JavaBuildCommand> jbcs) {
 		if (runJunit && testsAreApplicable() && !jbcs.isEmpty())
 		{
 			OrderedFileList ofl = figureResourceFiles("src/main/resources", "src/test/resources");
@@ -455,7 +455,7 @@ public class JarCommand extends AbstractStrategem {
 					ofl.add(f);
 			}
 
-			JUnitRunCommand cmd = new JUnitRunCommand(this, files, jbcs, ofl);
+			JUnitRunCommand cmd = new JUnitRunCommand(config, this, files, jbcs, ofl);
 			cmd.addLibs(junitLibs);
 			if (junitMemory != null)
 				cmd.setJUnitMemory(junitMemory);

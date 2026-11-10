@@ -109,7 +109,7 @@ public class ZinikiCommand extends AbstractStrategem {
 			tactics.add(juc);
 			
 			{
-				JUnitRunCommand jur = new JUnitRunCommand(this, files, Arrays.asList(juc), null);
+				JUnitRunCommand jur = new JUnitRunCommand(config, this, files, Arrays.asList(juc), null);
 				jur.addLibs(junitLibs);
 				jur.addProcessDependency(juc);
 				tactics.add(jur);
